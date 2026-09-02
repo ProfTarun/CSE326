@@ -1,0 +1,130 @@
+/* ===================================================================
+   Page styles for the student site. theme.css supplies the tricolour
+   landscape, buttons, cards and typography; this file adds the pieces
+   only this site needs.
+   =================================================================== */
+
+.mut { color: var(--mut); }
+
+/* ---- filter row ---- */
+.filters { display: flex; gap: 9px; flex-wrap: wrap; align-items: center;
+  margin-bottom: 18px; }
+.filters input, .filters select {
+  padding: 10px 13px; border: 1px solid var(--line); border-radius: 10px;
+  font-size: 14px; font-family: inherit; background: rgba(255,255,255,.96); }
+.filters input { min-width: 240px; }
+.filters input:focus, .filters select:focus {
+  outline: 0; border-color: var(--saffron);
+  box-shadow: 0 0 0 3px rgba(255,153,51,.16); }
+
+.chip { font-size: 12.5px; font-weight: 700; padding: 7px 13px;
+  border-radius: 999px; border: 1px solid var(--line); background: #fff;
+  cursor: pointer; color: var(--ink-2); }
+.chip:hover { border-color: var(--saffron); color: var(--saffron-d); }
+.chip.on { background: linear-gradient(135deg, var(--saffron),
+  var(--saffron-d)); color: #fff; border-color: transparent; }
+
+/* ---- item lists ---- */
+.items { display: grid; gap: 11px; }
+.item { background: rgba(255,255,255,.96); border: 1px solid var(--line);
+  border-radius: 13px; padding: 15px 17px; cursor: pointer;
+  display: flex; gap: 13px; align-items: flex-start; transition: .14s;
+  box-shadow: var(--shadow); }
+.item:hover { border-color: var(--saffron); transform: translateX(3px); }
+.item .n { width: 30px; height: 30px; border-radius: 9px; flex: 0 0 auto;
+  background: var(--saffron-pale); color: var(--saffron-d); font-weight: 800;
+  font-size: 13px; display: grid; place-items: center; }
+.item.done .n { background: var(--green-pale); color: var(--green-d); }
+.item.tried .n { background: var(--warn-bg); color: var(--warn); }
+.item .t { font-weight: 700; font-size: 15px; line-height: 1.4; }
+.item .m { font-size: 12.4px; color: var(--mut); margin-top: 3px;
+  font-weight: 600; }
+.item .ask { font-size: 14.2px; line-height: 1.55; }
+
+/* ---- practice pad ---- */
+.lab { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+@media (max-width: 800px) { .lab { grid-template-columns: 1fr; } }
+.pane { border: 1px solid var(--line); border-radius: 12px; overflow: hidden;
+  display: flex; flex-direction: column; background: #fff; }
+.pbar { background: #F7F9FC; border-bottom: 1px solid var(--line);
+  padding: 7px 12px; font-size: 12px; color: var(--mut); font-weight: 700; }
+.lab textarea { flex: 1; border: 0; outline: 0; padding: 13px;
+  background: var(--code); color: #DCE7F5; font-family: var(--mono);
+  font-size: 13px; line-height: 1.6; resize: vertical; min-height: 250px; }
+.lab iframe { flex: 1; border: 0; background: #fff; min-height: 250px; }
+.acts { display: flex; gap: 9px; margin-top: 13px; flex-wrap: wrap; }
+
+.bar { height: 9px; background: #EAEFF5; border-radius: 99px;
+  overflow: hidden; margin: 14px 0 10px; }
+.bar i { display: block; height: 100%; width: 0;
+  background: linear-gradient(90deg, var(--saffron), var(--green));
+  transition: width .4s; }
+
+.chk { display: flex; gap: 10px; align-items: flex-start; padding: 9px 12px;
+  border-radius: 9px; margin-bottom: 6px; font-size: 14px; line-height: 1.55; }
+.chk.ok { background: var(--ok-bg); color: #0A5C34; }
+.chk.no { background: var(--bad-bg); color: #8A2020; }
+.chk .ic { font-weight: 900; }
+
+.note { background: var(--warn-bg); border-left: 4px solid #F0A429;
+  padding: 11px 14px; border-radius: 0 9px 9px 0; margin: 9px 0;
+  font-size: 14px; line-height: 1.6; }
+.win { background: var(--ok-bg); border: 1px solid #A9E3C4; color: #0A5C34;
+  padding: 14px 16px; border-radius: 12px; margin-top: 12px;
+  line-height: 1.6; }
+
+/* ---- quiz ---- */
+.opt { border: 1px solid var(--line); border-radius: 11px; padding: 12px 15px;
+  margin-bottom: 8px; cursor: pointer; font-size: 14.5px; background: #fff;
+  line-height: 1.5; }
+.opt:hover { border-color: var(--saffron); background: #FFFCF8; }
+.opt.right { background: var(--ok-bg); border-color: #A9E3C4;
+  color: #0A5C34; font-weight: 700; }
+.opt.wrong { background: var(--bad-bg); border-color: #F1B4B4;
+  color: #8A2020; }
+.why { display: none; margin-top: 11px; background: #F7FAFD;
+  border-radius: 10px; padding: 13px 15px; font-size: 14px;
+  line-height: 1.65; }
+.why.on { display: block; }
+
+/* ---- steps / dots ---- */
+.dots { display: flex; gap: 5px; margin-top: 15px; }
+.dot { height: 6px; flex: 1; border-radius: 99px; background: #E7EDF4; }
+.dot.on { background: var(--saffron); }
+.dot.ok { background: var(--green); }
+
+/* ---- back link ---- */
+.back { display: inline-block; margin-bottom: 14px; font-size: 14px;
+  font-weight: 700; color: var(--saffron-d); text-decoration: none; }
+.back:hover { text-decoration: underline; }
+
+/* ---- mistakes ---- */
+.mis { border: 1px solid var(--line); border-radius: 11px; padding: 13px 15px;
+  margin-bottom: 9px; font-size: 14px; line-height: 1.65; background: #fff; }
+.mis .w { color: var(--bad); font-family: var(--mono); font-size: 13px; }
+.mis .r { color: var(--ok); font-family: var(--mono); font-size: 13px; }
+
+/* ---- annotated demo ---- */
+.ann { display: grid; gap: 7px; margin-top: 11px; }
+.ann .row { display: flex; gap: 11px; font-size: 13.5px; line-height: 1.6;
+  background: #F7FAFD; border-radius: 9px; padding: 10px 12px; }
+.ann .row b { color: var(--saffron-d); white-space: nowrap;
+  font-family: var(--mono); font-size: 12.5px; }
+
+/* ---- stats ---- */
+.stats { display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 13px; margin-bottom: 22px; }
+.stat { background: rgba(255,255,255,.96); border: 1px solid var(--line);
+  border-radius: var(--r); padding: 17px 19px; box-shadow: var(--shadow); }
+.stat .n { font-size: 27px; font-weight: 800; line-height: 1;
+  color: var(--saffron-d); }
+.stat.g .n { color: var(--green-d); }
+.stat.b .n { color: #3730A3; }
+.stat .l { font-size: 12.4px; color: var(--mut); margin-top: 6px;
+  font-weight: 600; line-height: 1.45; }
+
+@media (max-width: 620px) {
+  .topbar nav { display: none; }
+  .topbar .menub { display: inline-block; }
+}
