@@ -50,6 +50,7 @@
 <div id="barSlot"></div>
 
 <script src="js/check.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/app.js"></script>
 <script>
 "use strict";
@@ -114,7 +115,8 @@ function setup() {
     'var(--line);border-radius:9px;font-family:inherit;font-size:14px;' +
     'margin-left:6px">' +
       '<option value="10">10 (quick)</option>' +
-      '<option value="20" selected>20</option>' +
+      '<option value="30" selected>30 (full CA2 length)</option>' +
+      '<option value="50">50</option>' +
       '<option value="' + BANK.length + '">All ' + BANK.length +
       "</option></select></label>" +
     '<button class="btn saf" onclick="start()">Start the test</button>' +
@@ -241,8 +243,12 @@ function submit() {
 
 (async function () {
   try {
+    /* Two sources: the standalone bank (185 questions written to CA2 shape)
+       plus the quick-check quizzes built into each lesson. */
     var lessons = await loadJSON("lessons.json");
-    BANK = buildBank(lessons);
+    var bank = [];
+    try { bank = await loadJSON("questions.json"); } catch (e) { bank = []; }
+    BANK = bank.concat(buildBank(lessons));
     setup();
   } catch (e) {
     $("wrap").innerHTML = '<div class="empty">' + esc(e.message) + "</div>";
