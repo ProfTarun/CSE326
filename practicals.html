@@ -1,0 +1,106 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lab practicals | CSE326</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  .steps li{counter-increment:s;position:relative;padding:0 0 13px 40px;
+    line-height:1.65;color:var(--ink-2)}
+  .steps li:before{content:counter(s);position:absolute;left:0;top:-1px;
+    width:26px;height:26px;border-radius:50%;
+    background:linear-gradient(135deg,var(--saffron),var(--saffron-d));
+    color:#fff;font-weight:800;font-size:12.5px;display:grid;
+    place-items:center}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="empty"><span class="spin"></span> Loading practicals&hellip;</div>
+</div>
+
+<script src="js/check.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("practicals.html");
+
+var PRACS = [], P = null;
+
+function drawList() {
+  var done = Progress.count("practicals", "done");
+  $("wrap").innerHTML =
+    '<p class="eyebrow">Unit 7 &middot; prescribed experiments</p>' +
+    '<h1 class="sec-h" style="font-size:27px">Lab practicals</h1>' +
+    '<p class="sec-p">The experiments from your syllabus, broken into ' +
+    "steps. The checks ARE the marking scheme &mdash; so you know before " +
+    "the lab whether your page meets the brief. " + done + " of " +
+    PRACS.length + " done.</p>" +
+    '<div class="items">' +
+    PRACS.map(function (p) {
+      var st = Progress.status("practicals", p.id);
+      return '<div class="item ' + st + '" onclick="open_(\'' + p.id +
+        '\')"><span class="n">' + (st === "done" ? "&#10003;" : p.n) +
+        "</span><span>" +
+        '<span class="t">' + esc(p.title) + "</span>" +
+        '<span class="m">' + p.checks.length + " requirements &middot; " +
+        p.steps.length + " steps</span></span></div>";
+    }).join("") + "</div>" +
+    '<div class="card" style="margin-top:22px">' +
+    '<h2>Not here yet</h2><p class="mut" style="line-height:1.7;margin:0">' +
+    "Four of the ten prescribed experiments are JavaScript ones. They will " +
+    "appear when Units 4 to 6 are added.</p></div>";
+}
+
+function open_(id) {
+  P = PRACS.filter(function (p) { return p.id === id; })[0];
+  if (!P) return;
+
+  $("wrap").innerHTML =
+    '<a class="back" href="#" onclick="back(event)">&larr; All practicals' +
+    "</a>" +
+    '<div class="card">' +
+      '<span class="pill saf">Experiment ' + P.n + "</span>" +
+      '<h1 style="font-size:23px;margin:10px 0 8px">' + esc(P.title) +
+      "</h1>" +
+      '<p class="mut" style="line-height:1.7;margin:0 0 16px">' +
+      esc(P.brief) + "</p>" +
+      "<h2>What it must contain</h2>" +
+      '<ol class="steps">' + P.steps.map(function (s) {
+        return "<li>" + esc(s) + "</li>"; }).join("") + "</ol>" +
+      (P.note ? '<div class="note"><b>Tip:</b> ' + esc(P.note) + "</div>"
+              : "") +
+    "</div>" +
+    '<div class="card"><h2>Build it</h2>' +
+      '<p class="mut" style="line-height:1.65;margin:0 0 13px">' +
+      P.checks.length + " requirements are checked. Press <b>Check my " +
+      "work</b> as often as you like.</p><div id=\"pad\"></div></div>" +
+    '<div style="display:flex;justify-content:space-between;gap:10px">' +
+      '<button class="btn ghost" onclick="back(event)">&larr; Back</button>' +
+    "</div>";
+
+  PracticePad({ mount: $("pad"), id: P.id, kind: "practicals",
+                starter: "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
+                         "  <meta charset=\"UTF-8\">\n  <title></title>\n" +
+                         "</head>\n<body>\n\n</body>\n</html>\n",
+                checks: P.checks, solution: P.solution });
+  window.scrollTo(0, 0);
+}
+
+function back(e) { if (e) e.preventDefault(); P = null; drawList(); }
+
+(async function () {
+  try {
+    PRACS = await loadJSON("practicals.json");
+    Check.setSlips(await loadJSON("slips.json"));
+    drawList();
+  } catch (e) {
+    $("wrap").innerHTML = '<div class="empty">' + esc(e.message) + "</div>";
+  }
+})();
+</script>
+</body>
+</html>
