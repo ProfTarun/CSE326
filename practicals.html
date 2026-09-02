@@ -23,6 +23,7 @@
 </div>
 
 <script src="js/check.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/app.js"></script>
 <script>
 "use strict";
@@ -86,7 +87,8 @@ function open_(id) {
                 starter: "<!DOCTYPE html>\n<html lang=\"en\">\n<head>\n" +
                          "  <meta charset=\"UTF-8\">\n  <title></title>\n" +
                          "</head>\n<body>\n\n</body>\n</html>\n",
-                checks: P.checks, solution: P.solution });
+                checks: P.checks, solution: P.solution,
+                brief: P.brief });
   window.scrollTo(0, 0);
 }
 
