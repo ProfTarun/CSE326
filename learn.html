@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Lessons | CSE326 Internet Programming</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="empty"><span class="spin"></span> Loading lessons&hellip;</div>
+</div>
+
+<script src="js/check.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("learn.html");
+
+var LESSONS = [], L = null, STEP = 0;
+
+function unitName(u) {
+  return { u1: "Unit 1 &middot; HTML Fundamentals",
+           u2: "Unit 2 &middot; Semantic HTML and Forms",
+           u3: "Unit 3 &middot; Cascading Style Sheets" }[u] || u;
+}
+
+/* -------------------------------------------------------- the list --- */
+function drawList() {
+  var units = {}, order = [];
+  LESSONS.forEach(function (l) {
+    if (!units[l.unit]) { units[l.unit] = []; order.push(l.unit); }
+    units[l.unit].push(l);
+  });
+
+  var done = Progress.count("lessons", "done");
+  var h = '<p class="eyebrow">Step by step</p>' +
+    '<h1 class="sec-h" style="font-size:27px">Lessons</h1>' +
+    '<p class="sec-p">' + done + " of " + LESSONS.length +
+    " solved. Work through them in order, or jump to the topic you got " +
+    "lost in.</p>";
+
+  order.forEach(function (u) {
+    h += '<h2 class="sec-h" style="font-size:18px;margin:26px 0 12px">' +
+      unitName(u) + "</h2><div class=\"items\">" +
+      units[u].map(function (l, i) {
+        var st = Progress.status("lessons", l.id);
+        return '<div class="item ' + st + '" onclick="open_(\'' + l.id +
+          '\')"><span class="n">' +
+          (st === "done" ? "&#10003;" : (i + 1)) + "</span><span>" +
+          '<span class="t">' + esc(l.title) + "</span>" +
+          '<span class="m">' + esc(l.lec) + " &middot; " + l.minutes +
+          " min &middot; " + l.steps.length + " steps</span></span></div>";
+      }).join("") + "</div>";
+  });
+  $("wrap").innerHTML = h;
+}
+
+/* ------------------------------------------------------ one lesson --- */
+function open_(id) {
+  L = LESSONS.filter(function (l) { return l.id === id; })[0];
+  if (!L) return;
+  STEP = 0;
+  history.replaceState(null, "", "learn.html?id=" + id);
+  draw();
+}
+
+function draw() {
+  var s = L.steps[STEP];
+  var h = '<a class="back" href="learn.html" onclick="backToList(event)">' +
+    "&larr; All lessons</a>" +
+    '<div class="card" style="margin-bottom:16px">' +
+    '<span class="pill saf">' + esc(L.lec) + "</span> " +
+    '<span class="pill gry">' + L.minutes + " min</span>" +
+    '<h1 style="font-size:24px;margin:9px 0 6px">' + esc(L.title) + "</h1>" +
+    '<p class="mut" style="margin:0;line-height:1.6">' + esc(L.goal) + "</p>" +
+    '<div class="dots">' + L.steps.map(function (_, i) {
+      return '<div class="dot' + (i < STEP ? " ok" : (i === STEP ? " on" : "")) +
+        '"></div>'; }).join("") + "</div></div>";
+
+  if (s.kind === "read") {
+    h += '<div class="card prose"><h2>' + esc(s.title) + "</h2>" + s.body +
+      "</div>";
+  } else if (s.kind === "demo") {
+    h += '<div class="card prose"><h2>' + esc(s.title) + "</h2>" +
+      '<pre class="code">' + esc(s.code) + "</pre>" +
+      '<div class="ann">' + (s.lines || []).map(function (r) {
+        return '<div class="row"><b>' + r[0] + "</b><span>" + r[1] +
+          "</span></div>"; }).join("") + "</div></div>";
+  } else if (s.kind === "practice") {
+    h += '<div class="card"><h2>Your turn</h2>' +
+      '<div class="note" style="background:var(--green-pale);' +
+      'border-left-color:var(--green)">' + esc(s.brief) + "</div>" +
+      '<div id="pad"></div></div>';
+  } else if (s.kind === "quiz") {
+    h += '<div class="card"><h2>Quick check</h2>' +
+      '<p style="line-height:1.6"><b>' + s.q + "</b></p>" +
+      (s.options || []).map(function (o, i) {
+        return '<div class="opt" id="o' + i + '" onclick="answer(' + i +
+          ')">' + o + "</div>"; }).join("") +
+      '<div class="why" id="why"></div></div>';
+  }
+
+  if (STEP === L.steps.length - 1 && (L.mistakes || []).length) {
+    h += '<div class="card"><h2>Mistakes to avoid</h2>' +
+      L.mistakes.map(function (m) {
+        return '<div class="mis"><div class="w">&#10007; ' + m.wrong +
+          '</div><div class="r">&#10003; ' + m.right + "</div>" +
+          '<div class="mut" style="margin-top:5px">' + esc(m.why) +
+          "</div></div>"; }).join("") + "</div>";
+  }
+
+  h += '<div style="display:flex;justify-content:space-between;gap:10px">' +
+    '<button class="btn ghost" onclick="step(-1)"' +
+    (STEP === 0 ? " disabled" : "") + ">&larr; Back</button>" +
+    (STEP === L.steps.length - 1
+      ? '<button class="btn grn" onclick="finish()">Finish this lesson ' +
+        "&#10003;</button>"
+      : '<button class="btn saf" onclick="step(1)">Next step &rarr;</button>') +
+    "</div>";
+
+  $("wrap").innerHTML = h;
+  window.scrollTo(0, 0);
+
+  if (s.kind === "practice") {
+    PracticePad({ mount: $("pad"), id: L.id, kind: "lessons",
+                  starter: s.starter, checks: s.checks });
+  }
+}
+
+function step(d) {
+  var n = STEP + d;
+  if (n < 0 || n >= L.steps.length) return;
+  STEP = n;
+  draw();
+}
+
+function backToList(e) {
+  e.preventDefault();
+  history.replaceState(null, "", "learn.html");
+  L = null;
+  drawList();
+}
+
+function finish() {
+  Progress.mark("lessons", L.id, true);
+  toast("Lesson complete");
+  var i = LESSONS.map(function (x) { return x.id; }).indexOf(L.id);
+  if (i > -1 && i + 1 < LESSONS.length) open_(LESSONS[i + 1].id);
+  else backToList({ preventDefault: function () {} });
+}
+
+function answer(i) {
+  var s = L.steps[STEP];
+  var correct = s.answer;
+  $("o" + i).className = "opt " + (i === correct ? "right" : "wrong");
+  if (i !== correct) $("o" + correct).className = "opt right";
+  var w = $("why");
+  w.innerHTML = "<b>Why:</b> " + esc(s.why || "");
+  w.classList.add("on");
+  Progress.mark("quiz", L.id + "-" + STEP, i === correct);
+}
+
+(async function () {
+  try {
+    LESSONS = await loadJSON("lessons.json");
+    Check.setSlips(await loadJSON("slips.json"));
+    var want = new URLSearchParams(location.search).get("id");
+    if (want && LESSONS.some(function (l) { return l.id === want; })) {
+      open_(want);
+    } else {
+      drawList();
+    }
+  } catch (e) {
+    $("wrap").innerHTML = '<div class="empty">' + esc(e.message) + "</div>";
+  }
+})();
+</script>
+</body>
+</html>
