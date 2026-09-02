@@ -13,6 +13,7 @@
 </div>
 
 <script src="js/check.js"></script>
+<script src="js/ai.js"></script>
 <script src="js/app.js"></script>
 <script>
 "use strict";
@@ -125,7 +126,8 @@ function draw() {
 
   if (s.kind === "practice") {
     PracticePad({ mount: $("pad"), id: L.id, kind: "lessons",
-                  starter: s.starter, checks: s.checks });
+                  starter: s.starter, checks: s.checks,
+                  brief: s.brief });
   }
 }
 
