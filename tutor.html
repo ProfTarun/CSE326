@@ -1,0 +1,380 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>AI tutor | CSE326</title>
+<link rel="stylesheet" href="css/theme.css">Add AI tutor page: bring your own free key, explain, review, quiz
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .why{background:linear-gradient(90deg,var(--green-pale),
+    rgba(233,247,231,.3));border-left:4px solid var(--green);
+    padding:15px 18px;border-radius:0 12px 12px 0;margin-bottom:22px;
+    line-height:1.7}
+  .prov{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));
+    gap:11px;margin:6px 0 18px}
+  .pc{border:1px solid var(--line);border-radius:12px;padding:14px 16px;
+    cursor:pointer;background:#fff;transition:.14s}
+  .pc:hover{border-color:var(--saffron)}
+  .pc.on{border-color:var(--saffron);background:var(--saffron-pale);
+    box-shadow:0 2px 10px rgba(224,123,30,.16)}
+  .pc .n{font-weight:800;font-size:15px;margin-bottom:4px}
+  .pc .f{font-size:12.6px;color:var(--mut);line-height:1.55}
+  .pc .lnk{font-size:12.5px;font-weight:700;color:var(--saffron-d);
+    margin-top:8px;display:inline-block}
+  input[type=text],input[type=password]{width:100%;padding:12px 14px;
+    border:1px solid var(--line);border-radius:11px;font-size:14.5px;
+    font-family:var(--mono);background:#FBFCFE}
+  input:focus{outline:0;border-color:var(--saffron);background:#fff;
+    box-shadow:0 0 0 3px rgba(255,153,51,.16)}
+  label{display:block;font-size:13px;font-weight:700;margin:14px 0 6px;
+    color:var(--ink-2)}
+  .status{padding:14px 17px;border-radius:12px;margin-bottom:18px;
+    line-height:1.65;font-size:14.5px}
+  .status.on{background:var(--ok-bg);border:1px solid #A9E3C4;color:#0A5C34}
+  .status.off{background:var(--warn-bg);border:1px solid #FFE1A6;
+    color:#7A5300}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:0}
+  .steps li{counter-increment:s;position:relative;padding:0 0 14px 40px;
+    line-height:1.65}
+  .steps li:before{counter-increment:none;content:counter(s);position:absolute;
+    left:0;top:-1px;width:26px;height:26px;border-radius:50%;
+    background:linear-gradient(135deg,var(--saffron),var(--saffron-d));
+    color:#fff;font-weight:800;font-size:12.5px;display:grid;
+    place-items:center}
+  .ans{background:#FCFBFF;border:1px solid var(--line);border-radius:12px;
+    padding:16px 18px;margin-top:14px}
+  .safe{font-size:13px;color:var(--mut);line-height:1.75;margin-top:16px}
+  .mcq{border:1px solid var(--line);border-radius:11px;padding:14px 16px;
+    margin-bottom:10px;background:#fff}
+  .mcq .qt{font-weight:700;line-height:1.5;margin-bottom:9px}
+  .mcq .exp{display:none;margin-top:9px;background:var(--ok-bg);
+    color:#0A5C34;padding:10px 13px;border-radius:9px;font-size:13.5px;
+    line-height:1.6}
+  .mcq.open .exp{display:block}
+</style>
+</head>
+<body>
+<div class="wrap narrow">
+  <p class="eyebrow">Optional &middot; two minutes to set up</p>
+  <h1 class="sec-h" style="font-size:27px">AI tutor</h1>
+  <p class="sec-p">An AI that explains topics again, reviews your code and
+    comments on it, and writes you unlimited practice questions.</p>
+
+  <div class="why">
+    <b>How this works, and why it is safe.</b> This site has no server, so
+    the AI runs from <i>your</i> browser using <i>your</i> own free key. Your
+    key is stored only on this device, is sent only to the provider you pick,
+    and is never uploaded anywhere. Nobody else can use it, and it does not
+    share a quota with the rest of your class.
+  </div>
+
+  <div class="status" id="status">Checking&hellip;</div>
+
+  <div class="card">
+    <h2>Step 1 &mdash; pick a provider</h2>
+    <p class="mut" style="font-size:14px;line-height:1.6;margin:0 0 6px">
+      All of these are free. Groq is the fastest and has the most generous
+      free tier.</p>
+    <div class="prov" id="provs"></div>
+
+    <h2>Step 2 &mdash; create your key</h2>
+    <ol class="steps" id="howto">
+      <li>Pick a provider above to see its exact steps.</li>
+    </ol>
+
+    <h2>Step 3 &mdash; paste it here</h2>
+    <label for="key">Your API key</label>
+    <input type="password" id="key" placeholder="paste the key you copied"
+           autocomplete="off" spellcheck="false">
+    <p style="font-size:12.5px;color:var(--mut);margin:7px 0 0">
+      <label style="display:inline;font-weight:600;margin:0">
+        <input type="checkbox" id="show" onchange="toggleShow()"
+               style="width:auto;margin-right:5px">Show what I typed</label>
+    </p>
+    <div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">
+      <button class="btn saf" id="saveBtn" onclick="saveKey()">
+        Test &amp; save my key</button>
+      <button class="btn ghost" id="clearBtn" onclick="clearKey()"
+              style="display:none">Remove my key</button>
+    </div>
+    <div id="msg"></div>
+
+    <p class="safe"><b>Keeping your key safe.</b> Treat it like a password.
+      Do not paste it into a shared computer, and delete it at the provider's
+      site when the course ends. If you ever commit a key to a public GitHub
+      repo, revoke it immediately &mdash; bots scan for them within minutes.</p>
+  </div>
+
+  <div class="card">
+    <h2>Ask anything about the course</h2>
+    <p class="mut" style="font-size:14px;line-height:1.6;margin:0 0 12px">
+      Stuck on a concept? Ask in your own words.</p>
+    <input type="text" id="q" style="font-family:var(--font)"
+           placeholder="e.g. What is the difference between id and class?"
+           onkeydown="if(event.key==='Enter')askIt()">
+    <div style="margin-top:12px;display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn grn" onclick="askIt()">Ask</button>
+      <button class="btn ghost sm" onclick="preset('Explain the box model with an example')">Box model</button>
+      <button class="btn ghost sm" onclick="preset('Explain Flexbox vs Grid, when to use each')">Flex vs Grid</button>
+      <button class="btn ghost sm" onclick="preset('Explain colspan and rowspan with a worked table')">colspan/rowspan</button>
+    </div>
+    <div id="answer"></div>
+  </div>
+
+  <div class="card">
+    <h2>Review my code</h2>
+    <p class="mut" style="font-size:14px;line-height:1.6;margin:0 0 12px">
+      Paste anything you have written. The AI comments on it the way a
+      teacher would &mdash; what works, what to fix, and one thing to try
+      next.</p>
+    <div class="pane" style="min-height:190px">
+      <div class="pbar">Your code</div>
+      <textarea id="code" spellcheck="false"
+        style="min-height:170px">&lt;div class="box"&gt;
+  &lt;div class="title"&gt;My Page&lt;/div&gt;
+  &lt;img src="photo.jpg"&gt;
+  &lt;p&gt;Welcome!&lt;br&gt;&lt;br&gt;Thanks for visiting.
+&lt;/div&gt;</textarea>
+    </div>
+    <div style="margin-top:12px">
+      <button class="btn saf" onclick="reviewIt()">Review and comment</button>
+    </div>
+    <div id="review"></div>
+  </div>
+
+  <div class="card">
+    <h2>Generate practice questions</h2>
+    <p class="mut" style="font-size:14px;line-height:1.6;margin:0 0 12px">
+      Fresh questions on any topic, as many times as you like. The built-in
+      bank already has <b id="bankN">185</b> &mdash; this is for when you
+      want more on one specific topic.</p>
+    <div style="display:flex;gap:9px;flex-wrap:wrap;align-items:center">
+      <input type="text" id="topic" style="font-family:var(--font);max-width:280px"
+             placeholder="e.g. forms and input types">
+      <button class="btn grn" onclick="genQ()">Write me 5 questions</button>
+    </div>
+    <div id="quiz"></div>
+  </div>
+</div>
+
+<script src="js/check.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("tutor.html");
+
+var SEL = "";
+
+var HOWTO = {
+  groq: ["Open <b>console.groq.com/keys</b> and sign in (Google or GitHub works).",
+    "Click <b>Create API Key</b> and name it <i>cse326</i>.",
+    "Copy it straight away &mdash; Groq shows the key only once.",
+    "Paste it below. Groq is fast and has the most generous free tier."],
+  gemini: ["Open <b>aistudio.google.com/apikey</b> and sign in with Google.",
+    "Click <b>Create API key</b> at the top right.",
+    "If it asks for a project, accept the default one.",
+    "Press <b>Copy key</b>, then paste it below.",
+    "Note: Gemini's free tier is a few dozen requests per day."],
+  openrouter: ["Open <b>openrouter.ai/keys</b> and sign in.",
+    "Click <b>Create Key</b> and name it <i>cse326</i>.",
+    "Copy the key &mdash; it begins with <code>sk-or-</code>.",
+    "Paste it below. Several models are free."],
+  mistral: ["Open <b>console.mistral.ai/api-keys</b> and sign in.",
+    "Click <b>Create new key</b>.",
+    "Copy it immediately; it is shown only once.",
+    "Paste it below."]
+};
+
+function drawProvs() {
+  var P = AI.PROVIDERS;
+  $("provs").innerHTML = Object.keys(P).map(function (id) {
+    var p = P[id];
+    return '<div class="pc' + (SEL === id ? " on" : "") +
+      '" onclick="pick(\'' + id + '\')"><div class="n">' + esc(p.label) +
+      '</div><div class="f">' + esc(p.free) + '</div>' +
+      '<a class="lnk" href="' + esc(p.url) + '" target="_blank" ' +
+      'rel="noopener" onclick="event.stopPropagation()">Open ' +
+      esc(p.label) + ' &#8599;</a></div>';
+  }).join("");
+}
+function pick(id) {
+  SEL = id;
+  drawProvs();
+  $("howto").innerHTML = (HOWTO[id] || ["Follow the provider's steps."])
+    .map(function (s) { return "<li>" + s + "</li>"; }).join("");
+}
+function toggleShow() {
+  $("key").type = $("show").checked ? "text" : "password";
+}
+function msg(html, cls) {
+  $("msg").innerHTML = '<div class="' +
+    (cls === "ok" ? "win" : "note") + '" style="margin-top:14px">' + html +
+    "</div>";
+}
+
+function refresh() {
+  var cfg = AI.load();
+  if (!SEL) SEL = cfg.provider || "groq";
+  drawProvs();
+  pick(SEL);
+  if (AI.configured()) {
+    var p = AI.PROVIDERS[cfg.provider] || {};
+    $("status").className = "status on";
+    $("status").innerHTML = "&#10003; <b>AI is ready</b> (" +
+      esc(p.label || cfg.provider) + ", <code>" + esc(AI.masked()) +
+      "</code>). Everything on this page works, and the AI buttons appear " +
+      "in your lessons too.";
+    $("clearBtn").style.display = "";
+  } else {
+    $("status").className = "status off";
+    $("status").innerHTML = "You have not added a key yet. The rest of the " +
+      "site works perfectly without one &mdash; this page only adds the AI " +
+      "extras.";
+    $("clearBtn").style.display = "none";
+  }
+}
+
+async function saveKey() {
+  var k = $("key").value.trim();
+  if (!SEL) { msg("Pick a provider first.", "err"); return; }
+  if (!k) { msg("Paste your key into the box above.", "err"); return; }
+  var b = $("saveBtn");
+  b.disabled = true;
+  b.innerHTML = '<span class="spin"></span> Testing your key&hellip;';
+  try {
+    var r = await AI.test(SEL, k);
+    msg("&#10003; <b>Working.</b> " + esc(r.provider) + " replied &ldquo;" +
+        esc(r.reply) + "&rdquo;. Saved on this device only.", "ok");
+    $("key").value = "";
+    refresh();
+  } catch (e) { msg(esc(e.message), "err"); }
+  b.disabled = false;
+  b.textContent = "Test & save my key";
+}
+
+function clearKey() {
+  if (!confirm("Remove your key from this device?")) return;
+  AI.clear();
+  msg("Key removed.", "ok");
+  refresh();
+}
+
+function preset(t) { $("q").value = t; askIt(); }
+
+async function askIt() {
+  var q = $("q").value.trim();
+  if (!q) return;
+  $("answer").innerHTML = '<div class="ans"><span class="spin"></span> ' +
+    "Thinking&hellip;</div>";
+  try {
+    var r = await AI.ask(AI.TUTOR, q, { maxTokens: 900 });
+    $("answer").innerHTML = '<div class="ans"><div class="prose">' +
+      md(r.text) + '</div><p class="mut" style="font-size:12px;' +
+      'margin:10px 0 0">via ' + esc(r.provider) + " &middot; always " +
+      "sanity-check AI answers against the lesson</p></div>";
+  } catch (e) {
+    $("answer").innerHTML = '<div class="note">' + esc(e.message) + "</div>";
+  }
+}
+
+async function reviewIt() {
+  var code = $("code").value;
+  if (!code.trim()) return;
+  $("review").innerHTML = '<div class="ans"><span class="spin"></span> ' +
+    "Reading your code&hellip;</div>";
+  try {
+    var r = await AI.review(code);
+    $("review").innerHTML = '<div class="ans"><div class="prose">' +
+      md(r.text) + '</div><p class="mut" style="font-size:12px;' +
+      'margin:10px 0 0">via ' + esc(r.provider) + "</p></div>";
+  } catch (e) {
+    $("review").innerHTML = '<div class="note">' + esc(e.message) + "</div>";
+  }
+}
+
+async function genQ() {
+  var t = $("topic").value.trim() || "HTML and CSS basics";
+  $("quiz").innerHTML = '<div class="ans"><span class="spin"></span> ' +
+    "Writing questions&hellip;</div>";
+  try {
+    var r = await AI.quiz(t, 5);
+    if (!r.questions.length) throw new Error("No usable questions came back.");
+    $("quiz").innerHTML = '<div style="margin-top:14px">' +
+      r.questions.map(function (q, i) {
+        return '<div class="mcq" id="gq' + i + '"><div class="qt">' +
+          (i + 1) + ". " + esc(q.q) + "</div>" +
+          q.options.map(function (o, oi) {
+            return '<div class="opt" onclick="markQ(this,' + i + ',' + oi +
+              ',' + q.answer + ')">' + esc(o) + "</div>";
+          }).join("") +
+          '<div class="exp"><b>Answer:</b> ' + esc(q.options[q.answer]) +
+          "<br>" + esc(q.why || "") + "</div></div>";
+      }).join("") + '<p class="mut" style="font-size:12px">via ' +
+      esc(r.provider) + " &middot; AI-written, so check anything surprising " +
+      "against the lesson</p></div>";
+  } catch (e) {
+    $("quiz").innerHTML = '<div class="note">' + esc(e.message) + "</div>";
+  }
+}
+function markQ(el, qi, oi, ans) {
+  el.className = "opt " + (oi === ans ? "right" : "wrong");
+  $("gq" + qi).classList.add("open");
+}
+
+/* small markdown renderer for AI replies */
+function md(t) {
+  var src = String(t || "").trim(), out = [], list = null, inCode = false;
+  var f = src.match(/^```[a-zA-Z]*\s*\n([\s\S]*?)\n?```$/);
+  if (f) src = f[1];
+  src.split("\n").forEach(function (ln) {
+    var m;
+    if (/^```/.test(ln)) {
+      if (list) { out.push("</" + list + ">"); list = null; }
+      out.push(inCode ? "</pre>" : '<pre class="code">');
+      inCode = !inCode;
+      return;
+    }
+    if (inCode) { out.push(esc(ln)); return; }
+    if ((m = ln.match(/^(#{1,4})\s+(.*)$/))) {
+      if (list) { out.push("</" + list + ">"); list = null; }
+      out.push("<h4>" + inl(m[2]) + "</h4>");
+      return;
+    }
+    if ((m = ln.match(/^\s*[-*]\s+(.*)$/))) {
+      if (list !== "ul") { if (list) out.push("</" + list + ">");
+        out.push("<ul>"); list = "ul"; }
+      out.push("<li>" + inl(m[1]) + "</li>");
+      return;
+    }
+    if ((m = ln.match(/^\s*\d+[.)]\s+(.*)$/))) {
+      if (list !== "ol") { if (list) out.push("</" + list + ">");
+        out.push("<ol>"); list = "ol"; }
+      out.push("<li>" + inl(m[1]) + "</li>");
+      return;
+    }
+    if (!ln.trim()) { if (list) { out.push("</" + list + ">"); list = null; }
+      return; }
+    if (list) { out.push("</" + list + ">"); list = null; }
+    out.push("<p>" + inl(ln) + "</p>");
+  });
+  if (inCode) out.push("</pre>");
+  if (list) out.push("</" + list + ">");
+  return out.join("\n");
+}
+function inl(s) {
+  return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>")
+               .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+
+(async function () {
+  refresh();
+  try {
+    var qs = await loadJSON("questions.json");
+    $("bankN").textContent = qs.length;
+  } catch (e) {}
+})();
+</script>
+</body>
+</html>
