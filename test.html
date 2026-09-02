@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Mock test | CSE326</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .rules{background:linear-gradient(90deg,var(--warn-bg),
+    rgba(255,248,235,.35));border-left:4px solid #F0A429;padding:15px 18px;
+    border-radius:0 12px 12px 0;margin-bottom:20px;line-height:1.7}
+  .rgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));
+    gap:12px;margin:16px 0 24px}
+  .r{background:rgba(255,255,255,.96);border:1px solid var(--line);
+    border-radius:12px;padding:14px 16px}
+  .r .n{font-size:20px;font-weight:800;color:var(--saffron-d);line-height:1.1}
+  .r .l{font-size:12.3px;color:var(--mut);margin-top:5px;font-weight:600}
+  .q{background:rgba(255,255,255,.97);border:1px solid var(--line);
+    border-radius:14px;padding:19px 21px;margin-bottom:13px;
+    box-shadow:var(--shadow)}
+  .qn{font-size:11.5px;font-weight:800;color:var(--mut);letter-spacing:.08em;
+    text-transform:uppercase;margin-bottom:7px}
+  .qt{font-weight:700;font-size:15.5px;line-height:1.6;margin-bottom:12px}
+  .opt{display:flex;gap:11px;align-items:flex-start}
+  .opt .k{font-weight:800;color:var(--mut);flex:0 0 auto}
+  .opt.sel{border-color:var(--saffron);background:var(--saffron-pale)}
+  .opt.dis{cursor:default}
+  .sticky{position:sticky;bottom:0;background:rgba(255,255,255,.94);
+    backdrop-filter:blur(10px);border-top:1px solid var(--line);
+    padding:13px 0;margin-top:20px;z-index:10}
+  .sticky .in{max-width:1120px;margin:0 auto;padding:0 22px;display:flex;
+    gap:13px;align-items:center;flex-wrap:wrap}
+  .score{background:linear-gradient(120deg,#FFF3E4,#FFFFFF 55%,#E9F7E7);
+    border:1px solid var(--line);border-radius:18px;padding:26px 28px;
+    margin-bottom:20px;box-shadow:var(--shadow)}
+  .sgrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(126px,1fr));
+    gap:14px}
+  .sg{background:rgba(255,255,255,.85);border-radius:12px;padding:14px 16px}
+  .sg .n{font-size:23px;font-weight:800;line-height:1}
+  .sg .l{font-size:12px;color:var(--mut);margin-top:5px;font-weight:600}
+  .sg.ok .n{color:var(--ok)}.sg.bad .n{color:var(--bad)}
+  .sg.net .n{color:var(--saffron-d)}
+</style>
+</head>
+<body>
+<div class="wrap" id="wrap">
+  <div class="empty"><span class="spin"></span> Loading&hellip;</div>
+</div>
+<div id="barSlot"></div>
+
+<script src="js/check.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("test.html");
+
+var BANK = [], QS = [], PICK = {}, DONE = false;
+
+/* The quizzes built into the lessons become the question bank. Each one
+   already has four options, one correct answer and an explanation. */
+function buildBank(lessons) {
+  var out = [];
+  lessons.forEach(function (l) {
+    l.steps.forEach(function (s, i) {
+      if (s.kind === "quiz" && (s.options || []).length === 4 &&
+          s.answer != null) {
+        out.push({ id: l.id + "-" + i, q: s.q, options: s.options,
+                   answer: s.answer, why: s.why || "",
+                   topic: l.title, unit: l.unit });
+      }
+    });
+  });
+  return out;
+}
+
+function shuffle(a) {
+  for (var i = a.length - 1; i > 0; i--) {
+    var j = Math.floor(Math.random() * (i + 1));
+    var t = a[i]; a[i] = a[j]; a[j] = t;
+  }
+  return a;
+}
+
+function setup() {
+  $("wrap").innerHTML =
+    '<p class="eyebrow">Assessment practice</p>' +
+    '<h1 class="sec-h" style="font-size:27px">CA2 mock test</h1>' +
+    '<p class="sec-p">Same shape as the real thing, so nothing on the day ' +
+    "is a surprise.</p>" +
+
+    '<div class="rules"><b>The rules, from your CA2 instruction sheet:</b>' +
+    "<br>Multiple choice, four options (A&ndash;D), <b>exactly one</b> " +
+    "correct. There is <b>negative marking of 0.25</b> for every wrong " +
+    "answer &mdash; a skipped question costs you nothing, a guess can. " +
+    "The paper covers HTML and CSS from the prescribed syllabus only." +
+    "</div>" +
+
+    '<div class="rgrid">' +
+      '<div class="r"><div class="n">+1</div><div class="l">per correct ' +
+      "answer</div></div>" +
+      '<div class="r"><div class="n">&minus;0.25</div><div class="l">per ' +
+      "wrong answer</div></div>" +
+      '<div class="r"><div class="n">0</div><div class="l">for leaving it ' +
+      "blank</div></div>" +
+      '<div class="r"><div class="n">' + BANK.length +
+      '</div><div class="l">questions available</div></div>' +
+    "</div>" +
+
+    '<div class="card"><h2>Start a paper</h2>' +
+    '<div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">' +
+    '<label style="font-size:14px;font-weight:700">Questions: ' +
+    '<select id="howMany" style="padding:9px 11px;border:1px solid ' +
+    'var(--line);border-radius:9px;font-family:inherit;font-size:14px;' +
+    'margin-left:6px">' +
+      '<option value="10">10 (quick)</option>' +
+      '<option value="20" selected>20</option>' +
+      '<option value="' + BANK.length + '">All ' + BANK.length +
+      "</option></select></label>" +
+    '<button class="btn saf" onclick="start()">Start the test</button>' +
+    "</div></div>";
+  $("barSlot").innerHTML = "";
+}
+
+function start() {
+  var want = parseInt($("howMany").value, 10);
+  QS = shuffle(BANK.slice()).slice(0, want);
+  PICK = {}; DONE = false;
+
+  $("wrap").innerHTML =
+    '<p class="eyebrow">CA2 mock &middot; ' + QS.length + " questions</p>" +
+    '<h1 class="sec-h" style="font-size:24px">Answer what you know</h1>' +
+    '<p class="sec-p">Leave anything you are unsure of blank &mdash; a ' +
+    "blank costs 0, a wrong answer costs 0.25.</p>" +
+    QS.map(function (q, i) {
+      return '<div class="q" id="q' + i + '"><div class="qn">Question ' +
+        (i + 1) + " of " + QS.length + " &middot; " + esc(q.topic) +
+        '</div><div class="qt">' + q.q + "</div>" +
+        q.options.map(function (o, oi) {
+          return '<div class="opt" id="o' + i + "_" + oi +
+            '" onclick="pick(' + i + "," + oi + ')"><span class="k">' +
+            "ABCD"[oi] + "</span><span>" + o + "</span></div>";
+        }).join("") + '<div class="why" id="w' + i + '"></div></div>';
+    }).join("");
+
+  $("barSlot").innerHTML =
+    '<div class="sticky"><div class="in">' +
+    '<span class="mut" style="font-weight:700" id="prog"></span>' +
+    '<span style="flex:1"></span>' +
+    '<button class="btn ghost sm" onclick="location.reload()">Abandon' +
+    "</button>" +
+    '<button class="btn grn" onclick="submit()">Submit &amp; see score' +
+    "</button></div></div>";
+
+  prog();
+  window.scrollTo(0, 0);
+}
+
+function pick(qi, oi) {
+  if (DONE) return;
+  QS[qi].options.forEach(function (_, k) {
+    var el = $("o" + qi + "_" + k);
+    if (el) el.className = "opt";
+  });
+  if (PICK[qi] === oi) delete PICK[qi];
+  else { PICK[qi] = oi; $("o" + qi + "_" + oi).className = "opt sel"; }
+  prog();
+}
+
+function prog() {
+  var n = Object.keys(PICK).length;
+  $("prog").innerHTML = "<b>" + n + "</b> of " + QS.length +
+    " answered &middot; " + (QS.length - n) + " left blank";
+}
+
+function submit() {
+  if (DONE) return;
+  var blankN = QS.length - Object.keys(PICK).length;
+  if (blankN && !confirm("You have left " + blankN +
+      " question(s) blank. Blanks score 0. Submit anyway?")) return;
+  DONE = true;
+
+  var right = 0, wrong = 0, blank = 0;
+  QS.forEach(function (q, i) {
+    var chosen = PICK[i];
+    q.options.forEach(function (_, k) {
+      $("o" + i + "_" + k).className = "opt dis" +
+        (k === q.answer ? " right" : "");
+    });
+    if (chosen == null) blank++;
+    else if (chosen === q.answer) right++;
+    else { wrong++; $("o" + i + "_" + chosen).className = "opt dis wrong"; }
+    if (q.why) {
+      var w = $("w" + i);
+      w.innerHTML = "<b>Why:</b> " + esc(q.why);
+      w.classList.add("on");
+    }
+    Progress.mark("quiz", q.id, chosen === q.answer);
+  });
+
+  /* The real CA2 formula: +1 correct, -0.25 wrong, 0 blank. */
+  var raw = right - (wrong * 0.25);
+  var pct = QS.length ? Math.max(0, raw) / QS.length * 100 : 0;
+  var lost = wrong * 0.25;
+
+  var verdict;
+  if (pct >= 75) verdict = "Comfortable. You would pass this paper well.";
+  else if (pct >= 50) verdict = "Solid, but the gap between your raw " +
+    "correct answers and your net score is where the marks are going.";
+  else verdict = "Worth going back through the lessons before the real " +
+    "test. The tag reference is the fastest revision.";
+
+  $("barSlot").innerHTML = "";
+  $("wrap").insertAdjacentHTML("afterbegin",
+    '<div class="score"><h2 style="font-size:23px;margin:0 0 14px">' +
+    "Your CA2 mock result</h2><div class=\"sgrid\">" +
+      '<div class="sg ok"><div class="n">' + right + '</div><div class="l">' +
+      "correct (+" + right + ")</div></div>" +
+      '<div class="sg bad"><div class="n">' + wrong + '</div><div class="l">' +
+      "wrong (&minus;" + lost.toFixed(2) + ")</div></div>" +
+      '<div class="sg"><div class="n">' + blank + '</div><div class="l">' +
+      "left blank (0)</div></div>" +
+      '<div class="sg net"><div class="n">' + raw.toFixed(2) +
+      '</div><div class="l">net out of ' + QS.length + "</div></div>" +
+      '<div class="sg"><div class="n">' + pct.toFixed(0) +
+      '%</div><div class="l">percentage</div></div></div>' +
+    '<p style="margin-top:16px;font-size:15px;line-height:1.7;' +
+    'color:var(--ink-2)">' + esc(verdict) +
+    (wrong ? " Negative marking cost you <b>" + lost.toFixed(2) +
+      "</b> mark(s) on " + wrong + " wrong answer(s) &mdash; leaving those " +
+      "blank would have scored " + right.toFixed(2) + " instead." : "") +
+    "</p>" +
+    '<div style="display:flex;gap:10px;margin-top:18px;flex-wrap:wrap">' +
+      '<button class="btn saf" onclick="location.reload()">Take another' +
+      "</button>" +
+      '<a class="btn ghost" href="learn.html">Back to lessons</a>' +
+      '<a class="btn ghost" href="reference.html">Revise the tag list</a>' +
+    "</div></div>");
+  window.scrollTo(0, 0);
+}
+
+(async function () {
+  try {
+    var lessons = await loadJSON("lessons.json");
+    BANK = buildBank(lessons);
+    setup();
+  } catch (e) {
+    $("wrap").innerHTML = '<div class="empty">' + esc(e.message) + "</div>";
+  }
+})();
+</script>
+</body>
+</html>
