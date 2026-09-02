@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My progress | CSE326</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .banner{background:linear-gradient(120deg,#FFF3E4 0%,#FFFFFF 48%,
+    #E9F7E7 100%);border:1px solid var(--line);border-radius:20px;
+    padding:28px 30px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .banner h1{font-size:27px;margin:8px 0 8px;letter-spacing:-.7px}
+  .banner p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.7;
+    max-width:64ch}
+  .cov{display:flex;flex-wrap:wrap;gap:7px}
+  .tp{font-size:12.5px;padding:6px 12px;border-radius:999px;
+    border:1px solid var(--line);color:var(--mut);background:#fff}
+  .tp.on{background:var(--green-pale);border-color:#A9E3C4;
+    color:var(--green-d);font-weight:700}
+  .ring{width:132px;height:132px;position:relative;flex:0 0 auto}
+  .ring svg{transform:rotate(-90deg)}
+  .ring .mid{position:absolute;inset:0;display:grid;place-items:center;
+    text-align:center}
+  .ring .mid b{font-size:27px;line-height:1}
+  .ring .mid span{font-size:11.5px;color:var(--mut);font-weight:700}
+  .ppanel{display:grid;grid-template-columns:auto 1fr;gap:28px;
+    align-items:center}
+  @media(max-width:700px){.ppanel{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap narrow" id="wrap">
+  <div class="empty"><span class="spin"></span> Loading&hellip;</div>
+</div>
+
+<script src="js/check.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("progress.html");
+
+(async function () {
+  try {
+    var lessons = await loadJSON("lessons.json");
+    var drills = await loadJSON("drills.json");
+    var pracs = await loadJSON("practicals.json");
+
+    var ls = Progress.count("lessons", "done");
+    var dr = Progress.count("drills", "done");
+    var pr = Progress.count("practicals", "done");
+    var qz = Progress.count("quiz", "done");
+    var total = lessons.length + drills.length + pracs.length;
+    var done = ls + dr + pr;
+    var pct = total ? Math.round(done / total * 100) : 0;
+    var C = 2 * Math.PI * 56;
+
+    var h = '<div class="banner"><p class="eyebrow">Your record</p>' +
+      "<h1>My progress</h1><p>Everything you solve is saved on this " +
+      "device as you go. No account, no upload &mdash; which also means it " +
+      "does not follow you to another computer, and clearing your browser " +
+      "data resets it.</p></div>";
+
+    h += '<div class="card"><div class="ppanel"><div class="ring">' +
+      '<svg width="132" height="132">' +
+      '<circle cx="66" cy="66" r="56" fill="none" stroke="#EAEFF5" ' +
+      'stroke-width="13"></circle>' +
+      '<circle cx="66" cy="66" r="56" fill="none" stroke="url(#g)" ' +
+      'stroke-width="13" stroke-linecap="round" stroke-dasharray="' +
+      C.toFixed(1) + '" stroke-dashoffset="' +
+      (C - C * pct / 100).toFixed(1) + '"></circle>' +
+      '<defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1">' +
+      '<stop offset="0%" stop-color="#FF9933"></stop>' +
+      '<stop offset="100%" stop-color="#138808"></stop>' +
+      "</linearGradient></defs></svg>" +
+      '<div class="mid"><div><b>' + pct + "%</b><br><span>" + done +
+      " of " + total + "</span></div></div></div><div>" +
+      '<h3 style="font-size:18px;margin:0 0 7px">' +
+      (pct >= 100 ? "Everything complete"
+        : pct >= 60 ? "Well on the way"
+        : pct >= 25 ? "Making progress" : "Just getting started") +
+      "</h3><p class=\"mut\" style=\"line-height:1.65;margin:0\">" +
+      "You have solved " + ls + " lessons, " + dr + " drills and " + pr +
+      " practicals, and answered " + qz + " quiz questions correctly." +
+      "</p><div style=\"margin-top:16px;display:flex;gap:9px;flex-wrap:wrap\">" +
+      '<a class="btn saf sm" href="learn.html">Keep learning</a>' +
+      '<a class="btn ghost sm" href="drills.html">Do a quick drill</a>' +
+      "</div></div></div></div>";
+
+    h += '<div class="stats" style="margin-top:20px">' +
+      '<div class="stat g"><div class="n">' + ls + " / " + lessons.length +
+        '</div><div class="l">lessons solved</div></div>' +
+      '<div class="stat"><div class="n">' + dr + " / " + drills.length +
+        '</div><div class="l">drills solved</div></div>' +
+      '<div class="stat b"><div class="n">' + pr + " / " + pracs.length +
+        '</div><div class="l">practicals done</div></div>' +
+      '<div class="stat"><div class="n">' + Progress.streak() +
+        '</div><div class="l">day streak</div></div>' +
+      '<div class="stat"><div class="n">' + Progress.days() +
+        '</div><div class="l">days practised</div></div></div>';
+
+    /* per-unit lesson coverage */
+    var units = {};
+    lessons.forEach(function (l) {
+      units[l.unit] = units[l.unit] || [];
+      units[l.unit].push(l);
+    });
+    h += '<div class="card"><h2>Lessons by unit</h2>';
+    Object.keys(units).forEach(function (u) {
+      var n = units[u].filter(function (l) {
+        return Progress.status("lessons", l.id) === "done"; }).length;
+      h += '<p style="margin:14px 0 6px;font-weight:700">' +
+        ({ u1: "Unit 1 - HTML Fundamentals",
+           u2: "Unit 2 - Semantic HTML and Forms",
+           u3: "Unit 3 - Cascading Style Sheets" }[u] || u) +
+        ' <span class="pill gry">' + n + " / " + units[u].length +
+        "</span></p><div class=\"cov\">" +
+        units[u].map(function (l) {
+          return '<span class="tp' +
+            (Progress.status("lessons", l.id) === "done" ? " on" : "") +
+            '">' + esc(l.title) + "</span>"; }).join("") + "</div>";
+    });
+    h += "</div>";
+
+    /* drill coverage by category */
+    var cats = {};
+    drills.forEach(function (d) {
+      cats[d.cat] = cats[d.cat] || { n: 0, done: 0 };
+      cats[d.cat].n++;
+      if (Progress.status("drills", d.id) === "done") cats[d.cat].done++;
+    });
+    h += '<div class="card"><h2>Drills by topic</h2><div class="cov">' +
+      Object.keys(cats).map(function (c) {
+        var v = cats[c];
+        return '<span class="tp' + (v.done === v.n ? " on" : "") + '">' +
+          esc(c) + " " + v.done + "/" + v.n + "</span>";
+      }).join("") + "</div></div>";
+
+    h += '<div class="card"><h2>Your data</h2>' +
+      '<p class="mut" style="line-height:1.7;margin:0 0 14px">Your progress ' +
+      "lives in this browser only. Save a copy if you are about to clear " +
+      "your browsing data, or want to move to another device.</p>" +
+      '<div style="display:flex;gap:9px;flex-wrap:wrap">' +
+      '<button class="btn ghost sm" onclick="save()">Download my progress' +
+      "</button>" +
+      '<button class="btn ghost sm" onclick="wipe()">Reset everything' +
+      "</button></div></div>";
+
+    $("wrap").innerHTML = h;
+  } catch (e) {
+    $("wrap").innerHTML = '<div class="empty">' + esc(e.message) + "</div>";
+  }
+})();
+
+function save() {
+  var blob = new Blob([Progress.exportText()],
+                      { type: "application/json" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "cse326-progress.json";
+  a.click();
+  toast("Downloaded");
+}
+
+function wipe() {
+  if (!confirm("Erase all your progress on this device? This cannot be " +
+               "undone.")) return;
+  Progress.reset();
+  location.reload();
+}
+</script>
+</body>
+</html>
