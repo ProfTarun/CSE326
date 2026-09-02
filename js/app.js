@@ -33,6 +33,50 @@ async function loadJSON(name) {
   return await r.json();
 }
 
+/* Minimal markdown for AI replies - headings, lists, code, bold. Shared by
+   every page that shows AI output. */
+function aiMd(t) {
+  var src = String(t || "").trim(), out = [], list = null, inCode = false;
+  src.split("\n").forEach(function (ln) {
+    var m;
+    if (/^```/.test(ln)) {
+      if (list) { out.push("</" + list + ">"); list = null; }
+      out.push(inCode ? "</pre>" : '<pre class="code">');
+      inCode = !inCode;
+      return;
+    }
+    if (inCode) { out.push(esc(ln)); return; }
+    if ((m = ln.match(/^(#{1,4})\s+(.*)$/))) {
+      if (list) { out.push("</" + list + ">"); list = null; }
+      out.push("<h4>" + aiInline(m[2]) + "</h4>");
+      return;
+    }
+    if ((m = ln.match(/^\s*[-*]\s+(.*)$/))) {
+      if (list !== "ul") { if (list) out.push("</" + list + ">");
+        out.push("<ul>"); list = "ul"; }
+      out.push("<li>" + aiInline(m[1]) + "</li>");
+      return;
+    }
+    if ((m = ln.match(/^\s*\d+[.)]\s+(.*)$/))) {
+      if (list !== "ol") { if (list) out.push("</" + list + ">");
+        out.push("<ol>"); list = "ol"; }
+      out.push("<li>" + aiInline(m[1]) + "</li>");
+      return;
+    }
+    if (!ln.trim()) { if (list) { out.push("</" + list + ">"); list = null; }
+      return; }
+    if (list) { out.push("</" + list + ">"); list = null; }
+    out.push("<p>" + aiInline(ln) + "</p>");
+  });
+  if (inCode) out.push("</pre>");
+  if (list) out.push("</" + list + ">");
+  return out.join("\n");
+}
+function aiInline(s) {
+  return esc(s).replace(/`([^`]+)`/g, "<code>$1</code>")
+               .replace(/\*\*([^*]+)\*\*/g, "<b>$1</b>");
+}
+
 /* ---------------------------------------------------------- progress -- */
 /* One key holds everything, so a student can export or clear it in one go.
    Wrapped in try/catch because private-browsing modes throw on write. */
@@ -128,6 +172,8 @@ var NAV = [
   ["practicals.html", "Practicals"],
   ["reference.html", "Tag reference"],
   ["test.html", "Mock test"],
+  ["playground.html", "Playground"],
+  ["tutor.html", "AI tutor"],
   ["progress.html", "My progress"]
 ];
 
@@ -177,10 +223,13 @@ function PracticePad(opts) {
       '<button class="btn grn" id="' + uid + '_chk">&#10003; Check my work' +
       "</button>" +
       '<button class="btn ghost" id="' + uid + '_hint">Show a hint</button>' +
+      '<button class="btn ghost" id="' + uid + '_ai">&#129302; Review my ' +
+      "code</button>" +
       '<button class="btn ghost" id="' + uid + '_sol">Show the answer' +
       "</button>" +
       '<button class="btn ghost" id="' + uid + '_rst">Start over</button>' +
-    "</div><div id=\"" + uid + "_res\"></div>";
+    "</div><div id=\"" + uid + "_res\"></div>" +
+    "<div id=\"" + uid + "_ai_out\"></div>";
 
   var code = $(uid + "_code"), pv = $(uid + "_pv"), res = $(uid + "_res");
   code.value = saved || opts.starter || "";
@@ -213,6 +262,33 @@ function PracticePad(opts) {
     res.innerHTML = '<div class="note"><b>One correct answer.</b> Read it, ' +
       "then close it and type your own - copying it teaches nothing.</div>" +
       "<pre class=\"code\">" + esc(opts.solution) + "</pre>";
+  };
+
+  /* AI review is a separate judgement from the checker: the checker says
+     what is missing, the AI comments on style, naming and habits. */
+  $(uid + "_ai").onclick = async function () {
+    var out = $(uid + "_ai_out");
+    if (typeof AI === "undefined") {
+      out.innerHTML = '<div class="note">AI is not loaded on this page.</div>';
+      return;
+    }
+    if (!AI.configured()) {
+      out.innerHTML = '<div class="note"><b>No AI key yet.</b> The checker ' +
+        'above works without one. To get written feedback on your code, ' +
+        'add a free key on the <a href="tutor.html">AI tutor</a> page - it ' +
+        "takes two minutes.</div>";
+      return;
+    }
+    out.innerHTML = '<div class="note"><span class="spin"></span> ' +
+      "Reading your code&hellip;</div>";
+    try {
+      var r = await AI.review(code.value, opts.brief || "");
+      out.innerHTML = '<div class="note" style="background:#FCFBFF;' +
+        'border-left-color:#7C3AED"><b>AI review</b><div class="prose" ' +
+        'style="margin-top:8px">' + aiMd(r.text) + "</div></div>";
+    } catch (e) {
+      out.innerHTML = '<div class="note">' + esc(e.message) + "</div>";
+    }
   };
 
   $(uid + "_chk").onclick = function () {
