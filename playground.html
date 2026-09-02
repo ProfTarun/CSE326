@@ -1,0 +1,322 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Playground | CSE326</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .lab.big{grid-template-columns:1fr 1fr;min-height:440px}
+  .lab.big textarea{min-height:430px;font-size:13.5px}
+  .lab.big iframe{min-height:430px}
+  .tpl{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:12px}
+  .chk-list{display:grid;gap:6px;margin-top:12px}
+  .pub{background:linear-gradient(90deg,var(--green-pale),
+    rgba(233,247,231,.3));border-left:4px solid var(--green);
+    padding:15px 18px;border-radius:0 12px 12px 0;line-height:1.75}
+  .steps{counter-reset:s;list-style:none;padding:0;margin:10px 0 0}
+  .steps li{counter-increment:s;position:relative;padding:0 0 13px 38px;
+    line-height:1.65}
+  .steps li:before{content:counter(s);position:absolute;left:0;top:-1px;
+    width:25px;height:25px;border-radius:50%;
+    background:linear-gradient(135deg,var(--saffron),var(--saffron-d));
+    color:#fff;font-weight:800;font-size:12px;display:grid;place-items:center}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <p class="eyebrow">Free build &middot; no marking, no rules</p>
+  <h1 class="sec-h" style="font-size:27px">Playground</h1>
+  <p class="sec-p">Build whatever you like. Preview it live, get the AI to
+    review it, then download it and publish it as your own website.</p>
+
+  <div class="card">
+    <div class="tpl">
+      <button class="chip" onclick="load('blank')">Blank page</button>
+      <button class="chip" onclick="load('profile')">Profile page</button>
+      <button class="chip" onclick="load('form')">Registration form</button>
+      <button class="chip" onclick="load('table')">Timetable</button>
+      <button class="chip" onclick="load('grid')">Responsive gallery</button>
+      <button class="chip" onclick="load('flex')">Nav bar + cards</button>
+    </div>
+
+    <div class="lab big">
+      <div class="pane"><div class="pbar">Your code &mdash; saved
+        automatically on this device</div>
+        <textarea id="code" spellcheck="false"></textarea></div>
+      <div class="pane"><div class="pbar">Live preview</div>
+        <iframe id="pv" sandbox="allow-scripts allow-forms"></iframe></div>
+    </div>
+
+    <div class="acts">
+      <button class="btn saf" onclick="run()">&#9654; Run</button>
+      <button class="btn grn" onclick="review()">&#129302; Review my page</button>
+      <button class="btn ghost" onclick="selfCheck()">&#10003; Quick quality check</button>
+      <button class="btn ghost" onclick="download()">&#11015; Download index.html</button>
+      <button class="btn ghost" onclick="reset()">Start over</button>
+    </div>
+    <div id="out"></div>
+  </div>
+
+  <div class="card">
+    <h2>Publish it as your own website</h2>
+    <div class="pub">
+      <b>This is CA1 and Unit 6 in miniature.</b> Your project has to live in
+      a GitHub repo and be deployed online &mdash; so practise it here first
+      with a page that does not matter.
+      <ol class="steps">
+        <li>Press <b>Download index.html</b> above.</li>
+        <li>Create a free account at <b>github.com</b> if you have none.</li>
+        <li>Make a new <b>public</b> repository. Any name will do.</li>
+        <li>On the empty repo page click <b>uploading an existing file</b>
+          and drag your <code>index.html</code> in. Commit it.</li>
+        <li>Go to <b>Settings &rarr; Pages</b>, set Source to
+          <b>Deploy from a branch</b>, branch <b>main</b>, folder
+          <b>/ (root)</b>, and Save.</li>
+        <li>Wait a minute, then open
+          <code>https://YOURNAME.github.io/YOURREPO/</code></li>
+      </ol>
+      <p style="margin:10px 0 0"><b>Two traps that catch everyone.</b> The
+      file must be named exactly <code>index.html</code>, and the web server
+      is <b>case-sensitive</b> even though Windows is not &mdash; so
+      <code>Photo.JPG</code> and <code>photo.jpg</code> are different files
+      once deployed. That single difference breaks more CA1 submissions than
+      anything else.</p>
+    </div>
+  </div>
+</div>
+
+<script src="js/check.js"></script>
+<script src="js/ai.js"></script>
+<script src="js/app.js"></script>
+<script>
+"use strict";
+mountShell("playground.html");
+
+var KEY = "cse326_playground";
+
+var T = {};
+
+T.blank = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  "  <title>My page</title>\n  <style>\n    body { font-family: system-ui, " +
+  "sans-serif; padding: 20px; }\n  </style>\n</head>\n<body>\n\n  " +
+  "<h1>Hello</h1>\n  <p>Start building here.</p>\n\n</body>\n</html>\n";
+
+T.profile = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  "  <title>Asha Kumar - CSE326</title>\n  <style>\n" +
+  "    * { box-sizing: border-box; }\n" +
+  "    body { font-family: system-ui, sans-serif; line-height: 1.7;\n" +
+  "           max-width: 46rem; margin: 0 auto; padding: 1.5rem; }\n" +
+  "    header { border-bottom: 3px solid #E07B1E; padding-bottom: 1rem; }\n" +
+  "    nav a { margin-right: 1rem; color: #b45309; }\n" +
+  "    .card { border: 1px solid #ddd; border-radius: 12px;\n" +
+  "            padding: 1rem; margin: 1rem 0; }\n  </style>\n</head>\n<body>\n" +
+  "  <header>\n    <h1>Asha Kumar</h1>\n    <nav>\n" +
+  '      <a href="#about">About</a>\n      <a href="#work">Work</a>\n' +
+  "    </nav>\n  </header>\n\n  <main>\n" +
+  '    <section id="about">\n      <h2>About me</h2>\n' +
+  "      <p>First-year B.Tech student learning web development.</p>\n" +
+  "    </section>\n\n" +
+  '    <section id="work">\n      <h2>What I have built</h2>\n' +
+  '      <article class="card">\n        <h3>My first web page</h3>\n' +
+  "        <p>Built in CSE326 using semantic HTML and CSS.</p>\n" +
+  "      </article>\n    </section>\n  </main>\n\n" +
+  "  <footer>\n    <address>asha@example.com</address>\n  </footer>\n" +
+  "</body>\n</html>\n";
+
+T.form = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  "  <title>Register</title>\n  <style>\n    * { box-sizing: border-box; }\n" +
+  "    body { font-family: system-ui, sans-serif; padding: 20px; }\n" +
+  "    .card { max-width: 26rem; margin: 0 auto; padding: 1.5rem;\n" +
+  "            border: 1px solid #ddd; border-radius: 12px; }\n" +
+  "    label { display: block; margin: .9rem 0 .3rem; font-weight: 600; }\n" +
+  "    input, select { width: 100%; padding: .6rem; border: 1px solid #ccc;\n" +
+  "                    border-radius: 8px; }\n" +
+  "    input:focus { outline: none; border-color: #E07B1E;\n" +
+  "                  box-shadow: 0 0 0 3px rgba(224,123,30,.2); }\n" +
+  "  </style>\n</head>\n<body>\n" +
+  '  <form class="card" action="/register" method="post">\n' +
+  "    <fieldset>\n      <legend>Create your account</legend>\n\n" +
+  '      <label for="nm">Full name</label>\n' +
+  '      <input type="text" id="nm" name="name" required>\n\n' +
+  '      <label for="em">Email</label>\n' +
+  '      <input type="email" id="em" name="email" required>\n\n' +
+  "      <label>Year of study</label>\n" +
+  '      <label><input type="radio" name="year" value="1" checked style="width:auto"> First</label>\n' +
+  '      <label><input type="radio" name="year" value="2" style="width:auto"> Second</label>\n' +
+  "    </fieldset>\n\n" +
+  '    <button type="submit">Register</button>\n  </form>\n</body>\n</html>\n';
+
+T.table = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  "  <title>Timetable</title>\n  <style>\n" +
+  "    body { font-family: system-ui, sans-serif; padding: 20px; }\n" +
+  "    table { border-collapse: collapse; }\n" +
+  "    th, td { border: 1px solid #999; padding: .5rem .8rem; }\n" +
+  "    caption { font-weight: 700; padding-bottom: .5rem; }\n" +
+  "    thead th { background: #fff8f0; }\n  </style>\n</head>\n<body>\n" +
+  "  <table>\n    <caption>Weekly lab schedule</caption>\n    <thead>\n" +
+  '      <tr><th scope="col">Time</th><th scope="col">Mon</th>\n' +
+  '          <th scope="col">Tue</th><th scope="col">Wed</th></tr>\n' +
+  "    </thead>\n    <tbody>\n      <tr>\n" +
+  '        <th scope="row" rowspan="2">9-11</th>\n' +
+  '        <td colspan="2">CSE326 double lab</td>\n        <td>CSE201</td>\n' +
+  "      </tr>\n      <tr><td>CSE201</td><td>Free</td><td>CSE326</td></tr>\n" +
+  "    </tbody>\n    <tfoot>\n" +
+  '      <tr><td colspan="4">All labs in Block 34.</td></tr>\n' +
+  "    </tfoot>\n  </table>\n</body>\n</html>\n";
+
+T.grid = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  "  <title>Gallery</title>\n  <style>\n    * { box-sizing: border-box; }\n" +
+  "    body { font-family: system-ui, sans-serif; padding: 20px; }\n" +
+  "    .gallery { display: grid;\n" +
+  "      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));\n" +
+  "      gap: 14px; }\n" +
+  "    .tile { background: #f0fdfa; border-radius: 10px; padding: 2rem;\n" +
+  "            text-align: center; }\n  </style>\n</head>\n<body>\n" +
+  "  <h1>Resize the preview and watch the columns change</h1>\n" +
+  '  <div class="gallery">\n' +
+  '    <div class="tile">1</div>\n    <div class="tile">2</div>\n' +
+  '    <div class="tile">3</div>\n    <div class="tile">4</div>\n' +
+  '    <div class="tile">5</div>\n    <div class="tile">6</div>\n' +
+  "  </div>\n</body>\n</html>\n";
+
+T.flex = '<!DOCTYPE html>\n<html lang="en">\n<head>\n  <meta charset="UTF-8">\n' +
+  '  <meta name="viewport" content="width=device-width, initial-scale=1.0">\n' +
+  "  <title>Nav and cards</title>\n  <style>\n    * { box-sizing: border-box; }\n" +
+  "    body { font-family: system-ui, sans-serif; margin: 0; }\n" +
+  "    .nav { display: flex; justify-content: space-between;\n" +
+  "           align-items: center; gap: 1rem; padding: 1rem;\n" +
+  "           background: #fff8f0; }\n" +
+  "    .nav .links { display: flex; gap: 1rem; }\n" +
+  "    .row { display: flex; gap: 1rem; flex-wrap: wrap; padding: 1rem; }\n" +
+  "    .card { flex: 1 1 200px; border: 1px solid #ddd;\n" +
+  "            border-radius: 12px; padding: 1rem; }\n  </style>\n</head>\n" +
+  "<body>\n" +
+  '  <nav class="nav">\n    <b>My Site</b>\n' +
+  '    <span class="links"><a href="#a">Home</a><a href="#b">About</a></span>\n' +
+  "  </nav>\n" +
+  '  <div class="row">\n    <div class="card">One</div>\n' +
+  '    <div class="card">Two</div>\n    <div class="card">Three</div>\n' +
+  "  </div>\n</body>\n</html>\n";
+
+var code = $("code"), pv = $("pv");
+
+function run() { pv.srcdoc = code.value; }
+
+function load(name) {
+  if (code.value.trim() &&
+      !confirm("Replace what you have written with this template?")) return;
+  code.value = T[name] || T.blank;
+  save();
+  run();
+}
+
+function save() {
+  try { localStorage.setItem(KEY, code.value); } catch (e) {}
+}
+
+function reset() {
+  if (!confirm("Clear the editor?")) return;
+  code.value = T.blank;
+  save();
+  run();
+  $("out").innerHTML = "";
+}
+
+var t;
+code.addEventListener("input", function () {
+  save();
+  clearTimeout(t);
+  t = setTimeout(run, 500);
+});
+
+function download() {
+  var blob = new Blob([code.value], { type: "text/html;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+  toast("Downloaded as index.html - now upload it to GitHub");
+}
+
+/* A quick objective pass before asking the AI - these are the things that
+   silently break a deployed page. */
+var QUALITY = [
+  [/<!DOCTYPE\s+html/i, "Has a doctype"],
+  [/<html[^>]*\blang\s*=/i, "html has a lang attribute"],
+  [/<meta[^>]*charset/i, "Declares a character set"],
+  [/<meta[^>]*viewport[^>]*width\s*=\s*device-width/i,
+   "Has the viewport meta tag (needed on phones)"],
+  [/<title\b[^>]*>[^<]{3,}<\/title>/i, "Has a meaningful title"],
+  [/<h1\b/i, "Has an h1"],
+  [/<(header|main|section|article|footer|nav)\b/i,
+   "Uses at least one semantic element"]
+];
+var QUALITY_BAD = [
+  [/<img\b(?![^>]*\balt\s*=)/i, "An image is missing alt text"],
+  [/(?:<\s*h1\b[\s\S]*){2,}/i, "More than one h1"],
+  [/<br\s*\/?>\s*<br\s*\/?>/i, "Uses <br><br> for spacing - use CSS"],
+  [/<\/?[a-z0-9]*[A-Z]/, "Some tags are UPPERCASE - HTML5 convention is lowercase"],
+  [/style\s*=\s*["'][^"']{25,}/i, "Long inline style - move it to CSS"]
+];
+
+function selfCheck() {
+  var src = code.value, h = "";
+  var pass = 0;
+  h += '<div class="chk-list">' + QUALITY.map(function (r) {
+    var ok = r[0].test(src);
+    if (ok) pass++;
+    return '<div class="chk ' + (ok ? "ok" : "no") + '"><span class="ic">' +
+      (ok ? "&#10003;" : "&#10007;") + "</span><span>" + r[1] + "</span></div>";
+  }).join("");
+  QUALITY_BAD.forEach(function (r) {
+    if (r[0].test(src)) {
+      h += '<div class="chk no"><span class="ic">!</span><span>' + r[1] +
+        "</span></div>";
+    }
+  });
+  h += "</div>";
+  $("out").innerHTML = '<p class="mut" style="margin:14px 0 6px;' +
+    'font-weight:600">' + pass + " of " + QUALITY.length +
+    " basics in place</p>" + h +
+    '<p class="mut" style="font-size:13px;margin-top:10px">This is a quick ' +
+    "objective pass. For real feedback on your choices, press " +
+    "<b>Review my page</b>.</p>";
+}
+
+async function review() {
+  if (!AI.configured()) {
+    $("out").innerHTML = '<div class="note"><b>No AI key yet.</b> The quick ' +
+      'quality check works without one. For written feedback, add a free ' +
+      'key on the <a href="tutor.html">AI tutor</a> page.</div>';
+    return;
+  }
+  $("out").innerHTML = '<div class="note"><span class="spin"></span> ' +
+    "Reading your page&hellip;</div>";
+  try {
+    var r = await AI.review(code.value,
+      "A free-build page for a first-year web programming course. Comment " +
+      "on structure, semantics, accessibility and whether it would work on " +
+      "a phone.");
+    $("out").innerHTML = '<div class="note" style="background:#FCFBFF;' +
+      'border-left-color:#7C3AED"><b>AI review</b><div class="prose" ' +
+      'style="margin-top:8px">' + aiMd(r.text) + "</div></div>";
+  } catch (e) {
+    $("out").innerHTML = '<div class="note">' + esc(e.message) + "</div>";
+  }
+}
+
+(function () {
+  var saved = "";
+  try { saved = localStorage.getItem(KEY) || ""; } catch (e) {}
+  code.value = saved || T.profile;
+  run();
+})();
+</script>
+</body>
+</html>
