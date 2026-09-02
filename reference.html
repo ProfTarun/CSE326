@@ -1,0 +1,358 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Tag reference | CSE326 Internet Programming</title>
+<link rel="stylesheet" href="css/theme.css">
+<link rel="stylesheet" href="css/site.css">
+<style>
+  .search{width:100%;padding:14px 17px;border:1px solid var(--line);
+    border-radius:13px;font-size:15.5px;font-family:inherit;
+    background:rgba(255,255,255,.97);box-shadow:var(--shadow)}
+  .search:focus{outline:0;border-color:var(--saffron);
+    box-shadow:0 0 0 3px rgba(255,153,51,.16)}
+  .cats{display:flex;gap:7px;flex-wrap:wrap;margin:14px 0 22px}
+  .cat{font-size:12.5px;font-weight:700;padding:7px 13px;border-radius:999px;
+    border:1px solid var(--line);background:#fff;cursor:pointer;
+    color:var(--ink-2)}
+  .cat:hover{border-color:var(--saffron);color:var(--saffron-d)}
+  .cat.on{background:linear-gradient(135deg,var(--saffron),var(--saffron-d));
+    color:#fff;border-color:transparent}
+  .grp{margin-bottom:30px}
+  .grp h2{font-size:17px;margin:0 0 4px}
+  .grp .gd{color:var(--mut);font-size:13.5px;margin:0 0 13px}
+  .tags{display:grid;grid-template-columns:repeat(auto-fill,minmax(285px,1fr));
+    gap:12px}
+  .tg{background:rgba(255,255,255,.96);border:1px solid var(--line);
+    border-radius:13px;padding:15px 17px;box-shadow:var(--shadow)}
+  .tg .n{font-family:var(--mono);font-size:15px;font-weight:700;
+    color:var(--saffron-d);margin-bottom:5px}
+  .tg .d{font-size:13.6px;line-height:1.6;color:var(--ink-2);margin-bottom:9px}
+  .tg pre{background:var(--code);color:#DCE7F5;padding:9px 11px;
+    border-radius:8px;font-family:var(--mono);font-size:12px;line-height:1.5;
+    margin:0;overflow:auto;white-space:pre-wrap}
+  .tg .void{display:inline-block;font-size:10.5px;font-weight:800;
+    background:var(--warn-bg);color:var(--warn);padding:2px 7px;
+    border-radius:999px;margin-left:7px;vertical-align:2px}
+  .count{color:var(--mut);font-size:13.5px;margin:0 0 18px;font-weight:600}
+  .note-official{background:linear-gradient(90deg,var(--green-pale),
+    rgba(233,247,231,.3));border-left:4px solid var(--green);
+    padding:13px 17px;border-radius:0 11px 11px 0;margin-bottom:22px;
+    line-height:1.65;font-size:14.5px}
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <p class="eyebrow">Quick reference</p>
+  <h1 class="sec-h" style="font-size:27px">Every tag on the exam list</h1>
+  <p class="sec-p">Straight from your teacher's ETP question-paper
+    instruction. If a tag is on this page it can appear in the paper; if it is
+    not, it cannot.</p>
+
+  <div class="note-official">
+    <b>Why this list and no other.</b> The ETP instruction says questions must
+    be <i>strictly syllabus-oriented</i>, drawn from the tags listed here, and
+    that nothing from an outside framework, library or API may be asked. So
+    this is the whole examinable surface for HTML.
+  </div>
+
+  <input class="search" id="q" placeholder="Search a tag or attribute -
+         try 'blockquote', 'colspan', 'input type'..." oninput="draw()">
+  <div class="cats" id="cats"></div>
+  <p class="count" id="count"></p>
+  <div id="out"></div>
+</div>
+
+<script>
+"use strict";
+/* Grouped exactly as the ETP instruction groups them, so a student revising
+   from the official sheet finds the same headings in the same order. */
+var GROUPS=[
+ {g:"Document structure",
+  d:"The skeleton every page is built from.",
+  t:[
+   ["<html>","The root element. Everything else lives inside it.",
+    '<html lang="en"> ... </html>'],
+   ["<head>","Information about the page. Nothing here is drawn on screen.",
+    "<head> ... </head>"],
+   ["<title>","Tab text and the headline in search results.",
+    "<title>My page</title>"],
+   ["<body>","Everything the visitor actually sees.","<body> ... </body>"],
+   ["<meta>","Page metadata: character set, viewport, description.",
+    '<meta charset="UTF-8">',1],
+   ["<link>","Attaches an external file, most often a stylesheet.",
+    '<link rel="stylesheet" href="style.css">',1],
+   ["<style>","CSS written inside the page itself.",
+    "<style> body { margin: 0 } </style>"],
+   ["<script>","JavaScript, inline or linked with src.",
+    '<script src="app.js"><\/script>']]},
+
+ {g:"Headings and basic content",
+  d:"Structure of the readable page.",
+  t:[
+   ["<h1> to <h6>","Six heading levels. One h1 per page; never skip a level.",
+    "<h1>Main title</h1>\n<h2>A section</h2>"],
+   ["<p>","A paragraph - one block of thought.","<p>Some text.</p>"],
+   ["<br>","A line break inside one paragraph. Never for spacing.",
+    "Line one<br>Line two",1],
+   ["<hr>","A thematic break - the subject changes here.","<hr>",1],
+   ["<div>","A block container with no meaning of its own.",
+    '<div class="box"> ... </div>'],
+   ["<span>","An inline container with no meaning of its own.",
+    "<p>Costs <span>450</span></p>"]]},
+
+ {g:"Logical (semantic) text tags",
+  d:"Chosen for MEANING. This is the group examiners test most.",
+  t:[
+   ["<strong>","Genuinely important. Screen readers stress it.",
+    "<strong>Warning:</strong> hot"],
+   ["<em>","Emphasis that changes the sentence's meaning.",
+    "I <em>never</em> said that"],
+   ["<mark>","Highlighted, like a marker pen.","<mark>exam</mark> tomorrow"],
+   ["<small>","Side comments, legal print, disclaimers.",
+    "<small>terms apply</small>"],
+   ["<del>","Text that has been removed.","<del>1200</del>"],
+   ["<ins>","Text that has been inserted.","<ins>899</ins>"],
+   ["<sub>","Below the line - H<sub>2</sub>O.","H<sub>2</sub>O"],
+   ["<sup>","Above the line - x<sup>2</sup>.","x<sup>2</sup>"],
+   ["<abbr>","An abbreviation, with the full form in title.",
+    '<abbr title="HyperText Markup Language">HTML</abbr>'],
+   ["<cite>","The TITLE of a work - not the author's name.",
+    "<cite>The Republic</cite>"],
+   ["<q>","Short inline quote. The browser adds the quote marks.",
+    "<q>a decisive shift</q>"],
+   ["<blockquote>","Long quote as its own indented block.",
+    '<blockquote cite="https://...">Text</blockquote>'],
+   ["<code>","A snippet of program text.","<code>margin: 0</code>"],
+   ["<pre>","Keeps your spaces and line breaks exactly as typed.",
+    "<pre>  spaced   out</pre>"],
+   ["<address>","Contact details for the page or article.",
+    "<address>Block 34, LPU</address>"]]},
+
+ {g:"Physical (presentational) tags",
+  d:"These change appearance only. Know how they differ from the logical pair.",
+  t:[
+   ["<b>","Bold for attention, with no added importance.","<b>keyword</b>"],
+   ["<i>","Italic for a different kind of text - a term, a foreign phrase.",
+    "<i>et cetera</i>"],
+   ["<u>","Underline. Use sparingly - readers expect underline to mean link.",
+    "<u>misspelt</u>"],
+   ["<strike>","Struck-through text. Legacy - prefer <del>.",
+    "<strike>old</strike>"]]},
+
+ {g:"Lists",
+  d:"Three kinds. Only <li> may sit directly inside <ul> or <ol>.",
+  t:[
+   ["<ul>","Unordered list - order does not matter.",
+    "<ul>\n  <li>Rice</li>\n</ul>"],
+   ["<ol>","Ordered list - order matters. type, start, reversed.",
+    '<ol type="a" start="3">\n  <li>Step</li>\n</ol>'],
+   ["<li>","One item in a list.","<li>An item</li>"],
+   ["<dl>","Description list - term and meaning pairs.",
+    "<dl>\n  <dt>Client</dt>\n  <dd>Your browser</dd>\n</dl>"],
+   ["<dt>","The term being described.","<dt>Server</dt>"],
+   ["<dd>","The description of that term.","<dd>Sends the page</dd>"]]},
+
+ {g:"Links and navigation",
+  d:"href decides where; target decides which tab.",
+  t:[
+   ["<a>","A hyperlink. Without href it is not a link at all.",
+    '<a href="about.html">About</a>'],
+   ["<nav>","The block holding the main navigation links.",
+    "<nav>\n  <a href=\"/\">Home</a>\n</nav>"]]},
+
+ {g:"Images and figures",
+  d:"alt is not optional - it is read aloud and shown when loading fails.",
+  t:[
+   ["<img>","An image. Needs src and alt.",
+    '<img src="c.jpg" alt="Campus gate" width="600">',1],
+   ["<figure>","Self-contained illustration with its caption.",
+    "<figure>\n  <img src=\"c.jpg\" alt=\"...\">\n  <figcaption>Fig 1</figcaption>\n</figure>"],
+   ["<figcaption>","The caption belonging to a figure.",
+    "<figcaption>Figure 1: layout</figcaption>"]]},
+
+ {g:"Semantic page structure",
+  d:"Same look as a div, but machine-readable. Exactly one <main> per page.",
+  t:[
+   ["<header>","Introductory content of a page or section.",
+    "<header><h1>Site</h1></header>"],
+   ["<main>","The unique main content. Only one per page.",
+    "<main> ... </main>"],
+   ["<section>","A themed grouping, normally with its own heading.",
+    "<section><h2>News</h2></section>"],
+   ["<article>","Self-contained - would still make sense copied elsewhere.",
+    "<article><h3>Post</h3></article>"],
+   ["<footer>","Closing information for a page or section.",
+    "<footer><p>&copy; 2026</p></footer>"]]},
+
+ {g:"Multimedia",
+  d:"controls is boolean - writing controls=\"false\" still switches it ON.",
+  t:[
+   ["<audio>","Plays sound. Needs controls or nobody can start it.",
+    '<audio src="s.mp3" controls></audio>'],
+   ["<video>","Plays video. poster shows before play begins.",
+    '<video controls poster="c.jpg">\n  <source src="v.mp4" type="video/mp4">\n</video>'],
+   ["<source>","One media format among several; browser picks the first it can play.",
+    '<source src="v.webm" type="video/webm">',1],
+   ["<iframe>","Embeds another whole page. Always give it a title.",
+    '<iframe src="map.html" title="Campus map"></iframe>']]},
+
+ {g:"SVG",
+  d:"Drawn from instructions, so it never blurs. y grows DOWNWARD.",
+  t:[
+   ["<svg>","The drawing canvas. viewBox sets the coordinate system.",
+    '<svg width="200" height="200" viewBox="0 0 100 100"> ... </svg>'],
+   ["<circle>","A circle: centre cx, cy and radius r.",
+    '<circle cx="50" cy="50" r="40" fill="teal"></circle>'],
+   ["<rect>","A rectangle from x, y with width and height.",
+    '<rect x="10" y="10" width="80" height="50"></rect>'],
+   ["<line>","A straight line between two points.",
+    '<line x1="0" y1="0" x2="100" y2="100" stroke="black"></line>'],
+   ["<text>","Text drawn inside the SVG at x, y.",
+    '<text x="20" y="50">Hello</text>']]},
+
+ {g:"Tables",
+  d:"colspan and rowspan merge cells across columns and rows.",
+  t:[
+   ["<table>","The table itself.","<table> ... </table>"],
+   ["<caption>","The table's title. Must be the first child.",
+    "<caption>Results</caption>"],
+   ["<thead>","The header row group.","<thead><tr><th>Name</th></tr></thead>"],
+   ["<tbody>","The body rows.","<tbody><tr><td>Asha</td></tr></tbody>"],
+   ["<tfoot>","The footer rows - totals and summaries.",
+    "<tfoot><tr><td>Total</td></tr></tfoot>"],
+   ["<tr>","One row.","<tr> ... </tr>"],
+   ["<th>","A header cell. Bold and centred by default.","<th>Marks</th>"],
+   ["<td>","A data cell.","<td>92</td>"],
+   ["colspan","Attribute: make one cell span several COLUMNS.",
+    '<td colspan="2">Spans two</td>'],
+   ["rowspan","Attribute: make one cell span several ROWS.",
+    '<td rowspan="3">Spans three</td>']]},
+
+ {g:"Forms",
+  d:"Every input should have a <label> tied to it by id.",
+  t:[
+   ["<form>","The container that collects and submits the data.",
+    '<form action="/save" method="post"> ... </form>'],
+   ["<label>","Names a field. for must match the input's id.",
+    '<label for="nm">Name</label>'],
+   ["<input>","One field. The type attribute decides what kind.",
+    '<input type="text" id="nm" name="nm" required>',1],
+   ["<textarea>","A multi-line text box.",
+    '<textarea rows="4"></textarea>'],
+   ["<select>","A drop-down list.","<select><option>A</option></select>"],
+   ["<option>","One choice inside a select.","<option value=\"1\">One</option>"],
+   ["<button>","A clickable button.","<button type=\"submit\">Send</button>"],
+   ["<fieldset>","Groups related fields together.",
+    "<fieldset> ... </fieldset>"],
+   ["<legend>","The caption for a fieldset.","<legend>Address</legend>"],
+   ["<progress>","Shows how far a task has got.",
+    '<progress value="70" max="100"></progress>']]},
+
+ {g:"input types",
+  d:"All are <input type=\"...\">. Examiners test which type suits which data.",
+  t:[
+   ["text","Single line of free text.",'<input type="text">'],
+   ["password","Text hidden behind dots.",'<input type="password">'],
+   ["email","Expects an address; the browser validates the shape.",
+    '<input type="email">'],
+   ["number","Numbers only. Works with min, max and step.",
+    '<input type="number" min="0" max="10">'],
+   ["date","A date picker.",'<input type="date">'],
+   ["time","A time picker.",'<input type="time">'],
+   ["file","Choose a file to upload.",'<input type="file">'],
+   ["checkbox","Zero or more choices can be ticked.",
+    '<input type="checkbox" checked>'],
+   ["radio","Exactly one choice from a group sharing a name.",
+    '<input type="radio" name="sex">'],
+   ["range","A slider between min and max.",
+    '<input type="range" min="0" max="100">'],
+   ["submit","Sends the form.",'<input type="submit" value="Send">'],
+   ["reset","Clears the form back to its defaults.",'<input type="reset">'],
+   ["button","A plain button with no built-in behaviour.",
+    '<input type="button" value="Click">']]},
+
+ {g:"Attributes and concepts",
+  d:"These carry as many marks as the tags themselves.",
+  t:[
+   ["id","Unique name for ONE element. Never repeat it on a page.",
+    '<h2 id="contact">'],
+   ["class","A shared label for many elements. Repeating it is fine.",
+    '<div class="card">'],
+   ["name","The key a form field is submitted under.",'<input name="email">'],
+   ["value","The field's current or default content.",'<input value="Asha">'],
+   ["href","Where a link points.",'<a href="https://lpu.in">'],
+   ["src","Where a file (image, script, media) is loaded from.",
+    '<img src="pic.jpg">'],
+   ["alt","Text replacing an image for screen readers or a failed load.",
+    '<img alt="Campus gate at dawn">'],
+   ["title","Extra advisory text, shown as a tooltip.",
+    '<abbr title="World Wide Web">WWW</abbr>'],
+   ["target","Which tab a link opens in. Pair _blank with rel=\"noopener\".",
+    '<a target="_blank" rel="noopener">'],
+   ["width / height","Size in pixels. Reserving space stops the page jumping.",
+    '<img width="600" height="400">'],
+   ["placeholder","Grey hint text inside an empty field. Not a label.",
+    '<input placeholder="you@lpu.in">'],
+   ["required","The form will not submit while this field is empty.",
+    "<input required>"],
+   ["readonly","Visible and submitted, but cannot be edited.",
+    "<input readonly>"],
+   ["disabled","Greyed out and NOT submitted with the form.",
+    "<input disabled>"],
+   ["checked","Ticks a checkbox or radio by default.","<input checked>"],
+   ["selected","Pre-selects one option in a drop-down.",
+    "<option selected>"],
+   ["multiple","Allows more than one file or option.","<select multiple>"],
+   ["min / max","Smallest and largest allowed value.",
+    '<input type="number" min="1" max="5">'],
+   ["step","The interval between allowed values.",'<input step="0.5">'],
+   ["minlength / maxlength","Fewest and most characters allowed.",
+    '<input maxlength="10">']]}
+];
+
+function esc(s){return String(s==null?"":s).replace(/[&<>"']/g,function(c){
+  return {"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]})}
+var CAT="all";
+
+function drawCats(){
+  document.getElementById("cats").innerHTML=
+    '<div class="cat'+(CAT==="all"?" on":"")+'" onclick="pick(\'all\')">'+
+    'All</div>'+GROUPS.map(function(g){
+      return '<div class="cat'+(CAT===g.g?" on":"")+'" onclick="pick(\''+
+        g.g.replace(/'/g,"\\'")+'\')">'+esc(g.g)+'</div>' }).join("");
+}
+function pick(c){ CAT=c; drawCats(); draw() }
+
+function draw(){
+  var q=document.getElementById("q").value.trim().toLowerCase();
+  var shown=0, html="";
+  GROUPS.forEach(function(g){
+    if(CAT!=="all" && CAT!==g.g) return;
+    var hits=g.t.filter(function(t){
+      return !q || (t[0]+" "+t[1]).toLowerCase().indexOf(q)>-1 });
+    if(!hits.length) return;
+    shown+=hits.length;
+    html+='<div class="grp"><h2>'+esc(g.g)+'</h2><p class="gd">'+esc(g.d)+
+      '</p><div class="tags">'+hits.map(function(t){
+        return '<div class="tg"><div class="n">'+esc(t[0])+
+          (t[3]?'<span class="void">no closing tag</span>':'')+'</div>'+
+          '<div class="d">'+esc(t[1])+'</div>'+
+          '<pre>'+esc(t[2])+'</pre></div>' }).join("")+'</div></div>';
+  });
+  document.getElementById("count").textContent=
+    shown+" of "+GROUPS.reduce(function(a,g){return a+g.t.length},0)+
+    " entries shown";
+  document.getElementById("out").innerHTML=html ||
+    '<div class="empty">Nothing matches &ldquo;'+esc(q)+'&rdquo;.<br>'+
+    'If a tag is not on this page, it is not on the exam list.</div>';
+}
+drawCats(); draw();
+</script>
+<script src="js/check.js"></script>
+<script src="js/app.js"></script>
+<script>mountShell("reference.html");</script>
+</body>
+</html>
