@@ -83,6 +83,35 @@ function draw() {
   if (s.kind === "read") {
     h += '<div class="card prose"><h2>' + esc(s.title) + "</h2>" + s.body +
       "</div>";
+  } else if (s.kind === "map") {
+    h += '<div class="card prose stepmap">' +
+      '<p class="steptag">The big picture</p><h2>' + esc(s.title) + "</h2>" +
+      (s.body || "") + '<pre class="tree">' + esc(s.tree || "") + "</pre></div>";
+  } else if (s.kind === "key") {
+    h += '<div class="card prose stepkey">' +
+      '<p class="steptag">Key concept</p><h2>' + esc(s.title) + "</h2>" +
+      (s.body || "") + "</div>";
+  } else if (s.kind === "full") {
+    h += '<div class="card prose stepfull">' +
+      '<p class="steptag">The complete page</p><h2>' + esc(s.title) + "</h2>" +
+      (s.note ? '<p class="mut">' + esc(s.note) + "</p>" : "") +
+      '<pre class="code">' + esc(s.code) + "</pre>" +
+      '<div class="acts">' +
+        '<button class="btn saf" onclick="runFull()">&#9654; Run it</button>' +
+        '<button class="btn ghost" onclick="copyFull()">' +
+        '&#128203; Copy</button>' +
+        '<button class="btn ghost" onclick="saveFull()">' +
+        '&#11015; Download</button>' +
+      "</div>" +
+      '<iframe id="fullpv" class="fullpv" sandbox="allow-scripts"></iframe>' +
+      "</div>";
+  } else if (s.kind === "table") {
+    h += '<div class="card prose steptable">' +
+      '<p class="steptag">Revision</p><h2>' +
+      esc(s.title || "Quick revision") + "</h2>" +
+      '<table class="revision"><tbody>' + (s.rows || []).map(function (r) {
+        return "<tr><td><code>" + r[0] + "</code></td><td>" + r[1] +
+          "</td></tr>"; }).join("") + "</tbody></table></div>";
   } else if (s.kind === "demo") {
     h += '<div class="card prose"><h2>' + esc(s.title) + "</h2>" +
       '<pre class="code">' + esc(s.code) + "</pre>" +
@@ -136,6 +165,39 @@ function step(d) {
   if (n < 0 || n >= L.steps.length) return;
   STEP = n;
   draw();
+}
+
+/* ----- the complete-page step: run it, copy it, or keep it ------------- */
+function fullCode() {
+  var s = L && L.steps[STEP];
+  return (s && s.code) || "";
+}
+
+function runFull() {
+  var f = $("fullpv");
+  if (!f) return;
+  f.srcdoc = fullCode();
+  f.style.display = "block";
+}
+
+function copyFull() {
+  var code = fullCode();
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(code).then(function () {
+      toast("Copied - paste it into a file called index.html");
+    }, function () { toast("Select the code and copy it manually"); });
+  } else {
+    toast("Select the code and copy it manually");
+  }
+}
+
+function saveFull() {
+  var blob = new Blob([fullCode()], { type: "text/html;charset=utf-8" });
+  var a = document.createElement("a");
+  a.href = URL.createObjectURL(blob);
+  a.download = "index.html";
+  a.click();
+  toast("Saved as index.html - open it in your browser");
 }
 
 function backToList(e) {
