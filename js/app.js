@@ -167,6 +167,7 @@ var Progress = (function () {
 /* ------------------------------------------------------------- nav ---- */
 var NAV = [
   ["index.html", "Home"],
+  ["book.html", "Textbook"],
   ["learn.html", "Lessons"],
   ["drills.html", "Command drills"],
   ["practicals.html", "Practicals"],
@@ -177,14 +178,28 @@ var NAV = [
   ["progress.html", "My progress"]
 ];
 
+/* On narrow screens the links collapse behind a menu button; the same
+   NAV list is drawn either way, so there is one place to add a page. */
 function topbar(current) {
+  var links = NAV.map(function (n) {
+    return '<a href="' + n[0] + '"' +
+      (n[0] === current ? ' class="on"' : "") + ">" + n[1] + "</a>";
+  }).join("");
   return '<div class="topbar">' +
     '<a class="logo" href="index.html"><span class="mark"></span>CSE326</a>' +
-    "<nav>" + NAV.map(function (n) {
-      return '<a href="' + n[0] + '"' +
-        (n[0] === current ? ' class="on"' : "") + ">" + n[1] + "</a>";
-    }).join("") + "</nav><span class=\"sp\"></span>" +
-    '<span class="who" id="who"></span></div>';
+    "<nav>" + links + "</nav><span class=\"sp\"></span>" +
+    '<span class="who" id="who"></span>' +
+    '<button class="menub" type="button" aria-label="Menu" ' +
+    'aria-expanded="false" onclick="toggleMenu(this)">&#9776;</button>' +
+    "</div>" +
+    '<div class="mnav" id="mnav">' + links + "</div>";
+}
+
+function toggleMenu(btn) {
+  var m = $("mnav");
+  if (!m) return;
+  var open = m.classList.toggle("open");
+  btn.setAttribute("aria-expanded", open ? "true" : "false");
 }
 
 function footer() {
