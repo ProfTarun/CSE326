@@ -312,9 +312,23 @@ async function review() {
 }
 
 (function () {
-  var saved = "";
+  var saved = "", seed = "";
   try { saved = localStorage.getItem(KEY) || ""; } catch (e) {}
-  code.value = saved || T.profile;
+  /* "Open in Playground" on a textbook example leaves the code here. */
+  try {
+    seed = localStorage.getItem("cse326_play_seed") || "";
+    localStorage.removeItem("cse326_play_seed");
+  } catch (e) {}
+  if (seed && /from=book/.test(location.search) &&
+      (!saved.trim() || saved === T.profile ||
+       confirm("Load the textbook example into the editor? Your current " +
+               "playground code will be replaced."))) {
+    code.value = seed;
+    save();
+    toast("Textbook example loaded - edit it freely");
+  } else {
+    code.value = saved || T.profile;
+  }
   run();
 })();
 </script>

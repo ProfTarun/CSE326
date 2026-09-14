@@ -100,6 +100,26 @@ mountShell("progress.html");
       '<div class="stat"><div class="n">' + Progress.days() +
         '</div><div class="l">days practised</div></div></div>';
 
+    /* textbook chapters read (the reader keeps its own key) */
+    try {
+      var book = await loadJSON("book/index.json");
+      var bk = JSON.parse(localStorage.getItem("cse326_book") || "{}");
+      var readMap = bk.read || {};
+      var nRead = book.chapters.filter(function (c) {
+        return readMap[c.id]; }).length;
+      h += '<div class="card"><h2>Textbook chapters read ' +
+        '<span class="pill gry">' + nRead + " / " + book.chapters.length +
+        '</span></h2><div class="cov">' +
+        book.chapters.map(function (c) {
+          return '<a class="tp' + (readMap[c.id] ? " on" : "") +
+            '" href="book.html?ch=' + c.n + '" style="text-decoration:none;' +
+            'color:inherit">' + c.n + ". " + esc(c.title) + "</a>";
+        }).join("") + "</div>" +
+        (bk.last ? '<p class="mut" style="margin:12px 0 0">' +
+          '<a href="book.html?ch=' + bk.last.ch + '">Continue reading ' +
+          "chapter " + bk.last.ch + " &rarr;</a></p>" : "") + "</div>";
+    } catch (e) { /* textbook not present: skip the panel */ }
+
     /* per-unit lesson coverage */
     var units = {};
     lessons.forEach(function (l) {
@@ -167,6 +187,7 @@ function wipe() {
   if (!confirm("Erase all your progress on this device? This cannot be " +
                "undone.")) return;
   Progress.reset();
+  try { localStorage.removeItem("cse326_book"); } catch (e) {}
   location.reload();
 }
 </script>

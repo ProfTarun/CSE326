@@ -58,6 +58,28 @@ mountShell("test.html");
 
 var BANK = [], QS = [], PICK = {}, DONE = false;
 
+/* Which textbook chapter revises each question. Bank questions carry a
+   topic name; lesson quizzes carry the lesson id. CSS topics have no
+   chapter yet, so they get no link. */
+var TOPIC_CH = {
+  "Web basics": 1, "Document structure": 4, "Elements and attributes": 5,
+  "Block and inline": 5, "Headings and text": 6, "Text formatting": 6,
+  "Lists": 7, "Links and images": 8, "SVG": 9, "Multimedia": 10,
+  "SEO and best practice": 11, "Semantic structure": 13, "Forms": 16,
+  "Input types": 17, "Tables": 19
+};
+var LESSON_CH = {
+  "u1-01": 1, "u1-02": 4, "u1-03": 6, "u1-04": 6, "u1-05": 5, "u1-06": 7,
+  "u1-07": 8, "u1-08": 9, "u1-09": 10, "u1-10": 11, "u1-11": 12,
+  "u2-01": 14, "u2-02": 19, "u2-03": 16, "u2-04": 17, "u2-05": 15
+};
+function chapterFor(q) {
+  if (q.ch) return q.ch;
+  if (q.topic && TOPIC_CH[q.topic]) return TOPIC_CH[q.topic];
+  var m = String(q.id).match(/^(u\d-\d\d)-/);
+  return m && LESSON_CH[m[1]] || 0;
+}
+
 /* The quizzes built into the lessons become the question bank. Each one
    already has four options, one correct answer and an explanation. */
 function buildBank(lessons) {
@@ -68,7 +90,7 @@ function buildBank(lessons) {
           s.answer != null) {
         out.push({ id: l.id + "-" + i, q: s.q, options: s.options,
                    answer: s.answer, why: s.why || "",
-                   topic: l.title, unit: l.unit });
+                   topic: l.title, unit: l.unit, ch: LESSON_CH[l.id] || 0 });
       }
     });
   });
@@ -192,9 +214,13 @@ function submit() {
     if (chosen == null) blank++;
     else if (chosen === q.answer) right++;
     else { wrong++; $("o" + i + "_" + chosen).className = "opt dis wrong"; }
-    if (q.why) {
+    var ch = chapterFor(q);
+    if (q.why || ch) {
       var w = $("w" + i);
-      w.innerHTML = "<b>Why:</b> " + esc(q.why);
+      w.innerHTML = (q.why ? "<b>Why:</b> " + esc(q.why) : "") +
+        (ch ? ' <a href="book.html?ch=' + ch + '" style="font-weight:700;' +
+          'white-space:nowrap">Revise: Textbook chapter ' + ch + " &rarr;</a>"
+          : "");
       w.classList.add("on");
     }
     Progress.mark("quiz", q.id, chosen === q.answer);
