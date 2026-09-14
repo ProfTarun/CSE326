@@ -1,0 +1,235 @@
+<article class="chapter" data-ch="10">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 10 &middot; Multimedia Elements: Audio, Video and Iframes</p>
+  <h1>Multimedia Elements: Audio, Video and Iframes</h1>
+  <p class="lead">Before HTML5, playing a video meant installing a plug-in. Now the browser plays audio and video natively, and an iframe can drop a map, a YouTube player or another whole page into yours. This chapter covers the <code>audio</code> and <code>video</code> elements and every attribute that controls them, the <code>source</code> and <code>track</code> children that make them robust and accessible, and the <code>iframe</code> with the security attributes you must understand before embedding anything.</p>
+  <p class="meta">About 17 minutes &middot; Course outcome CO1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Embed audio and video with working controls and multiple formats.</li>
+      <li>Explain <code>controls</code>, <code>autoplay</code>, <code>muted</code>, <code>loop</code>, <code>poster</code> and <code>preload</code>.</li>
+      <li>Add captions with <code>track</code> and fallback text for old browsers.</li>
+      <li>Embed external content with <code>iframe</code>, size it, title it, lazy-load it, and restrict it with <code>sandbox</code> and <code>allow</code>.</li>
+      <li>Explain why an autoplaying video stays silent and why some sites refuse to be framed.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>10.1 Native media in HTML5</h2>
+  <p>HTML5 added three things that changed the web: <code>&lt;audio&gt;</code> for sound, <code>&lt;video&gt;</code> for moving pictures, and standard, plug-in-free playback built into every browser. The pattern for both elements is the same: the element itself (which is <b>not</b> void: it always needs a closing tag), one or more <code>&lt;source&gt;</code> children pointing at media files, optional <code>&lt;track&gt;</code> children for captions, and fallback text between the tags for browsers that cannot play the element at all.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="Anatomy of a video element and its children">
+      <rect x="20" y="20" width="580" height="190" rx="12" class="box"/>
+      <text x="36" y="46" class="t b mono">&lt;video controls poster="preview.jpg" width="500"&gt;</text>
+      <text x="580" y="46" class="t s" style="text-anchor:end">playback attributes</text>
+      <rect x="40" y="60" width="540" height="30" rx="6" class="box saf"/><text x="52" y="80" class="t mono">&lt;source src="lecture.mp4" type="video/mp4"&gt;</text><text x="575" y="80" class="t s" style="text-anchor:end">first format offered</text>
+      <rect x="40" y="96" width="540" height="30" rx="6" class="box saf"/><text x="52" y="116" class="t mono">&lt;source src="lecture.webm" type="video/webm"&gt;</text><text x="575" y="116" class="t s" style="text-anchor:end">fallback format</text>
+      <rect x="40" y="132" width="540" height="30" rx="6" class="box blu"/><text x="52" y="152" class="t mono">&lt;track src="captions.vtt" kind="subtitles" srclang="en"&gt;</text>
+      <rect x="40" y="168" width="540" height="30" rx="6" class="box gry"/><text x="52" y="188" class="t mono">Your browser cannot play video. &lt;a href="lecture.mp4"&gt;Download&lt;/a&gt;</text>
+      <text x="36" y="205" class="t b mono">&lt;/video&gt;</text>
+    </svg>
+    <figcaption><b>Figure 10.1</b> A robust video element: playback attributes on the element, formats in <code>source</code> children, captions in <code>track</code>, and fallback text for browsers that understand none of it.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>10.2 The audio element</h2>
+  <pre class="code" data-run data-title="Audio with controls and two formats" data-h="120">&lt;audio controls&gt;
+  &lt;source src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3" type="audio/mpeg"&gt;
+  &lt;source src="lecture.ogg" type="audio/ogg"&gt;
+  Your browser does not support the audio element.
+&lt;/audio&gt;</pre>
+  <p><code>controls</code> is the attribute that matters most: it makes the browser show its <b>native play, pause, seek and volume controls</b>. Without it there is no visible player and no way for the visitor to start playback (unless a script does it). The text between the tags is the <b>fallback</b>: browsers that cannot play <code>&lt;audio&gt;</code> ignore the element and show the text instead. There is no <code>alt</code> attribute on audio or video, no <code>&lt;fallback&gt;</code> element, and a <code>title</code> on <code>&lt;source&gt;</code> does nothing of the kind.</p>
+  <p>Typical uses: music, narration, podcasts, pronunciation clips. As with images, provide a text alternative (a transcript) for audio that carries information.</p>
+</section>
+
+<section id="s3">
+  <h2>10.3 The video element and its attributes</h2>
+  <pre class="code" data-run data-title="Video with controls, poster and a fallback" data-h="330" data-tall>&lt;video controls width="480" poster="https://picsum.photos/id/1015/480/270" preload="metadata"&gt;
+  &lt;source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4"&gt;
+  &lt;source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.webm" type="video/webm"&gt;
+  Your browser does not support video. &lt;a href="flower.mp4"&gt;Download the file&lt;/a&gt; instead.
+&lt;/video&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>What it does</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>controls</code></td><td>Shows the native play/pause/volume UI</td><td>Boolean: <code>controls="false"</code> still shows them; remove the attribute to hide</td></tr>
+      <tr><td><code>autoplay</code></td><td>Starts playing as soon as it can</td><td>Blocked by browsers unless the video is also <code>muted</code></td></tr>
+      <tr><td><code>muted</code></td><td>Silences the sound initially</td><td>Required for autoplay to work on most browsers</td></tr>
+      <tr><td><code>loop</code></td><td>Repeats playback automatically when it ends</td><td>There is no <code>repeat</code> or <code>replay</code></td></tr>
+      <tr><td><code>poster</code></td><td>The <b>image shown before playback begins</b></td><td>Not a subtitle, not autoplay, not a file name</td></tr>
+      <tr><td><code>preload</code></td><td>A <b>hint of how much to fetch before playback</b>: <code>none</code>, <code>metadata</code> (duration and dimensions only) or <code>auto</code></td><td>A hint, not a command</td></tr>
+      <tr><td><code>width</code>, <code>height</code></td><td>Displayed size in pixels</td><td>Same as on images</td></tr>
+      <tr><td><code>src</code></td><td>A single file, used instead of <code>source</code> children</td><td>Fine for one format; use <code>source</code> for several</td></tr>
+    </tbody>
+  </table>
+  <div class="callout why"><b>Why autoplay is usually silent.</b> Unexpected noise is hostile: imagine opening a page in a library and it starts shouting. Browsers therefore <b>block sound that starts on its own</b>. A <code>&lt;video autoplay&gt;</code> that refuses to start on most mobile browsers is almost always missing <code>muted</code>; the fix is <code>&lt;video autoplay muted&gt;</code>. The poster, the number of sources and the controls attribute have nothing to do with it.</div>
+</section>
+
+<section id="s4">
+  <h2>10.4 source and track</h2>
+  <h3>Why several source elements?</h3>
+  <p>Browsers do not all support the same video formats. <code>&lt;source&gt;</code> lets you list several files; the browser reads them <b>in order and plays the first format it supports</b>, ignoring the rest. They do not all play at once, they do not increase resolution, and there is no minimum number. MP4 (H.264) plus WebM covers essentially every browser. The <code>type</code> attribute tells the browser the format so it can skip files it cannot play without downloading them.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 170" role="img" aria-label="The browser tries each source in order and plays the first it supports">
+      <rect x="20" y="60" width="150" height="50" rx="10" class="box saf"/><text x="95" y="82" class="t c b">source 1: mp4</text><text x="95" y="99" class="t c s">can I play this?</text>
+      <path d="M175 85 L235 85" class="edge" marker-end="url(#arr)"/><text x="205" y="78" class="t c s">no</text>
+      <rect x="240" y="60" width="150" height="50" rx="10" class="box saf"/><text x="315" y="82" class="t c b">source 2: webm</text><text x="315" y="99" class="t c s">can I play this?</text>
+      <path d="M395 85 L455 85" class="edge" marker-end="url(#arr)"/><text x="425" y="78" class="t c s">no</text>
+      <rect x="460" y="60" width="140" height="50" rx="10" class="box gry"/><text x="530" y="82" class="t c b">fallback text</text><text x="530" y="99" class="t c s">shown instead</text>
+      <path d="M95 110 L95 140" class="edge grn" marker-end="url(#arr-grn)"/><text x="95" y="158" class="t c b" fill="#138808">yes: play it, stop looking</text>
+      <path d="M315 110 L315 140" class="edge grn" marker-end="url(#arr-grn)"/><text x="315" y="158" class="t c b" fill="#138808">yes: play it</text>
+    </svg>
+    <figcaption><b>Figure 10.2</b> Source selection is a fallback chain, not a playlist.</figcaption>
+  </figure>
+  <h3>track: captions and subtitles</h3>
+  <p><code>&lt;track&gt;</code> attaches timed text to a video: subtitles, captions for deaf and hard-of-hearing users, audio descriptions or chapter markers, stored in a <code>.vtt</code> (WebVTT) file. <code>kind</code> says which (<code>subtitles</code>, <code>captions</code>, <code>descriptions</code>, <code>chapters</code>), <code>srclang</code> the language, <code>label</code> the name shown in the player's menu, and <code>default</code> turns it on initially. It is a void element and goes after the sources. The element that supplies subtitles is <code>&lt;track&gt;</code>: not <code>&lt;caption&gt;</code> (tables), not <code>&lt;source&gt;</code> (media files), not <code>&lt;subtitle&gt;</code> (does not exist).</p>
+  <pre class="code">&lt;video controls width="480"&gt;
+  &lt;source src="lecture.mp4" type="video/mp4"&gt;
+  &lt;track src="captions-en.vtt" kind="captions" srclang="en" label="English" default&gt;
+  &lt;track src="captions-hi.vtt" kind="captions" srclang="hi" label="Hindi"&gt;
+&lt;/video&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>10.5 The iframe: a window into another document</h2>
+  <p>An <b>inline frame</b>, <code>&lt;iframe&gt;</code>, <b>embeds another HTML document inside the current one</b>: a YouTube player, a Google Map of the campus, a payment widget, a PDF viewer, a dashboard. The embedded page is a separate browsing context with its own URL, and it is not part of your document's DOM. <code>src</code> gives its address; <b><code>width</code> and <code>height</code> give the frame its displayed size</b> on the page.</p>
+  <pre class="code" data-run data-title="A campus map in an iframe (OpenStreetMap)" data-h="320" data-tall>&lt;iframe
+  src="https://www.openstreetmap.org/export/embed.html?bbox=75.690%2C31.245%2C75.715%2C31.265&amp;layer=mapnik&amp;marker=31.2555%2C75.7029"
+  width="100%" height="260"
+  title="Map of the Lovely Professional University campus"
+  loading="lazy"&gt;
+&lt;/iframe&gt;</pre>
+  <h3>The attributes that matter</h3>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>src</code></td><td>The URL of the document to embed</td></tr>
+      <tr><td><code>width</code>, <code>height</code></td><td>Displayed size (there are no rows/cols, size/scale or x/y attributes)</td></tr>
+      <tr><td><code>title</code></td><td><b>An accessible name for the embedded content.</b> Every iframe should have one: without it a screen reader announces only "frame". It is not a visible heading and it is not required for loading</td></tr>
+      <tr><td><code>loading="lazy"</code></td><td>Defer loading the frame until it is near the viewport, exactly as for images</td></tr>
+      <tr><td><code>allow</code></td><td><b>Grants the embedded content specific capabilities</b> such as <code>fullscreen</code>, <code>camera</code>, <code>microphone</code>, <code>geolocation</code> or <code>autoplay</code> (a Permissions Policy)</td></tr>
+      <tr><td><code>sandbox</code></td><td><b>Restricts</b> what the embedded content may do. An empty <code>sandbox</code> applies every restriction: no scripts, no forms, no pop-ups, treated as a foreign origin. Add tokens to re-enable specific things: <code>allow-scripts</code>, <code>allow-forms</code>, <code>allow-popups</code>, <code>allow-same-origin</code></td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Your page containing an iframe: sandbox restricts the frame, allow grants it capabilities">
+      <rect x="20" y="20" width="580" height="160" rx="12" class="box"/>
+      <text x="40" y="44" class="t b">your page (parent document)</text>
+      <rect x="60" y="60" width="300" height="100" rx="10" class="box saf"/>
+      <text x="210" y="86" class="t c b">&lt;iframe src="https://other.site"&gt;</text>
+      <text x="210" y="106" class="t c s">a separate document with its own origin,</text>
+      <text x="210" y="122" class="t c s">cookies and scripts; it cannot touch</text>
+      <text x="210" y="138" class="t c s">your page and you cannot touch it</text>
+      <text x="400" y="80" class="t b" fill="#C42B2B">sandbox</text><text x="400" y="98" class="t s">takes rights away:</text><text x="400" y="114" class="t s">no scripts, forms, pop-ups</text>
+      <text x="400" y="142" class="t b" fill="#138808">allow</text><text x="400" y="160" class="t s">grants rights: fullscreen, camera</text>
+    </svg>
+    <figcaption><b>Figure 10.3</b> The frame is a separate world. <code>sandbox</code> subtracts capabilities; <code>allow</code> adds them.</figcaption>
+  </figure>
+  <div class="callout warn"><b>The sandbox surprise.</b> An embedded widget that <b>stops working the moment you add <code>sandbox</code></b> has almost certainly lost its scripts: an empty sandbox blocks all JavaScript in the frame until you add <code>allow-scripts</code>. Sandbox does not ignore <code>src</code>, does not remove width and height, and does not force lazy loading.</div>
+  <h3>Using iframes responsibly</h3>
+  <p>Embedding third-party content is a trade. The embedded site <b>may set cookies, track your users and slow the page down</b>, because its scripts run in your visitor's browser. So: embed only from trusted sources, keep the frame responsive (a percentage <code>width</code> or CSS), always give it a <code>title</code>, and use <code>sandbox</code>/<code>allow</code> to grant only what the widget needs. Iframes do not disable the parent's CSS or the back button.</p>
+  <p>One more thing that is not your bug: <b>many sites refuse to be embedded</b>. If your iframe of a large website stays blank, the remote site sent a header (<code>X-Frame-Options</code> or a Content Security Policy) that forbids framing. That is their choice; nothing in your HTML will override it. Sites that <i>want</i> to be embedded, such as YouTube and map providers, give you a special embed URL (<code>https://www.youtube.com/embed/VIDEO_ID</code>) precisely for this.</p>
+</section>
+
+<section id="s6">
+  <h2>10.6 Worked example: a college event page</h2>
+  <pre class="code" data-run data-title="Video, audio and an iframe on one page" data-h="420" data-tall>&lt;h1&gt;Tech Fest 2026&lt;/h1&gt;
+&lt;h2&gt;Promo video&lt;/h2&gt;
+&lt;video controls width="420" poster="https://picsum.photos/id/1035/420/236" loop muted&gt;
+  &lt;source src="https://interactive-examples.mdn.mozilla.net/media/cc0-videos/flower.mp4" type="video/mp4"&gt;
+  Your browser does not support video.
+&lt;/video&gt;
+&lt;h2&gt;Announcement (audio)&lt;/h2&gt;
+&lt;audio controls preload="none"&gt;
+  &lt;source src="https://interactive-examples.mdn.mozilla.net/media/cc0-audio/t-rex-roar.mp3" type="audio/mpeg"&gt;
+  Your browser does not support audio.
+&lt;/audio&gt;
+&lt;h2&gt;Venue&lt;/h2&gt;
+&lt;iframe src="https://www.openstreetmap.org/export/embed.html?bbox=75.690%2C31.245%2C75.715%2C31.265&amp;layer=mapnik"
+  width="420" height="200" title="Map of the venue" loading="lazy"&gt;&lt;/iframe&gt;</pre>
+  <p>Read the choices: <code>controls</code> on both media elements so visitors can play them; <code>loop muted</code> on the promo so it could autoplay if we wanted; a <code>poster</code> so there is something to see before playback; <code>preload="none"</code> on the audio so it costs nothing until played; a titled, lazy-loaded iframe for the map.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which attribute makes the browser's native playback controls appear on an &lt;audio&gt; or &lt;video&gt; element?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. autoplay</li><li>B. muted</li><li>C. preload</li><li>D. controls</li></ul>
+    <p><b>Answer: D.</b> Without controls there is no way for the visitor to start playback.</p></div></details>
+  <details class="q"><summary>What does controls="false" do on a &lt;video&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it shows the controls anyway. controls is a boolean attribute; only its presence matters. Remove it to hide the controls.</p></div></details>
+  <details class="q"><summary>A &lt;video autoplay&gt; refuses to start on most mobile browsers. What is the most likely reason?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The poster attribute is missing</li><li>B. Autoplay is blocked unless the video is also muted</li><li>C. The video has more than one &lt;source&gt;</li><li>D. The controls attribute was not set</li></ul>
+    <p><b>Answer: B.</b> Browsers block sound that starts on its own; add muted.</p></div></details>
+  <details class="q"><summary>Which &lt;video&gt; attribute makes playback repeat automatically when it ends?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. repeat</li><li>B. loop</li><li>C. autoplay</li><li>D. replay</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>In &lt;video controls poster="preview.jpg"&gt;, what does the poster attribute do?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Forces the video to start automatically</li><li>B. Adds subtitle text to the video</li><li>C. Sets the image shown before playback begins</li><li>D. Sets the download filename of the video</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which &lt;video&gt; attribute hints how much of the file the browser should fetch before playback?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. preload</li><li>B. poster</li><li>C. buffer</li><li>D. loading</li></ul>
+    <p><b>Answer: A.</b> Values: none, metadata, auto.</p></div></details>
+  <details class="q"><summary>Why does a &lt;video&gt; element often contain more than one &lt;source&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. So the browser can select the first format it supports</li><li>B. So all the files play at the same time</li><li>C. To increase the resolution of the video</li><li>D. Because &lt;video&gt; requires a minimum of two sources</li></ul>
+    <p><b>Answer: A.</b> mp4 plus webm covers essentially every browser.</p></div></details>
+  <details class="q"><summary>Which element supplies subtitles or captions for a &lt;video&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;caption&gt;</li><li>B. &lt;track&gt;</li><li>C. &lt;source&gt;</li><li>D. &lt;subtitle&gt;</li></ul>
+    <p><b>Answer: B.</b> <code>&lt;track src="captions.vtt" kind="subtitles" srclang="en" label="English"&gt;</code>.</p></div></details>
+  <details class="q"><summary>How is a fallback message provided for browsers that cannot play an &lt;audio&gt; element?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Text placed between the opening and closing &lt;audio&gt; tags</li><li>B. An alt attribute on the &lt;audio&gt; element</li><li>C. A &lt;fallback&gt; element inside &lt;audio&gt;</li><li>D. A title attribute on the &lt;source&gt; element</li></ul>
+    <p><b>Answer: A.</b> Browsers that ignore the element display its content.</p></div></details>
+  <details class="q"><summary>Which element is NOT an empty element: &lt;source&gt;, &lt;video&gt;, &lt;img&gt;, &lt;meta&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;video&gt;.</b> It always needs a closing tag, even when you use src, because its content is the sources, tracks and fallback text.</p></div></details>
+  <details class="q"><summary>Which element embeds another web page inside the current one?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;embed&gt;</li><li>B. &lt;iframe&gt;</li><li>C. &lt;object&gt;</li><li>D. &lt;frame&gt;</li></ul>
+    <p><b>Answer: B.</b> An inline frame embeds a whole separate document.</p></div></details>
+  <details class="q"><summary>Which attributes give an &lt;iframe&gt; its displayed size on the page?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. rows and cols</li><li>B. size and scale</li><li>C. width and height</li><li>D. x and y</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Why should every &lt;iframe&gt; carry a title attribute?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It sets the visible heading displayed above the frame</li><li>B. It gives screen-reader users an accessible name for the embedded content</li><li>C. It is required before the frame will load</li><li>D. It improves the video quality inside the frame</li></ul>
+    <p><b>Answer: B.</b> Without it a screen reader announces only "frame".</p></div></details>
+  <details class="q"><summary>Which &lt;iframe&gt; attribute grants the embedded content specific capabilities such as fullscreen or camera access?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. allow</li><li>B. sandbox</li><li>C. permit</li><li>D. enable</li></ul>
+    <p><b>Answer: A.</b> allow grants; sandbox restricts.</p></div></details>
+  <details class="q"><summary>An embedded widget stops working after sandbox is added to its &lt;iframe&gt;. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The frame's src attribute is ignored when sandbox is present</li><li>B. Scripts inside the frame are blocked until allow-scripts is added</li><li>C. sandbox removes the frame's width and height</li><li>D. sandbox forces the frame to load lazily</li></ul>
+    <p><b>Answer: B.</b> An empty sandbox applies every restriction, including no JavaScript.</p></div></details>
+  <details class="q"><summary>Which is a genuine concern when embedding third-party content in an &lt;iframe&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It prevents the parent page from using CSS</li><li>B. It may set cookies, track users and slow the page down</li><li>C. It disables the browser's back button</li><li>D. It converts the page to plain text</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Your iframe stays blank when embedding a large website. Why?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the remote site forbids being embedded (a framing-refusal header). It is their choice, not a bug in your HTML; use the site's official embed URL if it offers one.</p></div></details>
+  <details class="q"><summary>What does loading="lazy" do on an image or iframe?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> it delays loading until the element is nearly on screen: a genuine performance win on long pages.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>audio and video are paired elements: sources inside, track for captions, fallback text between the tags. No alt attribute.</li>
+    <li>controls shows the player (boolean: presence only). autoplay needs muted. loop repeats. poster is the pre-play image. preload = none / metadata / auto.</li>
+    <li>Several source elements = a fallback chain; the browser plays the first format it supports. mp4 + webm covers everyone.</li>
+    <li>track src kind srclang label supplies subtitles/captions from a .vtt file.</li>
+    <li>iframe embeds another document: src, width, height, a title for accessibility, loading="lazy".</li>
+    <li>sandbox removes capabilities (add allow-scripts, allow-forms to restore); allow grants capabilities (fullscreen, camera). Third-party frames can track and slow; many sites refuse framing.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>On</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>controls</td><td>audio, video</td><td>Native player UI</td></tr>
+      <tr><td>autoplay + muted</td><td>video</td><td>Silent auto-start (sound blocked otherwise)</td></tr>
+      <tr><td>loop</td><td>audio, video</td><td>Repeat</td></tr>
+      <tr><td>poster</td><td>video</td><td>Image before playback</td></tr>
+      <tr><td>preload</td><td>audio, video</td><td>none / metadata / auto</td></tr>
+      <tr><td>type</td><td>source</td><td>MIME type, e.g. video/mp4</td></tr>
+      <tr><td>kind, srclang, label, default</td><td>track</td><td>Captions and subtitles</td></tr>
+      <tr><td>title</td><td>iframe</td><td>Accessible name</td></tr>
+      <tr><td>allow / sandbox</td><td>iframe</td><td>Grant / restrict capabilities</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

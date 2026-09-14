@@ -1,0 +1,311 @@
+<article class="chapter" data-ch="1">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 1 &middot; Introduction to Internet and Web Technologies</p>
+  <h1>Introduction to Internet and Web Technologies</h1>
+  <p class="lead">Before you write a single tag you should be able to explain, in plain words, what happens when someone opens a web page. This chapter gives you that story: what the Internet is, how the World Wide Web is different from it, what a browser and a server each do, and where HTML, CSS and JavaScript fit.</p>
+  <p class="meta">About 23 minutes &middot; Course outcome CO1 &middot; Read this before Chapter 2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain the difference between the Internet and the World Wide Web in one sentence.</li>
+      <li>Name the roles of the browser, the server and the protocol between them.</li>
+      <li>Say what a URL is and what HTTP and HTTPS stand for.</li>
+      <li>Describe the jobs of HTML, CSS and JavaScript and why they are kept separate.</li>
+      <li>Say who writes the standards that every browser follows.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>1.1 The Internet is the road system</h2>
+  <p>Think about the last thing you did online: a WhatsApp message, a YouTube video, a bank transfer, a Google search. Every one of those travelled over the same thing, and that thing is <b>the Internet</b>: a worldwide <b>network of networks</b> that connects billions of devices. Your phone talks to your home router, the router talks to your Internet service provider, the provider talks to bigger networks, and somewhere on the far side a server answers. No single company owns it and no single computer <i>is</i> it.</p>
+  <p>The most useful picture is a road system. Roads do not care what vehicle uses them: a bus, a courier van and a car can all share the same highway. In the same way the Internet does not care what kind of data it carries. Messages, videos, emails and web pages are all chopped into small <b>packets</b>, each packet is labelled with the address it is going to, and the routers along the way (the junctions) pass it on until it arrives. The rules the devices use to address and deliver those packets are called <b>protocols</b>, and the pair that hold the Internet together are <b>TCP/IP</b>: IP gives every device an address and moves packets between addresses, and TCP makes sure they all arrive and are put back in order.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 260" role="img" aria-label="Devices connected through routers forming a network of networks">
+      <g class="edge"><path d="M120 70 L230 130"/><path d="M120 190 L230 130"/><path d="M230 130 L360 130"/><path d="M360 130 L490 70"/><path d="M360 130 L490 190"/><path d="M490 70 L600 70"/><path d="M490 190 L600 190"/><path d="M490 70 L490 190" class="dash"/></g>
+      <rect x="60" y="45" width="60" height="50" rx="8" class="box"/><text x="90" y="75" class="t c">Phone</text>
+      <rect x="60" y="165" width="60" height="50" rx="8" class="box"/><text x="90" y="195" class="t c">Laptop</text>
+      <circle cx="230" cy="130" r="26" class="box saf"/><text x="230" y="134" class="t c b">Router</text>
+      <circle cx="360" cy="130" r="26" class="box saf"/><text x="360" y="134" class="t c b">Router</text>
+      <circle cx="490" cy="70" r="26" class="box saf"/><text x="490" y="74" class="t c b">Router</text>
+      <circle cx="490" cy="190" r="26" class="box saf"/><text x="490" y="194" class="t c b">Router</text>
+      <rect x="600" y="45" width="80" height="50" rx="8" class="box grn"/><text x="640" y="69" class="t c">Web</text><text x="640" y="84" class="t c">server</text>
+      <rect x="600" y="165" width="80" height="50" rx="8" class="box grn"/><text x="640" y="189" class="t c">Mail</text><text x="640" y="204" class="t c">server</text>
+      <text x="60" y="245" class="t s">Home network</text>
+      <text x="300" y="245" class="t s">Internet service provider and backbone networks</text>
+      <text x="600" y="245" class="t s">Data centre</text>
+      <rect x="40" y="25" width="100" height="200" rx="12" fill="none" stroke="#94A3B8" stroke-dasharray="4 4"/>
+      <rect x="580" y="25" width="120" height="200" rx="12" fill="none" stroke="#94A3B8" stroke-dasharray="4 4"/>
+    </svg>
+    <figcaption><b>Figure 1.1</b> The Internet is infrastructure: devices, routers, cables and the protocols (TCP/IP) that move packets between them. Any kind of data can travel on it.</figcaption>
+  </figure>
+  <div class="callout why"><b>Key idea.</b> Internet = infrastructure + protocols + connected devices. It is the plumbing, not the water. Google is a service that <i>uses</i> the Internet; it is not the Internet.</div>
+</section>
+
+<section id="s2">
+  <h2>1.2 The Web is one service that runs on the Internet</h2>
+  <p>Now the distinction that examiners love, because so many people get it wrong. The <b>World Wide Web</b> (the Web, WWW) is <b>not</b> the Internet. The Web is <b>one of many services</b> that run <i>on top of</i> the Internet. It consists of web pages and websites, written in HTML, connected by hyperlinks, and delivered by the HTTP protocol. Email (SMTP/IMAP), online games, video streaming, WhatsApp, cloud backups and voice calls all use the Internet too, but they are <b>not part of the Web</b>: they use their own protocols, not HTTP, and they are not made of web pages.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Layer diagram: the Internet at the bottom, services including the Web on top">
+      <rect x="20" y="170" width="580" height="60" rx="12" class="box ink"/>
+      <text x="310" y="196" class="t c w b">THE INTERNET</text>
+      <text x="310" y="216" class="t c w" style="font-size:11.5px">cables, routers, satellites, TCP/IP addressing and delivery</text>
+      <g>
+        <rect x="20" y="60" width="150" height="90" rx="12" class="box saf"/>
+        <text x="95" y="86" class="t c b">World Wide Web</text>
+        <text x="95" y="106" class="t c s">web pages and sites</text>
+        <text x="95" y="122" class="t c s">HTTP / HTTPS</text>
+        <text x="95" y="138" class="t c s">HTML, CSS, JavaScript</text>
+      </g>
+      <rect x="185" y="60" width="95" height="90" rx="12" class="box gry"/>
+      <text x="232" y="98" class="t c b">Email</text><text x="232" y="118" class="t c s">SMTP, IMAP</text>
+      <rect x="295" y="60" width="95" height="90" rx="12" class="box gry"/>
+      <text x="342" y="98" class="t c b">Streaming</text><text x="342" y="118" class="t c s">video, music</text>
+      <rect x="405" y="60" width="95" height="90" rx="12" class="box gry"/>
+      <text x="452" y="98" class="t c b">Games</text><text x="452" y="118" class="t c s">online play</text>
+      <rect x="515" y="60" width="85" height="90" rx="12" class="box gry"/>
+      <text x="557" y="98" class="t c b">Chat</text><text x="557" y="118" class="t c s">WhatsApp</text>
+      <text x="310" y="35" class="t c s">services that run on the Internet (each with its own protocol)</text>
+      <path d="M95 150 L95 170" class="edge" marker-end="url(#arr)"/>
+      <path d="M232 150 L232 170" class="edge" marker-end="url(#arr)"/>
+      <path d="M342 150 L342 170" class="edge" marker-end="url(#arr)"/>
+      <path d="M452 150 L452 170" class="edge" marker-end="url(#arr)"/>
+      <path d="M557 150 L557 170" class="edge" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption><b>Figure 1.2</b> The Internet is the bottom layer. The Web is only one of the services on top of it, alongside email, streaming, games and messaging.</figcaption>
+  </figure>
+  <p>Because of this, the two sentences you must be able to produce on demand are:</p>
+  <ul>
+    <li><b>The Internet is the underlying network infrastructure; the Web is one service that runs on it.</b></li>
+    <li><b>You can use the Internet without using the Web</b>: sending an email, playing an online game or making a video call uses the Internet but not HTTP and not web pages.</li>
+  </ul>
+  <div class="callout exam"><b>Exam tip.</b> A question that says <i>email, online games and video streaming run over the Internet but are not part of the Web</i> is testing exactly this: those services show that the Web is only one of several services running on the Internet. The wrong options usually claim the two are identical, or reverse them (calling the Web the infrastructure). Both are false.</div>
+  <h3>Where the Web came from</h3>
+  <p>The Internet grew out of ARPANET, a research network from 1969; TCP/IP became its standard in 1983. The Web is younger. In 1989&ndash;91 <b>Tim Berners-Lee</b>, working at the CERN physics laboratory, invented three things together: <b>HTML</b> (the language for writing pages), <b>HTTP</b> (the protocol for fetching them) and the <b>URL</b> (the address scheme for naming them), plus the first browser and the first web server. The <b>W3C</b> (World Wide Web Consortium) was founded in 1994 to write the open standards that all browsers follow. HTML5 became a W3C Recommendation in 2014, and today HTML is maintained as a continuously updated <i>living standard</i> by the WHATWG, with the W3C endorsing it and publishing the accessibility guidelines (WCAG) you will meet in Unit 2.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 150" role="img" aria-label="Timeline from ARPANET in 1969 to the HTML living standard">
+      <path d="M40 80 L690 80" class="edge" marker-end="url(#arr)"/>
+      <g class="t s" style="font-size:11px">
+        <circle cx="70" cy="80" r="6" fill="#94A3B8"/><text x="70" y="60" class="t c b">1969</text><text x="70" y="108" class="t c s">ARPANET</text>
+        <circle cx="170" cy="80" r="6" fill="#94A3B8"/><text x="170" y="60" class="t c b">1983</text><text x="170" y="108" class="t c s">TCP/IP adopted</text>
+        <circle cx="280" cy="80" r="7" fill="#E07B1E"/><text x="280" y="60" class="t c b">1989&ndash;91</text><text x="280" y="108" class="t c s">WWW at CERN:</text><text x="280" y="124" class="t c s">HTML, HTTP, URL</text>
+        <circle cx="390" cy="80" r="6" fill="#94A3B8"/><text x="390" y="60" class="t c b">1994</text><text x="390" y="108" class="t c s">W3C founded</text>
+        <circle cx="490" cy="80" r="6" fill="#94A3B8"/><text x="490" y="60" class="t c b">1997</text><text x="490" y="108" class="t c s">HTML 4</text>
+        <circle cx="580" cy="80" r="7" fill="#138808"/><text x="580" y="60" class="t c b">2014</text><text x="580" y="108" class="t c s">HTML5 standard</text>
+        <circle cx="660" cy="80" r="6" fill="#94A3B8"/><text x="660" y="60" class="t c b">today</text><text x="660" y="108" class="t c s">living standard</text>
+      </g>
+    </svg>
+    <figcaption><b>Figure 1.3</b> The Internet came first; the Web was built on it twenty years later. HTML5, the version you are learning, dates from 2014 and is still evolving.</figcaption>
+  </figure>
+</section>
+
+<section id="s3">
+  <h2>1.3 Who asks and who answers: browsers, servers and HTTP</h2>
+  <p>Everything on the Web is a conversation between two programs. The <b>web browser</b> (Chrome, Edge, Firefox, Safari) is the application that <b>requests and displays web pages for a user</b>. The <b>web server</b> is a program running on a computer somewhere else that <b>stores the pages, runs logic and responds to requests</b>. In this arrangement the browser is called the <b>client</b>, because it asks, and the other side is the <b>server</b>, because it serves. Chapter 2 walks through this exchange step by step; here you only need the vocabulary.</p>
+  <p>The language the two programs speak is <b>HTTP, the HyperText Transfer Protocol</b>. HTTP is not cabling and not a programming language: it is the set of rules for how a request is worded and how a response is worded, so that any browser can talk to any server. <b>HTTPS</b> is HTTP with one addition: the data is <b>encrypted using TLS</b> while it travels, so nobody on the road between you and the server can read or alter it. That is why login pages, banking and this university portal all use <code>https://</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 180" role="img" aria-label="Browser sends an HTTP request, server sends an HTTP response">
+      <rect x="20" y="50" width="170" height="90" rx="12" class="box saf"/>
+      <text x="105" y="82" class="t c b">CLIENT</text>
+      <text x="105" y="102" class="t c s">your browser or app</text>
+      <text x="105" y="118" class="t c s">asks</text>
+      <rect x="430" y="50" width="170" height="90" rx="12" class="box grn"/>
+      <text x="515" y="82" class="t c b">SERVER</text>
+      <text x="515" y="102" class="t c s">stores data, runs logic</text>
+      <text x="515" y="118" class="t c s">answers</text>
+      <path d="M195 75 L425 75" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="310" y="66" class="t c b" style="font-size:12px">HTTP request: "send me /profile"</text>
+      <path d="M425 118 L195 118" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="310" y="140" class="t c b" style="font-size:12px">HTTP response: the page as text (HTML)</text>
+    </svg>
+    <figcaption><b>Figure 1.4</b> The client asks; the server answers. The reply is plain text (HTML, CSS, JavaScript) that the browser then turns into what you see.</figcaption>
+  </figure>
+  <p>One consequence of this design surprises beginners. What the server sends back is <b>not a picture of the finished page</b> and not a compiled program. It is <b>a block of text</b>: HTML, plus CSS and JavaScript files, which the browser <i>interprets</i> and draws. Everything you see on screen is the browser's interpretation of text it received. And because that text has been sent to the user's machine, <b>nothing sent to the browser is secret</b>: anyone can press <kbd>Ctrl</kbd>+<kbd>U</kbd> (View Source) or open DevTools and read every line, including your HTML comments and your JavaScript. Anything that must stay private (passwords, answer keys, database credentials) has to stay on the server.</p>
+</section>
+
+<section id="s4">
+  <h2>1.4 Naming things: the URL</h2>
+  <p>To ask for a page the browser needs its address. That address is a <b>URL, Uniform Resource Locator</b>. A URL tells the browser <i>how</i> to fetch something (the protocol), <i>which computer</i> to ask (the domain) and <i>what</i> to ask for (the path), optionally with extra parameters (the query string). Chapter 2 dissects each part; for now, read this example and see that it contains all four:</p>
+  <pre class="code">https://portal.lpu.in/courses/web.html?id=257
+&#9474;        &#9474;              &#9474;                &#9492;&#9472; query string
+&#9474;        &#9474;              &#9492;&#9472; path
+&#9474;        &#9492;&#9472; domain (which server)
+&#9492;&#9472; protocol (how to fetch)</pre>
+  <p>Every link you will ever write in HTML is a URL, either the full form above or a short <i>relative</i> form like <code>about.html</code> that the browser completes for you. Get comfortable reading them; the address bar is the most honest part of any web page.</p>
+</section>
+
+<section id="s5">
+  <h2>1.5 Three languages, three jobs: HTML, CSS and JavaScript</h2>
+  <p>A web page is built from three front-end languages, and each has one job. Keeping those jobs separate is called <b>separation of concerns</b>, and it is the single most important habit this course will try to give you.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="HTML is structure, CSS is presentation, JavaScript is behaviour">
+      <rect x="20" y="30" width="180" height="150" rx="14" class="box saf"/>
+      <text x="110" y="62" class="t c b" style="font-size:16px">HTML</text>
+      <text x="110" y="84" class="t c b">Structure</text>
+      <text x="110" y="108" class="t c s">What is on the page?</text>
+      <text x="110" y="126" class="t c s">headings, paragraphs,</text>
+      <text x="110" y="142" class="t c s">lists, forms, tables</text>
+      <text x="110" y="166" class="t c s">the skeleton of a house</text>
+      <rect x="220" y="30" width="180" height="150" rx="14" class="box blu"/>
+      <text x="310" y="62" class="t c b" style="font-size:16px">CSS</text>
+      <text x="310" y="84" class="t c b">Presentation</text>
+      <text x="310" y="108" class="t c s">How does it look?</text>
+      <text x="310" y="126" class="t c s">colours, fonts, spacing,</text>
+      <text x="310" y="142" class="t c s">layout, animation</text>
+      <text x="310" y="166" class="t c s">paint and decoration</text>
+      <rect x="420" y="30" width="180" height="150" rx="14" class="box grn"/>
+      <text x="510" y="62" class="t c b" style="font-size:16px">JavaScript</text>
+      <text x="510" y="84" class="t c b">Behaviour</text>
+      <text x="510" y="108" class="t c s">What does it do?</text>
+      <text x="510" y="126" class="t c s">clicks, validation,</text>
+      <text x="510" y="142" class="t c s">fetching live data</text>
+      <text x="510" y="166" class="t c s">electrics and appliances</text>
+    </svg>
+    <figcaption><b>Figure 1.5</b> Separation of concerns. HTML supplies structure, CSS supplies presentation, JavaScript supplies behaviour. Each lives in its own file and can be changed without touching the others.</figcaption>
+  </figure>
+  <p><b>HTML (HyperText Markup Language)</b> is the language that gives <b>structure and meaning</b> to content. It says <i>this is a heading, this is a paragraph, this is a link to that page, this is a table of marks</i>. It does not say how anything should look. <b>CSS (Cascading Style Sheets)</b> supplies the presentation: colours, fonts, spacing and the arrangement of boxes on the screen. <b>JavaScript</b> supplies behaviour: what happens when a button is clicked, checking a form before it is sent, fetching new data without reloading the page.</p>
+  <p>Notice what HTML is <i>not</i>. It is not a programming language: it has no variables, loops or decisions. It is a <b>markup language</b>, a way of annotating text so that a browser knows what each piece of content represents. The word <i>HyperText</i> refers to text with links in it, which is what made the Web different from every document system before it.</p>
+  <div class="callout warn"><b>Wrong on purpose.</b> "HTML supplies presentation, CSS supplies structure" is backwards; so is "all three are written inside the head element". If a question asks which arrangement <i>correctly separates concerns</i>, the answer is always: HTML for structure, CSS for presentation, JavaScript for behaviour.</div>
+  <h3>Your first look at HTML</h3>
+  <pre class="code" data-run data-title="A tiny web page" data-h="200">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+  &lt;head&gt;
+    &lt;meta charset="UTF-8"&gt;
+    &lt;title&gt;Web Lab&lt;/title&gt;
+  &lt;/head&gt;
+  &lt;body&gt;
+    &lt;article&gt;
+      &lt;h1&gt;Web Lab&lt;/h1&gt;
+      &lt;p&gt;Build. Test. Learn.&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Press <b>Run</b>. The browser reads the text from the outside in: the document type, then the <code>&lt;html&gt;</code> root, then a <code>&lt;head&gt;</code> of information <i>about</i> the page and a <code>&lt;body&gt;</code> of visible content. Inside the body an article holds a heading and a paragraph. Nothing here says "make the heading large and bold"; the browser applies a plain default look, and CSS (Unit 3) would change it. Chapters 3 and 4 explain every line.</p>
+</section>
+
+<section id="s6">
+  <h2>1.6 Who decides the rules? Standards bodies</h2>
+  <p>Chrome, Firefox, Safari and Edge are made by different companies, yet the same HTML works in all of them. That is only possible because the languages are <b>open standards</b>, written down publicly so every browser maker can implement the same thing.</p>
+  <ul>
+    <li><b>W3C, the World Wide Web Consortium</b>, founded by Tim Berners-Lee in 1994, publishes open web standards: CSS, SVG, the accessibility guidelines (WCAG) and, historically, HTML itself. When an exam asks which organisation publishes open web standards such as HTML and the accessibility guidelines, the answer is the W3C, not IEEE, ISRO or NASSCOM.</li>
+    <li><b>WHATWG</b> maintains the HTML <i>living standard</i> that browsers actually implement today, in cooperation with the W3C.</li>
+    <li><b>IETF</b> writes the Internet protocols underneath, including HTTP and TLS.</li>
+    <li><b>ECMA</b> standardises JavaScript (formally called ECMAScript).</li>
+  </ul>
+  <p>The practical result for you is a reference you can trust: <a href="https://developer.mozilla.org/" target="_blank" rel="noopener">MDN Web Docs</a> documents every element and attribute exactly as the standards define them, and the <a href="https://validator.w3.org/" target="_blank" rel="noopener">W3C validator</a> checks your page against them.</p>
+</section>
+
+<section id="s7">
+  <h2>1.7 Putting it together: what happens when you click</h2>
+  <p>You now have every word needed to narrate a page load. Say it without using the phrase "it just loads":</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 120" role="img" aria-label="Four steps: click, request, server processes, response, render">
+      <rect x="10" y="30" width="130" height="60" rx="12" class="box saf"/><text x="75" y="55" class="t c b">1 CLICK</text><text x="75" y="74" class="t c s">user types URL / clicks</text>
+      <path d="M145 60 L175 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="180" y="30" width="130" height="60" rx="12" class="box"/><text x="245" y="55" class="t c b">2 REQUEST</text><text x="245" y="74" class="t c s">browser sends HTTP</text>
+      <path d="M315 60 L345 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="350" y="30" width="130" height="60" rx="12" class="box grn"/><text x="415" y="55" class="t c b">3 PROCESS</text><text x="415" y="74" class="t c s">server finds / builds it</text>
+      <path d="M485 60 L515 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="520" y="30" width="190" height="60" rx="12" class="box blu"/><text x="615" y="55" class="t c b">4 RESPONSE and RENDER</text><text x="615" y="74" class="t c s">HTML/JSON arrives, browser draws</text>
+    </svg>
+    <figcaption><b>Figure 1.6</b> The order never changes: click, request, the server processes, response, render. Any option that puts the response before the request, or the server's processing before the click, is wrong.</figcaption>
+  </figure>
+  <ol>
+    <li>You type a URL or click a link. The <b>browser (the client)</b> builds an <b>HTTP request</b> for that address.</li>
+    <li>The request travels across the Internet to the <b>server</b> named in the URL.</li>
+    <li>The server <b>processes</b> it: it finds the file, or runs code and looks things up in a database.</li>
+    <li>The server sends back an <b>HTTP response</b> containing text, usually HTML (or JSON for data).</li>
+    <li>The browser <b>renders</b> that text into the page you see, fetching any CSS, images and scripts it mentions along the way.</li>
+  </ol>
+</section>
+
+<section id="mistakes">
+  <h2>Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The Internet and the Web are the same thing."</b><br>They are not. The Internet is the network; the Web is one service on it, delivered by HTTP and made of HTML pages.</div>
+    <div class="r"><b>&#10003; "The Web runs on top of the Internet, like email does."</b><br>Correct, and it explains why you can use the Internet (email, games, WhatsApp) without using the Web.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "HTML is a programming language."</b><br>It has no logic, loops or variables.</div>
+    <div class="r"><b>&#10003; "HTML is a markup language that gives structure and meaning to content."</b><br>Programming on the front end is JavaScript's job.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The server sends a picture of the page."</b><br>It sends text.</div>
+    <div class="r"><b>&#10003; "The server sends HTML text; the browser interprets it and draws the page."</b><br>Which is also why nothing sent to a browser can be kept secret.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. They are written the way CA2 questions are: four options, exactly one correct.</p>
+  <details class="q"><summary>Which statement correctly distinguishes the Internet from the World Wide Web?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The Internet is the underlying network infrastructure; the Web is one service that runs on it</li><li>B. The Web is the network infrastructure; the Internet is one service that runs on it</li><li>C. They are two names for the same system</li><li>D. The Internet uses only HTTP, while the Web uses only TCP/IP</li></ul>
+    <p><b>Answer: A.</b> The Internet is the infrastructure (devices, routers, TCP/IP); the Web is one service on top of it, using HTTP and HTML. B reverses the roles, C denies the difference, and D swaps the protocols.</p></div></details>
+  <details class="q"><summary>Email, online games and video streaming run over the Internet but are not part of the Web. What does this show?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The Web is only one of several services running on the Internet</li><li>B. The Internet and the Web are identical</li><li>C. Those services use HTML internally</li><li>D. The Web is the infrastructure on which the Internet runs</li></ul>
+    <p><b>Answer: A.</b> These services use their own protocols (SMTP, game protocols, streaming protocols), not HTTP, and are not web pages; they prove the Web is just one service among many.</p></div></details>
+  <details class="q"><summary>The Internet is best described as:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A single very large computer</li><li>B. A network of networks connecting devices worldwide</li><li>C. A website that stores all web pages</li><li>D. A search feature built into browsers</li></ul>
+    <p><b>Answer: B.</b> No single computer or website is the Internet; it is the interconnection of many networks.</p></div></details>
+  <details class="q"><summary>A WhatsApp message, a web page, a hyperlink and a website's HTML: which of these is NOT part of the World Wide Web?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: the WhatsApp message.</b> WhatsApp uses the Internet with its own protocol; it is not made of pages and links delivered by HTTP. The other three are the very definition of the Web.</p></div></details>
+  <details class="q"><summary>Which software application requests and displays web pages for a user?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A web browser</li><li>B. A web server</li><li>C. A compiler</li><li>D. A network router</li></ul>
+    <p><b>Answer: A.</b> The browser is the client: it requests pages and renders them. The server stores and serves; a router only forwards packets; a compiler has nothing to do with it.</p></div></details>
+  <details class="q"><summary>What does a web server send back to your browser?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A picture of the finished page</li><li>B. A block of text the browser interprets</li><li>C. A compiled program</li><li>D. A database file</li></ul>
+    <p><b>Answer: B.</b> The response is text (HTML, CSS, JavaScript). The browser interprets it and draws the page. This is also why anything sent to a browser can be read by the user with View Source.</p></div></details>
+  <details class="q"><summary>What does HTTP stand for, and what is it?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: HyperText Transfer Protocol</b>: the protocol (set of rules) used to exchange web requests and responses between browser and server. It is not cabling, not a database query language and not a markup language.</p></div></details>
+  <details class="q"><summary>HTTPS differs from plain HTTP because it adds:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Encryption of the transferred data using TLS</li><li>B. Faster compression of HTML files</li><li>C. Automatic mobile layout adjustment</li><li>D. Support for server-side scripting</li></ul>
+    <p><b>Answer: A.</b> The S is for Secure: TLS encrypts the data in transit so it cannot be read or altered on the way.</p></div></details>
+  <details class="q"><summary>What does the abbreviation URL stand for?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Universal Reference Link</li><li>B. Uniform Resource Locator</li><li>C. Unified Retrieval Language</li><li>D. User Request Line</li></ul>
+    <p><b>Answer: B.</b> A Uniform Resource Locator is the address of a resource: protocol, domain, path and optional query string.</p></div></details>
+  <details class="q"><summary>Which language is used to give structure and meaning to content on the web?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. HTML</li><li>B. CSS</li><li>C. SQL</li><li>D. JSON</li></ul>
+    <p><b>Answer: A.</b> HTML marks up what each piece of content is. CSS is presentation, SQL queries databases, JSON is a data format.</p></div></details>
+  <details class="q"><summary>Which arrangement correctly separates concerns in a web page?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. All three are written inside the head element</li><li>B. HTML supplies presentation, CSS supplies structure, JavaScript supplies content</li><li>C. HTML supplies structure, CSS supplies presentation, JavaScript supplies behaviour</li><li>D. CSS supplies structure while HTML supplies behaviour</li></ul>
+    <p><b>Answer: C.</b> Structure, presentation, behaviour: HTML, CSS, JavaScript, in that order.</p></div></details>
+  <details class="q"><summary>Which three languages make up the front end of a page?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: HTML, CSS and JavaScript.</b> PHP, SQL, Java and Python are server-side or unrelated to the browser.</p></div></details>
+  <details class="q"><summary>Anything you send to a browser can be read by the user. What does this mean for security?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: nothing sent to the browser is secret.</b> View Source and DevTools expose HTML comments, CSS and JavaScript alike. Secrets must stay on the server.</p></div></details>
+  <details class="q"><summary>Which organisation publishes open web standards such as HTML and the accessibility guidelines?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. W3C</li><li>B. IEEE</li><li>C. ISRO</li><li>D. NASSCOM</li></ul>
+    <p><b>Answer: A.</b> The World Wide Web Consortium. IEEE is an engineering body, ISRO is India's space agency and NASSCOM is an industry association.</p></div></details>
+  <details class="q"><summary>A user clicks a link and the page appears. Which sequence of events is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Click, request, server processes, response, render</li><li>B. Request, click, response, render</li><li>C. Click, response, request, render</li><li>D. Server processes, click, request, render</li></ul>
+    <p><b>Answer: A.</b> Nothing can be processed before it is requested, and nothing can be requested before the user acts.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>The Internet is a network of networks: infrastructure plus the TCP/IP protocols.</li>
+    <li>The World Wide Web is one service on the Internet: HTML pages joined by links, delivered by HTTP. Email, games, streaming and WhatsApp use the Internet but are not the Web.</li>
+    <li>The browser is the client (it requests and displays); the server stores data, runs logic and responds. The response is text, which the browser interprets, and nothing sent to a browser is secret.</li>
+    <li>HTTP = HyperText Transfer Protocol; HTTPS adds TLS encryption. URL = Uniform Resource Locator.</li>
+    <li>HTML is structure, CSS is presentation, JavaScript is behaviour. HTML is a markup language, not a programming language.</li>
+    <li>The W3C publishes the open standards (with WHATWG maintaining the HTML living standard); MDN documents them.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Term</th><th>One-line meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Internet</td><td>Global network of networks; the infrastructure and TCP/IP</td></tr>
+      <tr><td>World Wide Web</td><td>Service of HTML pages and hyperlinks delivered over HTTP</td></tr>
+      <tr><td>Browser (client)</td><td>Requests and displays pages</td></tr>
+      <tr><td>Web server</td><td>Stores pages and data, runs logic, responds to requests</td></tr>
+      <tr><td>HTTP</td><td>HyperText Transfer Protocol: the request/response rules</td></tr>
+      <tr><td>HTTPS</td><td>HTTP + TLS encryption in transit</td></tr>
+      <tr><td>URL</td><td>Uniform Resource Locator: protocol, domain, path, query</td></tr>
+      <tr><td>HTML</td><td>HyperText Markup Language: structure and meaning</td></tr>
+      <tr><td>CSS</td><td>Cascading Style Sheets: presentation</td></tr>
+      <tr><td>JavaScript</td><td>Behaviour and interactivity</td></tr>
+      <tr><td>W3C</td><td>World Wide Web Consortium: publishes open web standards and WCAG</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

@@ -1,0 +1,250 @@
+<article class="chapter" data-ch="19">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 19 &middot; Tables and Data Representation</p>
+  <h1>Tables and Data Representation</h1>
+  <p class="lead">Marks sheets, timetables, price lists, results: whenever data has rows and columns whose intersection means something, it belongs in a table. This chapter covers the complete anatomy of an HTML table, the two attributes that merge cells, the attributes that make a table readable by screen readers, and the one thing tables must never be used for.</p>
+  <p class="meta">About 17 minutes &middot; Course outcome CO2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Build a table with <code>caption</code>, <code>thead</code>, <code>tbody</code>, <code>tfoot</code>, <code>tr</code>, <code>th</code> and <code>td</code> in the correct order.</li>
+      <li>Merge cells with <code>colspan</code> and <code>rowspan</code> and count the cells each row needs.</li>
+      <li>Make headers explicit with <code>scope</code> and <code>headers</code>.</li>
+      <li>Use <code>colgroup</code> and <code>col</code> for column-wide properties.</li>
+      <li>Explain why tables are not for layout and what <code>role="presentation"</code> means.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>19.1 When a table is the right element</h2>
+  <p>A table is for <b>tabular data</b>: information that is naturally organised in rows and columns where each cell's meaning comes from its row header and its column header. A marks sheet (student &times; subject), a timetable (day &times; period), a comparison of products (product &times; feature). If you can put a header on every column and every row and the intersections make sense, it is a table. If the "table" is just a way of putting things side by side, it is layout, and layout is CSS's job (see 19.6).</p>
+</section>
+
+<section id="s2">
+  <h2>19.2 The anatomy of a table</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="Anatomy of a table: caption, thead with th cells, tbody with tr rows of td cells, tfoot">
+      <rect x="20" y="16" width="580" height="270" rx="12" class="box"/>
+      <text x="36" y="38" class="t b mono">&lt;table&gt;</text>
+      <rect x="40" y="48" width="540" height="28" rx="6" class="box gry"/><text x="52" y="67" class="t mono">&lt;caption&gt;Student Exam Marks&lt;/caption&gt;</text><text x="575" y="67" class="t s" style="text-anchor:end">the table's title, first child</text>
+      <rect x="40" y="84" width="540" height="52" rx="6" class="box saf"/><text x="52" y="102" class="t mono">&lt;thead&gt;</text><text x="70" y="122" class="t mono">&lt;tr&gt; &lt;th scope="col"&gt;Name&lt;/th&gt; &lt;th scope="col"&gt;Marks&lt;/th&gt; &lt;/tr&gt;</text><text x="575" y="102" class="t s" style="text-anchor:end">header rows: th cells</text>
+      <rect x="40" y="144" width="540" height="72" rx="6" class="box grn"/><text x="52" y="162" class="t mono">&lt;tbody&gt;</text><text x="70" y="182" class="t mono">&lt;tr&gt; &lt;td&gt;Rahul&lt;/td&gt; &lt;td&gt;85&lt;/td&gt; &lt;/tr&gt;</text><text x="70" y="202" class="t mono">&lt;tr&gt; &lt;td&gt;Priya&lt;/td&gt; &lt;td&gt;91&lt;/td&gt; &lt;/tr&gt;</text><text x="575" y="162" class="t s" style="text-anchor:end">data rows: td cells</text>
+      <rect x="40" y="224" width="540" height="48" rx="6" class="box blu"/><text x="52" y="242" class="t mono">&lt;tfoot&gt;</text><text x="70" y="262" class="t mono">&lt;tr&gt; &lt;td&gt;Total&lt;/td&gt; &lt;td&gt;176&lt;/td&gt; &lt;/tr&gt;</text><text x="575" y="242" class="t s" style="text-anchor:end">summary rows</text>
+      <text x="36" y="282" class="t b mono">&lt;/table&gt;</text>
+    </svg>
+    <figcaption><b>Figure 19.1</b> The complete structure, in the order the elements must appear: caption, thead, tbody, tfoot. Every cell lives in a tr.</figcaption>
+  </figure>
+  <dl>
+    <dt><code>&lt;table&gt;</code></dt>
+    <dd>The container for the whole grid.</dd>
+    <dt><code>&lt;caption&gt;</code></dt>
+    <dd><b>An announced, visible title for the whole table.</b> It must be the <b>first child</b> of <code>&lt;table&gt;</code>, before <code>thead</code>; anywhere else is invalid and may not render. It is not a column width, a footer row or a per-cell tooltip. (Not to be confused with <code>&lt;figcaption&gt;</code>, which captions a figure.)</dd>
+    <dt><code>&lt;thead&gt;</code>, <code>&lt;tbody&gt;</code>, <code>&lt;tfoot&gt;</code></dt>
+    <dd><b>Group the header rows, the body rows and the footer rows</b> (totals, summaries) separately. They do not merge cells, add borders or replace <code>tr</code>. Grouping lets CSS style the sections differently, lets a long table's header repeat when printed, and lets screen readers understand which rows are headings.</dd>
+    <dt><code>&lt;tr&gt;</code></dt>
+    <dd><b>A single row.</b> Every cell must be inside a row: <code>&lt;table&gt;&lt;td&gt;A&lt;/td&gt;&lt;/table&gt;</code> is invalid because the cell is not in a <code>tr</code>.</dd>
+    <dt><code>&lt;th&gt;</code></dt>
+    <dd>A <b>header cell</b>: it <b>describes what its column or row contains</b>. Bold and centred is only the default look; the meaning is the point. Screen readers use <code>th</code> to announce the context of each data cell ("Marks: 85").</dd>
+    <dt><code>&lt;td&gt;</code></dt>
+    <dd>A <b>standard data cell</b> holding a value.</dd>
+  </dl>
+  <pre class="code" data-run data-title="A complete, well-structured table" data-h="240">&lt;style&gt; table { border-collapse: collapse } th, td { border: 1px solid #999; padding: 6px 12px } caption { font-weight: bold; padding: 6px } &lt;/style&gt;
+&lt;table&gt;
+  &lt;caption&gt;CSE326 Internal Assessment&lt;/caption&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th scope="col"&gt;Name&lt;/th&gt;&lt;th scope="col"&gt;CA1&lt;/th&gt;&lt;th scope="col"&gt;CA2&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;Rahul&lt;/th&gt;&lt;td&gt;28&lt;/td&gt;&lt;td&gt;25&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;Priya&lt;/th&gt;&lt;td&gt;30&lt;/td&gt;&lt;td&gt;29&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;Average&lt;/th&gt;&lt;td&gt;29&lt;/td&gt;&lt;td&gt;27&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tfoot&gt;
+&lt;/table&gt;</pre>
+  <p>Browsers draw no borders by default; the CSS at the top adds them. Old HTML used a <code>border</code> attribute; today borders belong in CSS.</p>
+</section>
+
+<section id="s3">
+  <h2>19.3 Merging cells: colspan and rowspan</h2>
+  <p>Two attributes on <code>td</code> or <code>th</code> make a cell occupy more than one grid position. <b><code>colspan="2"</code> makes a cell stretch across two columns</b> (sideways). <b><code>rowspan="2"</code> makes a cell span two rows</b> (downwards). The values count grid cells, not pixels.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="A grid showing a colspan cell spanning two columns and a rowspan cell spanning two rows">
+      <g stroke="#0B2545" stroke-width="1.5" fill="#fff">
+        <rect x="40" y="30" width="100" height="40"/><rect x="140" y="30" width="100" height="40"/><rect x="240" y="30" width="100" height="40"/>
+        <rect x="40" y="70" width="100" height="80" fill="#E9F7E7"/><rect x="140" y="70" width="200" height="40" fill="#FFF1E0"/>
+        <rect x="140" y="110" width="100" height="40"/><rect x="240" y="110" width="100" height="40"/>
+      </g>
+      <g class="t c" style="font-size:12px">
+        <text x="90" y="55" font-weight="800">Course</text><text x="190" y="55" font-weight="800">Unit</text><text x="290" y="55" font-weight="800">Marks</text>
+        <text x="90" y="105" font-weight="800">CSE326</text><text x="90" y="122" fill="#138808">rowspan="2"</text>
+        <text x="240" y="90">Total marks</text><text x="240" y="104" fill="#E07B1E" style="font-size:11px">colspan="2"</text>
+        <text x="190" y="135">Unit II</text><text x="290" y="135">25</text>
+      </g>
+      <g class="mono" style="font-size:11px" fill="#3C4A60">
+        <text x="360" y="40">&lt;tr&gt;&lt;th&gt;Course&lt;/th&gt;&lt;th&gt;Unit&lt;/th&gt;</text>
+        <text x="382" y="56">&lt;th&gt;Marks&lt;/th&gt;&lt;/tr&gt;</text>
+        <text x="360" y="92">&lt;tr&gt;&lt;td rowspan="2"&gt;CSE326&lt;/td&gt;</text>
+        <text x="382" y="108">&lt;td colspan="2"&gt;Total marks&lt;/td&gt;&lt;/tr&gt;</text>
+        <text x="360" y="136">&lt;tr&gt;&lt;td&gt;Unit II&lt;/td&gt;&lt;td&gt;25&lt;/td&gt;&lt;/tr&gt;</text>
+        <text x="360" y="166" fill="#138808">row 3 has only TWO cells: the</text>
+        <text x="360" y="182" fill="#138808">rowspan cell already fills column 1</text>
+      </g>
+      <text x="310" y="215" class="t c s">colspan stretches sideways; rowspan stretches downwards; both count grid cells</text>
+    </svg>
+    <figcaption><b>Figure 19.2</b> Merged cells and the markup that produces them. The row below a rowspan cell must leave out the cell that is already covered.</figcaption>
+  </figure>
+  <h3>Counting cells: the rule</h3>
+  <p>Each row must add up to the table's column count, counting spans. Two consequences that are tested:</p>
+  <ul>
+    <li>In a <b>4-column</b> table, a row containing a cell with <code>colspan="3"</code> needs only <b>one more cell</b>: two cell tags in total (3 + 1 = 4).</li>
+    <li>When a cell has <code>rowspan="2"</code>, the <b>next row must omit one cell</b> in that column, because the spanning cell already occupies it. Repeating the cell, adding an empty one or switching to colspan all break the grid.</li>
+  </ul>
+  <pre class="code" data-run data-title="Merged cells in a timetable" data-h="220">&lt;style&gt; table { border-collapse: collapse } th, td { border: 1px solid #999; padding: 6px 12px; text-align: center } &lt;/style&gt;
+&lt;table&gt;
+  &lt;caption&gt;Weekly lab schedule&lt;/caption&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th scope="col"&gt;Time&lt;/th&gt;&lt;th scope="col"&gt;Mon&lt;/th&gt;&lt;th scope="col"&gt;Tue&lt;/th&gt;&lt;th scope="col"&gt;Wed&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;th scope="row" rowspan="2"&gt;9-11&lt;/th&gt;&lt;td colspan="2"&gt;CSE326 double lab&lt;/td&gt;&lt;td&gt;CSE201&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;CSE201&lt;/td&gt;&lt;td&gt;Free&lt;/td&gt;&lt;td&gt;CSE326&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;&lt;tr&gt;&lt;td colspan="4"&gt;All labs in Block 34.&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;</pre>
+  <p>Count the second body row: three cells, because the <code>rowspan="2"</code> header from the row above still fills the Time column. The footer row has one cell with <code>colspan="4"</code>, covering all four columns. A category label shared by two consecutive data rows is exactly the rowspan case.</p>
+</section>
+
+<section id="s4">
+  <h2>19.4 Making tables readable by screen readers</h2>
+  <p>A sighted user reads a table by glancing up to the column header and left to the row header. A screen-reader user cannot glance; the table must say which headers apply. Three tools:</p>
+  <dl>
+    <dt><code>scope</code> on <code>th</code></dt>
+    <dd><code>scope="col"</code> tells assistive technology that <b>the header applies to the entire column</b> below it; <code>scope="row"</code> that it <b>describes its row</b>. (There are also <code>colgroup</code> and <code>rowgroup</code> values.) With <code>th</code> and <code>scope</code>, a screen reader announces "Monday, 9 AM, CSE326" rather than just "CSE326".</dd>
+    <dt><code>headers</code> on <code>td</code></dt>
+    <dd>For a <b>complex table</b> with several levels of headers, the <code>headers</code> attribute <b>explicitly associates a data cell with its header cells</b> by listing their ids: <code>&lt;td headers="mon t9"&gt;</code>. scope handles simple tables; headers handles the rest.</dd>
+    <dt><code>caption</code></dt>
+    <dd>Announced when the user reaches the table, so they know what it is before hearing forty cells.</dd>
+  </dl>
+  <p>So the fix for "an exam-results table reads confusingly with a screen reader" is: <b>use <code>th</code> for header cells, add <code>scope</code>, and add a <code>caption</code></b>. Replacing the table with divs, changing fonts and colours, or adding colspan everywhere does nothing for it.</p>
+  <pre class="code">&lt;table&gt;
+  &lt;caption&gt;Lab timetable&lt;/caption&gt;
+  &lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;th id="mon" scope="col"&gt;Mon&lt;/th&gt;&lt;th id="tue" scope="col"&gt;Tue&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;th id="t9" scope="row"&gt;9 AM&lt;/th&gt;&lt;td headers="mon t9"&gt;CSE326&lt;/td&gt;&lt;td headers="tue t9"&gt;CSE201&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>19.5 colgroup and col</h2>
+  <p><code>&lt;colgroup&gt;</code> and <code>&lt;col&gt;</code> <b>let properties be applied to whole columns without repeating them on every cell</b>: a background for the first column, a width for the third. They go right after <code>caption</code> and before <code>thead</code>. <code>&lt;col span="2"&gt;</code> covers two columns. They do not merge cells, define headers or position the caption.</p>
+  <pre class="code" data-run data-title="colgroup styling a column" data-h="170">&lt;style&gt; table { border-collapse: collapse } th, td { border: 1px solid #999; padding: 6px 12px } &lt;/style&gt;
+&lt;table&gt;
+  &lt;caption&gt;Fees by course&lt;/caption&gt;
+  &lt;colgroup&gt;
+    &lt;col style="background: #FFF1E0"&gt;
+    &lt;col span="2" style="background: #E9F7E7"&gt;
+  &lt;/colgroup&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Course&lt;/th&gt;&lt;th&gt;Year 1&lt;/th&gt;&lt;th&gt;Year 2&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;&lt;tr&gt;&lt;td&gt;CSE&lt;/td&gt;&lt;td&gt;1,20,000&lt;/td&gt;&lt;td&gt;1,25,000&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;
+&lt;/table&gt;</pre>
+  <p>The full order of children inside <code>&lt;table&gt;</code> is therefore: <b><code>caption</code>, then <code>colgroup</code>, then <code>thead</code>, then <code>tbody</code>, then <code>tfoot</code></b>. Putting tbody before thead, caption after thead, or caption outside the table is wrong.</p>
+</section>
+
+<section id="s6">
+  <h2>19.6 Tables are not for layout</h2>
+  <p>Before CSS, whole pages were built inside tables: one row for the banner, cells for columns. Do not do this. <b>It breaks accessibility and responsiveness; tables are for tabular data.</b> A screen reader announces a data table and reads meaningless row and column positions; the fixed grid cannot reflow on a phone; and the markup says the page <i>is</i> data when it is not. Chapter 14 covers the modern way: semantic regions plus CSS Flexbox and Grid.</p>
+  <p>Occasionally you inherit a layout table you cannot rewrite (old HTML emails are the classic case). Then <code>&lt;table role="presentation"&gt;</code> <b>tells assistive technology to ignore the table's data semantics because it is only a layout grid</b>. It does not mark the table as primary content, does not hide borders and does not make it sortable; it only switches off the "this is data" announcement.</p>
+</section>
+
+<section id="s7">
+  <h2>19.7 Worked example: a marks sheet from scratch</h2>
+  <pre class="code" data-run data-title="Student marks sheet with a merged total row" data-h="260">&lt;style&gt; table { border-collapse: collapse } th, td { border: 1px solid #999; padding: 6px 12px } thead th { background: #FFF1E0 } tfoot { font-weight: bold } &lt;/style&gt;
+&lt;table&gt;
+  &lt;caption&gt;Semester 1 marks: Rahul Sharma (Reg 12345678)&lt;/caption&gt;
+  &lt;thead&gt;
+    &lt;tr&gt;&lt;th scope="col"&gt;Subject&lt;/th&gt;&lt;th scope="col"&gt;CA (30)&lt;/th&gt;&lt;th scope="col"&gt;ETE (70)&lt;/th&gt;&lt;th scope="col"&gt;Total&lt;/th&gt;&lt;/tr&gt;
+  &lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;CSE326&lt;/th&gt;&lt;td&gt;27&lt;/td&gt;&lt;td&gt;61&lt;/td&gt;&lt;td&gt;88&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;CSE305&lt;/th&gt;&lt;td&gt;25&lt;/td&gt;&lt;td&gt;58&lt;/td&gt;&lt;td&gt;83&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;
+    &lt;tr&gt;&lt;th scope="row" colspan="3"&gt;Grand total (out of 200)&lt;/th&gt;&lt;td&gt;171&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tfoot&gt;
+&lt;/table&gt;</pre>
+  <p>Check it against the rules: caption first; thead with column headers; row headers as <code>th scope="row"</code>; a tfoot whose merged cell (<code>colspan="3"</code>) plus one data cell equals the four columns; borders and colours in CSS, not attributes.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which tag must be used for a table's header cells so screen readers announce context correctly?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;th&gt;</li><li>B. &lt;td&gt;</li><li>C. &lt;tr&gt;</li><li>D. &lt;caption&gt;</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>What is the difference between &lt;th&gt; and &lt;td&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> th is a header cell that describes what its row or column means; td is a data cell. Bold and centred is only th's default styling, and th is not restricted to thead (row headers live in tbody).</p></div></details>
+  <details class="q"><summary>Which tag defines a single row inside a table, and which defines a standard data cell?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;tr&gt; and &lt;td&gt;.</b> (tc does not exist.)</p></div></details>
+  <details class="q"><summary>Which is INVALID?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;table&gt;&lt;tr&gt;&lt;td&gt;A&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</li><li>B. &lt;table&gt;&lt;td&gt;A&lt;/td&gt;&lt;/table&gt;</li><li>C. &lt;table&gt;&lt;thead&gt;&lt;tr&gt;&lt;th&gt;A&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;&lt;/table&gt;</li><li>D. &lt;table&gt;&lt;caption&gt;X&lt;/caption&gt;&lt;/table&gt;</li></ul>
+    <p><b>Answer: B.</b> A cell must sit inside a tr.</p></div></details>
+  <details class="q"><summary>What does &lt;caption&gt; provide for a table, and where must it be placed?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> an announced, visible title for the whole table; it must be the first child of table, immediately inside it before thead.</p></div></details>
+  <details class="q"><summary>What do &lt;thead&gt; and &lt;tbody&gt; do in a table, and which element groups the summary or total rows?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> they group header rows separately from body rows; totals go in &lt;tfoot&gt;. They do not merge cells, add borders or remove the need for tr.</p></div></details>
+  <details class="q"><summary>Which is the correct order of child elements inside a &lt;table&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;tbody&gt;, then &lt;thead&gt;, then &lt;caption&gt;</li><li>B. &lt;thead&gt;, then &lt;caption&gt;, then &lt;tbody&gt;</li><li>C. &lt;caption&gt;, then &lt;thead&gt;, then &lt;tbody&gt;, then &lt;tfoot&gt;</li><li>D. &lt;caption&gt; must be placed after &lt;/table&gt;</li></ul>
+    <p><b>Answer: C.</b> (colgroup, if present, goes between caption and thead.)</p></div></details>
+  <details class="q"><summary>The attribute colspan="2" makes a cell stretch across two:<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Rows</li><li>B. Tables</li><li>C. Columns</li><li>D. Pages</li></ul>
+    <p><b>Answer: C.</b> rowspan stretches across rows.</p></div></details>
+  <details class="q"><summary>A category label must be shared by two consecutive data rows. Which attribute achieves this?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. rowspan="2"</li><li>B. colspan="2"</li><li>C. span="2"</li><li>D. scope="rowgroup"</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>A 4-column table has a row containing a cell with colspan="3". How many cell tags does that row need in total?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 2.</b> The spanning cell covers three columns; one more cell completes the four.</p></div></details>
+  <details class="q"><summary>A cell has rowspan="2". What must the NEXT row do?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Repeat the cell</li><li>B. Omit one cell in that column</li><li>C. Add an empty cell</li><li>D. Use colspan instead</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>On a &lt;th&gt;, scope="col" tells assistive technology that the header applies to:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The entire column</li><li>B. The entire row</li><li>C. Only the cell immediately below</li><li>D. The whole table</li></ul>
+    <p><b>Answer: A.</b> scope="row" describes the row.</p></div></details>
+  <details class="q"><summary>In a complex table, which attribute explicitly associates a data cell with its header cells?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. headers</li><li>B. scope</li><li>C. for</li><li>D. colspan</li></ul>
+    <p><b>Answer: A.</b> <code>&lt;td headers="id1 id2"&gt;</code>. scope is for simple tables.</p></div></details>
+  <details class="q"><summary>An exam-results table reads confusingly with a screen reader. Which set of changes fixes it?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Replace the table with nested &lt;div&gt; elements</li><li>B. Increase the font size and add background colours</li><li>C. Use &lt;th&gt; for header cells, add scope, and add a &lt;caption&gt;</li><li>D. Add colspan to every cell in the table</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>What is the purpose of the &lt;colgroup&gt; and &lt;col&gt; elements in a table?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. They merge cells across several rows</li><li>B. They let properties be applied to whole columns without repeating them on every cell</li><li>C. They define the table's header row</li><li>D. They set the caption position</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Why would a developer write &lt;table role="presentation"&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. To mark the table as the page's primary content</li><li>B. To make the table's borders invisible</li><li>C. To tell assistive technology to ignore the table's data semantics because it is only a layout grid</li><li>D. To allow the table to be sorted by the user</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Why should tables not be used to lay out an entire web page today?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it breaks accessibility and responsiveness; tables are for tabular data. Layout is done with semantic elements and CSS.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Tables are for tabular data only. Order inside table: caption, colgroup, thead, tbody, tfoot. Every cell (th or td) lives in a tr.</li>
+    <li>th = header cell (column or row); td = data cell; caption = the table's title, first child; thead/tbody/tfoot group rows.</li>
+    <li>colspan stretches across columns; rowspan across rows. Rows must add up: colspan="3" in a 4-column row leaves one more cell; the row under a rowspan cell omits that cell.</li>
+    <li>scope="col" / "row" on th, headers="ids" on td for complex tables, plus a caption: that is how screen readers read tables.</li>
+    <li>colgroup/col style whole columns. Never lay out a page with a table; role="presentation" only for an unavoidable layout table.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Element / attribute</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>table</td><td>The grid</td></tr>
+      <tr><td>caption</td><td>Title, first child</td></tr>
+      <tr><td>colgroup / col</td><td>Column-wide properties</td></tr>
+      <tr><td>thead / tbody / tfoot</td><td>Header rows / data rows / summary rows</td></tr>
+      <tr><td>tr</td><td>A row</td></tr>
+      <tr><td>th scope="col|row"</td><td>Header cell for a column or row</td></tr>
+      <tr><td>td headers="..."</td><td>Data cell; explicit header links in complex tables</td></tr>
+      <tr><td>colspan / rowspan</td><td>Merge across columns / rows</td></tr>
+      <tr><td>role="presentation"</td><td>Layout table: ignore data semantics</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

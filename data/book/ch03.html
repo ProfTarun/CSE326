@@ -1,0 +1,282 @@
+<article class="chapter" data-ch="3">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 3 &middot; HTML5 Fundamentals</p>
+  <h1>HTML5 Fundamentals</h1>
+  <p class="lead">HTML has a tiny grammar: tags, elements, attributes, nesting, comments and a handful of special characters. Learn that grammar precisely and every later chapter becomes vocabulary. This chapter also explains what is new in HTML5, why browsers forgive mistakes (and why that is dangerous), and how to check your work with a validator.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO1 &middot; Read before Chapter 4</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Define markup, tag, element, content and attribute, and tell a tag from an element.</li>
+      <li>List the common void elements and explain why <code>&lt;/br&gt;</code> is wrong.</li>
+      <li>State the nesting rule and count the elements in a snippet.</li>
+      <li>Write comments and character entities correctly and explain whitespace collapsing.</li>
+      <li>Say what HTML5 added, what quirks mode is, and why to run the W3C validator.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>3.1 What HTML is (and is not)</h2>
+  <p><b>HTML stands for HyperText Markup Language.</b> A markup language is a way of annotating text: you take the words of a page and wrap them in labels that say what each part <i>is</i>: this is a heading, this is a paragraph, this is a link, this is an image. The browser reads those labels and knows how to treat each piece. <i>HyperText</i> means text that contains links to other text, which is the idea the whole Web is built on.</p>
+  <p>HTML is <b>not a programming language</b>. It has no variables, no loops, no if-statements and no way to compute anything. It describes structure and meaning; computing is JavaScript's job, appearance is CSS's job (Chapter 1). When someone says they "code in HTML" they mean they write markup.</p>
+  <pre class="code" data-run data-title="Markup: labels around words" data-h="150">&lt;h1&gt;Welcome to My Website&lt;/h1&gt;
+&lt;p&gt;Learn HTML step by step.&lt;/p&gt;</pre>
+  <p>Run it. The first line is labelled as a top-level heading, so the browser shows it large and bold; the second is labelled as a paragraph, so it gets normal text with space around it. You never said "large" or "bold": you said <i>what it is</i>, and the browser chose a default look.</p>
+  <h3>What HTML5 added</h3>
+  <p>HTML5 (a W3C Recommendation in 2014, now maintained as a living standard) is the version every browser implements. Compared with HTML 4, it brought:</p>
+  <ul>
+    <li>a one-line document type, <code>&lt;!DOCTYPE html&gt;</code>, that tells the browser to use HTML5 parsing rules;</li>
+    <li><b>semantic elements</b> such as <code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;aside&gt;</code> and <code>&lt;footer&gt;</code> (Chapter 13);</li>
+    <li>native <b>audio and video</b> without plug-ins such as Flash (Chapter 10), inline <b>SVG</b> graphics (Chapter 9) and <code>&lt;canvas&gt;</code> for scripted drawing;</li>
+    <li>new <b>input types</b> (email, date, number, range, colour) and built-in form validation (Chapters 17&ndash;18);</li>
+    <li>a precise, standard way for browsers to parse HTML, including how to recover from errors, so pages look the same everywhere.</li>
+  </ul>
+</section>
+
+<section id="s2">
+  <h2>3.2 Tags, elements and content</h2>
+  <p>A <b>tag</b> is a label written between angle brackets: <code>&lt;p&gt;</code>. It has an opening angle bracket, a <b>tag name</b> and a closing angle bracket. An <b>opening tag</b> like <code>&lt;p&gt;</code> says "a paragraph starts here"; a <b>closing tag</b> is the same name with a forward slash, <code>&lt;/p&gt;</code>, and says "the paragraph ends here". Everything between them is the <b>content</b>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Anatomy of an element: opening tag with attribute, content, closing tag">
+      <g class="mono" style="font-size:26px;font-weight:700">
+        <text x="30" y="80" fill="#E07B1E">&lt;a</text>
+        <text x="72" y="80" fill="#4F46E5">href="/courses"</text>
+        <text x="300" y="80" fill="#E07B1E">&gt;</text>
+        <text x="322" y="80" fill="#0B2545">HTML Course</text>
+        <text x="500" y="80" fill="#E07B1E">&lt;/a&gt;</text>
+      </g>
+      <path d="M30 92 L318 92" class="edge saf"/><path d="M322 92 L495 92" class="edge"/><path d="M500 92 L590 92" class="edge saf"/>
+      <text x="174" y="116" class="t c b" fill="#E07B1E">opening tag</text>
+      <text x="408" y="116" class="t c b">content</text>
+      <text x="545" y="116" class="t c b" fill="#E07B1E">closing tag</text>
+      <path d="M180 30 L180 55" class="edge" style="stroke:#4F46E5" marker-end="url(#arr)"/>
+      <text x="180" y="24" class="t c b" fill="#4F46E5">attribute: name="value", inside the opening tag only</text>
+      <rect x="22" y="132" width="578" height="60" rx="10" class="box gry"/>
+      <text x="311" y="157" class="t c b">the whole thing, opening tag + content + closing tag, is one ELEMENT</text>
+      <text x="311" y="178" class="t c s">tag = one bracketed marker &middot; element = the complete structural unit</text>
+    </svg>
+    <figcaption><b>Figure 3.1</b> Tag versus element. A tag is only the marker; the element is the marker, its content and the closing marker together, plus any attributes on the opening tag.</figcaption>
+  </figure>
+  <p>The sandwich analogy from the lectures is worth keeping: the two tags are the slices of bread, the content is the filling, and the <b>element</b> is the whole sandwich. So <code>&lt;p&gt;</code> on its own is a tag; <code>&lt;p&gt;Hello World&lt;/p&gt;</code> is an element. Examiners test this distinction directly.</p>
+  <p>Elements are the building blocks of the page. Some hold text (<code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>), some hold other elements (<code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;ul&gt;</code>), and a few hold nothing at all, which brings us to void elements.</p>
+</section>
+
+<section id="s3">
+  <h2>3.3 Paired elements and void elements</h2>
+  <p>Most elements are <b>paired</b> (also called <i>container</i> elements): they enclose content between an opening and a closing tag: <code>&lt;p&gt;Hello&lt;/p&gt;</code>, <code>&lt;h1&gt;Welcome to CSE326&lt;/h1&gt;</code>, <code>&lt;section&gt;...&lt;/section&gt;</code>, <code>&lt;div&gt;...&lt;/div&gt;</code>, <code>&lt;video&gt;...&lt;/video&gt;</code>, <code>&lt;textarea&gt;&lt;/textarea&gt;</code>.</p>
+  <p>A few elements cannot have content, so they have <b>no closing tag</b>. These are <b>void elements</b> (also called <i>empty</i> or <i>unpaired</i> elements). They insert a standalone thing into the page:</p>
+  <table class="tbl">
+    <thead><tr><th>Void element</th><th>What it inserts</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;br&gt;</code></td><td>A line break inside text</td></tr>
+      <tr><td><code>&lt;hr&gt;</code></td><td>A thematic break, drawn as a horizontal rule</td></tr>
+      <tr><td><code>&lt;img&gt;</code></td><td>An image, from its <code>src</code></td></tr>
+      <tr><td><code>&lt;input&gt;</code></td><td>A form control</td></tr>
+      <tr><td><code>&lt;meta&gt;</code></td><td>Metadata in the head</td></tr>
+      <tr><td><code>&lt;link&gt;</code></td><td>A connection to an external file such as a stylesheet</td></tr>
+      <tr><td><code>&lt;source&gt;</code>, <code>&lt;track&gt;</code></td><td>Media files and captions inside audio/video</td></tr>
+      <tr><td><code>&lt;area&gt;</code>, <code>&lt;base&gt;</code>, <code>&lt;col&gt;</code>, <code>&lt;embed&gt;</code>, <code>&lt;wbr&gt;</code></td><td>Rarer ones you may meet in the reference</td></tr>
+    </tbody>
+  </table>
+  <p>Two consequences follow. First, writing <code>&lt;/br&gt;</code> or <code>&lt;/img&gt;</code> is <b>invalid</b>: there is nothing to close. Second, because they are unpaired, void elements cannot wrap anything: you cannot put text "inside" a <code>&lt;br&gt;</code>. The memory rule from the lecture is the right one: <b>can it contain content? Yes, paired; no, void.</b> Note that <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;span&gt;</code> and <code>&lt;div&gt;</code> are <i>not</i> void; they always need a closing tag.</p>
+  <div class="callout"><b>Self-closing slash.</b> You will see <code>&lt;br /&gt;</code> and <code>&lt;img ... /&gt;</code> in older code and in SVG. In HTML5 the slash on a void element is allowed but does nothing; <code>&lt;br&gt;</code> is the standard form. Inside inline SVG (Chapter 9) the slash is required, because SVG is XML.</div>
+</section>
+
+<section id="s4">
+  <h2>3.4 Nesting: elements inside elements</h2>
+  <p>Elements can be placed inside other elements. The outer one is the <b>parent</b>, the inner one is its <b>child</b>, and the whole page becomes a <b>tree</b>. The browser does not treat HTML as a flat list of tags or a long string; it parses it into <b>a nested tree of elements</b>, the Document Object Model (DOM), and everything it draws comes from that tree.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="A paragraph containing a strong element, shown as code and as a tree">
+      <rect x="20" y="30" width="250" height="150" rx="12" class="box ink"/>
+      <g class="mono" style="font-size:14px" fill="#DCE7F5">
+        <text x="40" y="70">&lt;p&gt;</text>
+        <text x="60" y="95">Welcome</text>
+        <text x="60" y="120">&lt;strong&gt;Students&lt;/strong&gt;</text>
+        <text x="40" y="145">&lt;/p&gt;</text>
+      </g>
+      <path d="M280 105 L330 105" class="edge" marker-end="url(#arr)"/>
+      <text x="305" y="96" class="t c s">parses to</text>
+      <rect x="400" y="30" width="120" height="36" rx="8" class="box saf"/><text x="460" y="53" class="t c b mono">p</text>
+      <path d="M430 66 L390 110" class="edge"/><path d="M490 66 L530 110" class="edge"/>
+      <rect x="340" y="112" width="100" height="34" rx="8" class="box gry"/><text x="390" y="134" class="t c s">"Welcome"</text>
+      <rect x="470" y="112" width="120" height="34" rx="8" class="box grn"/><text x="530" y="134" class="t c b mono">strong</text>
+      <path d="M530 146 L530 178" class="edge"/>
+      <rect x="480" y="180" width="100" height="34" rx="8" class="box gry"/><text x="530" y="202" class="t c s">"Students"</text>
+      <text x="460" y="24" class="t c s">parent</text>
+      <text x="610" y="130" class="t s" style="text-anchor:end">child</text>
+    </svg>
+    <figcaption><b>Figure 3.2</b> Nesting makes a tree. The <code>p</code> element is the parent; the text and the <code>strong</code> element are its children. This snippet contains <b>two elements</b>: the paragraph and the strong element inside it.</figcaption>
+  </figure>
+  <p>The one rule of nesting: <b>whatever opens last must close first</b>, exactly like brackets in mathematics. A child must be closed before its parent is closed (the lecture calls this FILO: first in, last out).</p>
+  <div class="fix">
+    <div class="w"><b>&#10007; Overlapping tags</b><pre>&lt;p&gt;&lt;b&gt;text&lt;/p&gt;&lt;/b&gt;</pre>The bold element opened last but the paragraph closes first. The browser has to guess what you meant.</div>
+    <div class="r"><b>&#10003; Properly nested</b><pre>&lt;p&gt;&lt;b&gt;text&lt;/b&gt;&lt;/p&gt;</pre>Last opened, first closed. Indent children by two spaces so the structure is visible at a glance.</div>
+  </div>
+  <p>Some elements refuse certain children, and the browser will silently rearrange your page to obey. A <code>&lt;p&gt;</code> may only contain text and inline elements; if it meets a block element such as <code>&lt;div&gt;</code>, the paragraph is <b>closed automatically</b> before the div, leaving an empty paragraph and stray text. Chapter 5 covers block and inline; for now the lesson is that the browser fixing your HTML is not the same as your HTML being right.</p>
+</section>
+
+<section id="s5">
+  <h2>3.5 Attributes: configuring an element</h2>
+  <p>An <b>attribute</b> adds information to an element: a link's destination, an image's file, a class name for styling. Attributes are written <b>inside the opening tag only</b>, as <code>name="value"</code> pairs separated by spaces:</p>
+  <pre class="code">&lt;a href="https://example.com" target="_blank"&gt;Visit&lt;/a&gt;
+   &#9474;                          &#9474;
+   &#9492;&#9472; attribute name: value     &#9492;&#9472; a second attribute</pre>
+  <p>In <code>&lt;p class="intro"&gt;Hello&lt;/p&gt;</code> the part <code>class="intro"</code> is an attribute, not a tag, not an element and not a selector. Three rules save you from the commonest bugs:</p>
+  <ul>
+    <li><b>Always quote the value.</b> <code>&lt;div class=my box&gt;</code> breaks at the space: the browser reads <code>class="my"</code> and then a separate, meaningless attribute called <code>box</code>. With quotes, <code>class="my box"</code> is one attribute holding two class names.</li>
+    <li><b>Lowercase names.</b> HTML is case-insensitive (<code>&lt;P CLASS=Intro&gt;</code> renders), but the HTML5 convention every style guide and this course require is lowercase tag names and attribute names with quoted values: <code>&lt;p class="intro"&gt;</code>.</li>
+    <li><b>Attributes never go on the closing tag.</b> <code>&lt;/p class="x"&gt;</code> is meaningless.</li>
+  </ul>
+  <p>Chapter 5 lists the attributes every element accepts and the important element-specific ones.</p>
+</section>
+
+<section id="s6">
+  <h2>3.6 Comments</h2>
+  <p>A comment is a note for humans that the browser ignores. It starts with <code>&lt;!--</code> and ends with <code>--&gt;</code>:</p>
+  <pre class="code" data-run data-title="Comments are not rendered" data-h="120">&lt;!-- Student Registration Section --&gt;
+&lt;p&gt;This paragraph is shown.&lt;/p&gt;
+&lt;!-- &lt;p&gt;This one is commented out and not shown.&lt;/p&gt; --&gt;</pre>
+  <p>Comments are <b>not rendered</b> on the page but they <b>are visible in View Source</b>, so never put anything private in them. Use them to label sections and to switch a piece of markup off temporarily while debugging. The other comment styles you may know, <code>// note</code>, <code>/* note */</code> and <code># note</code>, belong to JavaScript, CSS and Python; in HTML they are just text and will appear on the page.</p>
+  <div class="callout warn"><b>The half-blank page.</b> If a page renders normally and then goes blank halfway down, the most likely cause is an <b>unclosed comment</b>: a missing <code>--&gt;</code> swallows everything after it. No error is shown; the content simply vanishes.</div>
+</section>
+
+<section id="s7">
+  <h2>3.7 Whitespace, and characters you cannot type directly</h2>
+  <h3>Whitespace collapses</h3>
+  <p>In ordinary HTML text, any run of spaces, tabs and newlines is collapsed to <b>a single space</b>. Type ten spaces between two words in a paragraph and exactly <b>one</b> appears on screen; press Enter twice in your editor and nothing changes on the page either. This is why you need <code>&lt;br&gt;</code> for a line break and <code>&lt;p&gt;</code> for a new paragraph, and it is why indentation in your source is free: it never affects the output. The one exception is the <code>&lt;pre&gt;</code> element (Chapter 6), which preserves your spaces and line breaks exactly.</p>
+  <h3>Character entities</h3>
+  <p>Some characters have a job in HTML syntax, so typing them literally confuses the parser. To show a less-than sign you cannot write <code>&lt;</code>, because the browser will think a tag is starting. Instead you write a <b>character entity</b>: an ampersand, a name (or a number), and a semicolon.</p>
+  <table class="tbl">
+    <thead><tr><th>Entity</th><th>Shows</th><th>Why you need it</th></tr></thead>
+    <tbody>
+      <tr><td><code>&amp;lt;</code></td><td>&lt;</td><td>"less than"; a literal &lt; would start a tag</td></tr>
+      <tr><td><code>&amp;gt;</code></td><td>&gt;</td><td>"greater than"; written for symmetry and inside code samples</td></tr>
+      <tr><td><code>&amp;amp;</code></td><td>&amp;</td><td>a literal &amp; would start an entity</td></tr>
+      <tr><td><code>&amp;quot;</code></td><td>"</td><td>a double quote inside a quoted attribute value</td></tr>
+      <tr><td><code>&amp;nbsp;</code></td><td>(space)</td><td>a non-breaking space that is never collapsed and never wrapped</td></tr>
+      <tr><td><code>&amp;copy;</code> <code>&amp;reg;</code> <code>&amp;trade;</code></td><td>&copy; &reg; &trade;</td><td>symbols not on the keyboard</td></tr>
+      <tr><td><code>&amp;#8377;</code></td><td>&#8377;</td><td>a numeric entity: any Unicode character by its code</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Entities in action" data-h="120">&lt;p&gt;Use the &amp;lt;p&amp;gt; tag for paragraphs. Fees: &amp;#8377;1200 &amp;amp; taxes. &amp;copy; 2026&lt;/p&gt;</pre>
+  <p>With <code>&lt;meta charset="UTF-8"&gt;</code> in the head (Chapter 4) you can type &copy; and &#8377; directly in your editor and they will display correctly; entities are still needed for <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code>, because those are syntax.</p>
+</section>
+
+<section id="s8">
+  <h2>3.8 Browsers forgive, validators do not</h2>
+  <p>Browsers are deliberately tolerant. A missing closing tag, an unquoted attribute or a misnested element does not produce an error message; the browser applies recovery rules and draws <i>something</i>. That sounds kind but it is a trap: <b>HTML fails silently</b>. The page "looks fine on my laptop" and breaks on someone else's browser, or reads wrongly in a screen reader, and you never saw a warning. Two habits protect you.</p>
+  <p>First, <b>declare HTML5</b>. Without <code>&lt;!DOCTYPE html&gt;</code> on line one, browsers switch into <b>quirks mode</b>, an emulation of 1990s rendering in which box sizes and spacing follow old, inconsistent rules. The page still renders, but layout bugs appear that are painful to trace. With the doctype, browsers use <i>standards mode</i>, which is what every tutorial and this book assume.</p>
+  <p>Second, <b>run your page through a validator</b>. The <a href="https://validator.w3.org/" target="_blank" rel="noopener">W3C Markup Validator</a> reads your HTML against the standard and lists every unclosed tag, duplicate id, misnesting and missing attribute. It catches exactly the <b>structural errors that cause inconsistent rendering and accessibility failures</b>, the ones the browser hid from you. It does not compress your file, convert it to HTML5 or generate CSS; it reports problems. Do it before every submission.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Flowchart: write HTML, validate, fix errors, then publish">
+      <rect x="20" y="70" width="120" height="50" rx="25" class="box saf"/><text x="80" y="100" class="t c b">write HTML</text>
+      <path d="M145 95 L185 95" class="edge" marker-end="url(#arr)"/>
+      <rect x="190" y="70" width="130" height="50" rx="10" class="box"/><text x="255" y="92" class="t c b">validator.w3.org</text><text x="255" y="108" class="t c s">paste or upload</text>
+      <path d="M325 95 L365 95" class="edge" marker-end="url(#arr)"/>
+      <path d="M370 95 L430 60 L490 95 L430 130 Z" class="dec"/><text x="430" y="99" class="t c b">errors?</text>
+      <path d="M495 95 L560 95" class="edge grn" marker-end="url(#arr-grn)"/><text x="527" y="86" class="t c s">no</text>
+      <rect x="560" y="72" width="50" height="46" rx="10" class="box grn"/><text x="585" y="100" class="t c b">ship</text>
+      <path d="M430 132 L430 165 L255 165 L255 125" class="edge saf" marker-end="url(#arr-saf)"/><text x="345" y="180" class="t c s">yes: fix the first error, revalidate</text>
+    </svg>
+    <figcaption><b>Figure 3.3</b> The validate&ndash;fix loop. Fix the <i>first</i> error first; many later errors are consequences of it.</figcaption>
+  </figure>
+</section>
+
+<section id="s9">
+  <h2>3.9 Worked example: counting and correcting</h2>
+  <p><b>How many elements are in</b> <code>&lt;p&gt;Hi &lt;b&gt;there&lt;/b&gt;&lt;/p&gt;</code>? Count opening tags: <code>&lt;p&gt;</code> and <code>&lt;b&gt;</code>. Two elements: a paragraph with a bold element nested inside. The text "Hi" and "there" are content, not elements.</p>
+  <p><b>Which of these is written incorrectly?</b> <code>&lt;br&gt;</code>, <code>&lt;hr&gt;</code>, <code>&lt;/br&gt;</code>, <code>&lt;img src="a.jpg"&gt;</code>. The third: <code>br</code> is void, so a closing tag is invalid.</p>
+  <p><b>Spot the mistakes</b> in this fragment and fix them:</p>
+  <div class="fix">
+    <div class="w"><b>&#10007; Broken</b><pre>&lt;h1&gt;My Profile&lt;h2&gt;
+&lt;img src="me.jpg"&gt;
+&lt;a&gt;My Portfolio&lt;/a&gt;
+&lt;p&gt;Welcome to my page</pre></div>
+    <div class="r"><b>&#10003; Fixed</b><pre>&lt;h1&gt;My Profile&lt;/h1&gt;
+&lt;img src="me.jpg" alt="Photo of me"&gt;
+&lt;a href="portfolio.html"&gt;My Portfolio&lt;/a&gt;
+&lt;p&gt;Welcome to my page&lt;/p&gt;</pre></div>
+  </div>
+  <p>Four fixes: close the heading with <code>&lt;/h1&gt;</code> (not open another heading), add meaningful <code>alt</code> text to the image, give the link an <code>href</code> so it goes somewhere, and close the paragraph. Replacing everything with divs, moving the title into the body or wrapping it all in a table would fix nothing.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which of the following is a void element, written without a closing tag?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;span&gt;</li><li>B. &lt;p&gt;</li><li>C. &lt;div&gt;</li><li>D. &lt;br&gt;</li></ul>
+    <p><b>Answer: D.</b> <code>&lt;br&gt;</code> has no content and no closing tag. The others are paired. (The same question with <code>&lt;img&gt;</code> among the options: <code>&lt;img&gt;</code> is the void one.)</p></div></details>
+  <details class="q"><summary>Which element is NOT an empty element: &lt;source&gt;, &lt;video&gt;, &lt;img&gt;, &lt;meta&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;video&gt;.</b> It always needs a closing tag (its content is the <code>&lt;source&gt;</code> elements and fallback text). <code>source</code>, <code>img</code> and <code>meta</code> are void.</p></div></details>
+  <details class="q"><summary>Which is written INCORRECTLY: &lt;br&gt;, &lt;hr&gt;, &lt;/br&gt;, &lt;img src="a.jpg"&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;/br&gt;.</b> Void elements have nothing to close, so a closing tag is invalid.</p></div></details>
+  <details class="q"><summary>How many ELEMENTS are in &lt;p&gt;Hi &lt;b&gt;there&lt;/b&gt;&lt;/p&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. One</li><li>B. Two</li><li>C. Three</li><li>D. Four</li></ul>
+    <p><b>Answer: B.</b> A paragraph element with a bold element nested inside. Text is content, not an element; tags are not counted separately from their elements.</p></div></details>
+  <details class="q"><summary>In &lt;p class="intro"&gt;Hello&lt;/p&gt;, what is class="intro"?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A tag</li><li>B. An element</li><li>C. An attribute</li><li>D. A selector</li></ul>
+    <p><b>Answer: C.</b> Attributes give extra information and always live in the opening tag.</p></div></details>
+  <details class="q"><summary>Which nesting is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;p&gt;&lt;b&gt;text&lt;/p&gt;&lt;/b&gt;</li><li>B. &lt;p&gt;&lt;b&gt;text&lt;/b&gt;&lt;/p&gt;</li><li>C. &lt;b&gt;&lt;p&gt;text&lt;/b&gt;&lt;/p&gt;</li><li>D. &lt;p&gt;&lt;b&gt;text&lt;/b&gt;</li></ul>
+    <p><b>Answer: B.</b> Last opened, first closed. D never closes the paragraph.</p></div></details>
+  <details class="q"><summary>Why is &lt;div class=my box&gt; a problem?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. div cannot have a class</li><li>B. Unquoted values break at the space, creating two attributes</li><li>C. class must be lowercase</li><li>D. It is perfectly valid</li></ul>
+    <p><b>Answer: B.</b> The browser reads class="my" and a stray attribute "box". Always quote attribute values.</p></div></details>
+  <details class="q"><summary>Which is the recommended practice when writing HTML attribute values?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Separate values with semicolons</li><li>B. Leave values unquoted to save bytes</li><li>C. Write every value in uppercase</li><li>D. Enclose every value in quotation marks</li></ul>
+    <p><b>Answer: D.</b> Quoting prevents the split-at-space bug and is required by every style guide.</p></div></details>
+  <details class="q"><summary>A student writes &lt;P CLASS=Intro&gt;Text&lt;/P&gt;. Which best practices does this violate?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Class names may not contain capital letters in HTML5</li><li>B. Paragraphs must always carry an id rather than a class</li><li>C. Tag and attribute names should be lowercase and attribute values should be quoted</li><li>D. Every &lt;p&gt; must be nested inside a &lt;div&gt;</li></ul>
+    <p><b>Answer: C.</b> It renders, but it breaks the lowercase-and-quoted convention. A, B and D are invented rules.</p></div></details>
+  <details class="q"><summary>How is a comment written in HTML?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. // comment</li><li>B. &lt;!-- comment --&gt;</li><li>C. /* comment */</li><li>D. # comment</li></ul>
+    <p><b>Answer: B.</b> The others are JavaScript, CSS and Python comment styles and would appear as text on the page.</p></div></details>
+  <details class="q"><summary>A page renders normally then goes blank halfway down. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A missing doctype</li><li>B. An unclosed comment (missing --&gt;)</li><li>C. Too much CSS</li><li>D. A missing charset</li></ul>
+    <p><b>Answer: B.</b> Everything after an unclosed comment is swallowed silently.</p></div></details>
+  <details class="q"><summary>Which character entity displays a literal less-than sign (&lt;) in page content?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &amp;lt;</li><li>B. &amp;gt;</li><li>C. &amp;amp;</li><li>D. &amp;nbsp;</li></ul>
+    <p><b>Answer: A.</b> lt = less than. gt is greater than, amp is the ampersand, nbsp is a non-breaking space.</p></div></details>
+  <details class="q"><summary>You type ten spaces between two words in a &lt;p&gt;. How many appear on screen?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: one.</b> HTML collapses consecutive whitespace to a single space, unless the text is inside <code>&lt;pre&gt;</code>.</p></div></details>
+  <details class="q"><summary>The browser parses an HTML document as:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A flat list of independent tags</li><li>B. A single continuous string of text</li><li>C. A nested tree of elements</li><li>D. A table of rows and columns</li></ul>
+    <p><b>Answer: C.</b> Nesting produces parents and children; the result is the DOM tree.</p></div></details>
+  <details class="q"><summary>What happens if you omit the doctype?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The page will not load</li><li>B. The browser uses quirks mode</li><li>C. Images stop working</li><li>D. CSS is ignored completely</li></ul>
+    <p><b>Answer: B.</b> The page renders under old, inconsistent rules; spacing and box sizes shift.</p></div></details>
+  <details class="q"><summary>Why should HTML be run through a validator?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It catches structural errors that cause inconsistent rendering and accessibility failures</li><li>B. It automatically compresses the file</li><li>C. It converts the page into HTML5</li><li>D. It generates the page's CSS</li></ul>
+    <p><b>Answer: A.</b> The validator at validator.w3.org reports unclosed tags, duplicate ids and bad nesting: the bugs that fail silently.</p></div></details>
+  <details class="q"><summary>Why is HTML failing SILENTLY a problem?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> there is no error message, so bugs survive. The page seems fine on one machine and breaks elsewhere. Validation is the only way to see them.</p></div></details>
+  <details class="q"><summary>Consider &lt;h1&gt;My Profile&lt;h2&gt; &lt;img src="me.jpg"&gt; &lt;a&gt;My Portfolio&lt;/a&gt;. Which set of fixes is correct?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Close &lt;h1&gt; properly, add alt to the image, add href to the anchor</li><li>B. Replace &lt;h1&gt; with &lt;div&gt;, remove the image and the anchor</li><li>C. Add a &lt;title&gt; inside &lt;body&gt; and delete the &lt;h2&gt;</li><li>D. Wrap everything in a &lt;table&gt; and add borders</li></ul>
+    <p><b>Answer: A.</b> Three genuine faults, three genuine fixes. The other options destroy content or add unrelated markup.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>HTML is a markup language, not a programming language: it labels what content is.</li>
+    <li>Tag = one bracketed marker; element = opening tag + content + closing tag. Attributes sit in the opening tag as name="value".</li>
+    <li>Void elements (br, hr, img, input, meta, link, source, track) have no content and no closing tag; <code>&lt;/br&gt;</code> is invalid. video, audio, p, div, span, textarea are paired.</li>
+    <li>Nesting builds a tree; last opened, first closed. A p auto-closes before a div.</li>
+    <li>Comments: <code>&lt;!-- ... --&gt;</code>, invisible on the page, visible in the source; an unclosed comment blanks the rest of the page.</li>
+    <li>Whitespace collapses to one space (except in pre). Use &amp;lt; &amp;gt; &amp;amp; &amp;nbsp; &amp;copy; for special characters.</li>
+    <li>Lowercase names, quoted values, doctype on line one, and validate at validator.w3.org because HTML fails silently.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Term</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td>Markup language</td><td>Labels that describe what content is; no logic</td></tr>
+      <tr><td>Tag / element / content</td><td>Marker / whole unit / what is between the tags</td></tr>
+      <tr><td>Void element</td><td>No content, no closing tag: br, hr, img, input, meta, link</td></tr>
+      <tr><td>Nesting rule</td><td>Child closes before parent (last in, first out)</td></tr>
+      <tr><td>Quirks mode</td><td>Old rendering rules used when the doctype is missing</td></tr>
+      <tr><td>Entity</td><td>&amp;name; for a special character: &amp;lt; is &lt;</td></tr>
+      <tr><td>Validator</td><td>validator.w3.org: finds silent structural errors</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

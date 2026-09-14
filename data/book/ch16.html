@@ -1,0 +1,285 @@
+<article class="chapter" data-ch="16">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 16 &middot; Forms and Form Controls</p>
+  <h1>Forms and Form Controls</h1>
+  <p class="lead">Forms are how the Web listens: logins, registrations, searches, feedback, checkouts. This chapter explains the <code>form</code> element and how it sends data, every kind of control you can put inside it, how to label and group controls so they are usable, and the rules that decide exactly what reaches the server when the user presses Submit.</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO2 &middot; Chapter 17 covers the input types in detail</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a <code>form</code> with the right <code>action</code>, <code>method</code> and <code>enctype</code>.</li>
+      <li>Explain <code>name</code> versus <code>id</code> versus <code>value</code>, and predict what is submitted.</li>
+      <li>Use <code>label</code>, <code>textarea</code>, <code>select</code>/<code>option</code>/<code>optgroup</code>, <code>button</code>, <code>fieldset</code>/<code>legend</code>, <code>datalist</code>, <code>output</code>, <code>progress</code> and <code>meter</code>.</li>
+      <li>Choose between GET and POST.</li>
+      <li>Build a complete, accessible registration form.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>16.1 The form element and how submission works</h2>
+  <p>A <code>&lt;form&gt;</code> <b>groups the controls that collect user input and submits their values to a server</b>. When the user presses the submit button, the browser gathers every control that has a <code>name</code>, pairs each name with its current value, and sends the pairs to the URL in the form's <code>action</code> using the HTTP method in <code>method</code>.</p>
+  <pre class="code">&lt;form action="/register" method="post"&gt;
+  ... controls ...
+&lt;/form&gt;</pre>
+  <dl>
+    <dt><code>action</code></dt>
+    <dd><b>The URL the form data is sent to.</b> Not a validation pattern, not the HTTP method, not the name of the button. Leave it out and the form submits to the current page's URL.</dd>
+    <dt><code>method="get"</code></dt>
+    <dd>The field values are <b>appended to the URL as a query string</b>: <code>/search?q=html&amp;page=2</code>. Because the data is in the URL it appears in the address bar, in browser history and in server logs, and it can be bookmarked and shared. Good for searches and filters; unsuitable for passwords, and files cannot be uploaded this way. GET is the default if <code>method</code> is omitted.</dd>
+    <dt><code>method="post"</code></dt>
+    <dd>The field values are <b>sent in the body of the HTTP request instead of the URL</b>. Use it for anything that changes data on the server (registrations, orders), for sensitive fields, and for file uploads. POST does not encrypt anything (that is HTTPS's job), does not restrict you to text fields, and does not skip validation.</dd>
+    <dt><code>enctype="multipart/form-data"</code></dt>
+    <dd>How the data is encoded. The default, <code>application/x-www-form-urlencoded</code>, is fine for text. A form that <b>carries uploaded files</b> must use <code>method="post"</code> with <code>enctype="multipart/form-data"</code>. It is not encryption, not AJAX, and not a validation setting.</dd>
+  </dl>
+  <figure class="fig">
+    <svg viewBox="0 0 720 240" role="img" aria-label="GET puts fields in the URL; POST puts them in the request body">
+      <rect x="20" y="20" width="200" height="200" rx="12" class="box saf"/>
+      <text x="120" y="48" class="t c b">the form</text>
+      <rect x="40" y="62" width="160" height="28" rx="6" fill="#fff" stroke="#CBD5E1"/><text x="50" y="81" class="t s mono">name="q" value="html"</text>
+      <rect x="40" y="98" width="160" height="28" rx="6" fill="#fff" stroke="#CBD5E1"/><text x="50" y="117" class="t s mono">name="page" value="2"</text>
+      <rect x="40" y="150" width="160" height="30" rx="8" class="box grn"/><text x="120" y="170" class="t c b">Submit</text>
+      <path d="M225 90 L300 60" class="edge" marker-end="url(#arr)"/><text x="262" y="66" class="t c s b">GET</text>
+      <path d="M225 140 L300 170" class="edge" marker-end="url(#arr)"/><text x="262" y="166" class="t c s b">POST</text>
+      <rect x="305" y="30" width="400" height="70" rx="10" class="box"/>
+      <text x="320" y="52" class="t b">GET /search?q=html&amp;page=2 HTTP/1.1</text>
+      <text x="320" y="72" class="t s">data in the URL: visible, bookmarkable, in history and logs</text>
+      <text x="320" y="90" class="t s">for searches and filters; not for passwords or files</text>
+      <rect x="305" y="130" width="400" height="90" rx="10" class="box"/>
+      <text x="320" y="152" class="t b">POST /register HTTP/1.1</text>
+      <text x="320" y="170" class="t s mono">Content-Type: application/x-www-form-urlencoded</text>
+      <text x="320" y="190" class="t s mono">name=Rahul&amp;email=r%40lpu.in</text>
+      <text x="320" y="210" class="t s">data in the body; use for changes, sensitive data and files</text>
+    </svg>
+    <figcaption><b>Figure 16.1</b> The same name=value pairs travel in the URL with GET and in the request body with POST.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>16.2 name, id and value: three attributes, three jobs</h2>
+  <p>Beginners confuse these constantly, and questions target the confusion.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Who uses it</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td><code>name</code></td><td>The <b>server</b></td><td><b>The key under which the control's value is submitted.</b> A control without a <code>name</code> is <b>not submitted at all</b>: the commonest reason a field "goes missing" at the server.</td></tr>
+      <tr><td><code>id</code></td><td>The <b>browser</b></td><td>Unique identifier on the page; what <code>&lt;label for&gt;</code>, fragment links and scripts point at. Never sent to the server.</td></tr>
+      <tr><td><code>value</code></td><td>Both</td><td>The control's data: the pre-filled text of an input, the value submitted for a chosen radio/checkbox/option, the text on a button.</td></tr>
+    </tbody>
+  </table>
+  <p>So <code>&lt;input type="text" id="email" name="email" value="you@lpu.in"&gt;</code> has an id for the label, a name for the server, and a value that pre-fills the field. Two different controls may share a <code>name</code> (radio buttons in a group must); no two elements may share an <code>id</code>.</p>
+  <h3>What actually gets submitted</h3>
+  <ul>
+    <li>Every control with a <code>name</code> that is <b>not disabled</b>: its name and current value.</li>
+    <li>A <b>disabled</b> control: <b>nothing</b>. It is greyed out and left out of the submission.</li>
+    <li>A <b>readonly</b> control: submitted normally; the user just cannot edit it.</li>
+    <li>A <b>checkbox that is unchecked</b>: <b>nothing at all is sent for that control</b>: not "false", not an empty string, not "0". A checked checkbox sends its <code>value</code> (or "on" if it has none).</li>
+    <li>A radio group: only the checked button's value, under the shared name.</li>
+    <li>A <code>&lt;select&gt;</code>: the selected option's <code>value</code> (or its text if it has no value); with <code>multiple</code>, every selected value.</li>
+    <li>The submit button that was pressed, if it has a <code>name</code>.</li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2>16.3 Labelling every control</h2>
+  <p><code>&lt;label&gt;</code> provides the human-readable name of a control. Connect it with <code>for</code> matching the control's <code>id</code>, or wrap the control inside the label. A connected label is announced by screen readers together with the field, and clicking the label focuses the field: a bigger target for everyone. Every visible control should have one; a placeholder is only a hint (Chapter 15).</p>
+  <pre class="code" data-run data-title="Explicit and implicit labels" data-h="120">&lt;label for="uname"&gt;Username&lt;/label&gt;
+&lt;input id="uname" name="username" type="text"&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;label&gt;&lt;input type="checkbox" name="news" value="yes"&gt; Send me updates&lt;/label&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>16.4 The controls</h2>
+  <h3>input</h3>
+  <p><code>&lt;input&gt;</code> is a void element whose <code>type</code> attribute selects the kind of control: a text box, a password box, a checkbox, a date picker, a file chooser, a submit button and more. It is the subject of the whole of Chapter 17. For now: <code>&lt;input type="text" name="city"&gt;</code>.</p>
+  <h3>textarea: multi-line text</h3>
+  <p>For a feedback message, a bio or an address that spans lines, use <code>&lt;textarea&gt;</code>. It is <b>not a void element</b>: it has a closing tag, and any default text goes <b>between the tags</b>, not in a <code>value</code> attribute. <code>rows</code> sets the <b>visible number of text lines</b> and <code>cols</code> the visible width in characters (CSS usually overrides both). There is no <code>&lt;input type="textarea"&gt;</code> or <code>type="multiline"</code>.</p>
+  <pre class="code" data-run data-title="A textarea" data-h="150">&lt;label for="fb"&gt;Feedback&lt;/label&gt;&lt;br&gt;
+&lt;textarea id="fb" name="feedback" rows="4" cols="40" placeholder="Tell us what you think..."&gt;&lt;/textarea&gt;</pre>
+  <h3>select, option and optgroup: a dropdown list</h3>
+  <p><code>&lt;select&gt;</code> <b>creates a dropdown list of choices</b>; each <code>&lt;option&gt;</code> is one choice, and its <code>value</code> is what gets submitted (the text between the tags is what the user sees). <code>selected</code> on an option <b>pre-chooses it</b> when the page loads. <code>&lt;optgroup label="..."&gt;</code> <b>groups related options under a shared heading</b> inside the list. The <code>multiple</code> attribute on the select <b>lets the user choose more than one option</b> (with Ctrl or Shift), which is the right control for "pick several subjects from a list".</p>
+  <pre class="code" data-run data-title="select with optgroup, selected and multiple" data-h="200">&lt;label for="course"&gt;Course&lt;/label&gt;
+&lt;select id="course" name="course"&gt;
+  &lt;optgroup label="Engineering"&gt;
+    &lt;option value="cse"&gt;Computer Science&lt;/option&gt;
+    &lt;option value="ece" selected&gt;Electronics&lt;/option&gt;
+  &lt;/optgroup&gt;
+  &lt;optgroup label="Management"&gt;
+    &lt;option value="mba"&gt;MBA&lt;/option&gt;
+  &lt;/optgroup&gt;
+&lt;/select&gt;
+&lt;br&gt;&lt;br&gt;
+&lt;label for="subs"&gt;Subjects (choose several)&lt;/label&gt;
+&lt;select id="subs" name="subjects" multiple size="3"&gt;
+  &lt;option&gt;HTML&lt;/option&gt;&lt;option&gt;CSS&lt;/option&gt;&lt;option&gt;JavaScript&lt;/option&gt;
+&lt;/select&gt;</pre>
+  <h3>button: submit, reset or nothing</h3>
+  <p>A <code>&lt;button&gt;</code> has three types. <code>type="submit"</code> <b>submits the form it belongs to</b>, and it is the <b>default</b> if you write no type, so a bare <code>&lt;button&gt;</code> inside a form submits it. <code>type="reset"</code> clears every control back to its initial value. <code>type="button"</code> <b>has no built-in behaviour at all</b>: it does nothing until JavaScript gives it a job. The same three exist as <code>&lt;input type="submit"&gt;</code>, <code>&lt;input type="reset"&gt;</code> and <code>&lt;input type="button" value="..."&gt;</code>; a form whose only button is <code>&lt;input type="button" value="Submit"&gt;</code> does nothing when clicked, however it is labelled, because <code>type="button"</code> has no default submit behaviour. A link (<code>&lt;a href="#"&gt;Send&lt;/a&gt;</code>) does not submit either.</p>
+  <pre class="code" data-run data-title="The three button types" data-h="120">&lt;form onsubmit="event.preventDefault(); alert('Submitted!')"&gt;
+  &lt;input type="text" name="q" value="type here"&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+  &lt;button type="reset"&gt;Reset&lt;/button&gt;
+  &lt;button type="button" onclick="alert('I only do what a script tells me')"&gt;Plain button&lt;/button&gt;
+&lt;/form&gt;</pre>
+  <h3>fieldset and legend: grouping related controls</h3>
+  <p><code>&lt;fieldset&gt;</code> <b>groups a set of related controls</b> inside a form, drawn with a border, and <code>&lt;legend&gt;</code> <b>supplies its visible caption</b>. This is essential for radio and checkbox groups: with a fieldset, a screen reader announces "Spice level: Mild" instead of a bare "Mild", because the legend is read with each control. Not <code>&lt;div&gt;</code>, not <code>&lt;section&gt;</code>, not <code>&lt;group&gt;</code>; and the caption is <code>legend</code>, not <code>caption</code> (tables), <code>label</code> or <code>summary</code>.</p>
+  <pre class="code" data-run data-title="fieldset and legend around a radio group" data-h="150">&lt;fieldset&gt;
+  &lt;legend&gt;Spice level&lt;/legend&gt;
+  &lt;label&gt;&lt;input type="radio" name="spice" value="mild" checked&gt; Mild&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="spice" value="medium"&gt; Medium&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="spice" value="hot"&gt; Hot&lt;/label&gt;
+&lt;/fieldset&gt;</pre>
+  <h3>datalist: suggestions, not restrictions</h3>
+  <p>A <code>&lt;datalist&gt;</code> attached to a text input through the input's <code>list</code> attribute <b>offers suggestions while still letting the user type any value</b>. That is the difference from <code>select</code>, which restricts the user to the options given.</p>
+  <pre class="code" data-run data-title="datalist autocomplete" data-h="120">&lt;label for="city"&gt;City&lt;/label&gt;
+&lt;input id="city" name="city" list="cities" placeholder="Start typing..."&gt;
+&lt;datalist id="cities"&gt;
+  &lt;option value="Jalandhar"&gt;&lt;option value="Ludhiana"&gt;&lt;option value="Chandigarh"&gt;
+&lt;/datalist&gt;</pre>
+  <h3>output, progress and meter</h3>
+  <p><code>&lt;output&gt;</code> displays the result of a calculation made from the form's controls. <code>&lt;progress value="70" max="100"&gt;</code> shows <b>progress toward completing a task</b> (an upload, a quiz). <code>&lt;meter min="0" max="100" value="80"&gt;</code> shows a <b>measurement within a known range</b> (disk space, battery, a score). Progress is "how far along"; meter is "how much".</p>
+  <div class="demo">
+    <p class="dlab">Live: progress and meter</p>
+    <label>Upload: <progress value="70" max="100">70%</progress></label> &nbsp;
+    <label>Battery: <meter min="0" max="100" low="20" high="80" optimum="90" value="35">35%</meter></label>
+  </div>
+</section>
+
+<section id="s5">
+  <h2>16.5 Choosing the control</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="Flowchart for choosing a form control">
+      <rect x="215" y="8" width="190" height="36" rx="18" class="box saf"/><text x="310" y="31" class="t c b">what must the user provide?</text>
+      <path d="M310 44 L310 60" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 64 L440 98 L310 132 L180 98 Z" class="dec"/><text x="310" y="94" class="t c b">free text?</text><text x="310" y="110" class="t c s">one line / many lines</text>
+      <path d="M180 98 L100 98" class="edge" marker-end="url(#arr)"/><text x="140" y="90" class="t c s">yes</text>
+      <rect x="10" y="70" width="90" height="56" rx="10" class="box grn"/><text x="55" y="92" class="t c b mono">input</text><text x="55" y="108" class="t c s">or textarea</text><text x="55" y="120" class="t c s">for many lines</text>
+      <path d="M310 132 L310 152" class="edge" marker-end="url(#arr)"/><text x="335" y="148" class="t s">no: a choice</text>
+      <path d="M310 156 L440 190 L310 224 L180 190 Z" class="dec"/><text x="310" y="186" class="t c b">exactly one of a</text><text x="310" y="202" class="t c b">few options?</text>
+      <path d="M180 190 L100 190" class="edge" marker-end="url(#arr)"/><text x="140" y="182" class="t c s">yes</text>
+      <rect x="10" y="164" width="90" height="52" rx="10" class="box saf"/><text x="55" y="184" class="t c b">radio group</text><text x="55" y="200" class="t c s">or select for</text><text x="55" y="212" class="t c s">many options</text>
+      <path d="M440 190 L520 190" class="edge" marker-end="url(#arr)"/><text x="480" y="182" class="t c s">no</text>
+      <path d="M520 190 L580 222 L520 254 L460 222 Z" class="dec"/><text x="520" y="218" class="t c b" style="font-size:11px">zero, one</text><text x="520" y="232" class="t c b" style="font-size:11px">or many?</text>
+      <rect x="420" y="262" width="196" height="30" rx="8" class="box blu"/><text x="518" y="282" class="t c b">checkboxes, or select multiple</text>
+      <path d="M520 254 L520 262" class="edge"/>
+      <text x="310" y="262" class="t c s">typing allowed but with suggestions: input + datalist</text>
+    </svg>
+    <figcaption><b>Figure 16.2</b> One of few: radio. Several: checkboxes or <code>select multiple</code>. Free text: input or textarea.</figcaption>
+  </figure>
+</section>
+
+<section id="s6">
+  <h2>16.6 Worked example: a complete registration form</h2>
+  <pre class="code" data-run data-title="Student registration form" data-h="420" data-tall>&lt;form action="/register" method="post" enctype="multipart/form-data"
+      onsubmit="event.preventDefault(); alert('Form is valid and would now be sent by POST');"&gt;
+  &lt;fieldset&gt;
+    &lt;legend&gt;Student Registration&lt;/legend&gt;
+
+    &lt;p&gt;&lt;label for="name"&gt;Full name&lt;/label&gt;&lt;br&gt;
+       &lt;input type="text" id="name" name="name" required&gt;&lt;/p&gt;
+
+    &lt;p&gt;&lt;label for="email"&gt;Email&lt;/label&gt;&lt;br&gt;
+       &lt;input type="email" id="email" name="email" required&gt;&lt;/p&gt;
+
+    &lt;p&gt;&lt;label for="course"&gt;Course&lt;/label&gt;&lt;br&gt;
+       &lt;select id="course" name="course"&gt;
+         &lt;option value=""&gt;-- choose --&lt;/option&gt;
+         &lt;option value="cse"&gt;Computer Science&lt;/option&gt;
+         &lt;option value="ece"&gt;Electronics&lt;/option&gt;
+       &lt;/select&gt;&lt;/p&gt;
+
+    &lt;fieldset&gt;
+      &lt;legend&gt;Year of study&lt;/legend&gt;
+      &lt;label&gt;&lt;input type="radio" name="year" value="1" checked&gt; First&lt;/label&gt;
+      &lt;label&gt;&lt;input type="radio" name="year" value="2"&gt; Second&lt;/label&gt;
+    &lt;/fieldset&gt;
+
+    &lt;p&gt;&lt;label&gt;&lt;input type="checkbox" name="hostel" value="yes"&gt; I need hostel accommodation&lt;/label&gt;&lt;/p&gt;
+
+    &lt;p&gt;&lt;label for="photo"&gt;Photo&lt;/label&gt;&lt;br&gt;
+       &lt;input type="file" id="photo" name="photo" accept="image/*"&gt;&lt;/p&gt;
+
+    &lt;p&gt;&lt;label for="about"&gt;About you&lt;/label&gt;&lt;br&gt;
+       &lt;textarea id="about" name="about" rows="3" cols="40"&gt;&lt;/textarea&gt;&lt;/p&gt;
+
+    &lt;input type="hidden" name="source" value="web"&gt;
+    &lt;button type="submit"&gt;Register&lt;/button&gt;
+    &lt;button type="reset"&gt;Clear&lt;/button&gt;
+  &lt;/fieldset&gt;
+&lt;/form&gt;</pre>
+  <p>Trace what would be submitted if the user fills the name and email, leaves the course on "-- choose --", keeps First year, ticks the hostel box and chooses no photo: <code>name</code>, <code>email</code>, <code>course=</code> (empty), <code>year=1</code>, <code>hostel=yes</code>, <code>photo</code> (empty), <code>about</code> (empty) and the hidden <code>source=web</code>. Had the hostel box been left unticked, <code>hostel</code> would not appear at all. Had any control lacked a <code>name</code>, it would not appear either.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>In &lt;form action="/submit" method="post"&gt;, the action attribute specifies:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The validation pattern for all fields</li><li>B. The HTTP method used for the request</li><li>C. The name of the submit button</li><li>D. The URL the form data is sent to</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>Which statement is true of a form submitted with method="get"?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The values are hidden from the browser history</li><li>B. The field values are encrypted before sending</li><li>C. Files can be uploaded reliably</li><li>D. The field values appear in the URL as a query string</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>Compared with method="get", a form using method="post":<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Can only transmit plain text fields</li><li>B. Encrypts the submitted data automatically</li><li>C. Sends the data in the request body instead of appending it to the URL</li><li>D. Skips all client-side validation</li></ul>
+    <p><b>Answer: C.</b> Encryption is HTTPS's job, not POST's.</p></div></details>
+  <details class="q"><summary>What does enctype="multipart/form-data" on a &lt;form&gt; enable?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The form data is encrypted in transit</li><li>B. The form can carry uploaded files</li><li>C. The form submits without reloading the page</li><li>D. The form validates on the server only</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>What does the name attribute on a form control determine?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The key under which the control's value is submitted</li><li>B. The text shown beside the control</li><li>C. The control's position in the tab order</li><li>D. The CSS rule applied to the control</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>What is the difference between id and name on an input, and what is the likeliest cause of a field missing at the server?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> id links the label and is for the browser; name is the key the value is submitted under and is for the server. A field missing at the server almost always has no name attribute (or is disabled).</p></div></details>
+  <details class="q"><summary>A field is filled in but marked disabled. On submit it is:<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: not submitted at all.</b> disabled excludes the field; use readonly if the value must still be sent.</p></div></details>
+  <details class="q"><summary>A checkbox is left unchecked when the form is submitted. What is sent for that control?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The text "false" is sent</li><li>B. Nothing at all is sent for that control</li><li>C. An empty string is sent</li><li>D. The value "0" is sent</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which attribute on &lt;label&gt; ties it to a field?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: for</b>, which must match the input's id exactly.</p></div></details>
+  <details class="q"><summary>Which element accepts multi-line free text such as a feedback message, and which of these is written correctly: &lt;textarea /&gt;, &lt;textarea&gt;&lt;/textarea&gt;, &lt;textarea value="x"&gt;, &lt;input type="textarea"&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;textarea&gt;</b>, written as <code>&lt;textarea&gt;&lt;/textarea&gt;</code>: it is not void, and its value goes between the tags. Which attribute sets its visible lines? <b>rows</b>.</p></div></details>
+  <details class="q"><summary>Which element creates a dropdown list of choices, which attribute marks one option as pre-chosen, and which element groups related options under a shared label?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> &lt;select&gt; (with &lt;option&gt; children); selected on the option (checked is for radio/checkbox); &lt;optgroup label="..."&gt;.</p></div></details>
+  <details class="q"><summary>Which control lets a user pick several subjects from a single list, and which attribute on &lt;select&gt; allows more than one option?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;select multiple&gt;</code>; the attribute is <b>multiple</b>. (Checkboxes are the alternative for a few options.)</p></div></details>
+  <details class="q"><summary>Which button triggers submission of the form it belongs to?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;button type="button"&gt;Send&lt;/button&gt;</li><li>B. &lt;a href="#"&gt;Send&lt;/a&gt;</li><li>C. &lt;button type="reset"&gt;Send&lt;/button&gt;</li><li>D. &lt;button type="submit"&gt;Send&lt;/button&gt;</li></ul>
+    <p><b>Answer: D.</b> type="button" does nothing by itself; reset clears; a link navigates.</p></div></details>
+  <details class="q"><summary>A form's only button is &lt;input type="button" value="Submit"&gt;. Why does clicking it do nothing?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. An &lt;input&gt; can never submit a form</li><li>B. type="button" has no default submit behaviour</li><li>C. The value attribute overrides the type</li><li>D. The button must be placed outside the &lt;form&gt;</li></ul>
+    <p><b>Answer: B.</b> Use type="submit".</p></div></details>
+  <details class="q"><summary>Which element groups a set of related controls inside a form, and which supplies its visible caption?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;fieldset&gt; and &lt;legend&gt;.</b> Essential for radio groups: the screen reader announces the legend with each option.</p></div></details>
+  <details class="q"><summary>Which markup offers a text input a list of suggestions while still allowing the user to type any value?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;input list="cities"&gt; together with a &lt;datalist id="cities"&gt;</li><li>B. &lt;select&gt; with an extra empty &lt;option&gt;</li><li>C. &lt;input type="text" options="cities"&gt;</li><li>D. &lt;textarea list="cities"&gt;</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Which attribute pre-fills a default entry into a text input?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. placeholder</li><li>B. value</li><li>C. default</li><li>D. text</li></ul>
+    <p><b>Answer: B.</b> placeholder is only a hint that disappears.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>form action = where; method get = in the URL (searches), post = in the body (changes, secrets, files); enctype multipart/form-data for uploads.</li>
+    <li>name = the submission key (no name, no data); id = for labels and scripts; value = the data.</li>
+    <li>Submitted: named, enabled controls. Not submitted: disabled controls, unchecked checkboxes. readonly is submitted.</li>
+    <li>label for/id (or wrap); textarea between tags with rows/cols; select + option (value, selected) + optgroup, multiple; button submit (default) / reset / button (does nothing); fieldset + legend for groups; datalist + list for suggestions; output, progress, meter.</li>
+    <li>Radio for one of few; checkboxes or select multiple for several; input/textarea for free text.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>form action method enctype</td><td>Where, how, and how encoded</td></tr>
+      <tr><td>label for</td><td>Names a control (matches id)</td></tr>
+      <tr><td>input type</td><td>Single-line and specialised controls (Chapter 17)</td></tr>
+      <tr><td>textarea rows cols</td><td>Multi-line text</td></tr>
+      <tr><td>select / option / optgroup</td><td>Dropdown, choices, grouped choices</td></tr>
+      <tr><td>button type</td><td>submit / reset / button</td></tr>
+      <tr><td>fieldset / legend</td><td>Group and caption</td></tr>
+      <tr><td>datalist</td><td>Suggestions for an input</td></tr>
+      <tr><td>output / progress / meter</td><td>Result / task progress / measurement</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

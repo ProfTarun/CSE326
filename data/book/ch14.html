@@ -1,0 +1,250 @@
+<article class="chapter" data-ch="14">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 14 &middot; Page Structure and Layout</p>
+  <h1>Page Structure and Layout</h1>
+  <p class="lead">Chapter 13 gave you the vocabulary; this chapter is about assembling a whole page with it. You will learn to see a page as a tree, to turn a sketch of a layout into an HTML skeleton, to keep the structure independent of how it will eventually be styled, and to recognise the layout mistakes (tables, line breaks, fake headings) that break a page for everyone but the person who wrote it.</p>
+  <p class="meta">About 12 minutes &middot; Course outcome CO2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Draw the tree of a typical page from <code>html</code> down to its landmarks.</li>
+      <li>Convert a wireframe into a semantic HTML skeleton.</li>
+      <li>Explain "structure first, style later" and logical source order.</li>
+      <li>Place headings, headers and footers correctly inside sections and articles.</li>
+      <li>Identify layout built with tables, breaks or styled divs and replace it.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>14.1 The page as a hierarchy</h2>
+  <p>Every page is a tree. At the root is <code>html</code>, which holds the invisible <code>head</code> and the visible <code>body</code>. Inside the body the semantic regions form the next level; inside them, sections and articles; inside those, headings, paragraphs, lists, images and forms. Reading a page as this tree is the skill that makes every structure question easy.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 330" role="img" aria-label="Tree of a typical page from html down to sections and articles">
+      <rect x="260" y="10" width="100" height="30" rx="8" class="box"/><text x="310" y="30" class="t c b mono">html</text>
+      <path d="M290 40 L170 70" class="edge"/><path d="M330 40 L450 70" class="edge"/>
+      <rect x="120" y="72" width="100" height="30" rx="8" class="box saf"/><text x="170" y="92" class="t c b mono">head</text>
+      <rect x="400" y="72" width="100" height="30" rx="8" class="box grn"/><text x="450" y="92" class="t c b mono">body</text>
+      <path d="M150 102 L120 132" class="edge"/><path d="M190 102 L220 132" class="edge"/>
+      <rect x="70" y="134" width="90" height="26" rx="6" class="box gry"/><text x="115" y="152" class="t c s mono">meta, title</text>
+      <rect x="180" y="134" width="90" height="26" rx="6" class="box gry"/><text x="225" y="152" class="t c s mono">link, style</text>
+      <path d="M420 102 L330 132" class="edge"/><path d="M440 102 L400 132" class="edge"/><path d="M460 102 L500 132" class="edge"/><path d="M480 102 L570 132" class="edge"/>
+      <rect x="290" y="134" width="80" height="26" rx="6" class="box saf"/><text x="330" y="152" class="t c s mono">header</text>
+      <rect x="372" y="134" width="60" height="26" rx="6" class="box saf"/><text x="402" y="152" class="t c s mono">nav</text>
+      <rect x="450" y="134" width="90" height="26" rx="6" class="box grn"/><text x="495" y="152" class="t c s mono">main</text>
+      <rect x="545" y="134" width="70" height="26" rx="6" class="box saf"/><text x="580" y="152" class="t c s mono">footer</text>
+      <path d="M475 160 L400 190" class="edge"/><path d="M495 160 L495 190" class="edge"/><path d="M515 160 L580 190" class="edge"/>
+      <rect x="360" y="192" width="80" height="26" rx="6" class="box"/><text x="400" y="210" class="t c s mono">section</text>
+      <rect x="455" y="192" width="80" height="26" rx="6" class="box"/><text x="495" y="210" class="t c s mono">section</text>
+      <rect x="545" y="192" width="70" height="26" rx="6" class="box blu"/><text x="580" y="210" class="t c s mono">aside</text>
+      <path d="M480 218 L460 250" class="edge"/><path d="M510 218 L530 250" class="edge"/>
+      <rect x="420" y="252" width="80" height="26" rx="6" class="box"/><text x="460" y="270" class="t c s mono">article</text>
+      <rect x="505" y="252" width="80" height="26" rx="6" class="box"/><text x="545" y="270" class="t c s mono">article</text>
+      <path d="M400 218 L400 250" class="edge"/><rect x="360" y="252" width="80" height="26" rx="6" class="box gry"/><text x="400" y="270" class="t c s mono">h2, p, ul</text>
+      <path d="M460 278 L460 300" class="edge"/><rect x="410" y="302" width="100" height="24" rx="6" class="box gry"/><text x="460" y="318" class="t c s mono">h3, p, img</text>
+      <text x="40" y="200" class="t s">html: complete document</text><text x="40" y="218" class="t s">head: information about it</text><text x="40" y="236" class="t s">body: visible content</text>
+    </svg>
+    <figcaption><b>Figure 14.1</b> A typical page as a tree. Regions inside the body; sections inside main; articles inside sections; content inside those.</figcaption>
+  </figure>
+  <p>Three facts about the tree that questions probe: <code>head</code> holds information about the document and <code>body</code> holds what is displayed; the semantic regions are children of <code>body</code>; and <code>article</code> and <code>aside</code> normally live inside <code>main</code>, never inside <code>head</code>, <code>header</code> or <code>footer</code>.</p>
+</section>
+
+<section id="s2">
+  <h2>14.2 From wireframe to skeleton</h2>
+  <p>Designers sketch pages as boxes: a banner across the top, a menu, a wide content column, a narrow sidebar, a footer. Each box maps to a semantic element. Draw the boxes, label them, and the HTML skeleton writes itself.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 300" role="img" aria-label="A wireframe with header, nav, main, section, article, aside and footer boxes, and the matching HTML skeleton">
+      <rect x="20" y="20" width="330" height="260" rx="8" fill="#fff" stroke="#0B2545" stroke-width="1.5"/>
+      <rect x="30" y="30" width="310" height="36" fill="#FFF1E0" stroke="#E07B1E"/><text x="185" y="53" class="t c b mono">&lt;header&gt;  logo + site title</text>
+      <rect x="30" y="72" width="310" height="26" fill="#FFF1E0" stroke="#E07B1E"/><text x="185" y="89" class="t c b mono">&lt;nav&gt; Home | Courses | Contact</text>
+      <rect x="30" y="104" width="205" height="130" fill="#E9F7E7" stroke="#138808"/><text x="132" y="124" class="t c b mono">&lt;main&gt;</text>
+      <rect x="40" y="132" width="185" height="42" fill="#fff" stroke="#138808"/><text x="132" y="150" class="t c s mono">&lt;section&gt; About</text><text x="132" y="166" class="t c s mono">&lt;h2&gt; &lt;p&gt;</text>
+      <rect x="40" y="180" width="185" height="46" fill="#fff" stroke="#138808"/><text x="132" y="198" class="t c s mono">&lt;section&gt; News</text><text x="132" y="216" class="t c s mono">&lt;article&gt; &lt;article&gt;</text>
+      <rect x="241" y="104" width="99" height="130" fill="#EEF2FF" stroke="#4F46E5"/><text x="290" y="160" class="t c b mono">&lt;aside&gt;</text><text x="290" y="178" class="t c s">quick links</text>
+      <rect x="30" y="240" width="310" height="30" fill="#FFF1E0" stroke="#E07B1E"/><text x="185" y="259" class="t c b mono">&lt;footer&gt; &copy; 2026 &middot; contact</text>
+      <path d="M360 150 L390 150" class="edge" marker-end="url(#arr)"/>
+      <g class="mono" style="font-size:12px" fill="#14243B">
+        <text x="400" y="42">&lt;body&gt;</text>
+        <text x="412" y="62">&lt;header&gt;...&lt;/header&gt;</text>
+        <text x="412" y="82">&lt;nav&gt;...&lt;/nav&gt;</text>
+        <text x="412" y="102">&lt;main&gt;</text>
+        <text x="424" y="122">&lt;section&gt;</text>
+        <text x="436" y="142">&lt;h2&gt;About Us&lt;/h2&gt; &lt;p&gt;...&lt;/p&gt;</text>
+        <text x="424" y="162">&lt;/section&gt;</text>
+        <text x="424" y="182">&lt;section&gt;</text>
+        <text x="436" y="202">&lt;h2&gt;News&lt;/h2&gt; &lt;article&gt;...&lt;/article&gt;</text>
+        <text x="424" y="222">&lt;/section&gt;</text>
+        <text x="424" y="242">&lt;aside&gt;...&lt;/aside&gt;</text>
+        <text x="412" y="262">&lt;/main&gt;</text>
+        <text x="412" y="282">&lt;footer&gt;...&lt;/footer&gt;</text>
+      </g>
+    </svg>
+    <figcaption><b>Figure 14.2</b> Boxes become elements. The two-column look on the left is CSS's job later; the HTML on the right is written in reading order.</figcaption>
+  </figure>
+  <p>Here is that skeleton as a complete, valid page. It is HTML only, no CSS, and it already has everything a screen reader or search engine needs.</p>
+  <pre class="code" data-run data-title="A complete semantic page, HTML only" data-h="360" data-tall>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;School of Computing and AI&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;
+    &lt;h1&gt;School of Computing and AI&lt;/h1&gt;
+    &lt;p&gt;Lovely Professional University&lt;/p&gt;
+  &lt;/header&gt;
+  &lt;nav aria-label="Main navigation"&gt;
+    &lt;ul&gt;
+      &lt;li&gt;&lt;a href="index.html"&gt;Home&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="courses.html"&gt;Courses&lt;/a&gt;&lt;/li&gt;
+      &lt;li&gt;&lt;a href="contact.html"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/nav&gt;
+  &lt;main&gt;
+    &lt;section&gt;
+      &lt;h2&gt;About Us&lt;/h2&gt;
+      &lt;p&gt;Welcome to our school.&lt;/p&gt;
+    &lt;/section&gt;
+    &lt;section&gt;
+      &lt;h2&gt;Latest News&lt;/h2&gt;
+      &lt;article&gt;
+        &lt;h3&gt;AI Workshop&lt;/h3&gt;
+        &lt;p&gt;Workshop conducted for students.&lt;/p&gt;
+      &lt;/article&gt;
+    &lt;/section&gt;
+    &lt;aside&gt;
+      &lt;h2&gt;Quick Links&lt;/h2&gt;
+      &lt;a href="admissions.html"&gt;Admissions&lt;/a&gt;
+    &lt;/aside&gt;
+  &lt;/main&gt;
+  &lt;footer&gt;
+    &lt;p&gt;&amp;copy; 2026 School of Computing and AI&lt;/p&gt;
+  &lt;/footer&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</section>
+
+<section id="s3">
+  <h2>14.3 Structure first, style later</h2>
+  <p>Notice that the page above has no layout at all: everything stacks top to bottom in the order it was written. That is correct. <b>HTML provides the logical structure; CSS, written afterwards, decides how that structure is arranged on a desktop, a tablet or a phone</b> (Unit 3 covers Flexbox, Grid and media queries). The habit that makes this work is <b>logical source order</b>: write the elements in the order a reader should encounter them, header, navigation, main content, related content, footer, and let CSS move them into columns. A screen reader, a search engine and a phone with no CSS all read the source order, so it must make sense on its own.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 210" role="img" aria-label="The same source order shown as a single column on a phone and two columns on a desktop">
+      <text x="120" y="24" class="t c b">phone: the HTML as written</text>
+      <rect x="70" y="34" width="100" height="166" rx="10" fill="#fff" stroke="#0B2545"/>
+      <rect x="78" y="42" width="84" height="18" fill="#FFF1E0"/><text x="120" y="55" class="t c s" style="font-size:9px">header</text>
+      <rect x="78" y="64" width="84" height="14" fill="#FFF1E0"/><text x="120" y="75" class="t c s" style="font-size:9px">nav</text>
+      <rect x="78" y="82" width="84" height="60" fill="#E9F7E7"/><text x="120" y="115" class="t c s" style="font-size:9px">main</text>
+      <rect x="78" y="146" width="84" height="26" fill="#EEF2FF"/><text x="120" y="163" class="t c s" style="font-size:9px">aside</text>
+      <rect x="78" y="176" width="84" height="16" fill="#FFF1E0"/><text x="120" y="188" class="t c s" style="font-size:9px">footer</text>
+      <path d="M200 117 L260 117" class="edge dash" marker-end="url(#arr)"/><text x="230" y="108" class="t c s">CSS</text>
+      <text x="480" y="24" class="t c b">desktop: CSS arranges the same boxes</text>
+      <rect x="290" y="34" width="380" height="166" rx="8" fill="#fff" stroke="#0B2545"/>
+      <rect x="298" y="42" width="364" height="22" fill="#FFF1E0"/><text x="480" y="57" class="t c s" style="font-size:9px">header</text>
+      <rect x="298" y="68" width="364" height="16" fill="#FFF1E0"/><text x="480" y="80" class="t c s" style="font-size:9px">nav</text>
+      <rect x="298" y="88" width="250" height="84" fill="#E9F7E7"/><text x="423" y="134" class="t c s" style="font-size:9px">main</text>
+      <rect x="552" y="88" width="110" height="84" fill="#EEF2FF"/><text x="607" y="134" class="t c s" style="font-size:9px">aside</text>
+      <rect x="298" y="176" width="364" height="16" fill="#FFF1E0"/><text x="480" y="188" class="t c s" style="font-size:9px">footer</text>
+    </svg>
+    <figcaption><b>Figure 14.3</b> One source order, two layouts. Because the HTML reads correctly in a single column, it works everywhere; CSS only rearranges it where there is room.</figcaption>
+  </figure>
+  <p>Two habits that prepare HTML for responsive layout before any CSS exists: a <b>logical source order</b> and <b>flexible, scalable media</b> (images and videos that can shrink to their container, Chapter 21). Two habits that fight it: hard-coding <code>width="800"</code> on containers, and nesting layout tables.</p>
+</section>
+
+<section id="s4">
+  <h2>14.4 Headings, headers and footers inside regions</h2>
+  <p>The heading outline (Chapter 6) and the landmark structure work together. The page's single <code>h1</code> usually sits in the page <code>header</code>. Each <code>section</code> starts with an <code>h2</code>; each <code>article</code> inside it with an <code>h3</code>. An <code>aside</code> gets a heading too. The result is an outline that matches the regions, so a screen-reader user can navigate by either.</p>
+  <p>Regions can nest their own sub-regions. An <code>article</code> may open with its own <code>header</code> (title, author, date) and close with its own <code>footer</code> (tags, share links); a long article may contain <code>section</code>s. What must not happen: a second <code>main</code>, a <code>main</code> inside an article, or a <code>section</code> with no heading.</p>
+  <pre class="code" data-run data-title="An article with its own header and footer" data-h="230">&lt;article&gt;
+  &lt;header&gt;
+    &lt;h2&gt;Why semantic HTML matters&lt;/h2&gt;
+    &lt;p&gt;By Asha Kumar &middot; &lt;time datetime="2026-09-01"&gt;1 September 2026&lt;/time&gt;&lt;/p&gt;
+  &lt;/header&gt;
+  &lt;section&gt;
+    &lt;h3&gt;Screen readers&lt;/h3&gt;
+    &lt;p&gt;Landmarks let users jump straight to the content.&lt;/p&gt;
+  &lt;/section&gt;
+  &lt;section&gt;
+    &lt;h3&gt;Search engines&lt;/h3&gt;
+    &lt;p&gt;Structure tells them what is content and what is navigation.&lt;/p&gt;
+  &lt;/section&gt;
+  &lt;footer&gt;&lt;p&gt;Tags: HTML, accessibility&lt;/p&gt;&lt;/footer&gt;
+&lt;/article&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>14.5 Layout mistakes to unlearn</h2>
+  <dl>
+    <dt>Tables for layout</dt>
+    <dd>Before CSS, pages were laid out in invisible tables. Today it <b>breaks accessibility and responsiveness</b>: a screen reader announces a data table with rows and columns that mean nothing, and a fixed grid cannot reflow on a phone. Tables are for tabular data (Chapter 19). Browsers still support <code>&lt;table&gt;</code>, tables can hold images, and they are not slower; those are not the reasons.</dd>
+    <dt>Line breaks for structure</dt>
+    <dd><code>&lt;br&gt;</code> means a line break in text. Stacks of <code>&lt;br&gt;</code> to create space between blocks are not a layout system; use semantic containers and CSS margins.</dd>
+    <dt>Styled divs instead of headings</dt>
+    <dd><code>&lt;div class="h2"&gt;Results&lt;/div&gt;</code> looks like a heading and <b>loses the document outline</b>, so heading navigation cannot find it. Use a real <code>h2</code> and style it.</dd>
+    <dt>Fixed pixel dimensions on containers</dt>
+    <dd><code>width="800"</code> and fixed heights fight every screen that is not 800 pixels wide. Let containers be fluid and let media scale.</dd>
+    <dt>Everything in divs</dt>
+    <dd>A page that is only divs has no landmarks and no outline; the user hears the whole menu on every load. Use the regions.</dd>
+  </dl>
+</section>
+
+<section id="s6">
+  <h2>14.6 Three common page shapes</h2>
+  <p>Most pages you will build are one of these, and the skeleton for each is short.</p>
+  <table class="tbl">
+    <thead><tr><th>Shape</th><th>Regions in order</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td>Single column</td><td>header (h1, nav), main (sections), footer</td><td>Profile page, landing page, documentation</td></tr>
+      <tr><td>Content + sidebar</td><td>header, nav, main (sections/articles) + aside, footer</td><td>Blog, news site, course page</td></tr>
+      <tr><td>Form page</td><td>header, main (one section holding the form), footer</td><td>Registration, login, feedback</td></tr>
+    </tbody>
+  </table>
+  <p>A checklist for any skeleton: one <code>h1</code>; header, nav, main, footer present; every section has a heading; articles and asides inside main; no layout tables, no <code>br</code> stacks; source order reads correctly with no CSS; viewport meta tag in the head.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>In a well-formed page skeleton, where do &lt;article&gt; and &lt;aside&gt; normally sit?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Inside &lt;header&gt;</li><li>B. Inside &lt;footer&gt;</li><li>C. Inside &lt;main&gt;</li><li>D. Directly inside &lt;head&gt;</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which is the correct nesting order: header &gt; nav then main &gt; section, or main &gt; header &gt; nav?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> header &gt; nav, then main &gt; section. The nav belongs in the header; sections belong in main.</p></div></details>
+  <details class="q"><summary>Why should every &lt;section&gt; contain a heading?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. So assistive technology can summarise and navigate the section</li><li>B. Without one the section will not render</li><li>C. Headings are required before CSS can be applied</li><li>D. It prevents the section from being indexed</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Why should tables not be used to lay out an entire web page today?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Tables cannot contain images</li><li>B. It breaks accessibility and responsiveness; tables are for tabular data</li><li>C. Browsers no longer support the &lt;table&gt; element</li><li>D. Tables always load more slowly than &lt;div&gt; elements</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which habit best prepares HTML for a responsive layout before any CSS is written?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Hardcoding width="800" on every container</li><li>B. Nesting layout tables three levels deep</li><li>C. Using a logical source order and flexible, scalable media</li><li>D. Setting fixed pixel heights on all sections</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>A developer styles a section heading as &lt;div class="h2"&gt;Results&lt;/div&gt;. What is lost?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the document outline, so heading navigation by assistive technology no longer finds it. CSS, placement inside a section and rendering are all unaffected.</p></div></details>
+  <details class="q"><summary>Which element should appear exactly once per page, and can a &lt;footer&gt; appear inside an &lt;article&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> &lt;main&gt; appears once. Yes, a footer can close an article or section as well as the page.</p></div></details>
+  <details class="q"><summary>What is the difference between &lt;head&gt; and &lt;header&gt; in the page tree?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> head is a child of html holding invisible metadata; header is a child of body (or of a section/article) holding visible introductory content.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>The page is a tree: html &gt; head + body; body &gt; header, nav, main, footer; main &gt; sections, articles, aside.</li>
+    <li>Wireframe boxes map to semantic elements; write them in logical source order.</li>
+    <li>HTML supplies structure; CSS later arranges it for each screen. The source must read correctly with no CSS at all.</li>
+    <li>One h1 in the header; h2 per section; h3 per article; sections and articles may carry their own header and footer; never a second main.</li>
+    <li>Do not lay out with tables, br stacks, styled divs or fixed widths.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Wireframe box</th><th>Element</th></tr></thead>
+    <tbody>
+      <tr><td>Banner with logo and title</td><td>header (contains h1)</td></tr>
+      <tr><td>Menu bar</td><td>nav (ul of links), inside header or after it</td></tr>
+      <tr><td>Wide content column</td><td>main, containing section and article</td></tr>
+      <tr><td>Narrow related column</td><td>aside, inside main</td></tr>
+      <tr><td>Bottom strip</td><td>footer (address, copyright)</td></tr>
+      <tr><td>A box that exists only for CSS</td><td>div</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

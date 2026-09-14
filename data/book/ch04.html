@@ -1,0 +1,273 @@
+<article class="chapter" data-ch="4">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 4 &middot; HTML Document Structure</p>
+  <h1>HTML Document Structure</h1>
+  <p class="lead">Every valid HTML5 page has the same skeleton: a document type declaration, a root element, a head of information about the page, and a body of visible content. This chapter takes that skeleton apart line by line, shows what belongs in the head and what belongs in the body, and explains the metadata that makes a page render correctly on a phone, in a search result and in a screen reader.</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write the minimal valid HTML5 document from memory and explain every line.</li>
+      <li>Decide whether a given element belongs in <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code>.</li>
+      <li>Explain <code>lang</code>, <code>&lt;meta charset&gt;</code>, the viewport meta tag, <code>&lt;title&gt;</code>, <code>&lt;link&gt;</code> and where to put <code>&lt;script&gt;</code>.</li>
+      <li>Tell <code>&lt;head&gt;</code> from <code>&lt;header&gt;</code> and <code>&lt;title&gt;</code> from <code>&lt;h1&gt;</code>.</li>
+      <li>Describe the document as a tree the browser builds from your markup.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>4.1 The skeleton</h2>
+  <p>Here is the smallest complete, valid HTML5 page. Type it until you can write it without looking; every page you ever build starts from it.</p>
+  <pre class="code" data-run data-title="The minimal valid HTML5 document" data-h="150">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;My First Website&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello World&lt;/h1&gt;
+  &lt;p&gt;My first webpage.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="The document skeleton as nested boxes: doctype, html containing head and body">
+      <rect x="20" y="16" width="580" height="34" rx="8" class="box gry"/><text x="310" y="38" class="t c b mono">&lt;!DOCTYPE html&gt;  &#8592; line 1, not an element: a declaration</text>
+      <rect x="20" y="62" width="580" height="222" rx="12" class="box"/>
+      <text x="40" y="84" class="t b mono">&lt;html lang="en"&gt;</text><text x="580" y="84" class="t s" style="text-anchor:end">the root: everything lives inside it</text>
+      <rect x="40" y="96" width="540" height="76" rx="10" class="box saf"/>
+      <text x="56" y="118" class="t b mono">&lt;head&gt;</text><text x="200" y="118" class="t s">information ABOUT the page: nothing here is drawn on screen</text>
+      <text x="70" y="140" class="t mono s">&lt;meta charset&gt;  &lt;meta viewport&gt;  &lt;title&gt;  &lt;link&gt;  &lt;style&gt;</text>
+      <text x="56" y="162" class="t b mono">&lt;/head&gt;</text>
+      <rect x="40" y="184" width="540" height="76" rx="10" class="box grn"/>
+      <text x="56" y="206" class="t b mono">&lt;body&gt;</text><text x="200" y="206" class="t s">everything the user SEES: headings, text, images, forms, tables</text>
+      <text x="70" y="228" class="t mono s">&lt;header&gt; &lt;nav&gt; &lt;main&gt; &lt;h1&gt; &lt;p&gt; &lt;img&gt; &lt;form&gt; &lt;table&gt; &lt;footer&gt;</text>
+      <text x="56" y="250" class="t b mono">&lt;/body&gt;</text>
+      <text x="40" y="278" class="t b mono">&lt;/html&gt;</text>
+    </svg>
+    <figcaption><b>Figure 4.1</b> The skeleton. The doctype comes first; then <code>html</code> wraps exactly two children, <code>head</code> (metadata) followed by <code>body</code> (content). Head and body are siblings; head always comes first.</figcaption>
+  </figure>
+  <p>The correct order of the main structural elements is therefore <b><code>html</code>, then <code>head</code>, then <code>body</code></b>, with head and body both directly inside html. Any arrangement that puts head inside body, body before head, or the doctype anywhere but the top is wrong.</p>
+</section>
+
+<section id="s2">
+  <h2>4.2 Line by line</h2>
+  <h3><code>&lt;!DOCTYPE html&gt;</code>: the document type declaration</h3>
+  <p>The very first line. It is not an element (no closing tag, not part of the tree); it is a declaration that <b>tells the browser to use HTML5 parsing rules</b>, the modern <i>standards mode</i>. Leave it out and the browser drops into <b>quirks mode</b>, emulating 1990s behaviour with different box sizes and spacing; the page still renders but layout goes subtly wrong. The HTML5 form is short and case-insensitive: <code>&lt;!DOCTYPE html&gt;</code> and <code>&lt;!doctype html&gt;</code> both work. There is no <code>&lt;!DOCTYPE HTML5&gt;</code>, no <code>&lt;html5&gt;</code> and no meta tag for it.</p>
+  <h3><code>&lt;html lang="en"&gt;</code>: the root element</h3>
+  <p><code>&lt;html&gt;</code> is the <b>root element</b> of every HTML document: the single container that wraps everything else. (The doctype is above it but is not an element, so it is not the root.) Its <code>lang</code> attribute declares the <b>document's language</b>: <code>en</code> for English, <code>hi</code> for Hindi, <code>pa</code> for Punjabi. Screen readers use it to choose the right pronunciation, browsers use it to offer translation and pick hyphenation rules, and search engines use it to serve the page to the right audience. It does not force translation, restrict fonts or limit which characters may be typed; it is a statement of what language the content is written in.</p>
+  <h3><code>&lt;head&gt;</code>: information about the document</h3>
+  <p>The head is the <b>container for the document's metadata</b>: data <i>about</i> the page rather than the page itself. <b>Nothing inside the head is rendered</b> on the visible canvas. It holds the title, the character encoding, the viewport setting, links to stylesheets and icons, and hints for search engines. If you put an <code>&lt;h1&gt;</code>, a paragraph or an image in the head, you have made a mistake: they are visible content and belong in the body.</p>
+  <h3><code>&lt;meta charset="UTF-8"&gt;</code>: the character encoding</h3>
+  <p>This <b>declares the character encoding</b> of the file, so the browser turns the bytes it received into the right characters. <b>UTF-8</b> is the universal standard: it covers every language's script, mathematical symbols, the rupee sign and emoji. Without it, accented letters and symbols such as &#8377; can render as garbage like <code>â‚¹</code>. Put it first in the head, before the title. It does not set the font, the width, or link anything.</p>
+  <h3><code>&lt;meta name="viewport" ...&gt;</code>: telling phones the truth</h3>
+  <p><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code> is the line that makes a page usable on a phone. <code>width=device-width</code> tells the mobile browser to lay the page out at the real screen width; <code>initial-scale=1.0</code> sets the starting zoom to 100%. <b>Without it, a phone pretends to be a 980-pixel-wide desktop, lays the page out at that width and shrinks it to fit</b>, so the user sees a tiny, unreadable desktop layout and has to pinch-zoom. The viewport tag is mandatory for responsive, mobile-friendly pages (Chapter 21).</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Two phones: without the viewport meta tag the page is shrunk; with it the text is readable">
+      <rect x="60" y="20" width="200" height="210" rx="18" class="box gry"/>
+      <rect x="75" y="40" width="170" height="170" rx="4" fill="#fff" stroke="#CBD5E1"/>
+      <g fill="#94A3B8"><rect x="82" y="46" width="60" height="4"/><rect x="82" y="54" width="156" height="2"/><rect x="82" y="60" width="156" height="2"/><rect x="82" y="66" width="120" height="2"/><rect x="82" y="76" width="70" height="30"/><rect x="160" y="76" width="78" height="2"/><rect x="160" y="82" width="78" height="2"/><rect x="160" y="88" width="60" height="2"/><rect x="82" y="112" width="156" height="2"/><rect x="82" y="118" width="156" height="2"/><rect x="82" y="124" width="156" height="2"/><rect x="82" y="130" width="100" height="2"/></g>
+      <text x="160" y="196" class="t c s">tiny desktop layout</text>
+      <text x="160" y="245" class="t c b" fill="#C42B2B">without viewport meta</text>
+      <rect x="360" y="20" width="200" height="210" rx="18" class="box gry"/>
+      <rect x="375" y="40" width="170" height="170" rx="4" fill="#fff" stroke="#CBD5E1"/>
+      <g fill="#3C4A60"><rect x="385" y="50" width="110" height="12" rx="2"/><rect x="385" y="70" width="150" height="6" rx="2"/><rect x="385" y="82" width="150" height="6" rx="2"/><rect x="385" y="94" width="120" height="6" rx="2"/><rect x="385" y="110" width="150" height="50" rx="4" fill="#FFF1E0"/><rect x="385" y="170" width="150" height="6" rx="2"/><rect x="385" y="182" width="100" height="6" rx="2"/></g>
+      <text x="460" y="245" class="t c b" fill="#138808">with viewport meta</text>
+    </svg>
+    <figcaption><b>Figure 4.2</b> The same page on a phone. Without the viewport meta tag the browser assumes a 980px desktop and shrinks everything; with it, the layout uses the real screen width.</figcaption>
+  </figure>
+  <h3><code>&lt;title&gt;</code>: the document title</h3>
+  <p>The title is the text shown on the <b>browser tab</b>, used as the name when the page is bookmarked, and used by search engines as the <b>clickable headline in search results</b>. It is metadata, so it lives in the head and never appears in the page body. Every page needs exactly one, and it should be specific: <code>&lt;title&gt;CSE326 Internet Programming | LPU&lt;/title&gt;</code> rather than "Home" or "Page".</p>
+  <div class="callout exam"><b>title versus h1.</b> <code>&lt;title&gt;</code> is <i>metadata</i> shown in the tab and in search results. <code>&lt;h1&gt;</code> is <i>visible page content</i>, the main heading inside the body. They often say similar things but they are different elements in different places; a page has one of each, and they do not render identically.</div>
+  <h3><code>&lt;link&gt;</code>: connecting external files</h3>
+  <p><code>&lt;link rel="stylesheet" href="style.css"&gt;</code> <b>attaches an external CSS stylesheet</b>. <code>rel</code> declares the relationship (this file is a stylesheet) and <code>href</code> gives its path. It is a void element and belongs in the head. The same element with <code>rel="icon"</code> adds the <b>favicon</b>, the small icon beside the title on the tab: <code>&lt;link rel="icon" href="favicon.png"&gt;</code>, typically a 32&times;32 PNG or ICO. Note that <code>&lt;link&gt;</code> is not how you make a hyperlink; that is <code>&lt;a&gt;</code> (Chapter 8).</p>
+  <h3><code>&lt;meta name="description"&gt;</code> and friends</h3>
+  <p>Other meta tags supply named pieces of information: <code>&lt;meta name="description" content="Learn HTML5 with practical examples."&gt;</code> gives search engines the grey summary shown under the title in results; <code>&lt;meta name="author" content="..."&gt;</code> credits the author. Chapter 11 covers the ones that matter for SEO.</p>
+  <h3><code>&lt;style&gt;</code> and <code>&lt;script&gt;</code></h3>
+  <p><code>&lt;style&gt;</code> holds CSS written directly in the page and belongs in the head. <code>&lt;script&gt;</code> loads or contains JavaScript and can go in either place. The recommended position for most scripts is <b>just before <code>&lt;/body&gt;</code></b>: the browser parses and displays the page content <i>before</i> the script runs, so the user sees the page sooner and the script can find every element because they already exist. (Putting it in the head does not cache it, shrink it or grant special access to the head.)</p>
+  <h3><code>&lt;body&gt;</code>: everything visible</h3>
+  <p>The body is the <b>container for all visible content</b>: headings, paragraphs, images, tables, forms, audio, video, and the semantic regions of Unit 2. If the user can see it or interact with it, it is in the body.</p>
+</section>
+
+<section id="s3">
+  <h2>4.3 Head or body? A decision you will make a thousand times</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Flowchart deciding whether an element belongs in head or body">
+      <rect x="210" y="14" width="200" height="40" rx="20" class="box saf"/><text x="310" y="39" class="t c b">an element to place</text>
+      <path d="M310 54 L310 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 78 L430 128 L310 178 L190 128 Z" class="dec"/>
+      <text x="310" y="122" class="t c b">will the user see it</text><text x="310" y="140" class="t c b">or interact with it?</text>
+      <path d="M190 128 L100 128 L100 190" class="edge grn" marker-end="url(#arr-grn)"/><text x="145" y="120" class="t c s">yes</text>
+      <path d="M430 128 L520 128 L520 190" class="edge saf" marker-end="url(#arr-saf)"/><text x="475" y="120" class="t c s">no</text>
+      <rect x="30" y="192" width="140" height="46" rx="10" class="box grn"/><text x="100" y="212" class="t c b">body</text><text x="100" y="228" class="t c s">h1, p, img, form, table</text>
+      <rect x="450" y="192" width="140" height="46" rx="10" class="box saf"/><text x="520" y="212" class="t c b">head</text><text x="520" y="228" class="t c s">title, meta, link, style</text>
+    </svg>
+    <figcaption><b>Figure 4.3</b> One question settles it: if it is drawn on screen it is body; if it is information about the page it is head.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Belongs in <code>&lt;head&gt;</code></th><th>Belongs in <code>&lt;body&gt;</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;title&gt;Student Portal&lt;/title&gt;</code></td><td><code>&lt;h1&gt;Welcome&lt;/h1&gt;</code> page heading</td></tr>
+      <tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td><code>&lt;p&gt;</code> paragraph text</td></tr>
+      <tr><td><code>&lt;meta name="viewport" ...&gt;</code></td><td><code>&lt;img&gt;</code> product photo</td></tr>
+      <tr><td><code>&lt;meta name="description" ...&gt;</code></td><td><code>&lt;form&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;video&gt;</code></td></tr>
+      <tr><td><code>&lt;link rel="stylesheet"&gt;</code>, <code>&lt;link rel="icon"&gt;</code></td><td><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;footer&gt;</code></td></tr>
+      <tr><td><code>&lt;style&gt;</code></td><td><code>&lt;script&gt;</code> (usually last, before <code>&lt;/body&gt;</code>)</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>head is not header.</b> <code>&lt;head&gt;</code> holds invisible metadata. <code>&lt;header&gt;</code> (Chapter 13) is a <i>visible</i> region inside the body: the page's banner with its logo, title and navigation. They are unrelated elements that happen to share four letters, and confusing them is one of the most frequently examined mistakes in the course.</div>
+</section>
+
+<section id="s4">
+  <h2>4.4 The page as a tree</h2>
+  <p>The browser reads the document from the outer structure inward and builds a tree (the DOM) in which every element is a node with a parent and children. Seeing the minimal page as a tree makes the rules obvious: <code>head</code> and <code>body</code> are siblings under <code>html</code>; the title lives under head; the visible content lives under body.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="DOM tree of the minimal document">
+      <rect x="260" y="14" width="100" height="34" rx="8" class="box"/><text x="310" y="36" class="t c b mono">html</text>
+      <path d="M290 48 L170 90" class="edge"/><path d="M330 48 L450 90" class="edge"/>
+      <rect x="120" y="92" width="100" height="34" rx="8" class="box saf"/><text x="170" y="114" class="t c b mono">head</text>
+      <rect x="400" y="92" width="100" height="34" rx="8" class="box grn"/><text x="450" y="114" class="t c b mono">body</text>
+      <path d="M140 126 L70 170" class="edge"/><path d="M170 126 L170 170" class="edge"/><path d="M200 126 L270 170" class="edge"/>
+      <rect x="20" y="172" width="100" height="34" rx="8" class="box gry"/><text x="70" y="194" class="t c mono" style="font-size:11px">meta charset</text>
+      <rect x="120" y="172" width="100" height="34" rx="8" class="box gry"/><text x="170" y="194" class="t c mono" style="font-size:11px">meta viewport</text>
+      <rect x="220" y="172" width="100" height="34" rx="8" class="box gry"/><text x="270" y="194" class="t c mono" style="font-size:11px">title</text>
+      <path d="M430 126 L390 170" class="edge"/><path d="M470 126 L510 170" class="edge"/>
+      <rect x="340" y="172" width="100" height="34" rx="8" class="box gry"/><text x="390" y="194" class="t c mono" style="font-size:11px">h1</text>
+      <rect x="460" y="172" width="100" height="34" rx="8" class="box gry"/><text x="510" y="194" class="t c mono" style="font-size:11px">p</text>
+      <path d="M270 206 L270 240" class="edge"/><path d="M390 206 L390 240" class="edge"/><path d="M510 206 L510 240" class="edge"/>
+      <text x="270" y="258" class="t c s">"My First Website"</text><text x="390" y="258" class="t c s">"Hello World"</text><text x="510" y="258" class="t c s">"My first webpage."</text>
+      <text x="80" y="36" class="t s">document root</text>
+    </svg>
+    <figcaption><b>Figure 4.4</b> The DOM tree the browser builds from the minimal document. JavaScript (Unit 5) reads and changes this tree; CSS selectors (Unit 3) select nodes in it.</figcaption>
+  </figure>
+</section>
+
+<section id="s5">
+  <h2>4.5 A complete, well-formed head</h2>
+  <p>Here is the head you should copy into every project. The order matters a little: charset first (so the browser decodes the rest correctly), viewport second, then title, then the rest.</p>
+  <pre class="code" data-run data-title="A production-quality head, with a small body to prove it renders" data-h="170">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;CSE326 Internet Programming | Student Portal&lt;/title&gt;
+  &lt;meta name="description" content="Notes, labs and results for CSE326 at LPU."&gt;
+  &lt;meta name="author" content="Tarun Jangwal"&gt;
+  &lt;link rel="icon" href="favicon.png"&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+  &lt;style&gt; body { font-family: system-ui, sans-serif; } &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Student Portal&lt;/h1&gt;
+  &lt;p&gt;Only this body content is visible. The head configured everything else.&lt;/p&gt;
+  &lt;script&gt; console.log("Runs after the content above has been parsed."); &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Run it and notice: the title is not on the page, the description is not on the page, and the script did not block the text from appearing. That is the head doing its job invisibly.</p>
+</section>
+
+<section id="mistakes">
+  <h2>Common mistakes</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; Visible content in the head</b><pre>&lt;head&gt;
+  &lt;h1&gt;Welcome&lt;/h1&gt;
+&lt;/head&gt;</pre>A heading is content. The browser will move it into the body anyway, but the page is invalid.</div>
+    <div class="r"><b>&#10003; Metadata in the head, content in the body</b><pre>&lt;head&gt;&lt;title&gt;Welcome&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Welcome&lt;/h1&gt;&lt;/body&gt;</pre></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; No doctype, no lang, no charset</b><pre>&lt;html&gt;&lt;body&gt;Hi&lt;/body&gt;&lt;/html&gt;</pre>Renders in quirks mode, has no title, may garble symbols, and tells screen readers nothing about the language.</div>
+    <div class="r"><b>&#10003; The complete minimal document</b><pre>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;&lt;meta charset="UTF-8"&gt;
+&lt;title&gt;T&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;Hi&lt;/body&gt;&lt;/html&gt;</pre></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; Forgetting the viewport tag</b><pre>&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Menu&lt;/title&gt;
+&lt;/head&gt;</pre>On a phone the page appears as a shrunken desktop layout with unreadable text.</div>
+    <div class="r"><b>&#10003; Add it to every page</b><pre>&lt;meta name="viewport"
+  content="width=device-width, initial-scale=1.0"&gt;</pre></div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which declaration tells the browser to use HTML5 parsing rules?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;!DOCTYPE HTML5&gt;</li><li>B. &lt;meta doctype="html5"&gt;</li><li>C. &lt;html5&gt;</li><li>D. &lt;!DOCTYPE html&gt;</li></ul>
+    <p><b>Answer: D.</b> The HTML5 doctype is simply <code>&lt;!DOCTYPE html&gt;</code>, on line one. The others do not exist.</p></div></details>
+  <details class="q"><summary>Which element is the root element of every HTML document?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;body&gt;</li><li>B. &lt;head&gt;</li><li>C. &lt;html&gt;</li><li>D. &lt;!DOCTYPE html&gt;</li></ul>
+    <p><b>Answer: C.</b> The doctype is a declaration, not an element; html is the root that contains head and body.</p></div></details>
+  <details class="q"><summary>Which of the following belongs inside &lt;head&gt; rather than &lt;body&gt;?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;h1&gt; page heading</li><li>B. &lt;p&gt; paragraph text</li><li>C. &lt;meta name="description"&gt;</li><li>D. &lt;img&gt; product photo</li></ul>
+    <p><b>Answer: C.</b> Metadata goes in the head; headings, text and images are visible content for the body.</p></div></details>
+  <details class="q"><summary>Which of the following would be a mistake to place inside &lt;head&gt;?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;title&gt;Student Portal&lt;/title&gt;</li><li>B. &lt;meta charset="UTF-8"&gt;</li><li>C. &lt;link rel="stylesheet" href="style.css"&gt;</li><li>D. &lt;h1&gt;Welcome&lt;/h1&gt;</li></ul>
+    <p><b>Answer: D.</b> A heading is visible content and belongs in the body.</p></div></details>
+  <details class="q"><summary>Which element is the container for a document's metadata?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;meta&gt;</li><li>B. &lt;body&gt;</li><li>C. &lt;header&gt;</li><li>D. &lt;head&gt;</li></ul>
+    <p><b>Answer: D.</b> <code>&lt;meta&gt;</code> is one item of metadata; <code>&lt;head&gt;</code> is the container for all of it. <code>&lt;header&gt;</code> is visible content.</p></div></details>
+  <details class="q"><summary>What is the difference between &lt;head&gt; and &lt;header&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>head</code> holds invisible metadata; <code>header</code> is a visible landmark inside the body with the page's banner content. They are not the same and header is not deprecated.</p></div></details>
+  <details class="q"><summary>Which element supplies the text shown on the browser tab?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;h1&gt;</li><li>B. &lt;header&gt;</li><li>C. &lt;title&gt;</li><li>D. &lt;caption&gt;</li></ul>
+    <p><b>Answer: C.</b> The title also becomes the clickable headline in search results and the bookmark name.</p></div></details>
+  <details class="q"><summary>Which statement correctly contrasts &lt;title&gt; with &lt;h1&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;h1&gt; is metadata; &lt;title&gt; is the visible page content</li><li>B. &lt;title&gt; is metadata shown in the tab and search results; &lt;h1&gt; is visible page content</li><li>C. Both render identically inside &lt;body&gt;</li><li>D. A page may have many &lt;title&gt; elements but only one &lt;h1&gt;</li></ul>
+    <p><b>Answer: B.</b> One title in the head, one h1 in the body.</p></div></details>
+  <details class="q"><summary>What is the purpose of &lt;meta charset="UTF-8"&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It provides the summary shown in search results</li><li>B. It sets the page's default font family</li><li>C. It enables responsive layout on mobile devices</li><li>D. It declares the character encoding of the document</li></ul>
+    <p><b>Answer: D.</b> UTF-8 covers every language and symbol; without the declaration, characters such as the rupee sign can render as junk.</p></div></details>
+  <details class="q"><summary>Which meta tag is essential for a mobile-responsive page?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;meta charset="UTF-8"&gt;</li><li>B. &lt;meta name="author" content="..."&gt;</li><li>C. &lt;meta name="description" content="..."&gt;</li><li>D. &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</li></ul>
+    <p><b>Answer: D.</b> The viewport tag makes the mobile browser use the real screen width.</p></div></details>
+  <details class="q"><summary>A page has no viewport meta tag. What happens on a mobile browser?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It renders a shrunk-down desktop layout with tiny, unreadable text</li><li>B. The page refuses to load</li><li>C. The browser applies a default mobile stylesheet</li><li>D. All images on the page are hidden</li></ul>
+    <p><b>Answer: A.</b> The phone assumes a 980px-wide page and scales it down to fit.</p></div></details>
+  <details class="q"><summary>What does &lt;html lang="en"&gt; tell the browser and assistive technology?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The page must be translated into English</li><li>B. The page may use English fonts only</li><li>C. The document's language is English</li><li>D. Only English characters may be typed</li></ul>
+    <p><b>Answer: C.</b> It declares the content language so screen readers pronounce it correctly and search engines classify it.</p></div></details>
+  <details class="q"><summary>Which element attaches an external CSS stylesheet to a page?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;meta&gt;</li><li>B. &lt;style&gt;</li><li>C. &lt;script&gt;</li><li>D. &lt;link&gt;</li></ul>
+    <p><b>Answer: D.</b> <code>&lt;link rel="stylesheet" href="style.css"&gt;</code> in the head. <code>&lt;style&gt;</code> holds CSS written inline in the page, not an external file.</p></div></details>
+  <details class="q"><summary>A developer places &lt;script&gt; just before &lt;/body&gt; rather than in &lt;head&gt;. What is the main benefit?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The script is automatically cached by the browser</li><li>B. The script file becomes smaller</li><li>C. The page content is parsed and displayed before the script runs</li><li>D. The script gains access to the &lt;head&gt; element</li></ul>
+    <p><b>Answer: C.</b> The user sees the content sooner and the script can find every element because they already exist.</p></div></details>
+  <details class="q"><summary>What is the correct order of the main structural elements?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. html &gt; body &gt; head</li><li>B. html &gt; head, then html &gt; body</li><li>C. head &gt; html &gt; body</li><li>D. body &gt; head &gt; html</li></ul>
+    <p><b>Answer: B.</b> head and body are siblings inside html, head first.</p></div></details>
+  <details class="q"><summary>Which of these is a valid, complete minimal HTML5 document?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;!DOCTYPE html&gt;&lt;html lang="en"&gt;&lt;head&gt;&lt;meta charset="UTF-8"&gt;&lt;title&gt;T&lt;/title&gt;&lt;/head&gt;&lt;body&gt;Hi&lt;/body&gt;&lt;/html&gt;</code>. A complete document needs the doctype, html with lang, a head with charset and title, and a body. Versions missing the doctype, the head or the body are incomplete.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Line one is <code>&lt;!DOCTYPE html&gt;</code>: HTML5 standards mode. Without it: quirks mode.</li>
+    <li><code>&lt;html lang="en"&gt;</code> is the root; lang declares the content language for screen readers and search engines.</li>
+    <li><code>&lt;head&gt;</code> = invisible metadata: charset, viewport, title, description, link (stylesheet, icon), style. <code>&lt;body&gt;</code> = everything visible.</li>
+    <li><code>&lt;meta charset="UTF-8"&gt;</code> prevents garbled characters; the viewport meta tag prevents the shrunken-desktop layout on phones.</li>
+    <li><code>&lt;title&gt;</code> is the tab text and search headline; <code>&lt;h1&gt;</code> is the visible main heading. <code>&lt;head&gt;</code> is not <code>&lt;header&gt;</code>.</li>
+    <li>Scripts go just before <code>&lt;/body&gt;</code> so content is parsed and displayed first.</li>
+    <li>Order: html, then head, then body. The browser turns it all into a tree (the DOM).</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Line</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;!DOCTYPE html&gt;</code></td><td>Use HTML5 rules (standards mode)</td></tr>
+      <tr><td><code>&lt;html lang="en"&gt;</code></td><td>Root element; document language</td></tr>
+      <tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td>Character encoding</td></tr>
+      <tr><td><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code></td><td>Real width and 100% zoom on phones</td></tr>
+      <tr><td><code>&lt;title&gt;</code></td><td>Tab text, bookmark name, search headline</td></tr>
+      <tr><td><code>&lt;meta name="description"&gt;</code></td><td>Summary under the search headline</td></tr>
+      <tr><td><code>&lt;link rel="stylesheet" href&gt;</code></td><td>Attach external CSS</td></tr>
+      <tr><td><code>&lt;link rel="icon" href&gt;</code></td><td>Favicon</td></tr>
+      <tr><td><code>&lt;script&gt;</code> before <code>&lt;/body&gt;</code></td><td>Content displays first; elements exist when the script runs</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

@@ -1,0 +1,272 @@
+<article class="chapter" data-ch="2">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 2 &middot; Client-Server Architecture</p>
+  <h1>Client-Server Architecture</h1>
+  <p class="lead">Every web page you have ever seen arrived through the same four-step conversation. This chapter slows that conversation down so you can see each part: the client that asks, the server that answers, the URL that names what is wanted, the HTTP request and response that carry it, and the status codes that report how it went.</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Describe the roles of client and server and the request&ndash;response cycle in order.</li>
+      <li>Split any URL into protocol, domain, path and query string.</li>
+      <li>Read an HTTP request and response and name their parts.</li>
+      <li>Interpret status codes by their first digit (2xx, 3xx, 4xx, 5xx).</li>
+      <li>Explain ports 80 and 443, DNS, HTTPS/TLS, and what "HTTP is stateless" means.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>2.1 Two roles: client and server</h2>
+  <p>The Web is built on a pattern called the <b>client&ndash;server model</b>. A <b>client</b> is a program that asks for something; a <b>server</b> is a program that waits for requests and answers them. On the Web the client is almost always a <b>browser</b> (or a mobile app doing the same job), and the server is a program running in a data centre that stores the site's files and data, runs its logic and sends back responses.</p>
+  <p>The food-delivery app on your phone is the cleanest everyday example. Your phone is the client: it shows menus and takes your taps. The company's server holds the restaurant list, prices and your order history, works out delivery times, and replies to whatever the app asks. The app never has the whole database; it asks for one restaurant's menu at a time, and the server answers each request.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 230" role="img" aria-label="Three tiers: client, server and database">
+      <rect x="20" y="60" width="170" height="110" rx="14" class="box saf"/>
+      <text x="105" y="90" class="t c b">CLIENT</text>
+      <text x="105" y="112" class="t c s">browser / mobile app</text>
+      <text x="105" y="130" class="t c s">shows pages, takes input,</text>
+      <text x="105" y="146" class="t c s">sends requests</text>
+      <rect x="235" y="60" width="170" height="110" rx="14" class="box grn"/>
+      <text x="320" y="90" class="t c b">SERVER</text>
+      <text x="320" y="112" class="t c s">web server + application</text>
+      <text x="320" y="130" class="t c s">runs logic, builds the</text>
+      <text x="320" y="146" class="t c s">response</text>
+      <rect x="450" y="60" width="170" height="110" rx="14" class="box blu"/>
+      <text x="535" y="90" class="t c b">DATABASE</text>
+      <text x="535" y="112" class="t c s">stores records:</text>
+      <text x="535" y="130" class="t c s">students, marks, orders</text>
+      <text x="535" y="146" class="t c s">(never sent to the client)</text>
+      <path d="M195 95 L230 95" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M230 135 L195 135" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M410 95 L445 95" class="edge" marker-end="url(#arr)"/>
+      <path d="M445 135 L410 135" class="edge" marker-end="url(#arr)"/>
+      <text x="212" y="86" class="t c s">request</text>
+      <text x="212" y="152" class="t c s">response</text>
+      <text x="427" y="86" class="t c s">query</text>
+      <text x="427" y="152" class="t c s">rows</text>
+      <text x="320" y="205" class="t c s">The browser only ever talks to the server. The server talks to the database on its behalf.</text>
+    </svg>
+    <figcaption><b>Figure 2.1</b> The classic three tiers. The client asks; the server stores data, runs logic and responds; a database behind the server keeps the records. The client never touches the database directly.</figcaption>
+  </figure>
+  <p>Keep the two jobs distinct, because exam questions probe exactly that boundary:</p>
+  <ul>
+    <li>The <b>client</b> (the browser) renders HTML into pixels for the user and <b>sends the HTTP request</b>. It never stores the site's database.</li>
+    <li>The <b>server</b> <b>stores data, runs logic and responds to requests</b>. It does not type the URL, does not render pixels for the user, and does not encrypt your keyboard.</li>
+  </ul>
+</section>
+
+<section id="s2">
+  <h2>2.2 The request&ndash;response cycle</h2>
+  <p>Picture yourself clicking "View Result" on the university portal. Here is everything that happens, in order. The order is the whole point: the browser cannot receive a response before it has sent a request, and the server cannot process a request before it arrives.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 300" role="img" aria-label="Sequence diagram of a page load: browser, DNS, server">
+      <rect x="40" y="20" width="120" height="36" rx="8" class="box saf"/><text x="100" y="43" class="t c b">Browser</text>
+      <rect x="300" y="20" width="120" height="36" rx="8" class="box gry"/><text x="360" y="43" class="t c b">DNS</text>
+      <rect x="560" y="20" width="120" height="36" rx="8" class="box grn"/><text x="620" y="43" class="t c b">Web server</text>
+      <path d="M100 56 L100 290" class="edge dash"/><path d="M360 56 L360 290" class="edge dash"/><path d="M620 56 L620 290" class="edge dash"/>
+      <path d="M100 85 L355 85" class="edge" marker-end="url(#arr)"/><text x="228" y="78" class="t c s">1 "What is the IP address of portal.lpu.in?"</text>
+      <path d="M355 110 L105 110" class="edge" marker-end="url(#arr)"/><text x="228" y="126" class="t c s">2 "It is 203.0.113.7"</text>
+      <path d="M100 155 L615 155" class="edge saf" marker-end="url(#arr-saf)"/><text x="360" y="148" class="t c s">3 HTTP request: GET /results HTTP/1.1 (to port 443 over TLS)</text>
+      <rect x="600" y="170" width="40" height="40" rx="6" class="box grn"/><text x="620" y="195" class="t c s">4</text>
+      <text x="620" y="228" class="t c s">server processes: checks login,</text><text x="620" y="242" class="t c s">queries database, builds HTML</text>
+      <path d="M615 265 L105 265" class="edge grn" marker-end="url(#arr-grn)"/><text x="360" y="258" class="t c s">5 HTTP response: 200 OK + the HTML text</text>
+      <text x="100" y="287" class="t c s b">6 render</text>
+    </svg>
+    <figcaption><b>Figure 2.2</b> A page load as a sequence. DNS turns the name into an address; then the request goes out, the server processes it, and the response comes back to be rendered.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Click.</b> You type a URL or click a link. The browser reads the domain name from it.</li>
+    <li><b>DNS lookup.</b> Computers find each other by IP address, not by name, so the browser asks the <b>Domain Name System</b> to translate <code>portal.lpu.in</code> into an address such as <code>203.0.113.7</code>. Think of DNS as the phone book of the Internet.</li>
+    <li><b>Request.</b> The browser opens a connection to that address (on port 443 for HTTPS, port 80 for plain HTTP) and sends an <b>HTTP request</b> for the path it wants.</li>
+    <li><b>Processing.</b> The server receives the request. For a plain file it just reads it from disk; for a dynamic page it runs code, checks who you are, queries the database and builds the HTML.</li>
+    <li><b>Response.</b> The server sends back an <b>HTTP response</b>: a status code and the content, typically <b>HTML</b> for a page or <b>JSON</b> for data.</li>
+    <li><b>Render.</b> The browser parses the HTML, requests the CSS, images and scripts it refers to (each one its own request&ndash;response), and draws the page.</li>
+  </ol>
+  <div class="callout why"><b>Why one page means many requests.</b> The HTML arrives first. Every <code>&lt;link&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;script&gt;</code> and <code>&lt;video&gt;</code> in it triggers a further request. A typical page today makes 50&ndash;100 requests. Open DevTools (<kbd>F12</kbd>) and the <b>Network</b> tab on any site and watch them.</div>
+</section>
+
+<section id="s3">
+  <h2>2.3 Anatomy of a URL</h2>
+  <p>A URL (Uniform Resource Locator) is the address the browser sends its request to. Learn to split one into parts on sight, because questions ask "which part is the path?" or "what is <code>?id=257</code> called?".</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 190" role="img" aria-label="The parts of a URL: protocol, domain, path, query string">
+      <g class="mono" style="font-size:22px;font-weight:700">
+        <text x="30" y="70" fill="#E07B1E">https://</text>
+        <text x="128" y="70" fill="#0B2545">portal.lpu.in</text>
+        <text x="296" y="70" fill="#138808">/courses/web.html</text>
+        <text x="512" y="70" fill="#4F46E5">?id=257</text>
+      </g>
+      <path d="M30 82 L120 82" class="edge saf"/><path d="M130 82 L288 82" class="edge"/><path d="M298 82 L505 82" class="edge grn"/><path d="M515 82 L600 82" class="edge" style="stroke:#4F46E5"/>
+      <text x="75" y="108" class="t c b" fill="#E07B1E">protocol</text><text x="75" y="126" class="t c s">how to fetch it</text><text x="75" y="142" class="t c s">(scheme)</text>
+      <text x="209" y="108" class="t c b">domain</text><text x="209" y="126" class="t c s">which server to ask</text><text x="209" y="142" class="t c s">(host name)</text>
+      <text x="401" y="108" class="t c b" fill="#138808">path</text><text x="401" y="126" class="t c s">which resource on</text><text x="401" y="142" class="t c s">that server</text>
+      <text x="557" y="108" class="t c b" fill="#4F46E5">query string</text><text x="557" y="126" class="t c s">extra parameters,</text><text x="557" y="142" class="t c s">name=value pairs</text>
+      <text x="360" y="178" class="t c s">Optional extras: a port (:8080 after the domain) and a fragment (#section at the very end)</text>
+    </svg>
+    <figcaption><b>Figure 2.3</b> Four parts to memorise. The protocol is followed by <code>://</code>; the domain ends at the first <code>/</code>; the path runs to the <code>?</code>; the query string is everything after it.</figcaption>
+  </figure>
+  <dl>
+    <dt>Protocol (scheme): <code>https</code></dt>
+    <dd>How the browser should fetch the resource. <code>http</code> and <code>https</code> are the ones you will use; <code>mailto</code> and <code>tel</code> (Chapter 8) are others. In <code>https://www.example.com/index.html</code> the part <code>https</code> is the protocol.</dd>
+    <dt>Domain (host): <code>portal.lpu.in</code></dt>
+    <dd>Which server to ask. DNS converts it to an IP address. In <code>https://portal.lpu.in/results</code> the domain is <code>portal.lpu.in</code>, not <code>in</code> (that is only the top-level domain) and not <code>/results</code>.</dd>
+    <dt>Path: <code>/courses/web.html</code></dt>
+    <dd>Which resource on that server, written like a folder path. In <code>https://portal.lpu.in/courses/web.html?id=257</code> the path is <code>/courses/web.html</code>.</dd>
+    <dt>Query string: <code>?id=257</code></dt>
+    <dd>Extra parameters sent to the server as <code>name=value</code> pairs, separated by <code>&amp;</code>: <code>?id=257&amp;year=2026</code>. In <code>https://shop.example.com/items?id=257</code> the part <code>?id=257</code> is the query string. Form submissions with <code>method="get"</code> put their fields here (Chapter 16).</dd>
+    <dt>Port (optional): <code>:8080</code></dt>
+    <dd>A number after the domain choosing which "door" on the server to knock on. It is usually omitted because every protocol has a default: <b>HTTP uses port 80</b> and <b>HTTPS uses port 443</b>. (Ports 21 and 25 belong to FTP and email, not the Web.)</dd>
+    <dt>Fragment (optional): <code>#contact</code></dt>
+    <dd>A position <i>inside</i> the page, matched to an element's <code>id</code>. It is handled by the browser and never sent to the server (Chapter 8).</dd>
+  </dl>
+  <h3>Absolute and relative URLs</h3>
+  <p>An <b>absolute URL</b> contains the protocol and the domain (<code>https://portal.lpu.in/courses/web.html</code>) and therefore means the same thing wherever it is written. A <b>relative URL</b> leaves those out (<code>web.html</code>, <code>../index.html</code>) and is <b>resolved against the current page's address</b>: the browser fills in the missing parts from the page you are on. Relative URLs are shorter and let a whole site be moved to another domain without editing every link; Chapter 8 shows the rules for <code>../</code> and <code>/</code>.</p>
+</section>
+
+<section id="s4">
+  <h2>2.4 Inside an HTTP request and response</h2>
+  <p>HTTP messages are plain text. That is worth seeing once, because it demystifies the whole thing. When the browser asks for the results page it sends something like this:</p>
+  <pre class="code">GET /results HTTP/1.1          &#8592; request line: method, path, version
+Host: portal.lpu.in            &#8592; headers: name: value, one per line
+Accept: text/html
+Cookie: session=8f3a9c
+                               &#8592; blank line ends the headers
+(no body for a GET request)</pre>
+  <p>And the server replies:</p>
+  <pre class="code">HTTP/1.1 200 OK                &#8592; status line: version, status code, reason
+Content-Type: text/html; charset=UTF-8
+Content-Length: 5120
+                               &#8592; blank line
+&lt;!DOCTYPE html&gt;                &#8592; body: the HTML text
+&lt;html lang="en"&gt; ...</pre>
+  <p>Three ideas to take from this:</p>
+  <ul>
+    <li>The <b>method</b> says what kind of request it is. <b>GET</b> asks for a resource and carries its parameters in the URL's query string. <b>POST</b> sends data (a form, an upload) in the request <b>body</b>. Chapter 16 explains when a form should use each.</li>
+    <li><b>Headers</b> carry information about the message: what type of content is inside, how long it is, which cookies the browser holds, what language the user prefers.</li>
+    <li>The <b>body</b> of a response is the content itself: HTML for a page, or JSON, an image, a PDF.</li>
+  </ul>
+  <h3>HTTP is stateless</h3>
+  <p>Each request is handled on its own; <b>the server does not remember you between requests</b>. That is what "HTTP is stateless" means. It does not mean pages cannot store data or that only one user can connect. Because real sites need to remember that you logged in, they work around statelessness with <b>cookies</b> (small labels the browser sends back with every request, like the <code>Cookie: session=8f3a9c</code> line above) and tokens.</p>
+</section>
+
+<section id="s5">
+  <h2>2.5 Status codes: how the server says how it went</h2>
+  <p>Every response starts with a three-digit <b>status code</b>. You only need the meaning of the first digit, plus a few famous individuals.</p>
+  <table class="tbl">
+    <thead><tr><th>Range</th><th>Meaning</th><th>Famous examples</th></tr></thead>
+    <tbody>
+      <tr><td><b>1xx</b></td><td>Informational: still working on it</td><td>100 Continue</td></tr>
+      <tr><td><b>2xx</b></td><td><b>Success</b>: here is what you asked for</td><td>200 OK, 201 Created</td></tr>
+      <tr><td><b>3xx</b></td><td><b>Redirection</b>: it is somewhere else, go there</td><td>301 Moved Permanently, 302 Found, 304 Not Modified (use your cached copy)</td></tr>
+      <tr><td><b>4xx</b></td><td><b>Client error</b>: your request was bad or not allowed</td><td>400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found</td></tr>
+      <tr><td><b>5xx</b></td><td><b>Server error</b>: your request was fine, the server failed</td><td>500 Internal Server Error, 503 Service Unavailable</td></tr>
+    </tbody>
+  </table>
+  <p>So a status in the <b>400&ndash;499 range indicates a client error</b>, such as a mistyped address (404) or a request without permission (401, 403); it is not a success, not a redirection and not a failure inside the server. The 500s are the server's fault.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 300" role="img" aria-label="Flowchart: what the browser does with a status code">
+      <rect x="230" y="14" width="180" height="40" rx="20" class="box saf"/><text x="320" y="39" class="t c b">response arrives</text>
+      <path d="M320 54 L320 76" class="edge" marker-end="url(#arr)"/>
+      <path d="M320 80 L400 118 L320 156 L240 118 Z" class="dec"/><text x="320" y="114" class="t c b">first digit?</text><text x="320" y="130" class="t c s">2, 3, 4 or 5</text>
+      <path d="M240 118 L90 118 L90 176" class="edge" marker-end="url(#arr)"/><text x="150" y="110" class="t c s">2xx</text>
+      <path d="M320 156 L320 176" class="edge" marker-end="url(#arr)"/><text x="345" y="170" class="t s">3xx</text>
+      <path d="M400 118 L550 118 L550 176" class="edge" marker-end="url(#arr)"/><text x="490" y="110" class="t c s">4xx / 5xx</text>
+      <rect x="20" y="180" width="140" height="56" rx="10" class="box grn"/><text x="90" y="204" class="t c b">render the body</text><text x="90" y="222" class="t c s">200 OK</text>
+      <rect x="250" y="180" width="140" height="56" rx="10" class="box blu"/><text x="320" y="204" class="t c b">follow Location</text><text x="320" y="222" class="t c s">new request to the new URL</text>
+      <rect x="480" y="180" width="140" height="56" rx="10" class="box red"/><text x="550" y="204" class="t c b">show the error page</text><text x="550" y="222" class="t c s">404 Not Found, 500 error</text>
+      <path d="M320 236 L320 262 L90 262 L90 240" class="edge dash"/>
+      <text x="205" y="280" class="t c s">a redirect ends in another response, which is judged the same way</text>
+    </svg>
+    <figcaption><b>Figure 2.4</b> What the browser does with each class of status code.</figcaption>
+  </figure>
+</section>
+
+<section id="s6">
+  <h2>2.6 HTTPS: the same conversation, in a sealed envelope</h2>
+  <p>Plain HTTP travels as readable text, so anyone operating a router on the path (a café Wi-Fi, an ISP) could read your password or change the page on its way to you. <b>HTTPS</b> wraps the identical HTTP messages in <b>TLS (Transport Layer Security)</b>, which encrypts them and also proves, through a certificate, that the server really is <code>portal.lpu.in</code> and not an impostor. The padlock in the address bar means TLS is in use. HTTPS does not make files smaller, does not adjust layouts for mobiles and has nothing to do with server-side scripting; its one job is <b>encryption and authentication of the data in transit</b>. It uses port 443 by default instead of HTTP's port 80.</p>
+  <div class="callout exam"><b>Exam tip.</b> Memorise the pairs: HTTP = port 80, HTTPS = port 443, HTTPS = HTTP + TLS encryption. Distractors like port 21 (FTP) and port 25 (SMTP email) are real ports for other services.</div>
+</section>
+
+<section id="s7">
+  <h2>2.7 Worked example: reading a portal URL</h2>
+  <p>Take <code>https://portal.lpu.in/results/view.html?reg=12345&amp;sem=3#marks</code> and label it:</p>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>Value</th><th>Job</th></tr></thead>
+    <tbody>
+      <tr><td>Protocol</td><td><code>https</code></td><td>Fetch over HTTP with TLS encryption, port 443</td></tr>
+      <tr><td>Domain</td><td><code>portal.lpu.in</code></td><td>Which server; DNS resolves it to an IP address</td></tr>
+      <tr><td>Path</td><td><code>/results/view.html</code></td><td>Which resource on the server</td></tr>
+      <tr><td>Query string</td><td><code>?reg=12345&amp;sem=3</code></td><td>Two parameters for the server: reg and sem</td></tr>
+      <tr><td>Fragment</td><td><code>#marks</code></td><td>Scroll to the element with <code>id="marks"</code>; not sent to the server</td></tr>
+    </tbody>
+  </table>
+  <p>Now the round trip in one sentence: <i>the browser (client) resolves the domain, sends a GET request for the path with the query string to port 443 over TLS, the server checks the registration number, reads the marks from its database, and responds with 200 OK and an HTML page, which the browser renders and scrolls to the marks section.</i> If you can say that, you understand client&ndash;server architecture.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>In a client&ndash;server exchange, which component sends the HTTP request?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The web server</li><li>B. The browser acting as the client</li><li>C. The DNS root server</li><li>D. The database engine</li></ul>
+    <p><b>Answer: B.</b> The client asks; the server answers. DNS only translates names and the database only answers the server.</p></div></details>
+  <details class="q"><summary>In the client&ndash;server model, the server's role is to:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Render HTML into pixels for the user</li><li>B. Type the URL into the address bar</li><li>C. Store data, run logic and respond to requests</li><li>D. Encrypt the user's keyboard input</li></ul>
+    <p><b>Answer: C.</b> Rendering (A) is the browser's job; B is the user's; D is nonsense.</p></div></details>
+  <details class="q"><summary>After a server processes a request, what does it typically send back?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The user's keystrokes</li><li>B. A copy of the browser's cache</li><li>C. A newly registered domain name</li><li>D. A response containing HTML or JSON</li></ul>
+    <p><b>Answer: D.</b> The response body is the content: HTML for a page, JSON for data.</p></div></details>
+  <details class="q"><summary>In the URL https://portal.lpu.in/courses/web.html?id=257, which part is the path?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. https://</li><li>B. portal.lpu.in</li><li>C. ?id=257</li><li>D. /courses/web.html</li></ul>
+    <p><b>Answer: D.</b> Protocol, then domain, then path, then query string.</p></div></details>
+  <details class="q"><summary>In https://shop.example.com/items?id=257, the part ?id=257 is called the:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Protocol</li><li>B. Query string</li><li>C. Path</li><li>D. Domain</li></ul>
+    <p><b>Answer: B.</b> Everything from the <code>?</code> onward is the query string: name=value parameters for the server.</p></div></details>
+  <details class="q"><summary>In https://www.example.com/index.html, the part https is the:<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: the protocol</b> (scheme). It tells the browser how to fetch the resource.</p></div></details>
+  <details class="q"><summary>In https://portal.lpu.in/results, which part is the domain?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. portal.lpu.in</li><li>B. https</li><li>C. /results</li><li>D. in</li></ul>
+    <p><b>Answer: A.</b> The full host name is the domain. <code>in</code> alone is only the top-level domain; <code>/results</code> is the path.</p></div></details>
+  <details class="q"><summary>What distinguishes an absolute URL from a relative URL?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. An absolute URL is always shorter</li><li>B. An absolute URL includes the protocol and domain; a relative URL is resolved against the current page</li><li>C. A relative URL can only point to images</li><li>D. An absolute URL may not contain a query string</li></ul>
+    <p><b>Answer: B.</b> Absolute URLs are self-contained; relative ones borrow the missing parts from the page they appear on.</p></div></details>
+  <details class="q"><summary>HTTP is best described as:<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The physical cabling that carries Internet traffic</li><li>B. A language for querying databases</li><li>C. A markup language for structuring web pages</li><li>D. The protocol used to exchange web requests and responses</li></ul>
+    <p><b>Answer: D.</b> HTTP is the set of rules for requests and responses. Cabling is infrastructure, SQL queries databases, HTML is the markup language.</p></div></details>
+  <details class="q"><summary>The statement "HTTP is stateless" means:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Pages cannot store data</li><li>B. The server does not remember you between requests</li><li>C. HTTP cannot send images</li><li>D. Only one user can connect at a time</li></ul>
+    <p><b>Answer: B.</b> Each request stands alone; cookies and tokens exist to work around this.</p></div></details>
+  <details class="q"><summary>An HTTP status code in the 400&ndash;499 range indicates:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A client error, such as a bad or unauthorised request</li><li>B. A successful response</li><li>C. A redirection to another resource</li><li>D. A failure inside the server</li></ul>
+    <p><b>Answer: A.</b> 2xx is success, 3xx redirection, 4xx client error, 5xx server error.</p></div></details>
+  <details class="q"><summary>Which port number does unencrypted HTTP use by default?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 25</li><li>B. 443</li><li>C. 21</li><li>D. 80</li></ul>
+    <p><b>Answer: D.</b> HTTP is port 80; HTTPS is 443; 21 is FTP; 25 is SMTP email.</p></div></details>
+  <details class="q"><summary>A student says the browser is the server because it "serves the page to my eyes". What is wrong?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> The roles are defined by who asks and who answers on the network, not by who shows pixels. The browser <i>requests</i> the page, so it is the <b>client</b>; the program that stores the page and responds is the <b>server</b>. Rendering to the screen is part of the client's job.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Client asks, server answers. The browser is the client; the server stores data, runs logic and responds; the database sits behind the server.</li>
+    <li>Cycle: click, DNS lookup, request, server processes, response, render. Every image, stylesheet and script is a further request.</li>
+    <li>URL = protocol :// domain / path ? query string, plus optional port and #fragment.</li>
+    <li>HTTP messages are text: a request line or status line, headers, a blank line, then the body. GET carries parameters in the URL; POST carries them in the body.</li>
+    <li>HTTP is stateless: the server does not remember you between requests, so cookies do the remembering.</li>
+    <li>Status codes by first digit: 2 success, 3 redirect, 4 client error (404 Not Found), 5 server error.</li>
+    <li>HTTPS = HTTP + TLS encryption and authentication; port 443. Plain HTTP is port 80.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Item</th><th>Remember</th></tr></thead>
+    <tbody>
+      <tr><td>DNS</td><td>Translates a domain name into an IP address</td></tr>
+      <tr><td>Port 80 / 443</td><td>HTTP / HTTPS defaults</td></tr>
+      <tr><td>GET / POST</td><td>Fetch (parameters in URL) / send data (in body)</td></tr>
+      <tr><td>200, 301, 404, 500</td><td>OK, moved permanently, not found (client error), server error</td></tr>
+      <tr><td>Stateless</td><td>No memory between requests; cookies carry identity</td></tr>
+      <tr><td>Absolute URL</td><td>Has protocol and domain; means the same anywhere</td></tr>
+      <tr><td>Relative URL</td><td>Resolved against the current page's URL</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

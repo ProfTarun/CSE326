@@ -1,0 +1,197 @@
+<article class="chapter" data-ch="11">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 11 &middot; SEO Fundamentals</p>
+  <h1>SEO Fundamentals</h1>
+  <p class="lead">A page nobody can find might as well not exist. Search engine optimisation (SEO) is the craft of making a page easy for search engines to discover, understand and rank, and almost all of it is simply <i>good HTML</i>. This chapter explains how search engines work, which parts of your markup they read, the two small files that guide crawlers, and the tricks that no longer work (and now hurt).</p>
+  <p class="meta">About 15 minutes &middot; Course outcome CO1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Describe the crawl, index, rank pipeline.</li>
+      <li>Write a title, meta description, heading structure, alt text, link text and URL that help a page rank.</li>
+      <li>Explain <code>robots.txt</code>, <code>sitemap.xml</code> and <code>&lt;meta name="robots"&gt;</code>.</li>
+      <li>Say why meta keywords, keyword stuffing and hidden text do not work.</li>
+      <li>List the performance and mobile factors that affect ranking.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>11.1 How a search engine works</h2>
+  <p>Google, Bing and the others run the same three-stage pipeline.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 150" role="img" aria-label="Crawl, index, rank, click pipeline">
+      <rect x="10" y="30" width="150" height="70" rx="12" class="box saf"/><text x="85" y="58" class="t c b">1 CRAWL</text><text x="85" y="78" class="t c s">a bot follows links and</text><text x="85" y="92" class="t c s">fetches your pages</text>
+      <path d="M165 65 L200 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="205" y="30" width="150" height="70" rx="12" class="box"/><text x="280" y="58" class="t c b">2 INDEX</text><text x="280" y="78" class="t c s">it reads the HTML to</text><text x="280" y="92" class="t c s">understand the topic</text>
+      <path d="M360 65 L395 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="400" y="30" width="150" height="70" rx="12" class="box grn"/><text x="475" y="58" class="t c b">3 RANK</text><text x="475" y="78" class="t c s">for a query, it orders</text><text x="475" y="92" class="t c s">the best matches</text>
+      <path d="M555 65 L590 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="595" y="30" width="115" height="70" rx="12" class="box blu"/><text x="652" y="58" class="t c b">4 CLICK</text><text x="652" y="78" class="t c s">a user reads the</text><text x="652" y="92" class="t c s">result and chooses</text>
+      <text x="360" y="135" class="t c s">your HTML feeds every stage: links let it crawl, structure lets it understand, the title and description win the click</text>
+    </svg>
+    <figcaption><b>Figure 11.1</b> Crawl, understand, rank, click. SEO is making each stage easy.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Crawl.</b> A program (a crawler or bot) starts from pages it already knows and follows every link it finds, fetching the pages. If nothing links to your page and it is not in a sitemap, it may never be found.</li>
+    <li><b>Index.</b> The engine reads each page's HTML to work out what it is about. It cannot see your page the way you do; it reads the <b>title</b>, the <b>headings</b>, the <b>text</b>, the <b>alt text</b> of images, the <b>link text</b> pointing in and out, and the semantic structure. This is why SEO and good HTML are nearly the same thing.</li>
+    <li><b>Rank.</b> When someone searches, the engine orders the matching pages by relevance and quality: how well the content answers the query, how trustworthy the site is (measured largely by who links to it), how fast the page loads and how well it works on a phone.</li>
+  </ol>
+  <div class="callout why"><b>SEO is communication, not tricks.</b> Search engines want the same thing users want: a page that clearly says what it is about and delivers it. Every legitimate technique below makes the page clearer to humans as well as machines. Every discredited trick tries to fool the machine at the human's expense, and engines now punish exactly that.</div>
+</section>
+
+<section id="s2">
+  <h2>11.2 The on-page signals in your HTML</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 150" role="img" aria-label="Anatomy of a search result: the title, the URL and the description">
+      <rect x="20" y="16" width="580" height="118" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="40" y="46" class="t s">portal.lpu.in &rsaquo; courses &rsaquo; web-development</text>
+      <text x="40" y="76" fill="#1a0dab" style="font-size:19px;font-weight:600">CSE326 Internet Programming | LPU</text>
+      <text x="40" y="100" class="t" style="font-size:13px">Learn HTML5, CSS and JavaScript with practical coding examples, lab</text>
+      <text x="40" y="118" class="t" style="font-size:13px">practicals and mock tests for LPU students ...</text>
+      <text x="560" y="46" class="t s b" style="text-anchor:end">from the URL</text>
+      <text x="560" y="76" class="t s b" style="text-anchor:end" fill="#E07B1E">from &lt;title&gt;</text>
+      <text x="560" y="110" class="t s b" style="text-anchor:end" fill="#138808">from meta description</text>
+    </svg>
+    <figcaption><b>Figure 11.2</b> A search result is built from three pieces of your HTML: the URL, the <code>&lt;title&gt;</code> (the clickable blue headline) and the <code>&lt;meta name="description"&gt;</code> (the grey summary).</figcaption>
+  </figure>
+  <dl>
+    <dt>A unique, descriptive <code>&lt;title&gt;</code></dt>
+    <dd>The title becomes the <b>clickable headline in search results</b> and the tab text. Make it specific to the page: <code>&lt;title&gt;HTML5 Tutorial for CSE326 Students | LPU&lt;/title&gt;</code>, not "Home" or "Page". Every page on the site should have a different title.</dd>
+    <dt>A meta description</dt>
+    <dd><code>&lt;meta name="description" content="Learn HTML5 with practical coding examples."&gt;</code> supplies the <b>summary text shown under the title in search results</b>. It does not directly raise ranking, but a good one wins the click. It is never shown in the tab or as a heading.</dd>
+    <dt>A logical heading hierarchy</dt>
+    <dd>Crawlers read <code>h1</code> to <code>h6</code> as the page's outline: main subject, chapters, topics. <b>Exactly one <code>h1</code></b> stating the page's topic, then <code>h2</code> sections and <code>h3</code> sub-topics (Chapter 6). Repeated or stuffed headings do not help.</dd>
+    <dt>Semantic elements</dt>
+    <dd><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;article&gt;</code> and friends tell the engine which part of the page is the content and which is navigation or boilerplate. A page built only from divs gives it no such map (Chapter 13).</dd>
+    <dt>Descriptive alt text</dt>
+    <dd>Engines cannot see images. <code>alt="LPU University Campus Aerial View"</code> lets Google Image search index the photo and tells the engine what the page shows (Chapter 8).</dd>
+    <dt>Meaningful link text</dt>
+    <dd>The words inside <code>&lt;a&gt;</code> describe the destination to the engine as well as to screen readers. "View our pricing plans" tells it what the linked page is about; "click here" tells it nothing.</dd>
+    <dt>Descriptive URLs</dt>
+    <dd>A URL such as <code>/courses/web-development</code> <b>signals the page's topic to both users and search engines</b>; <code>/page?id=257</code> signals nothing. A good URL does not guarantee a first-page ranking, does not speed up loading and does not replace the description; it is one more clear signal.</dd>
+    <dt>Real, useful content</dt>
+    <dd>Above everything else: text that genuinely answers what people search for. No markup rescues a page with nothing to say.</dd>
+  </dl>
+  <pre class="code">&lt;head&gt;
+  &lt;title&gt;Campus Placement Drive 2026 | School of Computing, LPU&lt;/title&gt;
+  &lt;meta name="description" content="Dates, eligible programmes and registration steps for the 2026 placement drive at the School of Computing and AI."&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;main&gt;
+    &lt;h1&gt;Campus Placement Drive 2026&lt;/h1&gt;
+    &lt;img src="drive.jpg" alt="Students at the 2025 placement drive registration desk"&gt;
+    &lt;h2&gt;Who can register&lt;/h2&gt; ...
+    &lt;p&gt;See the &lt;a href="/placements/companies-2026"&gt;list of participating companies&lt;/a&gt;.&lt;/p&gt;
+  &lt;/main&gt;
+&lt;/body&gt;</pre>
+</section>
+
+<section id="s3">
+  <h2>11.3 Guiding the crawler: robots.txt, sitemap.xml and meta robots</h2>
+  <dl>
+    <dt><code>robots.txt</code></dt>
+    <dd>A plain text <b>file at the site root</b> (<code>https://example.com/robots.txt</code>) that <b>asks crawlers which paths to skip</b>: <code>Disallow: /drafts/</code>. Two things to understand: it is a <b>request, not security</b>: well-behaved crawlers obey it, malicious ones ignore it; and it is <b>publicly readable</b>, so listing your admin page in it <i>advertises</i> the path to anyone looking for interesting places. It is a file, not an HTML tag or attribute.</dd>
+    <dt><code>sitemap.xml</code></dt>
+    <dd>An XML file that <b>lists a website's important pages</b> (and when they changed) so search engines can <b>discover and index them</b> even if the internal linking is poor. Submit it through the engine's webmaster tools. It is not <code>index.html</code> (a page) and not <code>manifest.json</code> (an app description).</dd>
+    <dt><code>&lt;meta name="robots"&gt;</code></dt>
+    <dd>A per-page instruction in the head. <code>&lt;meta name="robots" content="noindex"&gt;</code> <b>asks search engines not to include the page in their index</b> (for a thank-you page, a search-results page, a duplicate). <code>nofollow</code> asks them not to follow the page's links. There is no <code>name="index"</code> or <code>name="crawl"</code> tag.</dd>
+  </dl>
+  <pre class="code"># robots.txt at the site root
+User-agent: *
+Disallow: /drafts/
+Sitemap: https://example.com/sitemap.xml</pre>
+</section>
+
+<section id="s4">
+  <h2>11.4 What no longer works, and now hurts</h2>
+  <table class="tbl">
+    <thead><tr><th>Discredited trick</th><th>Why it fails</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;meta name="keywords" content="html, css, best, free, ..."&gt;</code></td><td><b>Google has ignored the keywords meta tag since 2009</b>. It has no SEO value today; you should know it exists because it is on the syllabus, but stuffing it changes nothing.</td></tr>
+      <tr><td>Keyword stuffing and hidden text (repeating "web development" fifty times, white text on a white background)</td><td>It <b>degrades the reading experience and search engines treat it as manipulation</b>, lowering or removing the page. It does not disable the description, hit a file-size limit or break validation; it simply gets punished.</td></tr>
+      <tr><td>Repeated headings, many <code>h1</code>s, longer keyword lists</td><td>Structure that lies about the content is ignored or penalised.</td></tr>
+      <tr><td>Bought links, link farms</td><td>Engines detect unnatural link patterns and discount them.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s5">
+  <h2>11.5 Speed and mobile: the technical half</h2>
+  <p>Two ranking factors live outside your text. <b>Loading performance</b>: engines measure how fast the page becomes usable, so <b>compress images, use modern formats, set width and height, lazy-load off-screen images and defer non-critical scripts and styles</b> (Chapters 4, 8 and 12). Adding meta keywords, replacing semantic elements with divs or splitting CSS into many stylesheets does nothing for speed or ranking. <b>Mobile-friendliness</b>: engines index the mobile version of a page first, so the viewport meta tag and a layout that works on a phone (Chapter 21) are ranking factors. <b>HTTPS</b> is a small positive signal too.</p>
+  <h3>A checklist for every page you publish</h3>
+  <ul>
+    <li>Unique, descriptive <code>&lt;title&gt;</code></li>
+    <li><code>&lt;meta name="description"&gt;</code> written for humans</li>
+    <li>Exactly one <code>&lt;h1&gt;</code>; logical <code>h2</code>/<code>h3</code> outline</li>
+    <li>Semantic landmarks: header, nav, main, footer</li>
+    <li>Descriptive <code>alt</code> on every informative image</li>
+    <li>Link text that names the destination</li>
+    <li>Readable URLs</li>
+    <li>Viewport meta tag; layout works on a phone</li>
+    <li>Compressed images, lazy loading, scripts before <code>&lt;/body&gt;</code>, HTTPS</li>
+    <li><code>robots.txt</code> and <code>sitemap.xml</code> at the root; <code>noindex</code> on pages that should not appear</li>
+  </ul>
+  <p>Notice that the first seven items are the accessibility checklist from Unit 2 as well. <b>Good SEO and good accessibility are largely the same work</b>: descriptive alt text and link text, in particular, improve both at once.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which tag's content becomes the clickable blue headline in search results?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;h1&gt;</li><li>B. &lt;title&gt;</li><li>C. &lt;meta name="description"&gt;</li><li>D. &lt;header&gt;</li></ul>
+    <p><b>Answer: B.</b> The title is the headline; the description meta tag is the grey summary beneath it.</p></div></details>
+  <details class="q"><summary>Where does the meta description typically appear?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. As the summary text under the title in search results</li><li>B. In the browser tab</li><li>C. As the page's main visible heading</li><li>D. It is never shown to users</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Does stuffing keywords into &lt;meta name="keywords"&gt; improve Google ranking?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: No.</b> Google has ignored the keywords meta tag since 2009. Know that it exists; do not rely on it.</p></div></details>
+  <details class="q"><summary>Why is repeating a keyword many times in hidden text harmful to a site?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It disables the page's meta description</li><li>B. It increases the page's file size beyond the browser limit</li><li>C. It prevents the page from being validated as HTML5</li><li>D. It degrades the reading experience and search engines treat it as manipulation</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>Which file lists a website's important pages so search engines can discover and index them?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. robots.txt</li><li>B. sitemap.xml</li><li>C. index.html</li><li>D. manifest.json</li></ul>
+    <p><b>Answer: B.</b> robots.txt asks crawlers what to skip; the sitemap tells them what to visit.</p></div></details>
+  <details class="q"><summary>What is robots.txt, and why is listing an admin path in it a bad idea?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> a file at the site root asking crawlers which paths to skip. It is a request, not security, and it is publicly readable, so listing an admin path advertises it to anyone looking.</p></div></details>
+  <details class="q"><summary>Which meta tag asks search engines not to include the page in their index?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;meta name="robots" content="noindex"&gt;</li><li>B. &lt;meta name="robots" content="nofollow"&gt;</li><li>C. &lt;meta name="index" content="false"&gt;</li><li>D. &lt;meta name="crawl" content="deny"&gt;</li></ul>
+    <p><b>Answer: A.</b> nofollow only stops link following; C and D do not exist.</p></div></details>
+  <details class="q"><summary>What SEO benefit does a descriptive URL such as /courses/web-development provide?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It guarantees a first-page ranking</li><li>B. It makes the page load measurably faster</li><li>C. It signals the page's topic to both users and search engines</li><li>D. It removes the need for a meta description</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which link text is better for SEO and accessibility: "click here" or "Download the CSE326 syllabus (PDF)"?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the descriptive one. Link text should describe the destination; a screen-reader user listing links otherwise hears "here, here, here", and the engine learns nothing.</p></div></details>
+  <details class="q"><summary>Which change is most likely to improve a page's loading performance?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Adding more meta keywords to the head</li><li>B. Compressing images and deferring non-critical resources</li><li>C. Replacing semantic elements with &lt;div&gt; elements</li><li>D. Increasing the number of separate stylesheets</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which combination of HTML changes best improves a page's search visibility?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Larger fonts and additional decorative images</li><li>B. More &lt;div&gt; wrappers and inline styles on every element</li><li>C. A longer meta keywords list and repeated headings</li><li>D. A unique title, exactly one &lt;h1&gt;, descriptive alt text and meaningful link text</li></ul>
+    <p><b>Answer: D.</b> Every item in D is also an accessibility improvement.</p></div></details>
+  <details class="q"><summary>Which practice most improves BOTH SEO and accessibility?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> descriptive alt text and link text. Good SEO and good accessibility are largely the same work.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Crawl, index, rank, click. Links get you crawled; clear HTML gets you understood; quality, speed and mobile-friendliness get you ranked; title and description win the click.</li>
+    <li>title = clickable headline; meta description = grey summary; one h1 and a logical outline; semantic landmarks; alt text; link text that names the destination; readable URLs.</li>
+    <li>robots.txt (root file, a public request to skip paths); sitemap.xml (list of pages to index); meta robots noindex (keep this page out).</li>
+    <li>Meta keywords have been ignored by Google since 2009; keyword stuffing and hidden text are treated as manipulation.</li>
+    <li>Performance (compressed images, lazy loading, deferred scripts) and mobile-friendliness (viewport) are ranking factors. SEO and accessibility overlap almost completely.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Signal</th><th>Where</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td>&lt;title&gt;</td><td>head</td><td>Headline in results, tab text</td></tr>
+      <tr><td>&lt;meta name="description"&gt;</td><td>head</td><td>Summary under the headline</td></tr>
+      <tr><td>&lt;meta name="robots" content="noindex"&gt;</td><td>head</td><td>Keep the page out of the index</td></tr>
+      <tr><td>h1&ndash;h6</td><td>body</td><td>The page's outline</td></tr>
+      <tr><td>alt, link text</td><td>body</td><td>Describe images and destinations</td></tr>
+      <tr><td>robots.txt</td><td>site root</td><td>Paths crawlers should skip (public, advisory)</td></tr>
+      <tr><td>sitemap.xml</td><td>site root</td><td>Pages to discover and index</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

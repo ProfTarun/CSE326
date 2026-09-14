@@ -1,0 +1,230 @@
+<article class="chapter" data-ch="5">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 5 &middot; HTML Elements and Attributes</p>
+  <h1>HTML Elements and Attributes</h1>
+  <p class="lead">Elements say what something <i>is</i>; attributes say the details. This chapter catalogues the attributes every element accepts, the ones that belong to particular elements, the special rules for boolean attributes and unique ids, and the block-versus-inline distinction that decides what may be nested inside what.</p>
+  <p class="meta">About 15 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>State the difference between an element and an attribute in one sentence.</li>
+      <li>Use the global attributes <code>id</code>, <code>class</code>, <code>style</code>, <code>title</code>, <code>lang</code>, <code>hidden</code> and <code>data-*</code> correctly.</li>
+      <li>Explain why <code>id</code> must be unique and what breaks when it is not.</li>
+      <li>Recognise boolean attributes and why <code>controls="false"</code> still shows controls.</li>
+      <li>Classify elements as block-level or inline and apply the nesting rules.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>5.1 Elements express meaning; attributes configure them</h2>
+  <p>An element tells the browser what a piece of content is: a link, an image, a paragraph. An attribute tells it the specifics: <i>where</i> the link goes, <i>which</i> image file, <i>which</i> language. The summary you should be able to recite: <b>elements express meaning; attributes configure them</b>. They are not interchangeable, and attributes never appear on closing tags.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="An img element with four attributes annotated">
+      <g class="mono" style="font-size:20px;font-weight:700">
+        <text x="20" y="70" fill="#E07B1E">&lt;img</text>
+        <text x="72" y="70" fill="#4F46E5">src="campus.jpg"</text>
+        <text x="270" y="70" fill="#138808">alt="Main campus"</text>
+        <text x="478" y="70" fill="#0B2545">width="500"&gt;</text>
+      </g>
+      <text x="45" y="112" class="t c b" fill="#E07B1E">element</text><text x="45" y="130" class="t c s">"an image"</text>
+      <text x="165" y="112" class="t c b" fill="#4F46E5">which file</text><text x="165" y="130" class="t c s">resource location</text>
+      <text x="370" y="112" class="t c b" fill="#138808">text alternative</text><text x="370" y="130" class="t c s">for screen readers,</text><text x="370" y="146" class="t c s">shown if it fails to load</text>
+      <text x="540" y="112" class="t c b">displayed width</text><text x="540" y="130" class="t c s">in pixels</text>
+      <text x="310" y="184" class="t c s">every attribute: a name, an equals sign, a quoted value, all inside the opening tag</text>
+    </svg>
+    <figcaption><b>Figure 5.1</b> One element, three attributes. The element says "image"; the attributes say which image, what it shows, and how wide to draw it.</figcaption>
+  </figure>
+  <p>In <code>&lt;a href="/courses" target="_blank"&gt;Web Course&lt;/a&gt;</code>, the part <code>target="_blank"</code> is <b>an attribute of the element</b>: not its content (that is "Web Course"), not the closing tag, and not a CSS declaration. Some attributes are required for an element to make sense (<code>href</code> on a link, <code>src</code> and <code>alt</code> on an image); most are optional.</p>
+</section>
+
+<section id="s2">
+  <h2>5.2 Global attributes: valid on almost every element</h2>
+  <p>A small set of attributes can be applied to virtually any element. Learn these seven.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>id</code></td><td>A <b>unique</b> identifier for one element on the page</td><td><code>&lt;section id="about"&gt;</code></td></tr>
+      <tr><td><code>class</code></td><td>A reusable group name for styling or scripting; an element may have several, separated by spaces</td><td><code>&lt;div class="card featured"&gt;</code></td></tr>
+      <tr><td><code>style</code></td><td>Inline CSS on this one element (use sparingly; prefer a stylesheet)</td><td><code>&lt;p style="color: red;"&gt;</code></td></tr>
+      <tr><td><code>title</code></td><td>Advisory text shown as a tooltip on hover; also the expansion of an <code>&lt;abbr&gt;</code></td><td><code>&lt;button title="Save your work"&gt;</code></td></tr>
+      <tr><td><code>lang</code></td><td>The language of this element's content (on <code>&lt;html&gt;</code>, the whole document)</td><td><code>&lt;p lang="hi"&gt;नमस्ते&lt;/p&gt;</code></td></tr>
+      <tr><td><code>hidden</code></td><td>Do not render this element at all</td><td><code>&lt;div hidden&gt;draft&lt;/div&gt;</code></td></tr>
+      <tr><td><code>data-*</code></td><td>Custom data for scripts, named as you like after <code>data-</code></td><td><code>&lt;li data-reg="12345"&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <p>Also global, and met later: <code>tabindex</code> (keyboard focus order, Chapter 15), <code>dir</code> (text direction) and the <code>aria-*</code> attributes for assistive technology.</p>
+  <div class="demo">
+    <p class="dlab">Live: hover the button and the abbreviation to see the title attribute; the hidden element is not drawn</p>
+    <button type="button" title="Saves your work to this device">Save (hover me)</button>
+    &nbsp; <abbr title="HyperText Markup Language">HTML</abbr> (hover me)
+    <span hidden>You cannot see this because it has the hidden attribute.</span>
+  </div>
+  <h3>id: unique, and dangerous when it is not</h3>
+  <p>The <code>id</code> attribute names one specific element. It is what fragment links point at (<code>&lt;a href="#contact"&gt;</code> jumps to <code>id="contact"</code>), what a <code>&lt;label for="email"&gt;</code> connects to, and what JavaScript uses to find an element. Because all of those look for <i>one</i> element, an id must be <b>unique on the page</b>.</p>
+  <p>What happens if two elements share <code>id="main"</code>? Nothing visible. The page renders, no error appears. But <b>fragment links and scripts only ever find the first one</b>; the second is silently unreachable. It fails silently, which is far harder to debug than an error, so it is the thing the validator flags first. For a name that <i>should</i> repeat, use <code>class</code>.</p>
+  <h3>class: reusable, and multiple</h3>
+  <p>A class groups elements that share a role or a look. Many elements can carry the same class, and one element can carry several: <code>class="card featured"</code> is two classes. CSS (Unit 3) selects classes with a dot (<code>.card</code>), ids with a hash (<code>#about</code>).</p>
+  <h3>style: inline CSS</h3>
+  <p><code>style="..."</code> lets you write CSS directly on one element. It works, but it mixes presentation into structure, cannot be reused and overrides your stylesheet, so in real projects you keep CSS in an external file linked from the head (Chapter 12). You will still see inline styles in quick demos, including some in this book.</p>
+</section>
+
+<section id="s3">
+  <h2>5.3 Element-specific attributes</h2>
+  <p>Most attributes belong to particular elements. You will meet each properly in its own chapter; this table is the map.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>On</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>href</code></td><td><code>&lt;a&gt;</code>, <code>&lt;link&gt;</code></td><td>The destination URL (<i>hypertext reference</i>)</td></tr>
+      <tr><td><code>src</code></td><td><code>&lt;img&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;video&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;source&gt;</code></td><td>The <i>source</i> file to load</td></tr>
+      <tr><td><code>alt</code></td><td><code>&lt;img&gt;</code></td><td>Text alternative for the image</td></tr>
+      <tr><td><code>width</code>, <code>height</code></td><td><code>&lt;img&gt;</code>, <code>&lt;video&gt;</code>, <code>&lt;iframe&gt;</code>, <code>&lt;svg&gt;</code>, <code>&lt;canvas&gt;</code></td><td>Displayed size in pixels (<code>width</code> specifies the displayed width of an image)</td></tr>
+      <tr><td><code>target</code></td><td><code>&lt;a&gt;</code>, <code>&lt;form&gt;</code></td><td>Where to open the result (<code>_blank</code> = new tab)</td></tr>
+      <tr><td><code>type</code></td><td><code>&lt;input&gt;</code>, <code>&lt;button&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;source&gt;</code></td><td>Which kind of control, button, marker or media file</td></tr>
+      <tr><td><code>name</code>, <code>value</code></td><td>form controls</td><td>The key and the data submitted to the server</td></tr>
+      <tr><td><code>action</code>, <code>method</code></td><td><code>&lt;form&gt;</code></td><td>Where and how to submit</td></tr>
+      <tr><td><code>colspan</code>, <code>rowspan</code></td><td><code>&lt;td&gt;</code>, <code>&lt;th&gt;</code></td><td>Merge cells across columns or rows</td></tr>
+      <tr><td><code>for</code></td><td><code>&lt;label&gt;</code></td><td>The <code>id</code> of the control it labels</td></tr>
+    </tbody>
+  </table>
+  <p>Notice the pattern that trips up beginners: <b><code>href</code> is for links, <code>src</code> is for embedded resources.</b> A link points <i>to</i> a place; an image, a video or a script is loaded <i>from</i> a source.</p>
+</section>
+
+<section id="s4">
+  <h2>5.4 Boolean attributes: presence is everything</h2>
+  <p>Some attributes are switches rather than settings: <code>required</code>, <code>disabled</code>, <code>checked</code>, <code>selected</code>, <code>readonly</code>, <code>multiple</code>, <code>hidden</code>, <code>autofocus</code>, <code>controls</code>, <code>autoplay</code>, <code>muted</code>, <code>loop</code>, <code>reversed</code>. These are <b>boolean attributes</b>, and the rule is simple but surprising: <b>the browser only checks whether the attribute is present</b>. Its value is ignored.</p>
+  <pre class="code">&lt;input required&gt;           &#8592; required
+&lt;input required="required"&gt; &#8592; also required
+&lt;input required="false"&gt;    &#8592; STILL required: the attribute is present
+&lt;input&gt;                    &#8592; not required: the attribute is absent</pre>
+  <p>So <code>&lt;video controls="false"&gt;</code> <b>shows the controls anyway</b>. To switch a boolean attribute off you remove it entirely. This catches people who come from programming languages where <code>false</code> means off.</p>
+</section>
+
+<section id="s5">
+  <h2>5.5 Block-level and inline elements</h2>
+  <p>Every element has a default way of flowing on the page. <b>Block-level</b> elements start on a new line and stretch across the full available width, stacking like bricks: <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>&ndash;<code>&lt;h6&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;blockquote&gt;</code>, <code>&lt;pre&gt;</code>, <code>&lt;hr&gt;</code>. <b>Inline</b> elements flow within a line of text and take only the width of their content: <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;abbr&gt;</code>, <code>&lt;label&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;br&gt;</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="Block elements stack as full-width boxes; inline elements flow inside a line of text">
+      <rect x="20" y="20" width="280" height="190" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="160" y="42" class="t c b">block-level: stacked, full width</text>
+      <rect x="35" y="55" width="250" height="34" rx="6" class="box saf"/><text x="160" y="77" class="t c mono">&lt;h1&gt;</text>
+      <rect x="35" y="97" width="250" height="34" rx="6" class="box saf"/><text x="160" y="119" class="t c mono">&lt;p&gt;</text>
+      <rect x="35" y="139" width="250" height="34" rx="6" class="box saf"/><text x="160" y="161" class="t c mono">&lt;div&gt;</text>
+      <text x="160" y="198" class="t c s">each starts on a new line</text>
+      <rect x="320" y="20" width="280" height="190" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="460" y="42" class="t c b">inline: flows within the text</text>
+      <text x="335" y="80" class="t">Please read the</text>
+      <rect x="440" y="64" width="72" height="22" rx="5" class="box grn"/><text x="476" y="80" class="t c mono" style="font-size:12px">&lt;a&gt;</text>
+      <text x="518" y="80" class="t">before</text>
+      <text x="335" y="112" class="t">the</text>
+      <rect x="362" y="96" width="92" height="22" rx="5" class="box grn"/><text x="408" y="112" class="t c mono" style="font-size:12px">&lt;strong&gt;</text>
+      <text x="460" y="112" class="t">exam on</text>
+      <rect x="520" y="96" width="70" height="22" rx="5" class="box grn"/><text x="555" y="112" class="t c mono" style="font-size:12px">&lt;em&gt;</text>
+      <text x="335" y="144" class="t">Monday.</text>
+      <text x="460" y="198" class="t c s">only as wide as their content</text>
+    </svg>
+    <figcaption><b>Figure 5.2</b> Block-level elements are bricks; inline elements are words. CSS can change either behaviour (Unit 3), but these are the defaults the nesting rules depend on.</figcaption>
+  </figure>
+  <h3>The nesting rules that follow</h3>
+  <ul>
+    <li><b>Inline elements go inside block elements</b>, not the other way round. <code>&lt;p&gt;&lt;span&gt;Hi&lt;/span&gt;&lt;/p&gt;</code> is valid; <code>&lt;span&gt;&lt;p&gt;Hi&lt;/p&gt;&lt;/span&gt;</code>, <code>&lt;em&gt;&lt;div&gt;Hi&lt;/div&gt;&lt;/em&gt;</code> and <code>&lt;strong&gt;&lt;h1&gt;Hi&lt;/h1&gt;&lt;/strong&gt;</code> are not.</li>
+    <li>A <code>&lt;p&gt;</code> may hold only text and inline elements. If the parser meets a block element inside it, such as <code>&lt;div&gt;</code>, <b>the paragraph is closed automatically</b> before the div, leaving an empty <code>p</code> and stray text: a confusing bug to trace.</li>
+    <li><b>Inline elements ignore <code>width</code> and <code>height</code>.</b> Set <code>width: 200px</code> on a <code>&lt;span&gt;</code> and nothing happens, because an inline box is sized by its content. Make it <code>display: inline-block</code> or <code>display: block</code> in CSS if it needs a width.</li>
+  </ul>
+  <pre class="code" data-run data-title="Block versus inline, and the width rule" data-h="170">&lt;style&gt;
+  .b { background: #FFF1E0; }            /* just to make the boxes visible */
+  span.wide { width: 200px; background: #E9F7E7; }   /* ignored: inline */
+  span.fixed { width: 200px; background: #E9F7E7; display: inline-block; }
+&lt;/style&gt;
+&lt;div class="b"&gt;A div takes the whole line.&lt;/div&gt;
+&lt;p class="b"&gt;A paragraph too. But &lt;span class="wide"&gt;this span&lt;/span&gt; ignores width,
+while &lt;span class="fixed"&gt;this inline-block span&lt;/span&gt; respects it.&lt;/p&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>5.6 The generic containers: div and span</h2>
+  <p>Two elements carry <b>no meaning at all</b>; they exist purely to group things so that CSS or JavaScript can get hold of them. <code>&lt;div&gt;</code> is the <b>generic block-level container</b> (it takes the full available width). <code>&lt;span&gt;</code> is the <b>generic inline container</b> (it takes only its content's width), used to target a few words inside a line.</p>
+  <pre class="code" data-run data-title="div and span as styling hooks" data-h="120">&lt;div style="border: 2px solid #E07B1E; padding: 8px;"&gt;
+  &lt;p&gt;Hello &lt;span style="color: #138808; font-weight: bold;"&gt;Students&lt;/span&gt;, welcome.&lt;/p&gt;
+&lt;/div&gt;</pre>
+  <p>Use them <b>only when no meaningful element fits</b>. A generic styling wrapper with no independent meaning is exactly what <code>&lt;div&gt;</code> is for. A copyright notice belongs in <code>&lt;footer&gt;</code>, the main menu in <code>&lt;nav&gt;</code>, a blog post in <code>&lt;article&gt;</code>; wrapping those in divs throws away meaning that screen readers and search engines could have used (Chapter 13).</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Flowchart for choosing a container element">
+      <rect x="200" y="12" width="220" height="40" rx="20" class="box saf"/><text x="310" y="37" class="t c b">I need to wrap something</text>
+      <path d="M310 52 L310 70" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 74 L440 112 L310 150 L180 112 Z" class="dec"/><text x="310" y="108" class="t c b">does a meaningful element</text><text x="310" y="124" class="t c b">exist for it?</text>
+      <path d="M180 112 L80 112 L80 168" class="edge grn" marker-end="url(#arr-grn)"/><text x="130" y="104" class="t c s">yes</text>
+      <rect x="10" y="170" width="140" height="56" rx="10" class="box grn"/><text x="80" y="192" class="t c b">use it</text><text x="80" y="210" class="t c s">nav, article, footer, figure</text>
+      <path d="M440 112 L540 112 L540 140" class="edge" marker-end="url(#arr)"/><text x="490" y="104" class="t c s">no</text>
+      <path d="M540 144 L600 176 L540 208 L480 176 Z" class="dec"/><text x="540" y="172" class="t c b" style="font-size:11px">a block or a</text><text x="540" y="186" class="t c b" style="font-size:11px">few words?</text>
+      <rect x="330" y="176" width="80" height="34" rx="8" class="box"/><text x="370" y="198" class="t c b mono">div</text>
+      <path d="M480 176 L415 176" class="edge" marker-end="url(#arr)"/><text x="447" y="170" class="t c s">block</text>
+      <rect x="500" y="215" width="80" height="22" rx="8" class="box"/><text x="540" y="230" class="t c b mono" style="font-size:12px">span</text>
+      <text x="575" y="212" class="t s" style="font-size:10px;text-anchor:end">a few words</text>
+    </svg>
+    <figcaption><b>Figure 5.3</b> Reach for a semantic element first; fall back to div for a block, span for an inline run.</figcaption>
+  </figure>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>In &lt;a href="/courses" target="_blank"&gt;Web Course&lt;/a&gt;, the part target="_blank" is:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. An attribute of the element</li><li>B. The element's content</li><li>C. The closing tag</li><li>D. A CSS declaration</li></ul>
+    <p><b>Answer: A.</b> name="value" inside the opening tag is an attribute.</p></div></details>
+  <details class="q"><summary>Which statement best summarises elements versus attributes?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Attributes express meaning; elements configure them</li><li>B. Elements express meaning; attributes configure them</li><li>C. Both are fully interchangeable in HTML5</li><li>D. Attributes may only appear on closing tags</li></ul>
+    <p><b>Answer: B.</b> The element says what it is; the attribute supplies the details.</p></div></details>
+  <details class="q"><summary>Which attribute can be applied to almost any HTML element?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. href</li><li>B. action</li><li>C. src</li><li>D. id</li></ul>
+    <p><b>Answer: D.</b> id, class, style, title, lang, hidden and data-* are global. href belongs to links, action to forms, src to embedded resources.</p></div></details>
+  <details class="q"><summary>Which attribute must be UNIQUE on a page?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. class</li><li>B. id</li><li>C. name</li><li>D. title</li></ul>
+    <p><b>Answer: B.</b> Duplicate ids do not stop rendering, which is what makes them dangerous: links and scripts only ever find the first.</p></div></details>
+  <details class="q"><summary>Two elements both have id="main". What breaks?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The page will not render</li><li>B. Fragment links and scripts only find the first one</li><li>C. CSS cannot style either</li><li>D. The browser shows an error</li></ul>
+    <p><b>Answer: B.</b> It fails silently; the second element is unreachable by id.</p></div></details>
+  <details class="q"><summary>Which attribute specifies the displayed width of an image in HTML?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. scale</li><li>B. size</li><li>C. dimension</li><li>D. width</li></ul>
+    <p><b>Answer: D.</b> width and height, in pixels, on the img element.</p></div></details>
+  <details class="q"><summary>What does controls="false" do on a &lt;video&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Hides the controls</li><li>B. Shows the controls anyway</li><li>C. Causes an error</li><li>D. Disables the video</li></ul>
+    <p><b>Answer: B.</b> controls is a boolean attribute: only its presence matters. Remove it to hide the controls.</p></div></details>
+  <details class="q"><summary>Which of the following behaves as an inline-level element by default?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;span&gt;</li><li>B. &lt;p&gt;</li><li>C. &lt;div&gt;</li><li>D. &lt;h1&gt;</li></ul>
+    <p><b>Answer: A.</b> span flows inside the text; p, div and h1 are block-level.</p></div></details>
+  <details class="q"><summary>Which of these is a BLOCK element by default: &lt;a&gt;, &lt;strong&gt;, &lt;div&gt;, &lt;em&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;div&gt;.</b> It takes the full line and starts a new one; the other three are inline.</p></div></details>
+  <details class="q"><summary>Which is VALID?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;span&gt;&lt;p&gt;Hi&lt;/p&gt;&lt;/span&gt;</li><li>B. &lt;p&gt;&lt;span&gt;Hi&lt;/span&gt;&lt;/p&gt;</li><li>C. &lt;em&gt;&lt;div&gt;Hi&lt;/div&gt;&lt;/em&gt;</li><li>D. &lt;strong&gt;&lt;h1&gt;Hi&lt;/h1&gt;&lt;/strong&gt;</li></ul>
+    <p><b>Answer: B.</b> Inline elements go inside block elements, not the other way round.</p></div></details>
+  <details class="q"><summary>You set width:200px on a &lt;span&gt; and nothing happens. Why?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The value is invalid</li><li>B. Inline elements ignore width and height</li><li>C. You need !important</li><li>D. span cannot be styled</li></ul>
+    <p><b>Answer: B.</b> An inline box is sized by its content. Use display:inline-block or display:block.</p></div></details>
+  <details class="q"><summary>What happens with &lt;p&gt;&lt;div&gt;text&lt;/div&gt;&lt;/p&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It renders normally</li><li>B. The paragraph auto-closes before the div</li><li>C. The div is ignored</li><li>D. An error is shown</li></ul>
+    <p><b>Answer: B.</b> A p cannot contain a block element, so the parser closes it early: you get an empty p, the div, and a stray closing tag.</p></div></details>
+  <details class="q"><summary>When is a &lt;div&gt; still an appropriate choice?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. For the page's copyright notice</li><li>B. For the page's primary navigation links</li><li>C. For a self-contained blog post</li><li>D. As a generic styling wrapper with no independent meaning</li></ul>
+    <p><b>Answer: D.</b> footer, nav and article exist for A, B and C. div is for grouping with no meaning to convey.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Elements express meaning; attributes configure them. Attributes are name="value" pairs in the opening tag, always quoted.</li>
+    <li>Global attributes: id (unique), class (reusable, multiple), style (inline CSS), title (tooltip), lang, hidden, data-*.</li>
+    <li>Duplicate ids fail silently: fragment links and scripts find only the first.</li>
+    <li>href is for links; src is for embedded resources; alt describes an image; width/height set displayed size.</li>
+    <li>Boolean attributes are on when present, whatever their value: controls="false" still shows controls.</li>
+    <li>Block elements (div, p, h1, section, ul) stack full-width; inline elements (span, a, strong, em, img) flow in the line, ignore width/height, and must sit inside block elements. A p auto-closes before a div.</li>
+    <li>div and span are meaningless containers: use them only when no semantic element fits.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Default flow</th></tr></thead>
+    <tbody>
+      <tr><td>div, p, h1&ndash;h6, ul, ol, li, section, article, header, footer, nav, form, table, blockquote, pre, hr</td><td>Block-level</td></tr>
+      <tr><td>span, a, strong, em, b, i, u, mark, small, code, abbr, img, label, input, button, br</td><td>Inline</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

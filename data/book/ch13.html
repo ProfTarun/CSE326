@@ -1,0 +1,272 @@
+<article class="chapter" data-ch="13">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 13 &middot; Semantic HTML Elements</p>
+  <h1>Semantic HTML Elements</h1>
+  <p class="lead">A page built from <code>&lt;div class="header"&gt;</code> and a page built from <code>&lt;header&gt;</code> look identical in the browser. The difference is invisible to your eyes and enormous to a screen reader, a search engine and the next developer. This chapter introduces every HTML5 semantic element, what each one means, how to choose between the confusable ones, and the rules about how many and where.</p>
+  <p class="meta">About 18 minutes &middot; Course outcome CO2 &middot; Opens Unit 2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Define a semantic element and state what it gains over a <code>div</code>.</li>
+      <li>Use <code>header</code>, <code>nav</code>, <code>main</code>, <code>section</code>, <code>article</code>, <code>aside</code> and <code>footer</code> correctly.</li>
+      <li>Apply the tests that separate <code>section</code>, <code>article</code>, <code>aside</code> and <code>div</code>.</li>
+      <li>State the rules about <code>main</code>, <code>nav</code> and headings inside sections.</li>
+      <li>Use <code>figure</code>, <code>figcaption</code>, <code>address</code>, <code>time</code>, <code>details</code> and <code>summary</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>13.1 What "semantic" means</h2>
+  <p>A <b>semantic element</b> is one that <b>describes the meaning and purpose of its content</b>: <code>&lt;nav&gt;</code> says "this is navigation", <code>&lt;article&gt;</code> says "this is a self-contained piece", <code>&lt;footer&gt;</code> says "this is the closing information". A <b>non-semantic</b> element such as <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code> says nothing about its content: it is a box.</p>
+  <p>Semantic elements do not apply a distinctive style, do not load faster than a div, and most may appear many times. What they give is <b>machine-readable structure</b>. Three consumers benefit:</p>
+  <ul>
+    <li><b>Screen readers</b> announce semantic regions as <i>landmarks</i> and let their users jump straight to the main content, the navigation or the footer. On a page made only of divs, a blind user must <b>listen through the whole menu on every page load</b> to reach the content.</li>
+    <li><b>Search engines</b> learn which part of the page is the content and which is boilerplate (Chapter 11).</li>
+    <li><b>Developers</b> can read the structure of a page from its tags alone, which makes it maintainable.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Two identical-looking pages: one built from divs, one from semantic elements; only the second has landmarks">
+      <rect x="20" y="20" width="270" height="170" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="155" y="42" class="t c b">divs only</text>
+      <rect x="35" y="52" width="240" height="24" rx="4" class="box gry"/><text x="155" y="68" class="t c s mono">&lt;div class="header"&gt;</text>
+      <rect x="35" y="82" width="170" height="70" rx="4" class="box gry"/><text x="120" y="120" class="t c s mono">&lt;div class="content"&gt;</text>
+      <rect x="211" y="82" width="64" height="70" rx="4" class="box gry"/><text x="243" y="120" class="t c s mono" style="font-size:9px">&lt;div&gt;</text>
+      <rect x="35" y="158" width="240" height="22" rx="4" class="box gry"/><text x="155" y="173" class="t c s mono">&lt;div class="footer"&gt;</text>
+      <rect x="330" y="20" width="270" height="170" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="465" y="42" class="t c b">semantic</text>
+      <rect x="345" y="52" width="240" height="24" rx="4" class="box saf"/><text x="465" y="68" class="t c s mono">&lt;header&gt; landmark: banner</text>
+      <rect x="345" y="82" width="170" height="70" rx="4" class="box grn"/><text x="430" y="114" class="t c s mono">&lt;main&gt;</text><text x="430" y="130" class="t c s">landmark: main</text>
+      <rect x="521" y="82" width="64" height="70" rx="4" class="box blu"/><text x="553" y="114" class="t c s mono" style="font-size:9px">&lt;aside&gt;</text><text x="553" y="130" class="t c s" style="font-size:9px">complementary</text>
+      <rect x="345" y="158" width="240" height="22" rx="4" class="box saf"/><text x="465" y="173" class="t c s mono">&lt;footer&gt; landmark: contentinfo</text>
+      <text x="310" y="205" class="t c s">same pixels; only the right-hand page can be navigated by landmarks</text>
+    </svg>
+    <figcaption><b>Figure 13.1</b> Identical on screen. The semantic version gives screen readers and search engines a map of the page.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>13.2 The seven page-structure elements</h2>
+  <dl>
+    <dt><code>&lt;header&gt;</code>: introductory content</dt>
+    <dd>Holds a page's or a section's <b>introductory content and navigation aids</b>: the logo, the site title, a tagline, often the main <code>nav</code>. A page has one main header, and sections or articles can have their own. Do not confuse it with <code>&lt;head&gt;</code>, which is invisible metadata (Chapter 4).</dd>
+    <dt><code>&lt;nav&gt;</code>: a group of navigation links</dt>
+    <dd>Identifies a <b>major navigation region</b>: the main menu, breadcrumbs, pagination links, a table of contents. Wrap the <b>whole group once</b> in a single <code>nav</code>, typically around a <code>&lt;ul&gt;</code> of links. Wrapping every individual link in its own <code>nav</code> is wrong: the element marks the group, not the link. A page may have more than one <code>nav</code> (main menu and footer links, say); give each an <code>aria-label</code> so they can be told apart.</dd>
+    <dt><code>&lt;main&gt;</code>: the dominant content</dt>
+    <dd>Represents the <b>primary content of the document</b>, the part unique to this page. It should appear <b>exactly once per page</b>, and it <b>must not be nested inside <code>article</code>, <code>aside</code>, <code>header</code>, <code>footer</code> or <code>nav</code></b>, because it represents the dominant content of the <i>whole</i> page. Repeated site-wide content (menus, logos, copyright) stays outside it. It is the natural target of a "skip to main content" link (Chapter 15).</dd>
+    <dt><code>&lt;section&gt;</code>: a thematic grouping</dt>
+    <dd>Groups <b>thematically related content, usually with its own heading</b>: "About us", "Our courses", "Results". A page can have many. A section should own a heading; if there is no natural heading for a block, it is not really a section and a plain <code>div</code> was the right choice.</dd>
+    <dt><code>&lt;article&gt;</code>: self-contained, distributable content</dt>
+    <dd>Marks content that <b>could stand on its own and be distributed independently</b>: a news story, a blog post, a forum comment, a product card. The test: <i>would this block still make sense on a different website, or in an RSS feed?</i> If yes, it is an article. An article can carry its own <code>header</code> and <code>footer</code> (a byline, a date) and can contain sections.</dd>
+    <dt><code>&lt;aside&gt;</code>: related but not essential</dt>
+    <dd>Content <b>related to the surrounding content but separable from it</b>: a sidebar of related articles, a pull quote, quick links, an advertisement. If you removed it, the main content would still make sense.</dd>
+    <dt><code>&lt;footer&gt;</code>: closing information</dt>
+    <dd>Holds <b>footer information for a page or a section</b>: copyright, contact details (often in an <code>&lt;address&gt;</code>), related links, author information. Like <code>header</code>, it can close the whole page <i>or</i> an individual <code>article</code> or <code>section</code>; a footer inside an article is perfectly valid.</dd>
+  </dl>
+  <pre class="code" data-run data-title="All seven, in a college news page" data-h="330" data-tall>&lt;header&gt;
+  &lt;h1&gt;School of Computing and AI&lt;/h1&gt;
+  &lt;nav aria-label="Main"&gt;
+    &lt;ul&gt;&lt;li&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href="#"&gt;Courses&lt;/a&gt;&lt;/li&gt;&lt;li&gt;&lt;a href="#"&gt;Contact&lt;/a&gt;&lt;/li&gt;&lt;/ul&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;section&gt;
+    &lt;h2&gt;Latest news&lt;/h2&gt;
+    &lt;article&gt;
+      &lt;h3&gt;AI Workshop&lt;/h3&gt;
+      &lt;p&gt;Students attended a two-day workshop on machine learning.&lt;/p&gt;
+      &lt;footer&gt;&lt;small&gt;Posted by the Dean's office&lt;/small&gt;&lt;/footer&gt;
+    &lt;/article&gt;
+    &lt;article&gt;
+      &lt;h3&gt;Placement Drive&lt;/h3&gt;
+      &lt;p&gt;The placement drive is scheduled for next week.&lt;/p&gt;
+    &lt;/article&gt;
+  &lt;/section&gt;
+  &lt;aside&gt;
+    &lt;h2&gt;Quick links&lt;/h2&gt;
+    &lt;a href="#"&gt;Admissions&lt;/a&gt;
+  &lt;/aside&gt;
+&lt;/main&gt;
+&lt;footer&gt;
+  &lt;p&gt;&amp;copy; 2026 School of Computing and AI&lt;/p&gt;
+&lt;/footer&gt;</pre>
+</section>
+
+<section id="s3">
+  <h2>13.3 Choosing between section, article, aside and div</h2>
+  <p>These four cause most of the confusion, and most of the questions. Ask the questions in order.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 330" role="img" aria-label="Decision flowchart: article, aside, section or div">
+      <rect x="205" y="8" width="210" height="36" rx="18" class="box saf"/><text x="310" y="31" class="t c b">a block of content to wrap</text>
+      <path d="M310 44 L310 60" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 64 L440 100 L310 136 L180 100 Z" class="dec"/><text x="310" y="96" class="t c b">would it make sense on its</text><text x="310" y="112" class="t c b">own, on another site?</text>
+      <path d="M440 100 L520 100" class="edge grn" marker-end="url(#arr-grn)"/><text x="480" y="92" class="t c s">yes</text>
+      <rect x="520" y="78" width="90" height="44" rx="10" class="box grn"/><text x="565" y="98" class="t c b mono">article</text><text x="565" y="114" class="t c s">self-contained</text>
+      <path d="M310 136 L310 156" class="edge" marker-end="url(#arr)"/><text x="335" y="152" class="t s">no</text>
+      <path d="M310 160 L440 196 L310 232 L180 196 Z" class="dec"/><text x="310" y="192" class="t c b">related to the page but</text><text x="310" y="208" class="t c b">not essential to it?</text>
+      <path d="M440 196 L520 196" class="edge" marker-end="url(#arr)"/><text x="480" y="188" class="t c s">yes</text>
+      <rect x="520" y="174" width="90" height="44" rx="10" class="box blu"/><text x="565" y="194" class="t c b mono">aside</text><text x="565" y="210" class="t c s">sidebar, related</text>
+      <path d="M310 232 L310 252" class="edge" marker-end="url(#arr)"/><text x="335" y="248" class="t s">no</text>
+      <path d="M310 256 L440 292 L310 328 L180 292 Z" class="dec"/><text x="310" y="288" class="t c b">a themed group with</text><text x="310" y="304" class="t c b">its own heading?</text>
+      <path d="M440 292 L520 292" class="edge" marker-end="url(#arr)"/><text x="480" y="284" class="t c s">yes</text>
+      <rect x="520" y="270" width="90" height="44" rx="10" class="box saf"/><text x="565" y="290" class="t c b mono">section</text><text x="565" y="306" class="t c s">thematic</text>
+      <path d="M180 292 L100 292" class="edge" marker-end="url(#arr)"/><text x="140" y="284" class="t c s">no</text>
+      <rect x="10" y="270" width="90" height="44" rx="10" class="box gry"/><text x="55" y="290" class="t c b mono">div</text><text x="55" y="306" class="t c s">no meaning</text>
+    </svg>
+    <figcaption><b>Figure 13.2</b> Article if it stands alone; aside if it is related but dispensable; section if it is a themed group with a heading; otherwise a plain div.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Content</th><th>Element</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>A blog post that could be republished elsewhere</td><td><code>article</code></td><td>Stands alone</td></tr>
+      <tr><td>The "Our courses" part of the home page</td><td><code>section</code></td><td>Thematic group of this page, with a heading</td></tr>
+      <tr><td>A "Related articles" sidebar</td><td><code>aside</code></td><td>Related, not essential</td></tr>
+      <tr><td>A wrapper that exists only so CSS can style two columns</td><td><code>div</code></td><td>No meaning to convey</td></tr>
+      <tr><td>Copyright and contact at the bottom</td><td><code>footer</code></td><td>Closing information</td></tr>
+      <tr><td>Breadcrumbs, the main menu, pagination</td><td><code>nav</code></td><td>Groups of navigation links</td></tr>
+    </tbody>
+  </table>
+  <div class="callout exam"><b>section versus article, in one line.</b> <code>section</code> groups thematically related content; <code>article</code> is independently distributable. They are not identical, and section is not limited to once per page.</div>
+</section>
+
+<section id="s4">
+  <h2>13.4 The rules examiners check</h2>
+  <ol>
+    <li><b>One <code>main</code> per page</b>, and never inside <code>article</code>, <code>aside</code>, <code>header</code>, <code>footer</code> or <code>nav</code>. It is the dominant content of the whole document, so it cannot be a part of some smaller region. (<code>article</code> and <code>aside</code> are not self-closing, and the reason has nothing to do with XML.)</li>
+    <li><b>Every <code>section</code> should have a heading</b>, so assistive technology can summarise and navigate it. A section without a heading is usually a <code>div</code> in disguise. The heading is not required for rendering or CSS; it is required for meaning.</li>
+    <li><b>One <code>nav</code> around the group</b> of links, not one per link.</li>
+    <li><b>Nesting order:</b> the page <code>header</code> contains the site title and the main <code>nav</code>; <code>main</code> contains the <code>section</code>s, <code>article</code>s and any <code>aside</code>; the page <code>footer</code> comes last. So <code>header &gt; nav</code>, then <code>main &gt; section</code> is the correct shape; <code>main &gt; header &gt; nav</code>, <code>section &gt; main</code> and <code>nav &gt; main &gt; header</code> are wrong.</li>
+    <li><code>header</code> and <code>footer</code> may repeat: once for the page, and again inside any article or section that needs its own.</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 260" role="img" aria-label="Where the semantic elements nest: header with nav, main with section, article and aside, then footer">
+      <rect x="20" y="16" width="580" height="228" rx="12" class="box"/><text x="36" y="38" class="t b mono">&lt;body&gt;</text>
+      <rect x="40" y="48" width="540" height="48" rx="8" class="box saf"/><text x="56" y="68" class="t b mono">&lt;header&gt;</text><text x="56" y="86" class="t s mono">&lt;h1&gt; site title   &lt;nav&gt; main menu &lt;/nav&gt;</text>
+      <rect x="40" y="104" width="540" height="92" rx="8" class="box grn"/><text x="56" y="124" class="t b mono">&lt;main&gt;  (exactly one)</text>
+      <rect x="56" y="132" width="330" height="56" rx="6" fill="#fff" stroke="#138808"/><text x="66" y="150" class="t s mono">&lt;section&gt; &lt;h2&gt;...&lt;/h2&gt;</text><text x="80" y="168" class="t s mono">&lt;article&gt;...&lt;/article&gt; &lt;article&gt;...&lt;/article&gt;</text><text x="66" y="184" class="t s mono">&lt;/section&gt;</text>
+      <rect x="396" y="132" width="170" height="56" rx="6" fill="#EEF2FF" stroke="#4F46E5"/><text x="481" y="164" class="t c s mono">&lt;aside&gt; related &lt;/aside&gt;</text>
+      <rect x="40" y="204" width="540" height="30" rx="8" class="box saf"/><text x="56" y="224" class="t b mono">&lt;footer&gt;  &amp;copy; contact  &lt;address&gt; &lt;/footer&gt;</text>
+    </svg>
+    <figcaption><b>Figure 13.3</b> The canonical nesting. Articles and asides normally sit inside main; nav sits inside the header; footer closes the body.</figcaption>
+  </figure>
+</section>
+
+<section id="s5">
+  <h2>13.5 The other semantic elements</h2>
+  <dl>
+    <dt><code>&lt;figure&gt;</code> and <code>&lt;figcaption&gt;</code></dt>
+    <dd><code>figure</code> wraps <b>self-contained illustrative content</b>, an image, diagram, chart or code listing, and <code>figcaption</code> supplies its caption. Not <code>picture</code> (which chooses image files), not <code>caption</code> (tables), not <code>legend</code> (fieldsets).</dd>
+    <dt><code>&lt;address&gt;</code></dt>
+    <dd>Contact information for the page or the nearest article, usually inside a footer (Chapter 6).</dd>
+    <dt><code>&lt;time&gt;</code></dt>
+    <dd>Represents a <b>date or time in a machine-readable format</b>: the human-readable text goes between the tags and the machine form in <code>datetime</code>: <code>&lt;time datetime="2026-08-18"&gt;August 18, 2026&lt;/time&gt;</code>. Search engines and calendars can then read the date exactly. There is no <code>&lt;date&gt;</code> element.</dd>
+    <dt><code>&lt;details&gt;</code> and <code>&lt;summary&gt;</code></dt>
+    <dd><code>details</code> creates a <b>disclosure widget the user can expand and collapse without any JavaScript</b>; <code>summary</code> is its always-visible clickable heading. The exam-style checks in this book are built from exactly these two elements. Add the <code>open</code> attribute to start expanded.</dd>
+    <dt><code>&lt;mark&gt;</code>, <code>&lt;data&gt;</code>, <code>&lt;progress&gt;</code>, <code>&lt;meter&gt;</code>, <code>&lt;dialog&gt;</code></dt>
+    <dd>Highlighted text; visible text paired with a machine <code>value</code> (<code>&lt;data value="101"&gt;Computer Science&lt;/data&gt;</code>); a task progress bar; a gauge in a known range; and a native modal dialog box. Forms cover progress and meter in Chapter 16.</dd>
+  </dl>
+  <pre class="code" data-run data-title="time, details/summary, figure, address" data-h="260">&lt;article&gt;
+  &lt;h2&gt;Lab test results published&lt;/h2&gt;
+  &lt;p&gt;Posted on &lt;time datetime="2026-09-14T09:00"&gt;14 September 2026, 9 AM&lt;/time&gt;.&lt;/p&gt;
+  &lt;figure&gt;
+    &lt;img src="https://picsum.photos/id/180/300/150" alt="Students working at computers in the lab" width="300" height="150"&gt;
+    &lt;figcaption&gt;The CSE326 lab during the test.&lt;/figcaption&gt;
+  &lt;/figure&gt;
+  &lt;details&gt;
+    &lt;summary&gt;How were marks calculated?&lt;/summary&gt;
+    &lt;p&gt;Each check is worth one mark; the total is scaled to 30.&lt;/p&gt;
+  &lt;/details&gt;
+  &lt;footer&gt;&lt;address&gt;Queries: &lt;a href="mailto:lab@example.edu"&gt;lab@example.edu&lt;/a&gt;&lt;/address&gt;&lt;/footer&gt;
+&lt;/article&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>13.6 Worked example: mapping a university home page</h2>
+  <p>Look at any university home page and label its regions. The banner with the logo and menu: <code>header</code> containing <code>nav</code>. The announcements and the "About" block: <code>section</code>s inside <code>main</code>, each with an <code>h2</code>. Each individual announcement that could be shared on its own: an <code>article</code>. The "Quick links" column beside the announcements: <code>aside</code>. The copyright line, the postal address and the social links at the bottom: <code>footer</code> with an <code>address</code>. Anything left over that only exists for layout: <code>div</code>. That labelling exercise is the whole of this chapter, and it is exactly what the CA2 scenario questions ask you to do.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>A semantic HTML element is one that:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Describes the meaning and purpose of its content</li><li>B. Applies a distinctive default style</li><li>C. Always loads faster than a &lt;div&gt;</li><li>D. Can only ever appear once in a document</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>A page built from &lt;div class="header"&gt; and a page built from &lt;header&gt; look identical. What does the semantic version gain?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Faster rendering in every browser</li><li>B. An automatically smaller file size</li><li>C. Machine-readable structure for screen readers and search engines</li><li>D. Brighter default colours</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>A screen-reader user on a page built only from divs must:<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> listen through the whole menu on every page load, because there are no landmarks such as main to jump to.</p></div></details>
+  <details class="q"><summary>Which element should appear exactly once per page?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;section&gt;</li><li>B. &lt;article&gt;</li><li>C. &lt;div&gt;</li><li>D. &lt;main&gt;</li></ul>
+    <p><b>Answer: D.</b> main marks the single unique content area.</p></div></details>
+  <details class="q"><summary>Why must &lt;main&gt; not be placed inside an &lt;article&gt; or &lt;aside&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;article&gt; and &lt;aside&gt; are self-closing elements</li><li>B. &lt;main&gt; may only contain plain text</li><li>C. &lt;main&gt; represents the dominant content of the whole page and cannot be nested in sectioning content</li><li>D. Nesting would prevent the page from being validated as XML</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which element holds a page's or a section's introductory content, such as a logo and site title?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;header&gt;</li><li>B. &lt;head&gt;</li><li>C. &lt;top&gt;</li><li>D. &lt;title&gt;</li></ul>
+    <p><b>Answer: A.</b> head is metadata; title is the tab text; top does not exist.</p></div></details>
+  <details class="q"><summary>Breadcrumbs, the main menu and pagination links should all be wrapped in:<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;nav&gt;.</b> Each group of navigation links gets one nav.</p></div></details>
+  <details class="q"><summary>A page wraps every single navigation link in its own &lt;nav&gt; element. Why is this incorrect?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;nav&gt; may only contain images</li><li>B. The whole link group should be wrapped once in a single &lt;nav&gt;</li><li>C. &lt;nav&gt; cannot be nested inside &lt;header&gt;</li><li>D. Navigation must always use &lt;menu&gt; instead</li></ul>
+    <p><b>Answer: B.</b> nav marks the region, not the individual link; nav inside header is normal.</p></div></details>
+  <details class="q"><summary>Which element marks self-contained content that could be distributed independently, such as a news story?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;section&gt;</li><li>B. &lt;article&gt;</li><li>C. &lt;aside&gt;</li><li>D. &lt;div&gt;</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which statement best distinguishes &lt;section&gt; from &lt;article&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;section&gt; may appear only once per page</li><li>B. &lt;article&gt; groups thematic content; &lt;section&gt; is independently distributable</li><li>C. &lt;section&gt; groups thematically related content; &lt;article&gt; is independently distributable</li><li>D. They are functionally identical</li></ul>
+    <p><b>Answer: C.</b> The test: would it make sense on another website? Yes = article.</p></div></details>
+  <details class="q"><summary>A blog post that could be republished elsewhere should be marked as:<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;article&gt;.</b> It stands alone.</p></div></details>
+  <details class="q"><summary>Why should every &lt;section&gt; contain a heading, and what does a section with no heading usually mean?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> so assistive technology can summarise and navigate the section. A section with no natural heading usually means a plain div was the right choice.</p></div></details>
+  <details class="q"><summary>A sidebar showing "Related Articles" is best marked up with:<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;nav&gt;</li><li>B. &lt;footer&gt;</li><li>C. &lt;aside&gt;</li><li>D. &lt;header&gt;</li></ul>
+    <p><b>Answer: C.</b> Related but not essential content.</p></div></details>
+  <details class="q"><summary>Copyright and contact details placed at the bottom of a page belong inside:<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;footer&gt;</b>, with the contact details in an &lt;address&gt;.</p></div></details>
+  <details class="q"><summary>Can &lt;footer&gt; appear inside an &lt;article&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: yes.</b> An article can have its own header and footer, for example a byline and a posting date.</p></div></details>
+  <details class="q"><summary>Which is the correct nesting order?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. main &gt; header &gt; nav</li><li>B. header &gt; nav, then main &gt; section</li><li>C. section &gt; main</li><li>D. nav &gt; main &gt; header</li></ul>
+    <p><b>Answer: B.</b> nav sits inside header; section sits inside main.</p></div></details>
+  <details class="q"><summary>In a well-formed page skeleton, where do &lt;article&gt; and &lt;aside&gt; normally sit?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Inside &lt;header&gt;</li><li>B. Inside &lt;footer&gt;</li><li>C. Inside &lt;main&gt;</li><li>D. Directly inside &lt;head&gt;</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>When is a &lt;div&gt; still an appropriate choice?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> as a generic styling wrapper with no independent meaning. Copyright (footer), primary navigation (nav) and a blog post (article) all have semantic elements.</p></div></details>
+  <details class="q"><summary>Which element wraps self-contained illustrative content such as an image together with its caption, and which supplies the caption?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;figure&gt; and &lt;figcaption&gt;.</b> picture, caption (tables), legend (fieldsets) and label are wrong.</p></div></details>
+  <details class="q"><summary>Which element represents a date or time in a machine-readable format?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;date&gt;</li><li>B. &lt;time&gt;</li><li>C. &lt;data&gt;</li><li>D. &lt;span&gt;</li></ul>
+    <p><b>Answer: B.</b> <code>&lt;time datetime="2026-08-18"&gt;</code>.</p></div></details>
+  <details class="q"><summary>Which element creates a disclosure widget that the user can expand and collapse without JavaScript?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;dialog&gt;</li><li>B. &lt;details&gt;</li><li>C. &lt;aside&gt;</li><li>D. &lt;collapse&gt;</li></ul>
+    <p><b>Answer: B.</b> with a &lt;summary&gt; as its visible heading.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Semantic elements describe meaning; they render like divs but give screen readers landmarks and search engines a map.</li>
+    <li>header (intro + nav), nav (one per group of links), main (once, never inside article/aside/header/footer/nav), section (theme + heading), article (stands alone), aside (related, dispensable), footer (closing info; may sit inside an article).</li>
+    <li>Choose: article if it makes sense elsewhere; aside if related but not essential; section if a themed group with a heading; div if no meaning.</li>
+    <li>Shape: header &gt; nav; main &gt; section &gt; article; aside inside main; footer last.</li>
+    <li>figure + figcaption, address, time datetime, details + summary, mark, data, progress, meter, dialog.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td>header</td><td>Introductory content of the page or a section</td></tr>
+      <tr><td>nav</td><td>A group of navigation links</td></tr>
+      <tr><td>main</td><td>The unique, dominant content (one per page)</td></tr>
+      <tr><td>section</td><td>Thematic grouping with a heading</td></tr>
+      <tr><td>article</td><td>Independent, distributable content</td></tr>
+      <tr><td>aside</td><td>Related, non-essential content</td></tr>
+      <tr><td>footer</td><td>Closing information of the page or a section</td></tr>
+      <tr><td>figure / figcaption</td><td>Illustration and its caption</td></tr>
+      <tr><td>time</td><td>Machine-readable date/time</td></tr>
+      <tr><td>details / summary</td><td>Expand/collapse without JavaScript</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

@@ -1,0 +1,286 @@
+<article class="chapter" data-ch="9">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 9 &middot; SVG Graphics</p>
+  <h1>SVG Graphics</h1>
+  <p class="lead">SVG lets you draw with code: circles, rectangles, lines, curves and text that stay perfectly sharp at any size. This chapter explains why vector graphics differ from photographs, how the SVG coordinate system works, every basic shape and its attributes, how <code>fill</code> and <code>stroke</code> paint them, and enough of the <code>path</code> language to read and write simple drawings. Every diagram in this book is an SVG.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain raster versus vector and when to choose SVG.</li>
+      <li>Read <code>width</code>, <code>height</code>, <code>viewBox</code> and <code>preserveAspectRatio</code> and predict how a drawing scales.</li>
+      <li>Draw with <code>rect</code>, <code>circle</code>, <code>ellipse</code>, <code>line</code>, <code>polyline</code>, <code>polygon</code>, <code>path</code> and <code>text</code>.</li>
+      <li>Control appearance with <code>fill</code>, <code>stroke</code>, <code>stroke-width</code>, <code>stroke-dasharray</code> and <code>stroke-linecap</code>.</li>
+      <li>Make an inline SVG accessible.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>9.1 Raster versus vector</h2>
+  <p>A JPG or PNG is a <b>raster</b> image: a grid of coloured pixels. Enlarge it and the browser has to invent pixels that were never there, so it goes blurry or blocky. An <b>SVG (Scalable Vector Graphics)</b> file stores <b>drawing instructions</b> instead: "a circle of radius 40 centred at (70, 70), filled orange". The browser re-draws those instructions at whatever size is needed, so the result is <b>sharp at any zoom level or screen size</b>. That is why SVG is the right format for logos, icons, diagrams and illustrations, and why a company logo should be SVG rather than JPG. Photographs, with millions of subtly different pixels, stay raster.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="A raster circle becomes blocky when enlarged; a vector circle stays smooth">
+      <text x="150" y="26" class="t c b">RASTER (JPG, PNG): pixels</text>
+      <g transform="translate(60,40)">
+        <g fill="#E07B1E"><rect x="24" y="0" width="12" height="12"/><rect x="36" y="0" width="12" height="12"/><rect x="12" y="12" width="12" height="12"/><rect x="24" y="12" width="12" height="12"/><rect x="36" y="12" width="12" height="12"/><rect x="48" y="12" width="12" height="12"/><rect x="0" y="24" width="12" height="12"/><rect x="12" y="24" width="12" height="12"/><rect x="24" y="24" width="12" height="12"/><rect x="36" y="24" width="12" height="12"/><rect x="48" y="24" width="12" height="12"/><rect x="60" y="24" width="12" height="12"/><rect x="0" y="36" width="12" height="12"/><rect x="12" y="36" width="12" height="12"/><rect x="24" y="36" width="12" height="12"/><rect x="36" y="36" width="12" height="12"/><rect x="48" y="36" width="12" height="12"/><rect x="60" y="36" width="12" height="12"/><rect x="12" y="48" width="12" height="12"/><rect x="24" y="48" width="12" height="12"/><rect x="36" y="48" width="12" height="12"/><rect x="48" y="48" width="12" height="12"/><rect x="24" y="60" width="12" height="12"/><rect x="36" y="60" width="12" height="12"/></g>
+        <g fill="none" stroke="#fff" stroke-width="0.5"><path d="M0 0 H72 M0 12 H72 M0 24 H72 M0 36 H72 M0 48 H72 M0 60 H72 M0 0 V72 M12 0 V72 M24 0 V72 M36 0 V72 M48 0 V72 M60 0 V72 M72 0 V72"/></g>
+      </g>
+      <text x="96" y="140" class="t c s">enlarged: blocky edges</text>
+      <text x="96" y="156" class="t c s">(the pixels are the data)</text>
+      <path d="M170 76 L200 76" class="edge dash"/>
+      <text x="230" y="80" class="t s">vs</text>
+      <text x="460" y="26" class="t c b">VECTOR (SVG): instructions</text>
+      <circle cx="460" cy="76" r="36" fill="#138808"/>
+      <text x="460" y="140" class="t c s">enlarged: still a perfect circle</text>
+      <text x="460" y="156" class="t c s mono">&lt;circle cx cy r fill&gt;</text>
+      <text x="310" y="196" class="t c s">same on a phone, a 4K monitor or a printed poster</text>
+    </svg>
+    <figcaption><b>Figure 9.1</b> A raster image is a grid of pixels; a vector image is a recipe for shapes. The recipe can be cooked at any size.</figcaption>
+  </figure>
+  <p>SVG can be used two ways: as a separate file referenced like any image (<code>&lt;img src="logo.svg" alt="LPU"&gt;</code>), or written <b>inline</b> directly inside the HTML as an <code>&lt;svg&gt;</code> element. Inline SVG can be styled with CSS and changed with JavaScript, which is why this book, and most modern sites, use it for icons and diagrams. It is often tiny for simple shapes, and it can be styled: change the <code>stroke</code> colour in DevTools and the drawing updates live.</p>
+</section>
+
+<section id="s2">
+  <h2>9.2 The canvas: svg, width, height and viewBox</h2>
+  <p>The <code>&lt;svg&gt;</code> element creates the drawing area. <code>width</code> and <code>height</code> set the <b>rendered size</b> on the page. <code>viewBox</code> sets the <b>internal coordinate system</b>, the grid the drawing instructions are measured on: <code>viewBox="min-x min-y width height"</code>. So <code>viewBox="0 0 100 100"</code> says "my drawing is described on a 100 &times; 100 grid starting at the top-left"; the browser then maps that grid onto whatever rendered size you gave.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="The SVG coordinate system: origin at top-left, x increases to the right, y increases downward">
+      <rect x="60" y="30" width="200" height="160" fill="#fff" stroke="#0B2545" stroke-width="1.5"/>
+      <g stroke="#E3E9F0"><path d="M100 30 V190 M140 30 V190 M180 30 V190 M220 30 V190 M60 70 H260 M60 110 H260 M60 150 H260"/></g>
+      <circle cx="60" cy="30" r="4" fill="#E07B1E"/><text x="66" y="24" class="t s b" fill="#E07B1E">(0,0) origin</text>
+      <path d="M60 30 L250 30" class="edge saf" marker-end="url(#arr-saf)"/><text x="268" y="34" class="t b" fill="#E07B1E">x</text>
+      <path d="M60 30 L60 180" class="edge saf" marker-end="url(#arr-saf)"/><text x="52" y="200" class="t b" fill="#E07B1E">y</text>
+      <circle cx="180" cy="110" r="5" fill="#138808"/><text x="190" y="106" class="t s">point (120, 80)</text>
+      <text x="160" y="215" class="t c s">y grows DOWNWARD, not up like graph paper</text>
+      <g transform="translate(330,30)">
+        <rect x="0" y="0" width="270" height="160" rx="10" class="box gry"/>
+        <text x="135" y="26" class="t c b">viewBox="0 0 200 100"</text>
+        <text x="135" y="50" class="t c s">coordinates run 0&ndash;200 across, 0&ndash;100 down</text>
+        <text x="135" y="76" class="t c b">width="400"</text>
+        <text x="135" y="98" class="t c s">rendered at 400px wide: every unit = 2px</text>
+        <text x="135" y="124" class="t c s">so a rect width="100" appears 200px wide</text>
+        <text x="135" y="146" class="t c s">and anything past x=200 is clipped</text>
+      </g>
+    </svg>
+    <figcaption><b>Figure 9.2</b> Screen coordinates: the origin is the top-left corner and y increases downward. viewBox defines the grid; width and height define how big that grid is drawn.</figcaption>
+  </figure>
+  <p>Three consequences that are examined:</p>
+  <ul>
+    <li><b>Scaling.</b> Given <code>&lt;svg viewBox="0 0 200 100" width="400"&gt;</code>, the 200-unit-wide grid is drawn 400px wide, so each unit is 2px, and a <code>&lt;rect width="100"&gt;</code> inside it appears <b>200 pixels</b> wide on screen.</li>
+    <li><b>Clipping.</b> Anything outside the viewBox range is simply not drawn. If your viewBox is <code>0 0 100 100</code> and a shape uses coordinates near 500, it is <b>clipped and appears to vanish</b>; no error, no automatic scaling.</li>
+    <li><b>Aspect ratio.</b> When the viewBox and the rendered box have different proportions, <code>preserveAspectRatio</code> controls <b>how the viewBox is scaled and aligned inside the available viewport</b>. The default, <code>xMidYMid meet</code>, keeps the proportions, fits the whole drawing inside and centres it; <code>slice</code> fills the box and crops; <code>none</code> stretches the drawing to fill exactly. It has nothing to do with paint order, colour depth or stroke thickness.</li>
+  </ul>
+  <pre class="code" data-run data-title="Same viewBox, three rendered sizes" data-h="150">&lt;svg viewBox="0 0 100 100" width="50" height="50"&gt;&lt;circle cx="50" cy="50" r="40" fill="orange"/&gt;&lt;/svg&gt;
+&lt;svg viewBox="0 0 100 100" width="100" height="100"&gt;&lt;circle cx="50" cy="50" r="40" fill="orange"/&gt;&lt;/svg&gt;
+&lt;svg viewBox="0 0 100 100" width="130" height="130"&gt;&lt;circle cx="50" cy="50" r="40" fill="orange"/&gt;&lt;/svg&gt;</pre>
+  <p>Notice that inside SVG, void-style elements are closed with a slash (<code>&lt;circle ... /&gt;</code>) because SVG follows XML rules; inline in HTML5 the browser accepts either form, but the slash is the convention.</p>
+</section>
+
+<section id="s3">
+  <h2>9.3 The basic shapes</h2>
+  <p>SVG has six basic shape elements plus <code>path</code>. There is no <code>&lt;triangle&gt;</code>, <code>&lt;oval&gt;</code> or <code>&lt;arc&gt;</code> element: triangles are polygons, ovals are ellipses, arcs are paths.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 200" role="img" aria-label="Gallery of SVG shapes: rect, circle, ellipse, line, polyline, polygon, path, text">
+      <rect x="20" y="30" width="90" height="60" rx="10" fill="#FFF1E0" stroke="#E07B1E" stroke-width="2"/><text x="65" y="120" class="t c mono s">rect (rx=10)</text>
+      <circle cx="175" cy="60" r="32" fill="#E9F7E7" stroke="#138808" stroke-width="2"/><text x="175" y="120" class="t c mono s">circle</text>
+      <ellipse cx="285" cy="60" rx="45" ry="25" fill="#EEF2FF" stroke="#4F46E5" stroke-width="2"/><text x="285" y="120" class="t c mono s">ellipse</text>
+      <line x1="350" y1="90" x2="430" y2="30" stroke="#0B2545" stroke-width="3"/><text x="390" y="120" class="t c mono s">line</text>
+      <polyline points="455,90 480,40 505,80 530,30" fill="none" stroke="#C42B2B" stroke-width="3"/><text x="492" y="120" class="t c mono s">polyline (open)</text>
+      <polygon points="590,30 640,90 540,90" fill="#FFF1E0" stroke="#E07B1E" stroke-width="2"/><text x="590" y="120" class="t c mono s">polygon (closed)</text>
+      <path d="M660 90 Q690 10 715 90" fill="none" stroke="#138808" stroke-width="3"/><text x="688" y="120" class="t c mono s">path</text>
+      <text x="360" y="170" class="t c b" style="font-size:20px">&lt;text&gt; puts words in the drawing</text>
+    </svg>
+    <figcaption><b>Figure 9.3</b> All of these are real inline SVG elements rendered by your browser right now.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Positioning attributes</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;rect&gt;</code></td><td><code>x</code>, <code>y</code> = top-left corner; <code>width</code>, <code>height</code>; <code>rx</code> (and <code>ry</code>) round the corners</td><td><code>&lt;rect x="20" y="25" width="120" height="70" rx="12"/&gt;</code></td></tr>
+      <tr><td><code>&lt;circle&gt;</code></td><td><code>cx</code>, <code>cy</code> = centre; <code>r</code> = radius</td><td><code>&lt;circle cx="70" cy="70" r="40"/&gt;</code></td></tr>
+      <tr><td><code>&lt;ellipse&gt;</code></td><td><code>cx</code>, <code>cy</code> = centre; <code>rx</code>, <code>ry</code> = horizontal and vertical radii. If <code>rx</code> = <code>ry</code> it is a perfect circle</td><td><code>&lt;ellipse cx="50" cy="50" rx="40" ry="20"/&gt;</code></td></tr>
+      <tr><td><code>&lt;line&gt;</code></td><td><code>x1</code>, <code>y1</code> = start; <code>x2</code>, <code>y2</code> = end. <b>Must have a stroke</b> to be visible</td><td><code>&lt;line x1="20" y1="20" x2="240" y2="110" stroke="black"/&gt;</code></td></tr>
+      <tr><td><code>&lt;polyline&gt;</code></td><td><code>points</code> = a list of x,y pairs; the shape stays <b>open</b></td><td><code>&lt;polyline points="0,80 40,20 80,80"/&gt;</code></td></tr>
+      <tr><td><code>&lt;polygon&gt;</code></td><td><code>points</code> as above; the shape is <b>closed automatically</b> back to the first point</td><td><code>&lt;polygon points="50,0 100,100 0,100"/&gt;</code> is a triangle</td></tr>
+      <tr><td><code>&lt;text&gt;</code></td><td><code>x</code>, <code>y</code> = the start of the baseline</td><td><code>&lt;text x="40" y="90"&gt;CSE326&lt;/text&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <p>Note the different vocabularies: a <code>rect</code> is positioned from its <b>top-left corner</b> with <code>x</code> and <code>y</code>, while a <code>circle</code> or <code>ellipse</code> is positioned from its <b>centre</b> with <code>cx</code> and <code>cy</code>. A <code>line</code> has no area, so it has <b>no fill</b>: give it a <code>stroke</code> or it renders as nothing. And <code>polyline</code> versus <code>polygon</code>: the only difference is that polygon closes back to the start point, polyline does not.</p>
+  <pre class="code" data-run data-title="Every basic shape, one drawing" data-h="240">&lt;svg viewBox="0 0 520 180" width="520" height="180" style="border:1px solid #ccc"&gt;
+  &lt;rect x="20" y="30" width="100" height="60" rx="12" fill="#FFF1E0" stroke="#E07B1E" stroke-width="2"/&gt;
+  &lt;circle cx="180" cy="60" r="35" fill="#E9F7E7" stroke="#138808" stroke-width="2"/&gt;
+  &lt;ellipse cx="290" cy="60" rx="50" ry="25" fill="#EEF2FF" stroke="#4F46E5" stroke-width="2"/&gt;
+  &lt;line x1="360" y1="90" x2="440" y2="30" stroke="black" stroke-width="3"/&gt;
+  &lt;polyline points="460,90 480,40 500,80 515,30" fill="none" stroke="red" stroke-width="3"/&gt;
+  &lt;polygon points="70,170 120,110 20,110" fill="gold" stroke="black"/&gt;
+  &lt;path d="M180 170 Q230 100 280 170" fill="none" stroke="green" stroke-width="3"/&gt;
+  &lt;text x="330" y="160" font-size="22" fill="#0B2545"&gt;Campus Map&lt;/text&gt;
+&lt;/svg&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>9.4 Painting: fill and stroke</h2>
+  <p>Two attributes control almost all appearance. <b><code>fill</code> is the colour inside a shape; <code>stroke</code> is the colour of its outline.</b> Both accept any CSS colour: names, hex codes, <code>rgb()</code>. <code>fill="none"</code> makes a shape hollow, which is how open shapes like polylines and curves are normally drawn.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Controls</th><th>Values</th></tr></thead>
+    <tbody>
+      <tr><td><code>fill</code></td><td>Interior colour</td><td><code>orange</code>, <code>#E07B1E</code>, <code>none</code></td></tr>
+      <tr><td><code>stroke</code></td><td>Outline colour</td><td>any colour; default is none (no outline)</td></tr>
+      <tr><td><code>stroke-width</code></td><td><b>Thickness</b> of the outline</td><td>a number, e.g. <code>3</code></td></tr>
+      <tr><td><code>stroke-dasharray</code></td><td>Dashed outline: dash length, gap length</td><td><code>"8,6"</code> = 8-unit dashes with 6-unit gaps</td></tr>
+      <tr><td><code>stroke-linecap</code></td><td>The shape of a line's ends</td><td><code>butt</code> (flat, exactly at the endpoint; the default), <code>round</code>, <code>square</code> (flat but extended by half the width)</td></tr>
+      <tr><td><code>opacity</code>, <code>fill-opacity</code>, <code>stroke-opacity</code></td><td>Transparency</td><td>0 to 1</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 150" role="img" aria-label="Three stroke-linecap values and a dashed line">
+      <line x1="40" y1="40" x2="180" y2="40" stroke="#0B2545" stroke-width="16" stroke-linecap="butt"/><line x1="40" y1="40" x2="180" y2="40" stroke="#FF9933" stroke-width="1"/><text x="110" y="72" class="t c mono s">stroke-linecap="butt"</text><text x="110" y="88" class="t c s">flat, ends exactly at the point</text>
+      <line x1="240" y1="40" x2="380" y2="40" stroke="#0B2545" stroke-width="16" stroke-linecap="round"/><line x1="240" y1="40" x2="380" y2="40" stroke="#FF9933" stroke-width="1"/><text x="310" y="72" class="t c mono s">"round"</text><text x="310" y="88" class="t c s">rounded, extends past</text>
+      <line x1="440" y1="40" x2="580" y2="40" stroke="#0B2545" stroke-width="16" stroke-linecap="square"/><line x1="440" y1="40" x2="580" y2="40" stroke="#FF9933" stroke-width="1"/><text x="510" y="72" class="t c mono s">"square"</text><text x="510" y="88" class="t c s">flat, extends past</text>
+      <line x1="40" y1="120" x2="580" y2="120" stroke="#138808" stroke-width="4" stroke-dasharray="8,6"/><text x="310" y="142" class="t c mono s">stroke-dasharray="8,6": dashes 8 long, gaps 6 long</text>
+    </svg>
+    <figcaption><b>Figure 9.4</b> The thin orange line marks the true endpoints. Only <code>butt</code> ends flat exactly there; the other two caps extend beyond it.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="fill, stroke and dashes" data-h="150">&lt;svg viewBox="0 0 400 100" width="400" height="100"&gt;
+  &lt;rect x="10" y="10" width="110" height="80" fill="#FFF1E0" stroke="#E07B1E" stroke-width="4"/&gt;
+  &lt;circle cx="200" cy="50" r="38" fill="none" stroke="#138808" stroke-width="6" stroke-dasharray="8,6"/&gt;
+  &lt;line x1="270" y1="20" x2="390" y2="80" stroke="#0B2545" stroke-width="10" stroke-linecap="round"/&gt;
+&lt;/svg&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>9.5 The path element</h2>
+  <p><code>&lt;path&gt;</code> draws anything: its <code>d</code> attribute is a tiny language of commands, each a letter followed by numbers. You do not need to master curves for this course, but you must be able to read the straight-line commands and know what <code>Z</code> and lowercase letters mean.</p>
+  <table class="tbl">
+    <thead><tr><th>Command</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>M x y</code></td><td><b>Move</b> the pen to (x, y) without drawing</td></tr>
+      <tr><td><code>L x y</code></td><td>Draw a straight <b>line</b> to (x, y)</td></tr>
+      <tr><td><code>H x</code></td><td>Draw a <b>horizontal</b> line to the given x coordinate</td></tr>
+      <tr><td><code>V y</code></td><td>Draw a <b>vertical</b> line to the given y coordinate</td></tr>
+      <tr><td><code>Q cx cy x y</code></td><td>Quadratic curve to (x, y) bending toward the control point (cx, cy)</td></tr>
+      <tr><td><code>C ...</code>, <code>A ...</code></td><td>Cubic curves and elliptical arcs (advanced)</td></tr>
+      <tr><td><code>Z</code></td><td><b>Close</b> the path: draw a straight line back to the start point</td></tr>
+    </tbody>
+  </table>
+  <p><b>Uppercase commands use absolute coordinates; lowercase commands are relative to the current pen position.</b> <code>L 100 50</code> goes to the point (100, 50); <code>l 100 50</code> goes 100 to the right and 50 down from wherever the pen is. Lowercase is not invalid and not identical to uppercase; it is relative.</p>
+  <pre class="code" data-run data-title="Reading path commands" data-h="170">&lt;svg viewBox="0 0 360 120" width="360" height="120" style="border:1px solid #ccc"&gt;
+  &lt;!-- M: move to (10,100); L: line to (60,20); H: horizontal to x=110; V: vertical to y=100; Z: close --&gt;
+  &lt;path d="M10 100 L60 20 H110 V100 Z" fill="#FFF1E0" stroke="#E07B1E" stroke-width="3"/&gt;
+  &lt;!-- the same shape with RELATIVE (lowercase) commands, moved to the right --&gt;
+  &lt;path d="M140 100 l50 -80 h50 v80 z" fill="#E9F7E7" stroke="#138808" stroke-width="3"/&gt;
+  &lt;!-- Q: a curve from (250,100) to (350,100) pulled toward (300,10) --&gt;
+  &lt;path d="M250 100 Q300 10 350 100" fill="none" stroke="#0B2545" stroke-width="3"/&gt;
+&lt;/svg&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>9.6 Text, groups and accessibility</h2>
+  <p><code>&lt;text x y&gt;</code> places a text label inside the drawing; <code>font-size</code>, <code>fill</code> and <code>text-anchor="middle"</code> style and centre it. <code>&lt;g&gt;</code> groups elements so they can be moved or styled together (<code>&lt;g transform="translate(50,20)"&gt;</code>).</p>
+  <p>An inline SVG has no <code>alt</code> attribute; <code>alt</code> exists only on <code>img</code>, <code>area</code> and <code>input</code>. To describe an inline SVG for screen readers, give the <code>&lt;svg&gt;</code> element <b><code>role="img"</code> and an <code>aria-label</code></b> (or a <code>&lt;title&gt;</code> element as its first child). A decorative SVG gets <code>aria-hidden="true"</code>.</p>
+  <pre class="code" data-run data-title="An accessible, labelled badge" data-h="150">&lt;svg viewBox="0 0 200 100" width="200" height="100" role="img" aria-label="CSE326 badge: a green circle with the course code"&gt;
+  &lt;circle cx="50" cy="50" r="40" fill="#138808"/&gt;
+  &lt;text x="50" y="57" font-size="18" fill="white" text-anchor="middle"&gt;326&lt;/text&gt;
+  &lt;g transform="translate(110,0)"&gt;
+    &lt;rect x="0" y="30" width="80" height="40" rx="8" fill="#FF9933"/&gt;
+    &lt;text x="40" y="56" font-size="16" fill="white" text-anchor="middle"&gt;CSE&lt;/text&gt;
+  &lt;/g&gt;
+&lt;/svg&gt;</pre>
+</section>
+
+<section id="s7">
+  <h2>9.7 Worked examples</h2>
+  <p><b>Draw a circle of radius 40 centred at (70, 70).</b> Centre means <code>cx</code>/<code>cy</code>, radius means <code>r</code>: <code>&lt;circle cx="70" cy="70" r="40"/&gt;</code>. Not <code>x</code>/<code>y</code> (those belong to rect), not <code>&lt;ellipse ... r&gt;</code> (ellipse uses rx/ry), not <code>&lt;rect cx cy r&gt;</code>.</p>
+  <p><b>What does <code>&lt;ellipse cx="50" cy="50" rx="40" ry="40"/&gt;</code> render?</b> Equal radii: <b>a perfect circle</b>.</p>
+  <p><b>Draw a triangle.</b> A closed three-point shape is a polygon: <code>&lt;polygon points="50,0 100,100 0,100"/&gt;</code>. A polyline with the same points would leave the last side open; rect and path do not take a <code>points</code> attribute.</p>
+  <p><b>Why does my line not show?</b> A <code>&lt;line&gt;</code> has no area, so it has no fill; without a <code>stroke</code> it is invisible. Add <code>stroke="black"</code>.</p>
+  <p><b>Why did my shape vanish?</b> Its coordinates (near 500) are outside the <code>viewBox="0 0 100 100"</code>; it is clipped. Enlarge the viewBox or move the shape.</p>
+  <p><b>How wide is it on screen?</b> <code>&lt;svg viewBox="0 0 200 100" width="400"&gt;</code> draws 200 units in 400px: 2px per unit. A <code>rect width="100"</code> shows as 200px.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>What does SVG stand for, and why does an SVG stay sharp when enlarged?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: Scalable Vector Graphics.</b> It stores drawing instructions, not a pixel grid, so the browser re-draws the shapes at whatever size is needed.</p></div></details>
+  <details class="q"><summary>Why is SVG preferred over JPG for a company logo?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. SVG files are always smaller than JPG files</li><li>B. SVG supports a wider range of colours</li><li>C. SVG stays sharp at any zoom level or screen size</li><li>D. SVG cannot be copied by users</li></ul>
+    <p><b>Answer: C.</b> Logos are shapes; vectors scale without blur.</p></div></details>
+  <details class="q"><summary>What does viewBox="0 0 100 100" define on an &lt;svg&gt; element?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The colour palette used by the drawing</li><li>B. The internal coordinate space the drawing is mapped into</li><li>C. The border thickness of the SVG canvas</li><li>D. The animation duration in seconds</li></ul>
+    <p><b>Answer: B.</b> width and height set the rendered size; viewBox sets the coordinate grid.</p></div></details>
+  <details class="q"><summary>In SVG, which way does the y axis grow?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: downward from the top-left.</b> Screen coordinates, not graph paper.</p></div></details>
+  <details class="q"><summary>Given &lt;svg viewBox="0 0 200 100" width="400"&gt;, a &lt;rect width="100"&gt; inside it appears how many pixels wide on screen?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 400</li><li>B. 100</li><li>C. 200</li><li>D. 50</li></ul>
+    <p><b>Answer: C.</b> 200 units are drawn in 400px, so 1 unit = 2px and 100 units = 200px.</p></div></details>
+  <details class="q"><summary>Your shape uses coordinates near 500 but viewBox is "0 0 100 100". What happens?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it is clipped and appears to vanish. Anything outside the viewBox range is not drawn; nothing scales automatically and no error is shown.</p></div></details>
+  <details class="q"><summary>What does the preserveAspectRatio attribute on an &lt;svg&gt; control?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The order in which shapes are painted</li><li>B. The colour depth of the rendered graphic</li><li>C. The thickness of every stroke in the drawing</li><li>D. How the viewBox is scaled and aligned inside the available viewport</li></ul>
+    <p><b>Answer: D.</b> The default xMidYMid meet fits and centres; none stretches; slice fills and crops.</p></div></details>
+  <details class="q"><summary>Which SVG element draws a circle of radius 40 centred at (70, 70)?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;circle x="70" y="70" r="40" /&gt;</li><li>B. &lt;circle cx="70" cy="70" r="40" /&gt;</li><li>C. &lt;ellipse cx="70" cy="70" r="40" /&gt;</li><li>D. &lt;rect cx="70" cy="70" r="40" /&gt;</li></ul>
+    <p><b>Answer: B.</b> Circles use cx, cy and r.</p></div></details>
+  <details class="q"><summary>Which attributes position an SVG &lt;rect&gt; from its top-left corner?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. x and y</li><li>B. cx and cy</li><li>C. rx and ry</li><li>D. x1 and y1</li></ul>
+    <p><b>Answer: A.</b> cx/cy are centres (circle, ellipse); rx/ry are corner radii on rect; x1/y1 belong to line.</p></div></details>
+  <details class="q"><summary>Which SVG attribute rounds the corners of a &lt;rect&gt; element?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. radius</li><li>B. r</li><li>C. rx</li><li>D. corner</li></ul>
+    <p><b>Answer: C.</b> rx (with optional ry). r is a circle's radius.</p></div></details>
+  <details class="q"><summary>Which attribute pair sets the two endpoints of an SVG &lt;line&gt;, and why must a line always be given a stroke?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> x1, y1 and x2, y2. A line has no fill, so stroke is the only way it becomes visible.</p></div></details>
+  <details class="q"><summary>Which SVG element draws an ellipse, and what does &lt;ellipse cx="50" cy="50" rx="40" ry="40" /&gt; render?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: &lt;ellipse&gt;</b> (there is no oval or arc element); with rx equal to ry it renders a perfect circle.</p></div></details>
+  <details class="q"><summary>How does &lt;polyline&gt; differ from &lt;polygon&gt;?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;polyline&gt; supports curves while &lt;polygon&gt; does not</li><li>B. &lt;polyline&gt; does not automatically close back to the start point; &lt;polygon&gt; does</li><li>C. &lt;polygon&gt; is limited to exactly three points</li><li>D. There is no functional difference between them</li></ul>
+    <p><b>Answer: B.</b> Both take a points list; only polygon closes the shape.</p></div></details>
+  <details class="q"><summary>Which SVG element and points list draws a triangle?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;polygon points="50,0 100,100 0,100" /&gt;</code>. polyline would leave it open; rect and path have no points attribute; there is no &lt;triangle&gt; element.</p></div></details>
+  <details class="q"><summary>Which of the following is NOT a valid SVG basic shape element: polygon, triangle, ellipse, polyline?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: triangle.</b> Triangles are drawn with polygon (or path).</p></div></details>
+  <details class="q"><summary>In SVG, fill and stroke respectively control:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The inside colour and the outline colour of a shape</li><li>B. The outline colour and the inside colour of a shape</li><li>C. The shape's width and its height</li><li>D. The shape's opacity and its rotation</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Which SVG attribute sets the thickness of a shape's outline?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. line-width</li><li>B. fill-width</li><li>C. border-width</li><li>D. stroke-width</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>What does stroke-dasharray="8,6" produce on an SVG line?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> dashes 8 units long separated by 6-unit gaps.</p></div></details>
+  <details class="q"><summary>Which stroke-linecap value ends an SVG line flat and exactly at its endpoint?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. flat</li><li>B. round</li><li>C. square</li><li>D. butt</li></ul>
+    <p><b>Answer: D.</b> butt is the default; square is also flat but extends beyond the endpoint; round is rounded.</p></div></details>
+  <details class="q"><summary>Which command in an SVG &lt;path&gt; d attribute draws a horizontal line to a given x coordinate, and what does Z do?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: H</b> draws horizontally to x (V is vertical, L is a line to x,y, M moves). <b>Z</b> draws a straight line back to the start point, closing the path.</p></div></details>
+  <details class="q"><summary>Lowercase commands in a &lt;path&gt; d attribute (for example l instead of L) are interpreted as:<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> relative to the current pen position. They are valid and differ from uppercase, which is absolute.</p></div></details>
+  <details class="q"><summary>Which SVG element places a text label inside a drawing?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;tspan&gt;</li><li>B. &lt;label&gt;</li><li>C. &lt;text&gt;</li><li>D. &lt;caption&gt;</li></ul>
+    <p><b>Answer: C.</b> (tspan is a span inside text; label and caption are HTML elements.)</p></div></details>
+  <details class="q"><summary>How do you give an inline &lt;svg&gt; an accessible description?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> role="img" with aria-label (or a title child). alt exists only on img, area and input.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>SVG = Scalable Vector Graphics: instructions, not pixels; sharp at any size; ideal for logos, icons and diagrams.</li>
+    <li>width/height = rendered size; viewBox = coordinate grid (origin top-left, y down). Units scale (viewBox 200 wide at width 400: 2px per unit); shapes outside the viewBox are clipped; preserveAspectRatio (default xMidYMid meet) controls fit and alignment.</li>
+    <li>rect x y width height rx; circle cx cy r; ellipse cx cy rx ry (rx=ry is a circle); line x1 y1 x2 y2 (needs stroke); polyline points (open); polygon points (closed; triangle); text x y.</li>
+    <li>fill = inside; stroke = outline; stroke-width, stroke-dasharray "8,6", stroke-linecap butt/round/square.</li>
+    <li>path d: M move, L line, H horizontal, V vertical, Q curve, Z close; lowercase = relative.</li>
+    <li>Accessibility: role="img" + aria-label on inline SVG.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Shape</th><th>Key attributes</th></tr></thead>
+    <tbody>
+      <tr><td>rect</td><td>x, y, width, height, rx</td></tr>
+      <tr><td>circle</td><td>cx, cy, r</td></tr>
+      <tr><td>ellipse</td><td>cx, cy, rx, ry</td></tr>
+      <tr><td>line</td><td>x1, y1, x2, y2 + stroke</td></tr>
+      <tr><td>polyline / polygon</td><td>points (open / closed)</td></tr>
+      <tr><td>path</td><td>d = "M L H V Q C A Z"</td></tr>
+      <tr><td>text</td><td>x, y, font-size, text-anchor</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

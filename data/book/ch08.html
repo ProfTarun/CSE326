@@ -1,0 +1,311 @@
+<article class="chapter" data-ch="8">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 8 &middot; Hyperlinks and Images</p>
+  <h1>Hyperlinks and Images</h1>
+  <p class="lead">Links are what make the Web a web, and images are what make it worth looking at. This chapter covers the anchor element and every kind of URL it can point to, the rules for relative paths that break so many deployed sites, the image element and the art of writing alt text, and the HTML5 tools for responsive images.</p>
+  <p class="meta">About 23 minutes &middot; Course outcome CO1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write links to other pages, to places on the same page, to email addresses and phone numbers.</li>
+      <li>Resolve relative paths, including <code>../</code> and root-relative <code>/</code>.</li>
+      <li>Use <code>target</code>, <code>rel</code>, <code>download</code> and <code>title</code> correctly and safely.</li>
+      <li>Embed images with <code>src</code>, <code>alt</code>, <code>width</code>, <code>height</code> and <code>loading</code>, and write good alt text for every kind of image.</li>
+      <li>Use <code>figure</code>/<code>figcaption</code>, <code>picture</code>, <code>srcset</code> and <code>sizes</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>8.1 The anchor element</h2>
+  <p>A hyperlink is created with the <b>anchor</b> element, <code>&lt;a&gt;</code>. Its <code>href</code> attribute (<i>hypertext reference</i>) holds the destination; the content between the tags is the clickable text. Without an <code>href</code> an anchor is just text: it goes nowhere.</p>
+  <pre class="code" data-run data-title="A basic link" data-h="110">&lt;p&gt;Read the &lt;a href="https://developer.mozilla.org/"&gt;MDN documentation&lt;/a&gt; for every element.&lt;/p&gt;</pre>
+  <p>Do not confuse <code>&lt;a&gt;</code> with <code>&lt;link&gt;</code>: <code>&lt;link&gt;</code> lives in the head and attaches a stylesheet or icon; it never creates a clickable link. And there is no <code>&lt;href&gt;</code> or <code>&lt;url&gt;</code> element.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 170" role="img" aria-label="Anatomy of an anchor: href, target, rel, and link text">
+      <g class="mono" style="font-size:17px;font-weight:700">
+        <text x="16" y="60" fill="#E07B1E">&lt;a</text>
+        <text x="46" y="60" fill="#4F46E5">href="pricing.html"</text>
+        <text x="256" y="60" fill="#138808">target="_blank"</text>
+        <text x="426" y="60" fill="#0B2545">rel="noopener"&gt;</text>
+      </g>
+      <g class="mono" style="font-size:17px;font-weight:700"><text x="16" y="96" fill="#0B2545">View our pricing plans</text><text x="260" y="96" fill="#E07B1E">&lt;/a&gt;</text></g>
+      <text x="150" y="126" class="t c s" fill="#4F46E5">where it goes (required)</text>
+      <text x="340" y="126" class="t c s" fill="#138808">where it opens</text>
+      <text x="520" y="126" class="t c s">relationship / safety</text>
+      <text x="140" y="152" class="t c s">link text: describe the destination, never "click here"</text>
+    </svg>
+    <figcaption><b>Figure 8.1</b> The parts of a link. Only <code>href</code> is essential; the others refine behaviour.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>8.2 What href can point to</h2>
+  <h3>Absolute URLs: another site</h3>
+  <p>An absolute URL includes the protocol and domain: <code>&lt;a href="https://github.com"&gt;GitHub&lt;/a&gt;</code>. Use it for external sites. It means the same thing wherever it is written.</p>
+  <h3>Relative URLs: your own pages</h3>
+  <p>A relative URL omits the protocol and domain and is resolved against the address of the page it appears on. Within your own site always use relative links: they are shorter, they work on your laptop and on the live server alike, and the whole site can move to another domain without editing a single link.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="A site folder tree with relative path examples">
+      <rect x="20" y="16" width="270" height="220" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <g class="mono" style="font-size:13px" fill="#14243B">
+        <text x="36" y="42" font-weight="700">site/</text>
+        <text x="56" y="66">index.html</text>
+        <text x="56" y="90">about.html</text>
+        <text x="56" y="114" font-weight="700">images/</text>
+        <text x="76" y="138">campus.jpg</text>
+        <text x="56" y="162" font-weight="700">courses/</text>
+        <text x="76" y="186" fill="#E07B1E" font-weight="700">web.html  &#8592; you are here</text>
+        <text x="76" y="210">css.html</text>
+      </g>
+      <g style="font-size:12.5px" fill="#3C4A60">
+        <text x="310" y="42" font-weight="800" fill="#14243B">From courses/web.html:</text>
+        <text x="310" y="70"><tspan font-family="Cascadia Code,Consolas,monospace" fill="#4F46E5">css.html</tspan> &#8594; same folder</text>
+        <text x="310" y="96"><tspan font-family="Cascadia Code,Consolas,monospace" fill="#4F46E5">../about.html</tspan> &#8594; up one, then about</text>
+        <text x="310" y="122"><tspan font-family="Cascadia Code,Consolas,monospace" fill="#4F46E5">../images/campus.jpg</tspan> &#8594; up, into images</text>
+        <text x="310" y="148"><tspan font-family="Cascadia Code,Consolas,monospace" fill="#4F46E5">/index.html</tspan> &#8594; from the site root</text>
+        <text x="310" y="174"><tspan font-family="Cascadia Code,Consolas,monospace" fill="#4F46E5">./css.html</tspan> &#8594; same as css.html</text>
+        <text x="310" y="210" fill="#6B7A90">../ = parent directory &middot; ./ = current directory</text>
+        <text x="310" y="228" fill="#6B7A90">a leading / = the site root</text>
+      </g>
+    </svg>
+    <figcaption><b>Figure 8.2</b> Relative paths are read from the folder of the current page. <code>../</code> means "go up to the parent directory".</figcaption>
+  </figure>
+  <ul>
+    <li><code>about.html</code>: a file in the <b>same folder</b> as the current page.</li>
+    <li><code>images/campus.jpg</code>: inside a sub-folder of the current folder.</li>
+    <li><code>../about.html</code>: <b><code>../</code> moves up to the parent directory</b>, then finds the file there. It does not mean the site root and it does not mean an external site.</li>
+    <li><code>/index.html</code>: a leading slash means <b>start from the site root</b>, whatever folder the current page is in.</li>
+  </ul>
+  <div class="callout warn"><b>The GitHub Pages trap.</b> A site that works on your laptop but whose links and images all break once deployed almost always has one of two bugs: wrong relative paths (a path that worked because of where you opened the file locally), or <b>capitalisation</b>. Windows ignores case, but the web server is <b>case-sensitive</b>: <code>About.html</code> and <code>about.html</code>, <code>Photo.JPG</code> and <code>photo.jpg</code>, are different files there. Keep every file name lowercase and check each path.</div>
+  <h3>Fragment links: a place on the same page</h3>
+  <p><code>href="#contact"</code> jumps to the element on the current page whose <code>id</code> is <code>contact</code>. It needs two halves: the link, and an element with the matching id. If no element has <code>id="contact"</code>, the click <b>silently does nothing</b>. You can combine a page and a fragment: <code>about.html#team</code>.</p>
+  <pre class="code" data-run data-title="A fragment link and its target" data-h="200">&lt;p&gt;&lt;a href="#contact"&gt;Go to the contact section&lt;/a&gt;&lt;/p&gt;
+&lt;p style="height: 300px"&gt;(imagine a long page here)&lt;/p&gt;
+&lt;section id="contact"&gt;
+  &lt;h2&gt;Contact&lt;/h2&gt;
+  &lt;p&gt;cse326@example.edu&lt;/p&gt;
+&lt;/section&gt;</pre>
+  <h3>Email and telephone links</h3>
+  <p>Two special schemes hand the link to another application. <code>href="mailto:help@example.com"</code> <b>opens the user's email client</b> with a new message addressed to that address. <code>href="tel:+919876543210"</code> lets a mobile user <b>dial the number</b> with one tap. The schemes are exactly <code>mailto:</code> and <code>tel:</code>; there is no <code>email:</code>, <code>mail:</code>, <code>call:</code> or <code>phone:</code>.</p>
+  <pre class="code">&lt;a href="mailto:help@example.com"&gt;Email the helpdesk&lt;/a&gt;
+&lt;a href="tel:+911234567890"&gt;Call the helpdesk&lt;/a&gt;</pre>
+</section>
+
+<section id="s3">
+  <h2>8.3 target, rel, download and title</h2>
+  <dl>
+    <dt><code>target="_blank"</code></dt>
+    <dd>Opens the link in a <b>new tab</b> (a new browsing context). The default, <code>target="_self"</code>, opens it in the same tab. Use a new tab sparingly and deliberately: users expect links to stay in the tab unless there is a reason.</dd>
+    <dt><code>rel="noopener noreferrer"</code></dt>
+    <dd><code>rel</code> describes the <b>relationship between the current page and the linked document</b>. Its most important use: when you open <b>untrusted</b> content with <code>target="_blank"</code>, add <code>rel="noopener noreferrer"</code>. Without <code>noopener</code>, the new page can reach back through <code>window.opener</code> and script your tab, for example replacing it with a fake login page. <code>noreferrer</code> also stops the new site learning which page you came from. It does not make the link load faster and is not needed for the link to work; it is a safety measure.</dd>
+    <dt><code>download</code></dt>
+    <dd>Prompts the browser to <b>save the linked file instead of opening it</b>: <code>&lt;a href="syllabus.pdf" download&gt;Download the syllabus&lt;/a&gt;</code>. An optional value suggests a file name.</dd>
+    <dt><code>title</code></dt>
+    <dd>Advisory text shown as a tooltip when hovering. It is a supplement; never rely on it to explain a link, because touch-screen and keyboard users may never see it.</dd>
+  </dl>
+  <pre class="code" data-run data-title="target, rel and download together" data-h="130">&lt;a href="https://example.com" target="_blank" rel="noopener noreferrer"&gt;Open example.com in a new tab&lt;/a&gt;
+&lt;br&gt;
+&lt;a href="data:text/plain,Hello%20CSE326" download="hello.txt"&gt;Download a text file&lt;/a&gt;</pre>
+  <h3>Link text that works</h3>
+  <p>Link text should <b>describe the destination</b>. Screen-reader users often list all the links on a page; "click here, here, more, &gt;&gt;" tells them nothing, while "View our pricing plans" tells them everything. Search engines use link text the same way. So <code>&lt;a href="pricing.html"&gt;View our pricing plans&lt;/a&gt;</code> beats "Click here", "More" and "&gt;&gt;" for both accessibility and SEO, and "Download the CSE326 syllabus (PDF)" beats "here".</p>
+  <div class="callout"><b>Link or button?</b> If activating it takes the user <i>somewhere</i> (a page, a section, an email), use <code>&lt;a href&gt;</code>. If it <i>performs an action</i> (submit, save, open a menu), use <code>&lt;button&gt;</code>. An <code>&lt;a href="#"&gt;</code> pretending to be a button, or a div pretending to be a link, breaks keyboard and screen-reader behaviour.</div>
+</section>
+
+<section id="s4">
+  <h2>8.4 The image element</h2>
+  <p><code>&lt;img&gt;</code> embeds an image. It is a <b>void element</b> (no closing tag) and it takes two attributes you should treat as mandatory: <code>src</code>, <b>the resource location</b> (a relative path such as <code>images/campus.jpg</code> or an absolute URL), and <code>alt</code>, <b>a meaningful text alternative</b>.</p>
+  <pre class="code" data-run data-title="An image with src and alt" data-h="120">&lt;img src="https://picsum.photos/id/1015/300/160" alt="A river winding between forested mountains"&gt;
+&lt;p&gt;Break the src on purpose to see the alt text appear:&lt;/p&gt;
+&lt;img src="missing-file.jpg" alt="Main campus building at sunset"&gt;</pre>
+  <p><code>alt</code> does three jobs at once: a screen reader <b>reads it aloud</b> to a blind user; the browser <b>displays it if the image fails to load</b>; and search engines use it to <b>index the image</b>. An image written with no <code>alt</code> at all leaves a screen-reader user with nothing useful, often just the file name read out.</p>
+  <h3>Writing alt text</h3>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Flowchart for deciding alt text">
+      <rect x="215" y="10" width="190" height="36" rx="18" class="box saf"/><text x="310" y="33" class="t c b">what does the image do?</text>
+      <path d="M310 46 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 66 L430 104 L310 142 L190 104 Z" class="dec"/><text x="310" y="100" class="t c b">purely decorative,</text><text x="310" y="116" class="t c b">adds no information?</text>
+      <path d="M430 104 L520 104" class="edge" marker-end="url(#arr)"/><text x="475" y="96" class="t c s">yes</text>
+      <rect x="520" y="82" width="90" height="44" rx="10" class="box gry"/><text x="565" y="102" class="t c b mono">alt=""</text><text x="565" y="118" class="t c s">empty, but present</text>
+      <path d="M310 142 L310 162" class="edge" marker-end="url(#arr)"/><text x="335" y="158" class="t s">no</text>
+      <path d="M310 166 L430 204 L310 242 L190 204 Z" class="dec"/><text x="310" y="200" class="t c b">is it a control</text><text x="310" y="216" class="t c b">(icon button, logo link)?</text>
+      <path d="M430 204 L520 204" class="edge" marker-end="url(#arr)"/><text x="475" y="196" class="t c s">yes</text>
+      <rect x="520" y="182" width="90" height="44" rx="10" class="box blu"/><text x="565" y="202" class="t c b">the action</text><text x="565" y="218" class="t c s">"Print", "Home"</text>
+      <path d="M190 204 L100 204" class="edge" marker-end="url(#arr)"/><text x="145" y="196" class="t c s">no</text>
+      <rect x="10" y="182" width="90" height="44" rx="10" class="box grn"/><text x="55" y="202" class="t c b">describe it</text><text x="55" y="218" class="t c s">what it shows</text>
+    </svg>
+    <figcaption><b>Figure 8.3</b> Alt text depends on the image's purpose: describe informative images, name the action for functional ones, and use an empty alt for decoration.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Kind of image</th><th>Alt text</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Informative (a photo, a chart)</td><td>Describe the useful information</td><td><code>alt="Students working in a computer laboratory"</code></td></tr>
+      <tr><td>Purely decorative (a divider, a background flourish)</td><td><b><code>alt=""</code></b>: empty but <i>present</i>, so the screen reader skips it silently. Omitting the attribute is wrong; <code>alt="decorative image"</code> is noise</td><td><code>&lt;img src="swirl.png" alt=""&gt;</code></td></tr>
+      <tr><td>Functional (an icon used as a button or link)</td><td>Describe the <b>action</b>, not the picture: a printer icon that prints gets <code>alt="Print"</code>, not "printer icon"</td><td><code>&lt;button&gt;&lt;img src="printer.svg" alt="Print"&gt;&lt;/button&gt;</code></td></tr>
+      <tr><td>A logo carrying the organisation's name</td><td>The organisation's name</td><td><code>&lt;img src="logo.svg" alt="Lovely Professional University"&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <p>Good alt text describes <i>purpose</i>, not "image" or "photo": <code>alt="Students entering the library"</code> beats <code>alt="photo"</code>.</p>
+  <h3>width, height and loading</h3>
+  <p>Give every image its <code>width</code> and <code>height</code> in pixels. The browser then <b>reserves the space while the file downloads</b>, so the page does not jump about as images arrive (the effect is called <i>cumulative layout shift</i>). It does not make the file smaller or sharper; it prevents the jump. For images far down a long page, add <code>loading="lazy"</code>: the browser <b>defers fetching them until the user scrolls near</b>, a real performance win. (There is no <code>defer</code>, <code>async</code> or <code>preload="none"</code> on images.)</p>
+  <pre class="code">&lt;img src="campus.jpg" alt="Main campus building" width="500" height="300" loading="lazy"&gt;</pre>
+  <h3>Making an image a link</h3>
+  <p>Put the <code>&lt;img&gt;</code> inside an <code>&lt;a&gt;</code>: <code>&lt;a href="index.html"&gt;&lt;img src="logo.svg" alt="LPU home"&gt;&lt;/a&gt;</code>. There is no <code>href</code> on an image and no <code>&lt;imglink&gt;</code> element. The alt text becomes the link text, so it should say where the link goes.</p>
+  <h3>Image formats in one table</h3>
+  <table class="tbl">
+    <thead><tr><th>Format</th><th>Best for</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>JPG / JPEG</td><td>Photographs</td><td>Small files, lossy, no transparency</td></tr>
+      <tr><td>PNG</td><td>Screenshots, graphics with sharp edges, transparency</td><td>Lossless, larger</td></tr>
+      <tr><td>GIF</td><td>Simple animations</td><td>256 colours only</td></tr>
+      <tr><td>WebP / AVIF</td><td>Modern replacement for JPG and PNG</td><td>Smaller at the same quality</td></tr>
+      <tr><td>SVG</td><td>Logos, icons, diagrams</td><td>Vector: sharp at any size (Chapter 9)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s5">
+  <h2>8.5 figure and figcaption</h2>
+  <p>When an image (or a diagram, chart or code listing) is a <b>self-contained unit with a caption</b>, wrap it in <code>&lt;figure&gt;</code> and put the caption in <code>&lt;figcaption&gt;</code>. The caption is part of the figure, and assistive technology associates the two. This is exactly the markup this book uses for its own diagrams.</p>
+  <pre class="code" data-run data-title="A figure with its caption" data-h="230">&lt;figure&gt;
+  &lt;img src="https://picsum.photos/id/1011/320/180" alt="A person kayaking on a calm lake" width="320" height="180"&gt;
+  &lt;figcaption&gt;Figure 1: Morning practice on the lake.&lt;/figcaption&gt;
+&lt;/figure&gt;</pre>
+  <p>Do not mix this up with <code>&lt;caption&gt;</code>, which is the title of a <i>table</i> (Chapter 19), or with <code>&lt;picture&gt;</code>, which is about choosing between image files, not captioning.</p>
+</section>
+
+<section id="s6">
+  <h2>8.6 Responsive images: srcset, sizes and picture</h2>
+  <p>A phone on mobile data should not download the 2000-pixel image that a desktop needs. HTML5 gives two tools.</p>
+  <h3>srcset and sizes: let the browser pick a file</h3>
+  <p><code>srcset</code> <b>lists several image files with their widths</b>, so the browser can choose the one suited to the display: <code>srcset="small.jpg 480w, large.jpg 1200w"</code>. The <code>sizes</code> attribute tells the browser <b>how wide the image will be displayed</b> (for example "100vw" on small screens, "600px" otherwise), which is what it needs to pick a file from <code>srcset</code>. Note the division of labour: <code>srcset</code> lists candidates, <code>sizes</code> states the displayed width; neither gives file sizes or an aspect ratio.</p>
+  <pre class="code">&lt;img src="campus-800.jpg"
+     srcset="campus-480.jpg 480w, campus-800.jpg 800w, campus-1200.jpg 1200w"
+     sizes="(max-width: 600px) 100vw, 600px"
+     alt="Main campus"&gt;</pre>
+  <h3>picture: different images for different conditions</h3>
+  <p><code>&lt;picture&gt;</code> <b>offers several image sources for different conditions</b>, each in a <code>&lt;source&gt;</code> with a <code>media</code> query or a <code>type</code>, <b>with an <code>&lt;img&gt;</code> inside as the required fallback</b>. The browser takes the first source whose condition matches; if none does, or the browser is old, it uses the <code>&lt;img&gt;</code>. It can hold many sources, it does not replace <code>&lt;img&gt;</code>, and it is not for captions.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="How picture chooses a source">
+      <rect x="20" y="20" width="240" height="160" rx="12" class="box"/>
+      <text x="140" y="46" class="t c b mono">&lt;picture&gt;</text>
+      <rect x="35" y="60" width="210" height="28" rx="6" class="box saf"/><text x="140" y="79" class="t c mono" style="font-size:10px">&lt;source media="(max-width:600px)"&gt;</text>
+      <rect x="35" y="96" width="210" height="28" rx="6" class="box saf"/><text x="140" y="115" class="t c mono" style="font-size:11px">&lt;source type="image/webp"&gt;</text>
+      <rect x="35" y="132" width="210" height="28" rx="6" class="box grn"/><text x="140" y="151" class="t c mono" style="font-size:11px">&lt;img src="desktop.jpg" alt&gt;</text>
+      <path d="M265 74 L330 74" class="edge saf" marker-end="url(#arr-saf)"/><text x="345" y="78" class="t s">phone? use mobile.jpg</text>
+      <path d="M265 110 L330 110" class="edge saf" marker-end="url(#arr-saf)"/><text x="345" y="114" class="t s">supports WebP? use it</text>
+      <path d="M265 146 L330 146" class="edge grn" marker-end="url(#arr-grn)"/><text x="345" y="142" class="t s">otherwise, or old browser:</text><text x="345" y="158" class="t s">the img fallback (required)</text>
+      <text x="310" y="190" class="t c s">first matching source wins, checked top to bottom</text>
+    </svg>
+    <figcaption><b>Figure 8.4</b> The browser walks the sources in order and takes the first match; the <code>img</code> is both the fallback and the element that actually displays the chosen file.</figcaption>
+  </figure>
+  <pre class="code">&lt;picture&gt;
+  &lt;source media="(max-width: 600px)" srcset="mobile.jpg"&gt;
+  &lt;img src="desktop.jpg" alt="Campus"&gt;
+&lt;/picture&gt;</pre>
+</section>
+
+<section id="s7">
+  <h2>8.7 Worked example: a small linked gallery page</h2>
+  <pre class="code" data-run data-title="Links and images together" data-h="330">&lt;nav aria-label="Main"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="index.html"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="#gallery"&gt;Gallery&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="mailto:photos@example.edu"&gt;Email the club&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="https://en.wikipedia.org/wiki/Photography" target="_blank" rel="noopener noreferrer"&gt;About photography (new tab)&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;
+&lt;section id="gallery"&gt;
+  &lt;h2&gt;Photo club gallery&lt;/h2&gt;
+  &lt;figure&gt;
+    &lt;a href="https://picsum.photos/id/1039/1200/800"&gt;
+      &lt;img src="https://picsum.photos/id/1039/300/200" alt="Waterfall in a green valley" width="300" height="200" loading="lazy"&gt;
+    &lt;/a&gt;
+    &lt;figcaption&gt;Click the photo to open the full-size version.&lt;/figcaption&gt;
+  &lt;/figure&gt;
+  &lt;img src="divider.png" alt="" width="300" height="4"&gt;
+&lt;/section&gt;</pre>
+  <p>Every rule from the chapter appears once: relative and absolute links, a fragment link with its matching id, mailto, a safe new-tab link, an image inside a link with alt text that describes the destination, width/height, lazy loading, a figure with caption, and a decorative image with an empty alt.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which attribute holds a link's destination?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: href</b> on &lt;a&gt;. src is for embedded resources such as images; link and url are not attributes.</p></div></details>
+  <details class="q"><summary>Which href value jumps to an element with id="contact" on the same page?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. href="#contact"</li><li>B. href="contact"</li><li>C. href="/contact"</li><li>D. href=".contact"</li></ul>
+    <p><b>Answer: A.</b> The hash marks a fragment; it works only if an element has id="contact", otherwise the click silently does nothing.</p></div></details>
+  <details class="q"><summary>In &lt;a href="../about.html"&gt;, what does the ../ portion mean?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Start from the site root</li><li>B. Move up to the parent directory</li><li>C. Stay in the current directory</li><li>D. Refer to an external website</li></ul>
+    <p><b>Answer: B.</b> A leading / would mean the root; ./ means the current directory.</p></div></details>
+  <details class="q"><summary>Which link opens the user's email client addressed to help@example.com, and which lets a mobile user dial a number directly?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;a href="mailto:help@example.com"&gt;</code> and <code>&lt;a href="tel:+919876543210"&gt;</code>. The schemes email:, mail:, call:, phone: and dial: do not exist.</p></div></details>
+  <details class="q"><summary>Which opens a link in a new tab, and what should be added when the content is untrusted?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: target="_blank"</b>, paired with <b>rel="noopener noreferrer"</b>. Without noopener the opened page can script your tab through window.opener; noreferrer also hides the referring page. rel="stylesheet", download="true" and referrer="none" are wrong.</p></div></details>
+  <details class="q"><summary>Which anchor attribute describes the relationship between the current page and the linked document?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. type</li><li>B. href</li><li>C. target</li><li>D. rel</li></ul>
+    <p><b>Answer: D.</b> rel values include noopener, noreferrer, nofollow and license.</p></div></details>
+  <details class="q"><summary>Which anchor attribute prompts the browser to save the linked file instead of opening it?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. target</li><li>B. save</li><li>C. download</li><li>D. rel</li></ul>
+    <p><b>Answer: C.</b> <code>&lt;a href="file.pdf" download&gt;</code>.</p></div></details>
+  <details class="q"><summary>Which link text is better for both SEO and accessibility?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;a href="pricing.html"&gt;Click here&lt;/a&gt;</li><li>B. &lt;a href="pricing.html"&gt;&gt;&gt;&lt;/a&gt;</li><li>C. &lt;a href="pricing.html"&gt;More&lt;/a&gt;</li><li>D. &lt;a href="pricing.html"&gt;View our pricing plans&lt;/a&gt;</li></ul>
+    <p><b>Answer: D.</b> Link text should describe the destination; a screen-reader user listing links otherwise hears "click here, more, here".</p></div></details>
+  <details class="q"><summary>In &lt;img src="campus.jpg" alt="Main campus building"&gt;, src and alt respectively give:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The caption and the file size</li><li>B. The resource location and a meaningful text alternative</li><li>C. The width and the height</li><li>D. The CSS class and the tooltip</li></ul>
+    <p><b>Answer: B.</b> src = where; alt = what.</p></div></details>
+  <details class="q"><summary>An image is purely decorative and adds no information. Its alt attribute should be written as:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Omitted entirely</li><li>B. alt="decorative image"</li><li>C. alt=""</li><li>D. alt="image"</li></ul>
+    <p><b>Answer: C.</b> An empty but present alt tells a screen reader to skip it silently.</p></div></details>
+  <details class="q"><summary>A printer icon is used as a print button. Its alt text should describe:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The action the control performs, for example "Print"</li><li>B. The icon's colours and shape</li><li>C. The image's file name</li><li>D. Nothing: alt="" is correct here</li></ul>
+    <p><b>Answer: A.</b> Functional images are described by what they do. An empty alt would leave the button unnamed.</p></div></details>
+  <details class="q"><summary>A site logo carries the organisation's name. How should it be marked up?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. As a &lt;div&gt; containing the word logo</li><li>B. As a CSS background image with no alt text</li><li>C. As an &lt;img&gt; with alt=""</li><li>D. As an &lt;img&gt; with alt text giving the organisation's name</li></ul>
+    <p><b>Answer: D.</b> The logo conveys the name, so the name is its text alternative.</p></div></details>
+  <details class="q"><summary>An &lt;img&gt; is written with no alt attribute and the file fails to load. What does a screen-reader user receive?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A clear description of the image</li><li>B. The title attribute is always read out instead</li><li>C. No useful alternative, often just the file name</li><li>D. A description generated automatically by the browser</li></ul>
+    <p><b>Answer: C.</b> Without alt there is nothing to read; many screen readers fall back to the file name.</p></div></details>
+  <details class="q"><summary>Why set width and height on an &lt;img&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the browser reserves the space so the page does not jump while the image loads. It does not shrink the file or improve quality, and it is not required by HTML.</p></div></details>
+  <details class="q"><summary>An image far down a long page should be fetched only when the user scrolls near it. Which markup achieves this?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;img src="a.jpg" alt="..." loading="lazy"&gt;</code>. defer, async and preload="none" are not image attributes.</p></div></details>
+  <details class="q"><summary>Which pair marks up an illustration with its caption?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;figure&gt; and &lt;figcaption&gt;.</b> caption belongs to tables; picture chooses image files.</p></div></details>
+  <details class="q"><summary>Which statement about the &lt;picture&gt; element is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It replaces &lt;img&gt; entirely and needs no fallback</li><li>B. It offers several image sources for different conditions, with an &lt;img&gt; inside as the fallback</li><li>C. It can contain only one &lt;source&gt; element</li><li>D. It is used to group an image with its caption</li></ul>
+    <p><b>Answer: B.</b> The img inside is mandatory; it displays the chosen file and serves old browsers.</p></div></details>
+  <details class="q"><summary>What is the purpose of the srcset attribute, and what does sizes tell the browser?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> srcset lists several image files (with widths) so the browser can choose one suited to the display; sizes says how wide the image will be displayed, so the browser can pick a file from srcset. Neither gives file sizes, forces load order or sets an aspect ratio.</p></div></details>
+  <details class="q"><summary>Your site works locally but every link breaks on GitHub Pages. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> wrong relative paths, or capitalisation: the web server is case-sensitive, so About.html and about.html are different files there, even though Windows treats them as the same.</p></div></details>
+  <details class="q"><summary>How do you make an image clickable?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer:</b> put the &lt;img&gt; inside an &lt;a&gt;: <code>&lt;a href="..."&gt;&lt;img src="..." alt="..."&gt;&lt;/a&gt;</code>. Images have no href.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>&lt;a href&gt; makes a link; href is the destination. &lt;link&gt; is not a hyperlink.</li>
+    <li>Absolute URLs have protocol and domain; relative URLs resolve from the current page: same folder, sub/folder, ../ parent, /root. Servers are case-sensitive.</li>
+    <li>#id jumps within a page (needs a matching id); mailto: opens email; tel: dials.</li>
+    <li>target="_blank" opens a new tab; add rel="noopener noreferrer" for untrusted sites; download saves the file; rel = relationship.</li>
+    <li>Link text describes the destination, never "click here".</li>
+    <li>&lt;img&gt; is void: src (location) and alt (text alternative). Informative: describe; decorative: alt=""; functional: the action; logo: the name. width/height stop layout jumps; loading="lazy" defers off-screen images.</li>
+    <li>figure + figcaption for a captioned illustration; picture + source + img fallback for conditional sources; srcset lists candidates and sizes states the displayed width.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>On</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td>href</td><td>a</td><td>Destination URL, #fragment, mailto:, tel:</td></tr>
+      <tr><td>target="_blank"</td><td>a</td><td>Open in a new tab</td></tr>
+      <tr><td>rel="noopener noreferrer"</td><td>a</td><td>Stop the new page scripting your tab / seeing the referrer</td></tr>
+      <tr><td>download</td><td>a</td><td>Save instead of open</td></tr>
+      <tr><td>src / alt</td><td>img</td><td>File location / text alternative</td></tr>
+      <tr><td>width / height</td><td>img</td><td>Reserve space, no layout jump</td></tr>
+      <tr><td>loading="lazy"</td><td>img, iframe</td><td>Fetch when near the viewport</td></tr>
+      <tr><td>srcset / sizes</td><td>img</td><td>Candidate files / displayed width</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

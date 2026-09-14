@@ -1,0 +1,315 @@
+<article class="chapter" data-ch="6">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 6 &middot; Text Formatting</p>
+  <h1>Text Formatting</h1>
+  <p class="lead">Most of any page is text, and HTML gives you about thirty elements for it. The trick is that they come in two families: <b>logical</b> (semantic) elements that say what a piece of text <i>means</i>, and <b>physical</b> (presentational) elements that only say how it should look. This chapter covers headings, paragraphs, breaks, emphasis, quotations, code, scientific notation and contact details, and teaches you to pick the element by meaning.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO1 &middot; The most heavily examined chapter in Unit 1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Build a correct heading outline: one <code>h1</code>, no skipped levels, sizes left to CSS.</li>
+      <li>Use <code>p</code>, <code>br</code>, <code>hr</code> and <code>pre</code> for the right jobs.</li>
+      <li>Choose between <code>strong</code>/<code>b</code>, <code>em</code>/<code>i</code>, <code>q</code>/<code>blockquote</code>, <code>code</code>/<code>pre</code>.</li>
+      <li>Mark up abbreviations, citations, keyboard input, sample output, variables and contact details.</li>
+      <li>Recognise obsolete tags and their modern replacements.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>6.1 Headings: the outline of the document</h2>
+  <p>HTML provides <b>six levels of heading</b>, <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code>. <code>&lt;h1&gt;</code> is the <b>highest level</b>, the title of the whole page's content; <code>&lt;h2&gt;</code> marks the major sections; <code>&lt;h3&gt;</code> subsections within them, and so on down. Browsers render h1 largest and h6 smallest, but the sizes are a side effect. What headings really do is build the <b>document outline</b>: the table of contents that screen readers let their users jump through and that search engines use to understand what the page is about.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 230" role="img" aria-label="Heading outline as an indented tree">
+      <rect x="20" y="16" width="580" height="200" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <text x="40" y="48" class="t b" style="font-size:18px">&lt;h1&gt; University Portal</text>
+      <path d="M52 56 L52 90 L74 90" class="edge"/><text x="80" y="95" class="t b" style="font-size:15px">&lt;h2&gt; Computer Science Department</text>
+      <path d="M92 104 L92 128 L114 128" class="edge"/><text x="120" y="133" class="t" style="font-size:14px">&lt;h3&gt; CSE326 Internet Programming</text>
+      <path d="M92 104 L92 160 L114 160" class="edge"/><text x="120" y="165" class="t" style="font-size:14px">&lt;h3&gt; CSE305 Database Systems</text>
+      <path d="M52 56 L52 196 L74 196" class="edge"/><text x="80" y="201" class="t b" style="font-size:15px">&lt;h2&gt; Admissions</text>
+      <text x="440" y="60" class="t s">exactly one h1</text>
+      <text x="440" y="100" class="t s">h2 for each major section</text>
+      <text x="440" y="140" class="t s">h3 for topics inside a section</text>
+      <text x="440" y="180" class="t s">never jump from h1 to h4</text>
+    </svg>
+    <figcaption><b>Figure 6.1</b> Headings are an outline, not font sizes. Levels nest: an h3 belongs under an h2, which belongs under the page's single h1.</figcaption>
+  </figure>
+  <p>Three rules follow from "headings are an outline":</p>
+  <ol>
+    <li><b>Exactly one <code>h1</code> per page</b>, describing the page's main topic. Not one per paragraph, not as many as styling needs, and not none.</li>
+    <li><b>Do not skip levels.</b> A page that goes from <code>h1</code> straight to <code>h4</code> breaks the logical outline: a screen-reader user hears a gap and a search engine sees a malformed structure. Browsers still render it; that is not the point.</li>
+    <li><b>Never choose a heading level for its size.</b> If you want a subheading smaller than an h2, use <code>h3</code> (the correct next level) and set the size in CSS. Reaching for <code>h5</code> because it "looks right", or faking a heading with <code>&lt;p&gt;&lt;b&gt;</code> or <code>&lt;div class="h2"&gt;</code>, throws away the outline entirely.</li>
+  </ol>
+  <pre class="code" data-run data-title="A correct outline" data-h="230">&lt;h1&gt;School of Computing and AI&lt;/h1&gt;
+&lt;h2&gt;Departments&lt;/h2&gt;
+&lt;h3&gt;Computer Science&lt;/h3&gt;
+&lt;h3&gt;Artificial Intelligence&lt;/h3&gt;
+&lt;h2&gt;Courses&lt;/h2&gt;
+&lt;h3&gt;CSE326 Internet Programming&lt;/h3&gt;</pre>
+</section>
+
+<section id="s2">
+  <h2>6.2 Paragraphs, line breaks, thematic breaks and preformatted text</h2>
+  <h3><code>&lt;p&gt;</code>: the paragraph</h3>
+  <p><code>&lt;p&gt;</code> <b>defines a paragraph of text</b>: a block of sentences about one idea. Browsers add vertical space before and after it automatically. Separate ideas go in separate paragraphs; that is how you create space between them, not with line breaks.</p>
+  <h3><code>&lt;br&gt;</code>: a line break inside a block</h3>
+  <p><code>&lt;br&gt;</code> <b>forces a line break inside a paragraph</b> without starting a new one. It is a void element. Its correct use is a break <i>within one piece of text</i>: the lines of a postal address, the lines of a poem or song lyrics.</p>
+  <pre class="code" data-run data-title="br belongs inside one block of text" data-h="140">&lt;p&gt;
+  Department of Computer Science&lt;br&gt;
+  Lovely Professional University&lt;br&gt;
+  Phagwara, Punjab
+&lt;/p&gt;</pre>
+  <div class="callout warn"><b>Never <code>&lt;br&gt;&lt;br&gt;</code> for spacing.</b> Two breaks between two ideas is poor practice for three reasons: a screen reader announces one run-on paragraph instead of two; the spacing cannot be adjusted without editing the HTML; and spacing is CSS's job. Separate ideas need separate <code>&lt;p&gt;</code> elements.</div>
+  <h3><code>&lt;hr&gt;</code>: a thematic break</h3>
+  <p><code>&lt;hr&gt;</code> <b>represents a thematic break</b>: the point where the subject changes, such as between two sections of an article or two scenes in a story. Browsers draw it as a horizontal rule, but the line is the side effect; the meaning is "the topic changes here". It is void, and it is not a page break, not an image and not a table row.</p>
+  <h3><code>&lt;pre&gt;</code>: preformatted text</h3>
+  <p>Normal HTML collapses whitespace: ten spaces become one, and newlines vanish. <code>&lt;pre&gt;</code> is the one element that <b>preserves spaces and line breaks exactly as typed</b>, rendered in a monospace font. Use it for ASCII tables, code listings and anything where alignment matters.</p>
+  <pre class="code" data-run data-title="pre keeps your spacing; p does not" data-h="190">&lt;pre&gt;
+Name     Marks   Grade
+Rahul    90      A+
+Priya    95      O
+&lt;/pre&gt;
+&lt;p&gt;
+Name     Marks   Grade
+Rahul    90      A+
+&lt;/p&gt;</pre>
+  <h3>Comments, once more</h3>
+  <p>A reminder from Chapter 3, because it is examined alongside text: <code>&lt;!-- like this --&gt;</code> is invisible on the page but visible in View Source, and an unclosed comment blanks the rest of the page.</p>
+</section>
+
+<section id="s3">
+  <h2>6.3 Logical versus physical formatting</h2>
+  <p>Here is the idea that organises the whole chapter. Some elements describe <b>meaning</b>: <code>&lt;strong&gt;</code> says "this is important", <code>&lt;em&gt;</code> says "stress this word". Others describe only <b>appearance</b>: <code>&lt;b&gt;</code> says "bold", <code>&lt;i&gt;</code> says "italic". Both kinds still exist in HTML5, but they mean different things, and the exam asks you to know which is which.</p>
+  <table class="tbl">
+    <thead><tr><th>Logical (semantic)</th><th>Meaning</th><th>Physical (presentational)</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;strong&gt;</code></td><td>Strong importance, seriousness, urgency</td><td><code>&lt;b&gt;</code></td><td>Draw attention; bold with no extra importance</td></tr>
+      <tr><td><code>&lt;em&gt;</code></td><td>Stressed emphasis that changes the sentence's meaning</td><td><code>&lt;i&gt;</code></td><td>Alternate voice or kind of text: a term, a species name, a foreign phrase</td></tr>
+      <tr><td><code>&lt;del&gt;</code></td><td>Removed content</td><td><code>&lt;strike&gt;</code></td><td>Obsolete: use del or CSS</td></tr>
+      <tr><td><code>&lt;mark&gt;</code>, <code>&lt;small&gt;</code>, <code>&lt;ins&gt;</code></td><td>Relevance, fine print, inserted content</td><td><code>&lt;u&gt;</code></td><td>An unarticulated annotation, shown underlined (avoid: looks like a link)</td></tr>
+    </tbody>
+  </table>
+  <h3>strong versus b</h3>
+  <p>Both look bold by default. <b><code>&lt;strong&gt;</code> conveys importance; <code>&lt;b&gt;</code> only applies bold styling.</b> A screen reader can speak <code>&lt;strong&gt;</code> with a change of tone; <code>&lt;b&gt;</code> is read in a normal voice. So a genuine safety warning, an exam-time alert or a critical instruction is <code>&lt;strong&gt;</code>; a keyword you merely want to catch the eye is <code>&lt;b&gt;</code>. <code>&lt;strong&gt;</code> was not removed in HTML5, and the two are not "the same thing".</p>
+  <h3>em versus i</h3>
+  <p><code>&lt;em&gt;</code> <b>indicates stressed emphasis within a sentence</b>: it changes how the sentence would be spoken and therefore what it means. "Please submit the form <em>today</em>" stresses the day. <code>&lt;i&gt;</code> marks text of a <b>different kind</b> without stress: a technical term, a ship's name, a species name (<i>Homo sapiens</i>), a phrase in another language. <code>&lt;i&gt;</code> is not deprecated and is the right choice for those cases; using <code>&lt;em&gt;</code> just because you want italics is the mistake.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Decision flowchart for strong, b, em and i">
+      <rect x="205" y="10" width="210" height="36" rx="18" class="box saf"/><text x="310" y="33" class="t c b">I want to set some words apart</text>
+      <path d="M310 46 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 66 L430 104 L310 142 L190 104 Z" class="dec"/><text x="310" y="100" class="t c b">does it change the</text><text x="310" y="116" class="t c b">meaning if removed?</text>
+      <path d="M190 104 L110 104" class="edge grn" marker-end="url(#arr-grn)"/><text x="150" y="96" class="t c s">yes: meaning</text>
+      <path d="M430 104 L510 104" class="edge" marker-end="url(#arr)"/><text x="470" y="96" class="t c s">no: looks</text>
+      <rect x="10" y="80" width="100" height="48" rx="10" class="box grn"/><text x="60" y="100" class="t c b">important?</text><text x="60" y="118" class="t c s">strong</text>
+      <rect x="10" y="140" width="100" height="48" rx="10" class="box grn"/><text x="60" y="160" class="t c b">stressed?</text><text x="60" y="178" class="t c s">em</text>
+      <path d="M60 128 L60 140" class="edge grn"/>
+      <rect x="510" y="80" width="100" height="48" rx="10" class="box gry"/><text x="560" y="100" class="t c b">eye-catching?</text><text x="560" y="118" class="t c s">b</text>
+      <rect x="510" y="140" width="100" height="48" rx="10" class="box gry"/><text x="560" y="160" class="t c b">other voice?</text><text x="560" y="178" class="t c s">i</text>
+      <path d="M560 128 L560 140" class="edge"/>
+      <text x="310" y="200" class="t c s">Both columns render bold or italic; only the left column tells a screen reader anything.</text>
+    </svg>
+    <figcaption><b>Figure 6.2</b> Choosing by meaning. If the words carry importance or stress, use the logical element; if you only want a look, use the physical one (or, better, CSS).</figcaption>
+  </figure>
+  <div class="demo">
+    <p class="dlab">Live: the logical and physical versions look the same, which is exactly why you must choose by meaning</p>
+    <p><strong>Important: bring your ID card.</strong> &nbsp; <b>HTML</b> is the first topic. &nbsp; Submit it <em>today</em>. &nbsp; The term <i>markup</i> matters. &nbsp; <u>Check the spelling</u>.</p>
+  </div>
+</section>
+
+<section id="s4">
+  <h2>6.4 The rest of the inline formatting set</h2>
+  <dl>
+    <dt><code>&lt;mark&gt;</code>: highlighted, relevant here</dt>
+    <dd>Highlights text because it is relevant in the current context, like a marker pen on a page: a search match, the key term in a passage. Renders with a yellow background by default. <code>&lt;p&gt;The exam starts at &lt;mark&gt;10:00 AM&lt;/mark&gt;.&lt;/p&gt;</code></dd>
+    <dt><code>&lt;small&gt;</code>: fine print</dt>
+    <dd>Side comments, disclaimers, copyright lines, legal notes: text of lesser prominence. It renders one size smaller, but it expresses relative importance, not an exact font size. Common inside <code>&lt;footer&gt;</code>. <code>&lt;small&gt;Terms and conditions apply.&lt;/small&gt;</code></dd>
+    <dt><code>&lt;del&gt;</code> and <code>&lt;ins&gt;</code>: removed and inserted</dt>
+    <dd><code>&lt;del&gt;</code> marks text that has been <b>deleted</b> from the document, shown struck through; <code>&lt;ins&gt;</code> marks text that has been <b>inserted</b>, shown underlined. Together they show a revision: <code>Fee: &lt;del&gt;&#8377;1500&lt;/del&gt; &lt;ins&gt;&#8377;1200&lt;/ins&gt;</code>. E-commerce price cuts are the everyday example.</dd>
+    <dt><code>&lt;sub&gt;</code> and <code>&lt;sup&gt;</code>: subscript and superscript</dt>
+    <dd><code>&lt;sub&gt;</code> lowers text (the 2 in H<sub>2</sub>O: <code>H&lt;sub&gt;2&lt;/sub&gt;O</code>); <code>&lt;sup&gt;</code> raises it (the 2 in x<sup>2</sup>: <code>x&lt;sup&gt;2&lt;/sup&gt;</code>, and ordinals like 18<sup>th</sup>). Memory aid from the lecture: sub = down like a submarine, sup = up like Superman.</dd>
+    <dt><code>&lt;abbr&gt;</code>: abbreviation</dt>
+    <dd>Marks an abbreviation or acronym; its <code>title</code> attribute holds the expansion, shown as a tooltip and available to screen readers: <code>&lt;abbr title="HyperText Markup Language"&gt;HTML&lt;/abbr&gt;</code>.</dd>
+    <dt><code>&lt;u&gt;</code>: underline (rarely)</dt>
+    <dd>An unarticulated, non-textual annotation such as a misspelling mark, rendered underlined. Avoid it for ordinary emphasis: underlined text looks like a link, and links are already <code>&lt;a&gt;</code>.</dd>
+  </dl>
+  <div class="demo">
+    <p class="dlab">Live rendering</p>
+    <p>Special <mark>Festival Discount</mark> today! &nbsp; Course fee: <del>&#8377;999</del> <ins>&#8377;699</ins> &nbsp; H<sub>2</sub>O and x<sup>2</sup> and 18<sup>th</sup> &nbsp; <abbr title="Cascading Style Sheets">CSS</abbr> (hover) &nbsp; <small>Taxes may apply.</small></p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2>6.5 Quotations and citations</h2>
+  <p>Three elements, three different jobs, and they are examined together constantly.</p>
+  <dl>
+    <dt><code>&lt;q&gt;</code>: a short inline quotation</dt>
+    <dd>Placed inside a sentence. <b>The browser adds the quotation marks automatically</b>, so do not type them yourself, or you get two sets. <code>&lt;p&gt;Teacher said, &lt;q&gt;Practice every day.&lt;/q&gt;&lt;/p&gt;</code></dd>
+    <dt><code>&lt;blockquote&gt;</code>: a long quotation as its own block</dt>
+    <dd>A block-level element for an extended quotation from another source, rendered indented. It may carry a <code>cite</code> <i>attribute</i> holding the URL of the source. <code>&lt;blockquote cite="https://example.com"&gt;The journey of a thousand miles begins with a single step.&lt;/blockquote&gt;</code></dd>
+    <dt><code>&lt;cite&gt;</code>: the title of a creative work</dt>
+    <dd>Marks the <b>title of a book, paper, film, song or other work</b>, rendered in italics: <code>Read &lt;cite&gt;Clean Code&lt;/cite&gt; by Robert Martin.</code> It is not the author's name, not a URL and not a quotation.</dd>
+  </dl>
+  <div class="callout exam"><b>cite element versus cite attribute.</b> The <code>&lt;cite&gt;</code> <i>element</i> wraps a work's title. The <code>cite</code> <i>attribute</i> on <code>&lt;q&gt;</code> or <code>&lt;blockquote&gt;</code> holds the URL the quotation came from. Questions exploit this difference.</div>
+  <pre class="code" data-run data-title="q, blockquote and cite together" data-h="170">&lt;p&gt;He said, &lt;q&gt;HTML is easy to learn.&lt;/q&gt;&lt;/p&gt;
+&lt;blockquote cite="https://example.com/speech"&gt;
+  The journey of a thousand miles begins with a single step.
+&lt;/blockquote&gt;
+&lt;p&gt;Recommended reading: &lt;cite&gt;Clean Code&lt;/cite&gt; by Robert Martin.&lt;/p&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>6.6 Code, keyboard, output and variables</h2>
+  <p>Technical writing has its own set of elements. All four render in a monospace font by default; the difference is meaning.</p>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Represents</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;code&gt;</code></td><td>A fragment of computer code <b>inline</b> in a sentence</td><td><code>Use &lt;code&gt;console.log()&lt;/code&gt; to debug.</code></td></tr>
+      <tr><td><code>&lt;pre&gt;</code></td><td>A block of preformatted text; for multi-line code, wrap <code>&lt;code&gt;</code> inside <code>&lt;pre&gt;</code></td><td><code>&lt;pre&gt;&lt;code&gt;for (...) {&lt;/code&gt;&lt;/pre&gt;</code></td></tr>
+      <tr><td><code>&lt;kbd&gt;</code></td><td><b>Keyboard input</b> by the user</td><td><code>Press &lt;kbd&gt;Ctrl&lt;/kbd&gt; + &lt;kbd&gt;S&lt;/kbd&gt;</code></td></tr>
+      <tr><td><code>&lt;samp&gt;</code></td><td><b>Sample output</b> from a program</td><td><code>&lt;samp&gt;File saved successfully.&lt;/samp&gt;</code></td></tr>
+      <tr><td><code>&lt;var&gt;</code></td><td>A <b>variable</b> in maths or programming, rendered italic</td><td><code>&lt;var&gt;x&lt;/var&gt; + &lt;var&gt;y&lt;/var&gt; = 10</code></td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live rendering</p>
+    <p>Use <code>console.log("Hello");</code> to debug. Press <kbd>Ctrl</kbd> + <kbd>S</kbd> to save. Terminal output: <samp>File saved successfully.</samp> Calculate <var>x</var> + <var>y</var> = 10.</p>
+  </div>
+  <p>To show HTML <i>inside</i> a code element, remember Chapter 3: write the angle brackets as entities. <code>&lt;p&gt;Use the &lt;code&gt;&amp;lt;p&amp;gt;&lt;/code&gt; tag.&lt;/p&gt;</code> displays "Use the &lt;p&gt; tag."</p>
+</section>
+
+<section id="s7">
+  <h2>6.7 Contact information: address</h2>
+  <p><code>&lt;address&gt;</code> represents <b>contact information for its nearest article or for the document as a whole</b>: the author's or organisation's email, phone, postal address or social handle. It typically sits in a <code>&lt;footer&gt;</code>. It is not for any random postal address that happens to appear in the text (a shop's location in an article is just text), and it is not a generic "contact" or "info" element; those do not exist.</p>
+  <pre class="code" data-run data-title="address inside a footer" data-h="130">&lt;footer&gt;
+  &lt;address&gt;
+    Department of Computer Science&lt;br&gt;
+    Lovely Professional University&lt;br&gt;
+    &lt;a href="mailto:cse326@example.edu"&gt;cse326@example.edu&lt;/a&gt;
+  &lt;/address&gt;
+&lt;/footer&gt;</pre>
+</section>
+
+<section id="s8">
+  <h2>6.8 Obsolete formatting tags</h2>
+  <p>Older pages are full of tags that HTML5 has made obsolete because they describe appearance, which is CSS's job. Know them so you can read legacy code; never write them.</p>
+  <table class="tbl">
+    <thead><tr><th>Obsolete</th><th>Use instead</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;strike&gt;</code></td><td><code>&lt;del&gt;</code> for removed content, or CSS <code>text-decoration: line-through</code></td></tr>
+      <tr><td><code>&lt;font&gt;</code></td><td>CSS <code>font-family</code>, <code>font-size</code>, <code>color</code></td></tr>
+      <tr><td><code>&lt;center&gt;</code></td><td>CSS <code>text-align: center</code></td></tr>
+      <tr><td><code>&lt;big&gt;</code></td><td>CSS <code>font-size: larger</code></td></tr>
+      <tr><td><code>&lt;tt&gt;</code></td><td><code>&lt;code&gt;</code> or <code>&lt;kbd&gt;</code></td></tr>
+      <tr><td><code>&lt;marquee&gt;</code></td><td>CSS <code>@keyframes</code> animation (and usually: do not animate text at all)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s9">
+  <h2>6.9 Worked example: a well-marked-up notice</h2>
+  <p>Read this page and name the reason for each element. Every choice is by meaning.</p>
+  <pre class="code" data-run data-title="A notice using the text elements correctly" data-h="330">&lt;h1&gt;CSE326 Lab Notice&lt;/h1&gt;
+&lt;p&gt;&lt;strong&gt;Important:&lt;/strong&gt; the lab test is on &lt;mark&gt;Friday at 9 AM&lt;/mark&gt;.
+   Please arrive &lt;em&gt;before&lt;/em&gt; the doors close.&lt;/p&gt;
+&lt;h2&gt;What to bring&lt;/h2&gt;
+&lt;p&gt;Your ID card and the &lt;abbr title="Continuous Assessment"&gt;CA&lt;/abbr&gt; slip.
+   Fee for a replacement slip: &lt;del&gt;&amp;#8377;50&lt;/del&gt; &lt;ins&gt;&amp;#8377;20&lt;/ins&gt;.&lt;/p&gt;
+&lt;h2&gt;During the test&lt;/h2&gt;
+&lt;p&gt;Save often with &lt;kbd&gt;Ctrl&lt;/kbd&gt;+&lt;kbd&gt;S&lt;/kbd&gt;. If you see
+   &lt;samp&gt;Permission denied&lt;/samp&gt;, call an invigilator.
+   Name your file &lt;code&gt;index.html&lt;/code&gt;.&lt;/p&gt;
+&lt;blockquote cite="https://example.edu/rules"&gt;Work submitted after the deadline
+   will not be evaluated.&lt;/blockquote&gt;
+&lt;hr&gt;
+&lt;p&gt;&lt;small&gt;Water is H&lt;sub&gt;2&lt;/sub&gt;O. Area of a square is s&lt;sup&gt;2&lt;/sup&gt;.
+   Questions? See &lt;cite&gt;The CSE326 Handbook&lt;/cite&gt;.&lt;/small&gt;&lt;/p&gt;
+&lt;address&gt;Lab in-charge: &lt;a href="mailto:lab@example.edu"&gt;lab@example.edu&lt;/a&gt;&lt;/address&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which element defines the highest-level heading on a page?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;h6&gt;</li><li>B. &lt;h1&gt;</li><li>C. &lt;head&gt;</li><li>D. &lt;header&gt;</li></ul>
+    <p><b>Answer: B.</b> h1 is the top of the outline; h6 the lowest. head is metadata and header is a page region.</p></div></details>
+  <details class="q"><summary>How many heading levels does HTML provide, and how many h1 elements should a page normally contain?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: six levels (h1&ndash;h6), and exactly one h1</b> describing the page's main topic.</p></div></details>
+  <details class="q"><summary>A page uses &lt;h1&gt; and then jumps straight to &lt;h4&gt;. Why is this poor practice?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Browsers refuse to render an &lt;h4&gt;</li><li>B. It breaks the logical content outline used by screen readers and search engines</li><li>C. &lt;h4&gt; is deprecated in HTML5</li><li>D. Headings must all sit inside one &lt;section&gt;</li></ul>
+    <p><b>Answer: B.</b> Levels are an outline; skipping them leaves gaps in the structure.</p></div></details>
+  <details class="q"><summary>You want a subheading smaller than h2. What is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Skip to h5 because it renders smaller</li><li>B. Use h3 and set the size in CSS</li><li>C. Use &lt;p&gt;&lt;b&gt;text&lt;/b&gt;&lt;/p&gt;</li><li>D. Use &lt;small&gt;</li></ul>
+    <p><b>Answer: B.</b> Level describes position in the outline; appearance is CSS's job.</p></div></details>
+  <details class="q"><summary>Which element defines a paragraph of text?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;text&gt;</li><li>B. &lt;para&gt;</li><li>C. &lt;p&gt;</li><li>D. &lt;pg&gt;</li></ul>
+    <p><b>Answer: C.</b> Only p exists.</p></div></details>
+  <details class="q"><summary>Which tag forces a line break inside a paragraph?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;p&gt;</li><li>B. &lt;hr&gt;</li><li>C. &lt;lb&gt;</li><li>D. &lt;br&gt;</li></ul>
+    <p><b>Answer: D.</b> br breaks the line within one block of text; hr is a thematic break; lb does not exist.</p></div></details>
+  <details class="q"><summary>What is the correct use of &lt;br&gt;, and why is &lt;br&gt;&lt;br&gt; between two ideas poor practice?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> br is for a line break <i>within</i> a single block of text (an address, a verse). Two breaks between ideas make a screen reader announce one run-on paragraph and make the spacing unadjustable without editing HTML. Use separate p elements; spacing is CSS's job.</p></div></details>
+  <details class="q"><summary>Which tag inserts a horizontal thematic break between sections of content?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;div&gt;</li><li>B. &lt;br&gt;</li><li>C. &lt;line&gt;</li><li>D. &lt;hr&gt;</li></ul>
+    <p><b>Answer: D.</b> Semantically hr means the subject changes; drawing a line is the side effect.</p></div></details>
+  <details class="q"><summary>Which element displays preformatted text, preserving spaces and line breaks exactly as typed?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;samp&gt;</li><li>B. &lt;code&gt;</li><li>C. &lt;pre&gt;</li><li>D. &lt;blockquote&gt;</li></ul>
+    <p><b>Answer: C.</b> pre is the only element that does not collapse whitespace.</p></div></details>
+  <details class="q"><summary>Which pair correctly contrasts &lt;strong&gt; with &lt;b&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;strong&gt; was removed in HTML5</li><li>B. &lt;b&gt; conveys importance; &lt;strong&gt; only applies bold styling</li><li>C. Both are purely presentational and mean the same thing</li><li>D. &lt;strong&gt; conveys importance; &lt;b&gt; only applies bold styling</li></ul>
+    <p><b>Answer: D.</b> For a genuine safety warning use strong; b merely looks bold.</p></div></details>
+  <details class="q"><summary>Which element indicates stressed emphasis within a sentence, and when is &lt;i&gt; the correct choice over &lt;em&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: &lt;em&gt;</b> marks stressed emphasis that changes the meaning. <b>&lt;i&gt;</b> is correct for a different <i>kind</i> of text with no stress: a species name, a technical term, a foreign phrase. i is not deprecated; it is simply not for emphasis.</p></div></details>
+  <details class="q"><summary>Which pair is SEMANTIC rather than purely presentational?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;b&gt; and &lt;i&gt;</li><li>B. &lt;strong&gt; and &lt;em&gt;</li><li>C. &lt;u&gt; and &lt;strike&gt;</li><li>D. &lt;big&gt; and &lt;small&gt;</li></ul>
+    <p><b>Answer: B.</b> strong means importance and em means emphasis; the others describe appearance.</p></div></details>
+  <details class="q"><summary>Which tag highlights text like a marker pen?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;mark&gt;.</b> It renders with a highlight background by default; high, hl and yellow do not exist.</p></div></details>
+  <details class="q"><summary>Which element marks text that has been inserted into a document, usually shown underlined, and which shows text struck through as removed?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;ins&gt; for inserted (underlined) and &lt;del&gt; for deleted (struck through).</b> Not u, not strike (obsolete), not mark.</p></div></details>
+  <details class="q"><summary>Which element renders text as subscript, such as the 2 in H2O? And as superscript, such as the 2 in x&sup2;?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;sub&gt; for subscript</b> (<code>H&lt;sub&gt;2&lt;/sub&gt;O</code>) and <b>&lt;sup&gt; for superscript</b> (<code>x&lt;sup&gt;2&lt;/sup&gt;</code>). small, low and high are wrong.</p></div></details>
+  <details class="q"><summary>Which element marks an abbreviation whose expansion is given in its title attribute?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;cite&gt;</li><li>B. &lt;abbr&gt;</li><li>C. &lt;dfn&gt;</li><li>D. &lt;span&gt;</li></ul>
+    <p><b>Answer: B.</b> <code>&lt;abbr title="HyperText Markup Language"&gt;HTML&lt;/abbr&gt;</code>; the title shows as a tooltip.</p></div></details>
+  <details class="q"><summary>Which element marks a short quotation placed inline within a sentence, and which marks a long block-level quotation?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;q&gt; inline</b> (browser adds the quote marks) and <b>&lt;blockquote&gt; for the block</b>. cite is for a work's title; abbr for abbreviations; pre for preformatted text.</p></div></details>
+  <details class="q"><summary>What is wrong with &lt;q&gt;"a decisive shift"&lt;/q&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the quote marks are typed manually. The browser adds quotation marks around q automatically, so this shows two sets.</p></div></details>
+  <details class="q"><summary>What does the &lt;cite&gt; ELEMENT mark up?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The author's name</li><li>B. The title of a creative work</li><li>C. The URL of a source</li><li>D. A short quotation</li></ul>
+    <p><b>Answer: B.</b> The cite element holds a work's title; the cite <i>attribute</i> on q or blockquote holds a URL.</p></div></details>
+  <details class="q"><summary>Which element marks a fragment of computer code shown inline in a sentence, and which marks keyboard input by the user?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;code&gt; for inline code, &lt;kbd&gt; for keyboard input.</b> samp is program output; var is a variable; pre is a preformatted block.</p></div></details>
+  <details class="q"><summary>Which element represents contact information for its nearest article or for the document as a whole?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;contact&gt;</li><li>B. &lt;address&gt;</li><li>C. &lt;footer&gt;</li><li>D. &lt;cite&gt;</li></ul>
+    <p><b>Answer: B.</b> address is for contact details, usually inside a footer; contact and info do not exist.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Headings h1&ndash;h6 build an outline: one h1, no skipped levels, sizes in CSS.</li>
+    <li>p for a paragraph; br for a line break within one block (addresses, poems), never br br for spacing; hr for a thematic break; pre preserves whitespace.</li>
+    <li>Logical vs physical: strong (importance) vs b (bold); em (stress) vs i (other voice); del/ins for revisions; mark for relevance; small for fine print; sub/sup for H<sub>2</sub>O and x<sup>2</sup>.</li>
+    <li>q is inline and auto-quoted; blockquote is a block; cite element = title of a work; cite attribute = source URL.</li>
+    <li>code inline, pre for blocks, kbd for keyboard input, samp for output, var for variables, abbr with title for abbreviations, address for contact details.</li>
+    <li>strike, font, center, big, tt and marquee are obsolete: use del or CSS.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Element</th><th>Meaning</th><th>Default look</th></tr></thead>
+    <tbody>
+      <tr><td>strong / b</td><td>importance / attention</td><td>bold</td></tr>
+      <tr><td>em / i</td><td>stress / alternate voice</td><td>italic</td></tr>
+      <tr><td>mark</td><td>relevant, highlighted</td><td>yellow background</td></tr>
+      <tr><td>small</td><td>fine print</td><td>smaller</td></tr>
+      <tr><td>del / ins</td><td>removed / inserted</td><td>strikethrough / underline</td></tr>
+      <tr><td>sub / sup</td><td>subscript / superscript</td><td>lowered / raised</td></tr>
+      <tr><td>abbr</td><td>abbreviation, expansion in title</td><td>dotted underline, tooltip</td></tr>
+      <tr><td>q / blockquote</td><td>inline / block quotation</td><td>quote marks / indented</td></tr>
+      <tr><td>cite</td><td>title of a work</td><td>italic</td></tr>
+      <tr><td>code / kbd / samp / var</td><td>code / key input / output / variable</td><td>monospace (var italic)</td></tr>
+      <tr><td>pre</td><td>preformatted block</td><td>monospace, whitespace kept</td></tr>
+      <tr><td>address</td><td>contact information</td><td>italic</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

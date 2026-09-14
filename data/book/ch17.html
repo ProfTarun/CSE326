@@ -1,0 +1,273 @@
+<article class="chapter" data-ch="17">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 17 &middot; Input Types and Attributes</p>
+  <h1>Input Types and Attributes</h1>
+  <p class="lead">One element, <code>&lt;input&gt;</code>, becomes twenty different controls depending on its <code>type</code>: a text box, a password field, a date picker, a colour picker, a slider, a file chooser, a checkbox. Choosing the right type gives you the right keyboard on a phone, the right validation and the right assistive-technology behaviour for free. This chapter is a complete tour of the types and of the attributes that configure them, with every control live on the page so you can try it.</p>
+  <p class="meta">About 16 minutes &middot; Course outcome CO2 &middot; The most heavily examined chapter in Unit 2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Pick the correct <code>type</code> for any piece of data.</li>
+      <li>Explain how radio buttons are grouped and how checkboxes differ.</li>
+      <li>Use <code>placeholder</code>, <code>value</code>, <code>required</code>, <code>readonly</code>, <code>disabled</code>, <code>checked</code>, <code>selected</code>, <code>multiple</code>, <code>min</code>, <code>max</code>, <code>step</code>, <code>minlength</code>, <code>maxlength</code>, <code>size</code>, <code>accept</code>, <code>autofocus</code> and <code>autocomplete</code>.</li>
+      <li>State the difference between readonly and disabled, and between min/max and minlength/maxlength.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>17.1 Text-like inputs</h2>
+  <p>These all look like a box you type in. The type changes the validation, the keyboard a phone shows, and what a screen reader announces.</p>
+  <table class="tbl">
+    <thead><tr><th>type</th><th>Collects</th><th>What the type adds</th></tr></thead>
+    <tbody>
+      <tr><td><code>text</code></td><td>A single line of free text: names, titles</td><td>The default when <code>type</code> is omitted or unknown</td></tr>
+      <tr><td><code>password</code></td><td>A secret</td><td><b>Masks the typed characters as dots</b></td></tr>
+      <tr><td><code>email</code></td><td>An email address</td><td>Validates the @ and domain format natively; phones show a keyboard with an @ key</td></tr>
+      <tr><td><code>url</code></td><td>A <b>website address</b></td><td>Validates the URL format; phones add / and .com keys</td></tr>
+      <tr><td><code>tel</code></td><td>A <b>phone number</b></td><td>Phones show a numeric keypad; no format validation (numbers vary worldwide). Not <code>number</code>, which would strip leading zeros and add a spinner</td></tr>
+      <tr><td><code>search</code></td><td>A search query</td><td><b>Styled as a search box</b>, usually with a clear (&times;) button</td></tr>
+      <tr><td><code>number</code></td><td>A numeric value</td><td><b>An up/down spinner</b>; accepts <code>min</code>, <code>max</code>, <code>step</code>; phones show a numeric keyboard</td></tr>
+      <tr><td><code>hidden</code></td><td>Data the user never sees</td><td>Submitted with the form but not displayed: an id, a source tag</td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live: try them (on a phone, watch the keyboard change)</p>
+    <div class="row"><label>text <input type="text" placeholder="Enter your name"></label>
+    <label>password <input type="password" placeholder="Password"></label>
+    <label>email <input type="email" placeholder="student@example.com"></label></div>
+    <div class="row"><label>url <input type="url" placeholder="https://example.com"></label>
+    <label>tel <input type="tel" placeholder="+91 98765 43210"></label>
+    <label>search <input type="search" placeholder="Search courses..."></label>
+    <label>number <input type="number" min="1" max="100" step="1" value="50"></label></div>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>17.2 Date, time and colour pickers</h2>
+  <table class="tbl">
+    <thead><tr><th>type</th><th>Collects</th><th>Native control</th></tr></thead>
+    <tbody>
+      <tr><td><code>date</code></td><td>A calendar date</td><td>A <b>native calendar picker</b></td></tr>
+      <tr><td><code>time</code></td><td>A time of day</td><td>Hours, minutes (and AM/PM)</td></tr>
+      <tr><td><code>datetime-local</code></td><td>Date and time together</td><td>Both pickers</td></tr>
+      <tr><td><code>month</code></td><td><b>A month and year together</b></td><td>Month picker</td></tr>
+      <tr><td><code>week</code></td><td>A week of a year</td><td>Week picker</td></tr>
+      <tr><td><code>color</code></td><td>A colour</td><td><b>A native colour picker</b>; value is a hex code such as <code>#ea580c</code></td></tr>
+      <tr><td><code>range</code></td><td>A number within a range, approximately</td><td><b>A slider</b>; use <code>min</code>, <code>max</code>, <code>step</code></td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live</p>
+    <div class="row"><label>date <input type="date"></label> <label>time <input type="time"></label> <label>month <input type="month"></label> <label>week <input type="week"></label></div>
+    <div class="row"><label>color <input type="color" value="#e07b1e"></label> <label>range <input type="range" min="0" max="100" value="50"></label> <label>datetime-local <input type="datetime-local"></label></div>
+  </div>
+  <p>Date and time controls also accept <code>min</code> and <code>max</code> (<code>min="2026-01-01"</code>), so a booking form can refuse past dates without any script.</p>
+</section>
+
+<section id="s3">
+  <h2>17.3 Choices: checkbox and radio</h2>
+  <h3>Checkbox: independent yes/no choices</h3>
+  <p><code>type="checkbox"</code> creates a box the user can tick to select <b>zero, one or many</b> options; each box is an independent choice. Several checkboxes may <b>share the same <code>name</code></b>: that is valid, and they submit together as a set of values (<code>skills=html&amp;skills=css</code>). <code>checked</code> pre-ticks a box. Remember from Chapter 16 that an unticked checkbox sends nothing at all.</p>
+  <h3>Radio: exactly one of a group</h3>
+  <p><code>type="radio"</code> creates buttons of which <b>only one in a group can be selected</b>: the right control when the user must choose exactly one spice level, one gender, one year of study. What makes them a group is the <b>shared <code>name</code></b>. Three radios with the same name behave as one mutually exclusive set. Three radios each with a <b>different</b> name are three separate groups of one, so <b>all three can be selected at once</b>, which is a bug you will see in the lab. Each button carries its own <code>value</code>; <code>checked</code> <b>pre-selects one</b> when the page loads; and a <code>fieldset</code>/<code>legend</code> should wrap the group so the question is announced with the options.</p>
+  <div class="demo">
+    <p class="dlab">Live: the left group shares a name (one at a time); the right "group" has different names (all selectable, the bug)</p>
+    <div class="row">
+      <fieldset><legend>Same name="year"</legend>
+        <label><input type="radio" name="year" value="1" checked> First</label>
+        <label><input type="radio" name="year" value="2"> Second</label>
+        <label><input type="radio" name="year" value="3"> Third</label>
+      </fieldset>
+      <fieldset><legend>Different names (wrong)</legend>
+        <label><input type="radio" name="a" value="1"> First</label>
+        <label><input type="radio" name="b" value="2"> Second</label>
+        <label><input type="radio" name="c" value="3"> Third</label>
+      </fieldset>
+      <fieldset><legend>Checkboxes, same name="skill"</legend>
+        <label><input type="checkbox" name="skill" value="html" checked> HTML</label>
+        <label><input type="checkbox" name="skill" value="css"> CSS</label>
+        <label><input type="checkbox" name="skill" value="js"> JS</label>
+      </fieldset>
+    </div>
+  </div>
+  <pre class="code" data-run data-title="Radio group and checkbox set" data-h="170">&lt;fieldset&gt;
+  &lt;legend&gt;Gender&lt;/legend&gt;
+  &lt;input type="radio" id="m" name="gender" value="male" checked&gt; &lt;label for="m"&gt;Male&lt;/label&gt;
+  &lt;input type="radio" id="f" name="gender" value="female"&gt; &lt;label for="f"&gt;Female&lt;/label&gt;
+&lt;/fieldset&gt;
+&lt;fieldset&gt;
+  &lt;legend&gt;Skills&lt;/legend&gt;
+  &lt;label&gt;&lt;input type="checkbox" name="skills" value="html"&gt; HTML5&lt;/label&gt;
+  &lt;label&gt;&lt;input type="checkbox" name="skills" value="css"&gt; CSS3&lt;/label&gt;
+&lt;/fieldset&gt;</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 170" role="img" aria-label="Decision: radio for exactly one, checkbox for any number, select for a long list">
+      <rect x="215" y="8" width="190" height="36" rx="18" class="box saf"/><text x="310" y="31" class="t c b">how many may be chosen?</text>
+      <path d="M310 44 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M110 64 L510 64" class="edge"/><path d="M110 64 L110 84" class="edge" marker-end="url(#arr)"/><path d="M310 64 L310 84" class="edge" marker-end="url(#arr)"/><path d="M510 64 L510 84" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="88" width="180" height="66" rx="10" class="box saf"/><text x="110" y="110" class="t c b">exactly one, few options</text><text x="110" y="130" class="t c s mono">radio, same name</text><text x="110" y="146" class="t c s">+ fieldset/legend</text>
+      <rect x="220" y="88" width="180" height="66" rx="10" class="box grn"/><text x="310" y="110" class="t c b">exactly one, many options</text><text x="310" y="130" class="t c s mono">select + option</text><text x="310" y="146" class="t c s">(several: select multiple)</text>
+      <rect x="420" y="88" width="180" height="66" rx="10" class="box blu"/><text x="510" y="110" class="t c b">zero, one or many</text><text x="510" y="130" class="t c s mono">checkbox</text><text x="510" y="146" class="t c s">independent boxes</text>
+    </svg>
+    <figcaption><b>Figure 17.1</b> Choosing between radio, select and checkbox.</figcaption>
+  </figure>
+</section>
+
+<section id="s4">
+  <h2>17.4 Files and buttons</h2>
+  <p><code>type="file"</code> <b>lets the user attach a document from their device</b> (a resume, an assignment, a photo). Its <code>accept</code> attribute <b>restricts the file types offered in the picker</b>: <code>accept=".pdf,.jpg"</code> or <code>accept="image/*"</code>; <code>multiple</code> allows more than one file. The form must use <code>method="post"</code> and <code>enctype="multipart/form-data"</code> for the file to be uploaded.</p>
+  <p>Three input types are buttons: <code>type="submit"</code> <b>submits the form</b>; <code>type="reset"</code> restores every control to its initial value; <code>type="button"</code> <b>does nothing</b> until a script gives it a job. The button's caption is its <code>value</code>. In modern code <code>&lt;button&gt;</code> is usually preferred because it can contain other elements, but the types are identical (Chapter 16). There is also <code>type="image"</code>, a graphical submit button.</p>
+  <div class="demo">
+    <p class="dlab">Live</p>
+    <div class="row"><label>file <input type="file" accept=".pdf,.jpg,.png"></label> <input type="submit" value="Register"> <input type="reset" value="Clear"> <input type="button" value="Preview (does nothing)"></div>
+  </div>
+</section>
+
+<section id="s5">
+  <h2>17.5 The attributes that configure inputs</h2>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Applies to</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>placeholder</code></td><td>text-like</td><td>A short <b>hint</b> shown in the empty field; it <b>disappears as soon as the user types</b>. Not a label and not a value.</td></tr>
+      <tr><td><code>value</code></td><td>all</td><td><b>Pre-fills a default entry</b> into a text input; the submitted data for radio, checkbox and option; the caption of a button.</td></tr>
+      <tr><td><code>required</code></td><td>most</td><td><b>Blocks submission while the field is empty</b> (boolean).</td></tr>
+      <tr><td><code>readonly</code></td><td>text-like</td><td><b>Visible and submitted, but the user cannot edit it.</b> It can still be focused and selected.</td></tr>
+      <tr><td><code>disabled</code></td><td>all</td><td><b>Greyed out, cannot be focused or edited, and its value is NOT submitted.</b></td></tr>
+      <tr><td><code>checked</code></td><td>checkbox, radio</td><td>Pre-ticked / pre-selected on load.</td></tr>
+      <tr><td><code>selected</code></td><td>option (in select)</td><td>Pre-chosen on load. Note: <code>checked</code> is for checkbox and radio; <code>selected</code> is for option.</td></tr>
+      <tr><td><code>multiple</code></td><td>select, file, email</td><td>Allows several selections or files.</td></tr>
+      <tr><td><code>min</code>, <code>max</code></td><td>number, range, date, time</td><td>Lowest and highest <b>value</b> accepted: <code>min="18" max="60"</code>.</td></tr>
+      <tr><td><code>step</code></td><td>number, range, date, time</td><td><b>The legal interval between accepted values</b> (and the spinner's increment): <code>step="5"</code> allows 0, 5, 10; <code>step="0.01"</code> allows paise.</td></tr>
+      <tr><td><code>minlength</code>, <code>maxlength</code></td><td>text-like, textarea</td><td>Minimum and maximum <b>number of characters</b>. <code>minlength="8"</code> on a password means at least 8 characters; <code>maxlength</code> caps how many can be typed.</td></tr>
+      <tr><td><code>size</code></td><td>text-like</td><td>The <b>visible width of the box in characters</b>; it does not limit input (CSS usually sets width instead).</td></tr>
+      <tr><td><code>accept</code></td><td>file</td><td>File types offered in the picker.</td></tr>
+      <tr><td><code>autofocus</code></td><td>one control per page</td><td><b>Gives the control keyboard focus automatically as the page loads.</b></td></tr>
+      <tr><td><code>autocomplete</code></td><td>text-like</td><td>Lets the browser fill in remembered values (<code>autocomplete="email"</code>) or not (<code>"off"</code>).</td></tr>
+      <tr><td><code>pattern</code>, <code>title</code></td><td>text-like</td><td>A regular expression the value must match, and the hint shown when it does not (Chapter 18).</td></tr>
+      <tr><td><code>list</code></td><td>text-like</td><td>The id of a <code>datalist</code> of suggestions.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout exam"><b>Two pairs that are always examined.</b> <b>readonly versus disabled:</b> both stop editing, but readonly is submitted and disabled is not (and disabled is greyed out). <b>min/max versus minlength/maxlength:</b> min and max bound the <i>value</i> of a number or date; minlength and maxlength bound the <i>length</i> of text in characters.</div>
+  <div class="demo">
+    <p class="dlab">Live: readonly versus disabled; min/max/step; maxlength; size</p>
+    <div class="row"><label>readonly <input type="text" value="CSE326" readonly></label> <label>disabled <input type="text" value="Not available" disabled></label></div>
+    <div class="row"><label>age 18&ndash;60 step 1 <input type="number" min="18" max="60" step="1" value="18"></label> <label>price step 0.5 <input type="number" min="0" max="10" step="0.5" value="2.5"></label></div>
+    <div class="row"><label>maxlength 5 <input type="text" maxlength="5" placeholder="max 5"></label> <label>size 8 <input type="text" size="8" placeholder="size 8"></label> <label>size 30 <input type="text" size="30" placeholder="size 30 (visible width only)"></label></div>
+  </div>
+  <pre class="code" data-run data-title="Attributes in a registration snippet" data-h="230">&lt;form onsubmit="event.preventDefault(); alert('Valid!')"&gt;
+  &lt;p&gt;&lt;label for="reg"&gt;Registration no.&lt;/label&gt;
+     &lt;input id="reg" name="reg" type="text" value="12345678" readonly&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="age"&gt;Age&lt;/label&gt;
+     &lt;input id="age" name="age" type="number" min="18" max="60" step="1" required&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="pw"&gt;Password (8-20 chars)&lt;/label&gt;
+     &lt;input id="pw" name="pw" type="password" minlength="8" maxlength="20" required autofocus&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="phone"&gt;Phone&lt;/label&gt;
+     &lt;input id="phone" name="phone" type="tel" placeholder="+91 ..." autocomplete="tel"&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="cv"&gt;Resume (PDF)&lt;/label&gt;
+     &lt;input id="cv" name="cv" type="file" accept=".pdf"&gt;&lt;/p&gt;
+  &lt;button type="submit"&gt;Submit&lt;/button&gt;
+&lt;/form&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>17.6 Choosing the type: a quick guide</h2>
+  <table class="tbl">
+    <thead><tr><th>Data</th><th>Use</th><th>Not</th></tr></thead>
+    <tbody>
+      <tr><td>A name or short text</td><td><code>text</code></td><td></td></tr>
+      <tr><td>A secret</td><td><code>password</code></td><td><code>hidden</code> (that is invisible, not masked)</td></tr>
+      <tr><td>An email address</td><td><code>email</code></td><td><code>text</code> (loses validation and the @ keyboard)</td></tr>
+      <tr><td>A phone number</td><td><code>tel</code></td><td><code>number</code> (spinner, no leading zeros, no +)</td></tr>
+      <tr><td>A quantity, an age</td><td><code>number</code> with min/max/step</td><td><code>text</code></td></tr>
+      <tr><td>A rough level (volume, rating)</td><td><code>range</code></td><td><code>number</code></td></tr>
+      <tr><td>A date / a month</td><td><code>date</code> / <code>month</code></td><td><code>text</code></td></tr>
+      <tr><td>Exactly one of a few</td><td><code>radio</code> (shared name)</td><td><code>checkbox</code></td></tr>
+      <tr><td>Any number of options</td><td><code>checkbox</code></td><td><code>radio</code></td></tr>
+      <tr><td>A colour</td><td><code>color</code></td><td><code>text</code></td></tr>
+      <tr><td>A document</td><td><code>file</code> with accept</td><td></td></tr>
+      <tr><td>A search box</td><td><code>search</code></td><td></td></tr>
+      <tr><td>Data the user should not see</td><td><code>hidden</code></td><td></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which input type masks the typed characters as dots?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. type="hidden"</li><li>B. type="secret"</li><li>C. type="password"</li><li>D. type="mask"</li></ul>
+    <p><b>Answer: C.</b> hidden is invisible, not masked.</p></div></details>
+  <details class="q"><summary>Which input type makes a phone show an @ key, and which should be used for a phone number so that mobile keyboards adapt?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: type="email"</b> for the @ keyboard and validation; <b>type="tel"</b> for a phone number (numeric keypad, no spinner, allows + and leading zeros). phone, mobile and mail do not exist.</p></div></details>
+  <details class="q"><summary>Which input type is intended for entering a website address?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. type="web"</li><li>B. type="link"</li><li>C. type="url"</li><li>D. type="href"</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which input type presents a numeric field with an up/down spinner, and which attributes constrain it to values between 18 and 60?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: type="number"</b> with <b>min="18" max="60"</b>. minlength/maxlength bound length, not value; start/end and range="18-60" do not exist.</p></div></details>
+  <details class="q"><summary>What does the step attribute do on &lt;input type="number"&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It sets the lowest value that may be entered</li><li>B. It defines the legal interval between accepted values</li><li>C. It counts how many times the field may be edited</li><li>D. It limits the number of digits allowed</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which input type gives the user a native calendar picker, and which lets a user choose a month and year together?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: type="date"</b> and <b>type="month"</b>. week picks a week; period does not exist.</p></div></details>
+  <details class="q"><summary>Which input type opens a native colour picker, and which presents a slider?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: type="color"</b> and <b>type="range"</b>. paint, palette, picker, slider and scale do not exist.</p></div></details>
+  <details class="q"><summary>Which input type creates a field styled as a search box?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: type="search".</b></p></div></details>
+  <details class="q"><summary>Which input type lets the user attach a document from their device, and which attribute restricts the file types offered?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: type="file"</b> with <b>accept</b> (e.g. accept=".pdf,.jpg"). Add multiple to allow more than one file.</p></div></details>
+  <details class="q"><summary>A form asks the user to choose exactly one spice level from four options. Which control is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;input type="radio"&gt;</li><li>B. &lt;input type="checkbox"&gt;</li><li>C. &lt;select multiple&gt;</li><li>D. &lt;input type="range"&gt;</li></ul>
+    <p><b>Answer: A.</b> Radio buttons sharing one name allow exactly one choice.</p></div></details>
+  <details class="q"><summary>Four radio buttons must behave as one mutually exclusive group. They must share the same:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. id</li><li>B. name</li><li>C. class</li><li>D. value</li></ul>
+    <p><b>Answer: B.</b> ids must be unique; values should differ; the shared name makes the group.</p></div></details>
+  <details class="q"><summary>Three radio buttons each have a DIFFERENT name. What happens?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> all three can be selected at once, because each is its own group of one.</p></div></details>
+  <details class="q"><summary>Which input type creates a box the user can tick to select zero, one or many options, and is it valid for two checkboxes to share the same name?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: type="checkbox"</b>; yes, same-named checkboxes are valid and submit together as a set of values.</p></div></details>
+  <details class="q"><summary>Which attribute pre-selects one radio button (or pre-ticks a checkbox), and which pre-selects an option?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: checked</b> for radio and checkbox; <b>selected</b> for option.</p></div></details>
+  <details class="q"><summary>Which attribute keeps a field visible and submitted but prevents the user from editing it, and which both greys out a control and stops its value being submitted?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: readonly</b> (submitted, not editable) and <b>disabled</b> (greyed out, not submitted).</p></div></details>
+  <details class="q"><summary>In &lt;input type="password" minlength="8" required&gt;, what does minlength enforce?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The value must contain at most 8 characters</li><li>B. The value must contain at least 8 characters</li><li>C. The field must be filled within 8 seconds</li><li>D. The password must contain exactly 8 digits</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which attribute caps the number of characters a user may type into a text field, and which pair limits how many characters may be typed?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: maxlength</b>; the pair is <b>minlength and maxlength</b>. min/max bound the value; size is only the visible width.</p></div></details>
+  <details class="q"><summary>Which attribute sets the visible width of a text input in characters?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. maxlength</li><li>B. width</li><li>C. size</li><li>D. cols</li></ul>
+    <p><b>Answer: C.</b> cols is for textarea; maxlength limits input rather than width.</p></div></details>
+  <details class="q"><summary>Which attribute gives a form control keyboard focus automatically as the page loads?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. default</li><li>B. focus</li><li>C. autoselect</li><li>D. autofocus</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>Which attribute blocks submission while a field is still empty, and which pre-fills a default entry into a text input?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: required</b> and <b>value</b>. placeholder is only a hint.</p></div></details>
+  <details class="q"><summary>Which input type produces a button that submits the form when clicked?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. type="submit"</li><li>B. type="button"</li><li>C. type="send"</li><li>D. type="reset"</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Which is the most accessible way to label a radio button?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> a &lt;label&gt; using for/id, or wrapping the input inside the label; loose text next to it, a placeholder or a title is not associated with the control.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Text-like: text, password (masked), email (@ keyboard, validation), url, tel (numeric keypad), search, number (spinner, min/max/step), hidden.</li>
+    <li>Pickers: date, time, datetime-local, month, week, color; range is a slider.</li>
+    <li>radio = exactly one of a group defined by a shared name; different names = separate groups; checked pre-selects. checkbox = independent, any number; same name is fine.</li>
+    <li>file with accept (and multiple); submit / reset / button (button does nothing alone).</li>
+    <li>placeholder (hint, vanishes), value (pre-fill / data), required, readonly (submitted), disabled (not submitted), checked / selected, multiple, min / max / step (value), minlength / maxlength (length), size (visible width), autofocus, autocomplete.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Pair</th><th>Difference</th></tr></thead>
+    <tbody>
+      <tr><td>readonly / disabled</td><td>submitted / not submitted (and greyed out)</td></tr>
+      <tr><td>min, max / minlength, maxlength</td><td>bound the value / bound the character count</td></tr>
+      <tr><td>checked / selected</td><td>radio and checkbox / option</td></tr>
+      <tr><td>placeholder / value</td><td>hint that disappears / real pre-filled data</td></tr>
+      <tr><td>tel / number</td><td>phone numbers (keypad, no spinner) / numeric values</td></tr>
+      <tr><td>size / maxlength</td><td>visible width / maximum characters</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

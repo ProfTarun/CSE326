@@ -1,0 +1,243 @@
+<article class="chapter" data-ch="7">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 7 &middot; Lists</p>
+  <h1>Lists</h1>
+  <p class="lead">Menus, steps, features, requirements, glossaries: a surprising amount of every page is a list. HTML has three list types, each with a precise meaning, and a strict rule about what may sit inside them. This chapter covers all three, the attributes that control numbering, how to nest lists correctly, and why a navigation menu should be a list even when its bullets are hidden.</p>
+  <p class="meta">About 13 minutes &middot; Course outcome CO1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Choose between <code>ul</code>, <code>ol</code> and <code>dl</code> by the meaning of the content.</li>
+      <li>Write valid list markup: only <code>li</code> directly inside <code>ul</code>/<code>ol</code>; <code>dt</code>/<code>dd</code> inside <code>dl</code>.</li>
+      <li>Nest a sub-list in the right place.</li>
+      <li>Use <code>type</code>, <code>start</code> and <code>reversed</code> on ordered lists.</li>
+      <li>Explain why screen-reader users benefit from lists.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>7.1 Three kinds of list</h2>
+  <figure class="fig">
+    <svg viewBox="0 0 720 200" role="img" aria-label="Three list types side by side: unordered, ordered, description">
+      <rect x="10" y="10" width="220" height="180" rx="12" class="box saf"/>
+      <text x="120" y="36" class="t c b">&lt;ul&gt; unordered</text><text x="120" y="54" class="t c s">order carries no meaning</text>
+      <text x="40" y="86" class="t">&#8226; HTML</text><text x="40" y="110" class="t">&#8226; CSS</text><text x="40" y="134" class="t">&#8226; JavaScript</text>
+      <text x="120" y="172" class="t c s">skills, features, a menu</text>
+      <rect x="250" y="10" width="220" height="180" rx="12" class="box grn"/>
+      <text x="360" y="36" class="t c b">&lt;ol&gt; ordered</text><text x="360" y="54" class="t c s">sequence or rank matters</text>
+      <text x="280" y="86" class="t">1. Open the editor</text><text x="280" y="110" class="t">2. Write HTML</text><text x="280" y="134" class="t">3. Save and open</text>
+      <text x="360" y="172" class="t c s">steps, recipes, rankings</text>
+      <rect x="490" y="10" width="220" height="180" rx="12" class="box blu"/>
+      <text x="600" y="36" class="t c b">&lt;dl&gt; description</text><text x="600" y="54" class="t c s">term and its description</text>
+      <text x="520" y="86" class="t b">HTML</text><text x="540" y="104" class="t s">Structures pages</text>
+      <text x="520" y="128" class="t b">CSS</text><text x="540" y="146" class="t s">Styles pages</text>
+      <text x="600" y="172" class="t c s">glossaries, key&ndash;value data</text>
+    </svg>
+    <figcaption><b>Figure 7.1</b> The choice is about meaning, not looks: does order matter (ol), not matter (ul), or is each item a term with a description (dl)?</figcaption>
+  </figure>
+  <h3>Unordered list: <code>&lt;ul&gt;</code> + <code>&lt;li&gt;</code></h3>
+  <p>Use it for a set of related items whose <b>order carries no meaning</b>: a list of skills, the ingredients you need, the links in a menu. Each item is an <code>&lt;li&gt;</code> (list item). Browsers show bullets by default.</p>
+  <pre class="code" data-run data-title="Unordered list" data-h="120">&lt;ul&gt;
+  &lt;li&gt;HTML5&lt;/li&gt;
+  &lt;li&gt;CSS3&lt;/li&gt;
+  &lt;li&gt;JavaScript&lt;/li&gt;
+&lt;/ul&gt;</pre>
+  <h3>Ordered list: <code>&lt;ol&gt;</code> + <code>&lt;li&gt;</code></h3>
+  <p>Use it when <b>the sequence carries meaning</b>: the steps to install an editor in the order they must be performed, a recipe, a ranking of the top five students, the stages of an exam. Browsers number the items automatically, so you never type the numbers yourself; insert a step and the rest renumber.</p>
+  <pre class="code" data-run data-title="Ordered list" data-h="120">&lt;ol&gt;
+  &lt;li&gt;Open VS Code&lt;/li&gt;
+  &lt;li&gt;Create index.html&lt;/li&gt;
+  &lt;li&gt;Write HTML code&lt;/li&gt;
+&lt;/ol&gt;</pre>
+  <h3>Description list: <code>&lt;dl&gt;</code> + <code>&lt;dt&gt;</code> + <code>&lt;dd&gt;</code></h3>
+  <p>A description list pairs <b>terms with descriptions</b>. <code>&lt;dl&gt;</code> is the list, <code>&lt;dt&gt;</code> (description term) names a term, and <code>&lt;dd&gt;</code> (description details) describes it. Use it for glossaries, dictionaries, FAQ-style question-and-answer pairs and key&ndash;value metadata (Name: Rahul, Course: CSE326). Note that <code>&lt;dl&gt;</code> does <i>not</i> use <code>&lt;li&gt;</code>: the pair <code>&lt;dt&gt;</code>/<code>&lt;dd&gt;</code> structures a term with its description.</p>
+  <pre class="code" data-run data-title="Description list" data-h="150">&lt;dl&gt;
+  &lt;dt&gt;HTML&lt;/dt&gt;
+  &lt;dd&gt;Structures web content.&lt;/dd&gt;
+  &lt;dt&gt;CSS&lt;/dt&gt;
+  &lt;dd&gt;Styles web content.&lt;/dd&gt;
+&lt;/dl&gt;</pre>
+</section>
+
+<section id="s2">
+  <h2>7.2 The one strict rule: what goes inside a list</h2>
+  <p><b>Only <code>&lt;li&gt;</code> elements may sit directly inside a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>.</b> Loose text, a <code>&lt;p&gt;</code>, a <code>&lt;div&gt;</code> or a link placed directly inside the list is invalid. Anything you want in the list goes <i>inside an <code>&lt;li&gt;</code></i>, and an <code>&lt;li&gt;</code> can hold anything: text, links, images, paragraphs, even another list.</p>
+  <div class="fix">
+    <div class="w"><b>&#10007; Loose content inside the list</b><pre>&lt;ul&gt;
+  Web
+  &lt;li&gt;HTML&lt;/li&gt;
+  &lt;p&gt;CSS&lt;/p&gt;
+&lt;/ul&gt;</pre>"Web" and the paragraph are not list items.</div>
+    <div class="r"><b>&#10003; Everything wrapped in li</b><pre>&lt;ul&gt;
+  &lt;li&gt;Web&lt;/li&gt;
+  &lt;li&gt;HTML&lt;/li&gt;
+  &lt;li&gt;&lt;p&gt;CSS&lt;/p&gt;&lt;/li&gt;
+&lt;/ul&gt;</pre></div>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>7.3 Nested lists</h2>
+  <p>A list can contain another list, which is how outlines, multi-level menus and course syllabuses are written. The rule follows from the previous section: the sub-list describes <i>one</i> item, so it goes <b>inside that item's <code>&lt;li&gt;</code></b>, after the item's text and before its closing <code>&lt;/li&gt;</code>. It does not go directly inside the parent <code>&lt;ul&gt;</code>, and not after the parent list has closed.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Nested list as a tree: ul contains li, the li contains text and another ul">
+      <rect x="260" y="10" width="100" height="32" rx="8" class="box saf"/><text x="310" y="31" class="t c b mono">ul</text>
+      <path d="M310 42 L310 62" class="edge"/>
+      <rect x="230" y="64" width="160" height="32" rx="8" class="box"/><text x="310" y="85" class="t c b mono">li "Web Development"</text>
+      <path d="M310 96 L310 118" class="edge"/>
+      <rect x="260" y="120" width="100" height="32" rx="8" class="box saf"/><text x="310" y="141" class="t c b mono">ul (nested)</text>
+      <path d="M290 152 L220 176" class="edge"/><path d="M330 152 L400 176" class="edge"/>
+      <rect x="170" y="178" width="100" height="28" rx="8" class="box gry"/><text x="220" y="197" class="t c mono">li "HTML"</text>
+      <rect x="350" y="178" width="100" height="28" rx="8" class="box gry"/><text x="400" y="197" class="t c mono">li "CSS"</text>
+      <text x="470" y="85" class="t s">the sub-list is a child of the li,</text><text x="470" y="101" class="t s">not of the outer ul</text>
+    </svg>
+    <figcaption><b>Figure 7.2</b> Valid nesting: the inner <code>ul</code> lives inside the <code>li</code> it belongs to.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="A nested list, correctly placed" data-h="190">&lt;ul&gt;
+  &lt;li&gt;Frontend
+    &lt;ul&gt;
+      &lt;li&gt;HTML&lt;/li&gt;
+      &lt;li&gt;CSS&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Backend&lt;/li&gt;
+&lt;/ul&gt;</pre>
+  <div class="fix">
+    <div class="w"><b>&#10007; Sub-list dropped straight into the parent ul</b><pre>&lt;ul&gt;
+  &lt;li&gt;Web&lt;/li&gt;
+  &lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;
+&lt;/ul&gt;</pre>A ul is not an li, so it may not be a direct child of ul. (Also invalid: <code>&lt;li&gt;&lt;ul&gt;Web&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;</code>, which puts loose text inside the inner ul.)</div>
+    <div class="r"><b>&#10003; Sub-list inside the item</b><pre>&lt;ul&gt;
+  &lt;li&gt;Web
+    &lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;
+  &lt;/li&gt;
+&lt;/ul&gt;</pre></div>
+  </div>
+</section>
+
+<section id="s4">
+  <h2>7.4 Controlling ordered lists: type, start and reversed</h2>
+  <p>Ordered lists take three attributes. They change the <i>numbering</i>; they never change the order of the items in your markup.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Effect</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>type="1"</code></td><td>Decimal numbers (the default): 1, 2, 3</td><td><code>&lt;ol type="1"&gt;</code></td></tr>
+      <tr><td><code>type="a"</code></td><td>Lowercase letters: a, b, c</td><td><code>&lt;ol type="a"&gt;</code></td></tr>
+      <tr><td><code>type="A"</code></td><td>Uppercase letters: A, B, C</td><td><code>&lt;ol type="A"&gt;</code></td></tr>
+      <tr><td><code>type="i"</code></td><td>Lowercase Roman numerals: i, ii, iii</td><td><code>&lt;ol type="i"&gt;</code></td></tr>
+      <tr><td><code>type="I"</code></td><td>Uppercase Roman numerals: I, II, III</td><td><code>&lt;ol type="I"&gt;</code></td></tr>
+      <tr><td><code>start="5"</code></td><td>Begin counting at 5 (5, 6, 7 ...)</td><td><code>&lt;ol start="5"&gt;</code></td></tr>
+      <tr><td><code>reversed</code></td><td>Count <b>downwards</b> (3, 2, 1); a boolean attribute. The items stay in source order on screen; only the numbers descend</td><td><code>&lt;ol reversed&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="type, start and reversed" data-h="260">&lt;ol type="I"&gt;
+  &lt;li&gt;Introduction&lt;/li&gt;&lt;li&gt;Method&lt;/li&gt;&lt;li&gt;Results&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ol type="a" start="5"&gt;
+  &lt;li&gt;fifth item, lettered e&lt;/li&gt;&lt;li&gt;sixth item, lettered f&lt;/li&gt;
+&lt;/ol&gt;
+&lt;ol reversed&gt;
+  &lt;li&gt;Gold&lt;/li&gt;&lt;li&gt;Silver&lt;/li&gt;&lt;li&gt;Bronze&lt;/li&gt;
+&lt;/ol&gt;</pre>
+  <p>A single item can also set its own number with <code>&lt;li value="10"&gt;</code>; later items continue from it. Unordered lists have no numbering to control; their bullet style is changed with CSS (<code>list-style-type</code>), not with attributes.</p>
+</section>
+
+<section id="s5">
+  <h2>7.5 Choosing the right list</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Flowchart for choosing ul, ol or dl">
+      <rect x="215" y="10" width="190" height="36" rx="18" class="box saf"/><text x="310" y="33" class="t c b">a group of related items</text>
+      <path d="M310 46 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 66 L430 104 L310 142 L190 104 Z" class="dec"/><text x="310" y="100" class="t c b">each item = a term</text><text x="310" y="116" class="t c b">plus its description?</text>
+      <path d="M430 104 L520 104" class="edge" marker-end="url(#arr)"/><text x="475" y="96" class="t c s">yes</text>
+      <rect x="520" y="82" width="90" height="44" rx="10" class="box blu"/><text x="565" y="102" class="t c b mono">dl</text><text x="565" y="118" class="t c s">dt + dd</text>
+      <path d="M310 142 L310 162" class="edge" marker-end="url(#arr)"/><text x="335" y="158" class="t s">no</text>
+      <path d="M310 166 L430 204 L310 242 L190 204 Z" class="dec"/><text x="310" y="200" class="t c b">does the order</text><text x="310" y="216" class="t c b">carry meaning?</text>
+      <path d="M430 204 L520 204" class="edge" marker-end="url(#arr)"/><text x="475" y="196" class="t c s">yes</text>
+      <rect x="520" y="182" width="90" height="44" rx="10" class="box grn"/><text x="565" y="202" class="t c b mono">ol</text><text x="565" y="218" class="t c s">numbered</text>
+      <path d="M190 204 L100 204" class="edge" marker-end="url(#arr)"/><text x="145" y="196" class="t c s">no</text>
+      <rect x="10" y="182" width="90" height="44" rx="10" class="box saf"/><text x="55" y="202" class="t c b mono">ul</text><text x="55" y="218" class="t c s">bulleted</text>
+    </svg>
+    <figcaption><b>Figure 7.3</b> Two questions choose the list. A table is never the answer for a list of steps just because they are numbered.</figcaption>
+  </figure>
+  <ul>
+    <li>Steps to install an editor, in the order they must be performed: <b><code>ol</code></b>, because the sequence carries meaning.</li>
+    <li>A set of skills where the order carries no meaning: <b><code>ul</code></b>.</li>
+    <li>A term paired with its definition: <b><code>dl</code></b> with <code>dt</code> and <code>dd</code>.</li>
+    <li>A ranking of the top five students: <b><code>ol</code></b> (the position is the information).</li>
+  </ul>
+</section>
+
+<section id="s6">
+  <h2>7.6 Lists as navigation, and why the bullets do not matter</h2>
+  <p>Almost every site's menu is a <code>&lt;ul&gt;</code> of links inside a <code>&lt;nav&gt;</code>, with the bullets removed by CSS. If the bullets are hidden, why bother with the list? Because the list is <b>information</b>, not decoration. A screen reader announces "list, five items" when it reaches a <code>ul</code>, so the user knows exactly how many choices there are and can skip the whole group in one keystroke. Five loose links tell them nothing. The list also gives CSS a clean structure to lay out horizontally (Unit 3). Marking a menu as a list is not required by HTML and does not load faster; it is done for the semantics.</p>
+  <pre class="code" data-run data-title="A navigation menu is a list of links" data-h="120">&lt;nav aria-label="Main"&gt;
+  &lt;ul&gt;
+    &lt;li&gt;&lt;a href="index.html"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="courses.html"&gt;Courses&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="contact.html"&gt;Contact&lt;/a&gt;&lt;/li&gt;
+  &lt;/ul&gt;
+&lt;/nav&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>A page lists the steps to install an editor, in the order they must be performed. Which list is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;ul&gt;, because the items are related</li><li>B. &lt;dl&gt;, because each step has a description</li><li>C. &lt;ol&gt;, because the sequence carries meaning</li><li>D. &lt;table&gt;, because the steps are numbered</li></ul>
+    <p><b>Answer: C.</b> Order matters, so ordered list. Numbering is not a reason for a table.</p></div></details>
+  <details class="q"><summary>Which content is best represented by an unordered list?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The steps of a recipe in cooking order</li><li>B. A ranking of the top five students</li><li>C. A set of skills where the order carries no meaning</li><li>D. A term paired with its definition</li></ul>
+    <p><b>Answer: C.</b> A and B need ol; D needs dl.</p></div></details>
+  <details class="q"><summary>Which tag creates a NUMBERED list?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;ol&gt;</b> (ordered). ul is bulleted, dl is a description list, and there is no list element.</p></div></details>
+  <details class="q"><summary>Which pair of tags structures a term together with its description?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;ul&gt; and &lt;li&gt;</li><li>B. &lt;dl&gt; and &lt;li&gt;</li><li>C. &lt;ol&gt; and &lt;li&gt;</li><li>D. &lt;dt&gt; and &lt;dd&gt;</li></ul>
+    <p><b>Answer: D.</b> dt names the term, dd describes it, both inside dl. dl never uses li.</p></div></details>
+  <details class="q"><summary>Which element defines a term inside a &lt;dl&gt;?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: &lt;dt&gt;.</b> dd is its description.</p></div></details>
+  <details class="q"><summary>Which elements may sit DIRECTLY inside a &lt;ul&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Any element</li><li>B. Only &lt;li&gt;</li><li>C. &lt;li&gt; and &lt;p&gt;</li><li>D. &lt;li&gt; and &lt;div&gt;</li></ul>
+    <p><b>Answer: B.</b> Loose text or other elements placed directly inside a list are invalid; put them inside an li.</p></div></details>
+  <details class="q"><summary>Which nesting of a sublist is valid HTML?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;li&gt;&lt;ul&gt;Web&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;</li><li>B. &lt;ul&gt;&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;</li><li>C. &lt;ul&gt;&lt;li&gt;Web&lt;/li&gt;&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;</li><li>D. &lt;ul&gt;&lt;li&gt;Web&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ul&gt;</li></ul>
+    <p><b>Answer: D.</b> The inner ul is inside the li for "Web". A has loose text inside a ul; B and C put a ul directly inside a ul.</p></div></details>
+  <details class="q"><summary>Where must a nested list be placed?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: inside an &lt;li&gt; of the parent list</b>, before that item's closing tag. Not directly inside the parent ul, not after it closes, and not inside a dd (unless it is a description list).</p></div></details>
+  <details class="q"><summary>What does &lt;ol type="I"&gt; produce as list markers?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 1, 2, 3</li><li>B. i, ii, iii</li><li>C. I, II, III</li><li>D. A, B, C</li></ul>
+    <p><b>Answer: C.</b> Uppercase I gives uppercase Roman numerals; lowercase i gives lowercase ones.</p></div></details>
+  <details class="q"><summary>&lt;ol type="a"&gt; produces markers that look like:<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: a, b, c.</b> Lowercase type="a" gives lowercase letters; type="A" gives capitals.</p></div></details>
+  <details class="q"><summary>Which attribute makes an ordered list start at 5?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: start="5"</b>: <code>&lt;ol start="5"&gt;</code>. begin, from and index do not exist.</p></div></details>
+  <details class="q"><summary>What is the effect of writing &lt;ol reversed&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The list counts downwards instead of upwards</li><li>B. The list items appear in reverse order on screen</li><li>C. The list markers change to Roman numerals</li><li>D. The list becomes unordered</li></ul>
+    <p><b>Answer: A.</b> Items stay in source order; only the numbers descend (3, 2, 1).</p></div></details>
+  <details class="q"><summary>Why mark a navigation menu as a list even though CSS removes the bullets?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is required by HTML</li><li>B. So a screen reader announces the item count</li><li>C. It loads faster</li><li>D. Bullets cannot be removed otherwise</li></ul>
+    <p><b>Answer: B.</b> "List, five items" tells the user how many choices there are; loose links do not.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>ul: order does not matter. ol: order or rank matters. dl: terms (dt) with descriptions (dd).</li>
+    <li>Only li may sit directly inside ul or ol; anything else goes inside an li.</li>
+    <li>A nested list goes inside the li it belongs to, before that li closes.</li>
+    <li>ol attributes: type (1, a, A, i, I), start="n", reversed (counts down; items stay in place). li value="n" sets one item's number.</li>
+    <li>Menus are lists of links inside nav: screen readers announce the item count.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Markup</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;ul&gt;&lt;li&gt;..&lt;/li&gt;&lt;/ul&gt;</code></td><td>Bulleted list</td></tr>
+      <tr><td><code>&lt;ol&gt;&lt;li&gt;..&lt;/li&gt;&lt;/ol&gt;</code></td><td>Numbered list 1, 2, 3</td></tr>
+      <tr><td><code>&lt;ol type="A"&gt;</code> / <code>type="i"</code></td><td>A, B, C / i, ii, iii</td></tr>
+      <tr><td><code>&lt;ol start="5"&gt;</code></td><td>5, 6, 7</td></tr>
+      <tr><td><code>&lt;ol reversed&gt;</code></td><td>3, 2, 1</td></tr>
+      <tr><td><code>&lt;dl&gt;&lt;dt&gt;term&lt;/dt&gt;&lt;dd&gt;description&lt;/dd&gt;&lt;/dl&gt;</code></td><td>Glossary-style pairs</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

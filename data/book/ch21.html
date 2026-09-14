@@ -1,0 +1,184 @@
+<article class="chapter" data-ch="21">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 21 &middot; Responsive Content Structuring</p>
+  <h1>Responsive Content Structuring</h1>
+  <p class="lead">More than half of the Web is read on phones. A responsive page is one whose content adapts to any screen, from a 360-pixel handset to a wide monitor, without a separate mobile site. Most of the adapting is done by CSS in Unit 3, but it only works if the HTML is structured for it. This chapter covers the HTML half: the viewport tag, mobile-first thinking, source order, flexible media and the mistakes that make a page impossible to fit on a small screen.</p>
+  <p class="meta">About 13 minutes &middot; Course outcome CO2 &middot; Closes Unit 2</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what the viewport meta tag does and what happens without it.</li>
+      <li>Describe mobile-first design and logical source order.</li>
+      <li>Make images and videos scale with their container.</li>
+      <li>Use <code>srcset</code>, <code>sizes</code> and <code>picture</code> to serve the right image.</li>
+      <li>List the HTML habits that fight responsiveness.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>21.1 What "responsive" means</h2>
+  <p>A responsive page has one HTML document that <b>responds</b> to the device it is shown on: text reflows, columns stack, images shrink, menus collapse. The alternative, a fixed 980-pixel desktop layout, forces phone users to pinch and scroll sideways, and search engines rank it lower (Chapter 11). Responsiveness is achieved by three things working together: <b>HTML that provides a clean, logical structure; CSS media queries that rearrange it for each screen width; and media that can scale.</b></p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 200" role="img" aria-label="The same page on a phone, a tablet and a desktop, with the layout adapting">
+      <rect x="20" y="30" width="90" height="150" rx="12" class="box gry"/><rect x="28" y="40" width="74" height="130" fill="#fff" stroke="#CBD5E1"/>
+      <rect x="32" y="44" width="66" height="12" fill="#FFF1E0"/><rect x="32" y="60" width="66" height="8" fill="#FFF1E0"/><rect x="32" y="72" width="66" height="50" fill="#E9F7E7"/><rect x="32" y="126" width="66" height="22" fill="#EEF2FF"/><rect x="32" y="152" width="66" height="12" fill="#FFF1E0"/>
+      <text x="65" y="195" class="t c s">phone: 1 column</text>
+      <rect x="160" y="30" width="200" height="150" rx="12" class="box gry"/><rect x="170" y="40" width="180" height="130" fill="#fff" stroke="#CBD5E1"/>
+      <rect x="174" y="44" width="172" height="14" fill="#FFF1E0"/><rect x="174" y="62" width="172" height="8" fill="#FFF1E0"/><rect x="174" y="74" width="110" height="74" fill="#E9F7E7"/><rect x="288" y="74" width="58" height="74" fill="#EEF2FF"/><rect x="174" y="152" width="172" height="12" fill="#FFF1E0"/>
+      <text x="260" y="195" class="t c s">tablet: content + sidebar</text>
+      <rect x="410" y="30" width="290" height="150" rx="10" class="box gry"/><rect x="420" y="40" width="270" height="130" fill="#fff" stroke="#CBD5E1"/>
+      <rect x="424" y="44" width="262" height="14" fill="#FFF1E0"/><rect x="424" y="62" width="262" height="8" fill="#FFF1E0"/><rect x="424" y="74" width="60" height="74" fill="#EEF2FF"/><rect x="488" y="74" width="130" height="74" fill="#E9F7E7"/><rect x="622" y="74" width="64" height="74" fill="#EEF2FF"/><rect x="424" y="152" width="262" height="12" fill="#FFF1E0"/>
+      <text x="555" y="195" class="t c s">desktop: three columns</text>
+    </svg>
+    <figcaption><b>Figure 21.1</b> One document, three layouts. The header, main, aside and footer are the same elements in the same source order every time.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>21.2 The viewport meta tag</h2>
+  <p>Mobile browsers were built when the Web was made of desktop pages, so by default they <b>pretend to be a wide desktop screen</b> (about 980 pixels), lay the page out at that width and then shrink the whole thing to fit the phone. The result is a miniature desktop page with unreadable text. The viewport meta tag tells the browser to stop pretending:</p>
+  <pre class="code">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</pre>
+  <ul>
+    <li><code>width=device-width</code>: lay the page out at the device's real screen width.</li>
+    <li><code>initial-scale=1.0</code>: start at 100% zoom, not zoomed out.</li>
+  </ul>
+  <p>It belongs in the <code>&lt;head&gt;</code> of every page and is <b>essential for a mobile-responsive page</b>; without it, media queries measure the wrong width and nothing else in this chapter works. Do not add <code>user-scalable=no</code>: preventing zoom is an accessibility failure.</p>
+</section>
+
+<section id="s3">
+  <h2>21.3 Mobile-first and logical source order</h2>
+  <p><b>Mobile-first</b> means designing <b>for the smallest screen first, then enhancing for larger ones</b>. Start with a single column that works on a phone; when there is room, CSS adds a second column, then a third. Working the other way, shrinking a desktop design down, produces cramped, compromised phone pages. Mobile-first is also honest about priorities: on a small screen only the important content fits, so you decide what matters first.</p>
+  <p>Because the single-column view is simply the HTML in the order it was written, <b>logical source order</b> is the foundation: header, navigation, main content, related content, footer. Chapter 14 showed why this also serves screen readers and search engines. If the source order is right, the page is already responsive on a phone before a line of CSS exists.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 130" role="img" aria-label="Mobile-first: start with one column, then add layout as width grows">
+      <rect x="20" y="40" width="130" height="50" rx="10" class="box saf"/><text x="85" y="62" class="t c b">1. phone</text><text x="85" y="80" class="t c s">single column: HTML order</text>
+      <path d="M155 65 L195 65" class="edge" marker-end="url(#arr)"/><text x="175" y="56" class="t c s">wider?</text>
+      <rect x="200" y="40" width="130" height="50" rx="10" class="box"/><text x="265" y="62" class="t c b">2. tablet</text><text x="265" y="80" class="t c s">CSS adds a sidebar</text>
+      <path d="M335 65 L375 65" class="edge" marker-end="url(#arr)"/><text x="355" y="56" class="t c s">wider?</text>
+      <rect x="380" y="40" width="130" height="50" rx="10" class="box grn"/><text x="445" y="62" class="t c b">3. desktop</text><text x="445" y="80" class="t c s">CSS adds columns</text>
+      <text x="310" y="118" class="t c s">enhance upward from the smallest screen; never shrink a desktop design down</text>
+    </svg>
+    <figcaption><b>Figure 21.2</b> Mobile-first is a direction of work: smallest screen first, enhancements added as space allows.</figcaption>
+  </figure>
+</section>
+
+<section id="s4">
+  <h2>21.4 Flexible, scalable media</h2>
+  <p>A 1200-pixel image with <code>width="1200"</code> hard-coded in the HTML will overflow a 360-pixel phone and force horizontal scrolling. Responsive content requires that <b>images and videos scale with their container</b>: they should be allowed to shrink, never given fixed pixel widths that exceed small screens. The standard CSS rule is:</p>
+  <pre class="code">img, video { max-width: 100%; height: auto; }</pre>
+  <p>With that in place you can still set <code>width</code> and <code>height</code> attributes on the <code>&lt;img&gt;</code> (Chapter 8) to prevent layout shifts: they describe the image's natural proportions, and the CSS caps the displayed width at the container. Do not replace images with text on phones, and do not load them only on desktop; scale them.</p>
+  <pre class="code" data-run data-title="A scalable image: shrink the preview and the image follows" data-h="230">&lt;style&gt; img { max-width: 100%; height: auto; border: 3px solid #E07B1E; } &lt;/style&gt;
+&lt;p&gt;This image is 800px wide by nature, but it never overflows its container:&lt;/p&gt;
+&lt;img src="https://picsum.photos/id/1018/800/300" alt="A mountain lake" width="800" height="300"&gt;</pre>
+  <h3>Serving the right image</h3>
+  <p>Scaling a huge image down still downloads the huge file. The responsive-image tools from Chapter 8 fix that: <code>srcset</code> lists candidate files with their widths, <code>sizes</code> tells the browser how wide the image will be displayed, and the browser picks the smallest file that is sharp enough. <code>&lt;picture&gt;</code> goes further and lets you supply a differently cropped image for phones.</p>
+  <pre class="code">&lt;img src="hero-800.jpg"
+     srcset="hero-480.jpg 480w, hero-800.jpg 800w, hero-1600.jpg 1600w"
+     sizes="(max-width: 600px) 100vw, 800px"
+     alt="Campus at dawn" width="800" height="400"&gt;
+
+&lt;picture&gt;
+  &lt;source media="(max-width: 600px)" srcset="hero-portrait.jpg"&gt;
+  &lt;img src="hero-wide.jpg" alt="Campus at dawn"&gt;
+&lt;/picture&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>21.5 A first look at media queries</h2>
+  <p>The CSS side belongs to Unit 3, but one example makes the whole idea concrete. A <b>media query</b> applies CSS only when a condition about the screen is true. Here, two sections sit side by side when the viewport is at least 600px wide and stack otherwise. Run it and drag the preview's edge, or view it on a phone.</p>
+  <pre class="code" data-run data-title="Columns that stack on narrow screens" data-h="260">&lt;style&gt;
+  .row { display: flex; flex-direction: column; gap: 10px; }
+  .row &gt; section { background: #E9F7E7; padding: 12px; border-radius: 8px; }
+  @media (min-width: 600px) {          /* only when there is room */
+    .row { flex-direction: row; }
+    .row &gt; section { flex: 1; }
+  }
+&lt;/style&gt;
+&lt;div class="row"&gt;
+  &lt;section&gt;&lt;h2&gt;About&lt;/h2&gt;&lt;p&gt;Stacked on a phone, side by side on a desktop.&lt;/p&gt;&lt;/section&gt;
+  &lt;section&gt;&lt;h2&gt;Courses&lt;/h2&gt;&lt;p&gt;Same HTML, different arrangement.&lt;/p&gt;&lt;/section&gt;
+&lt;/div&gt;</pre>
+  <p>Notice what the HTML did not have to change: nothing. That is the payoff of structuring content first.</p>
+</section>
+
+<section id="s6">
+  <h2>21.6 HTML habits that fight responsiveness</h2>
+  <table class="tbl">
+    <thead><tr><th>Habit</th><th>Why it breaks on small screens</th><th>Instead</th></tr></thead>
+    <tbody>
+      <tr><td>Fixed pixel widths on containers (<code>width="800"</code>)</td><td>Wider than the phone; forces sideways scrolling</td><td>Fluid containers; widths in CSS as percentages or max-widths</td></tr>
+      <tr><td>Fixed pixel heights on sections</td><td>Text overflows when it wraps to more lines</td><td>Let height come from content</td></tr>
+      <tr><td>Layout tables</td><td>Cannot reflow into one column</td><td>Semantic regions plus Flexbox/Grid</td></tr>
+      <tr><td>Images without <code>max-width: 100%</code></td><td>Overflow the container</td><td>Scalable media, srcset, picture</td></tr>
+      <tr><td>Missing viewport tag</td><td>The shrunken-desktop layout</td><td>Add it to every page</td></tr>
+      <tr><td>Long unbreakable strings (URLs, code) in narrow columns</td><td>Overflow</td><td>Wrap them, or scroll the block (as this book does with wide tables)</td></tr>
+      <tr><td>Tiny tap targets and inputs with the wrong type</td><td>Hard to hit; wrong keyboard</td><td>Large targets; email/tel/number types (Chapter 17)</td></tr>
+    </tbody>
+  </table>
+  <h3>Wide tables</h3>
+  <p>A data table with eight columns cannot become one column without losing its meaning. The standard answer is to let the table scroll sideways inside its own container while the page does not: wrap it in a <code>&lt;div style="overflow-x: auto"&gt;</code>. The table stays a table; only its box scrolls.</p>
+</section>
+
+<section id="s7">
+  <h2>21.7 Testing on real screens</h2>
+  <p>Chrome DevTools (<kbd>F12</kbd>, then the device toolbar icon or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd>) emulates phone and tablet sizes and shows the viewport width as you drag. Use it constantly, and then test on an actual phone, because emulators do not reproduce touch, real keyboards or slow networks. A page passes when: no horizontal scrollbar appears at any width, text is readable without zooming, images fit, every control can be tapped, and nothing important is hidden.</p>
+  <h3>A checklist for responsive content structure</h3>
+  <ul>
+    <li>Viewport meta tag in the head.</li>
+    <li>Semantic regions in logical source order; no layout tables; no <code>br</code> stacks.</li>
+    <li>No fixed pixel widths or heights on containers.</li>
+    <li>Images and videos scale (<code>max-width: 100%</code>); large images use <code>srcset</code>/<code>sizes</code> or <code>picture</code>; lazy-load below the fold.</li>
+    <li>Wide tables in a scrolling wrapper.</li>
+    <li>Correct input types for phone keyboards; big enough tap targets.</li>
+    <li>Tested in DevTools device mode and on a real phone.</li>
+  </ul>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which meta tag is essential for a mobile-responsive page?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;meta charset="UTF-8"&gt;</li><li>B. &lt;meta name="author" content="..."&gt;</li><li>C. &lt;meta name="description" content="..."&gt;</li><li>D. &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>A page has no viewport meta tag. What happens on a mobile browser?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It renders a shrunk-down desktop layout with tiny, unreadable text</li><li>B. The page refuses to load</li><li>C. The browser applies a default mobile stylesheet</li><li>D. All images on the page are hidden</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>"Mobile-first" content structuring means designing primarily for:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The largest screen first, then shrinking it down</li><li>B. Desktop browsers only</li><li>C. The smallest screen first, then enhancing for larger ones</li><li>D. Print layouts</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>For responsive content, images and videos should be:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Given fixed pixel widths in the HTML</li><li>B. Allowed to scale with their container</li><li>C. Replaced with text on small screens</li><li>D. Loaded only on desktop devices</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which habit best prepares HTML for a responsive layout before any CSS is written?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Hardcoding width="800" on every container</li><li>B. Nesting layout tables three levels deep</li><li>C. Using a logical source order and flexible, scalable media</li><li>D. Setting fixed pixel heights on all sections</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>On a responsive &lt;img&gt;, what does the sizes attribute tell the browser, and what does srcset provide?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> sizes states how wide the image will be displayed so the browser can pick a file from srcset; srcset lists several image files (with widths) so the browser can choose one suited to the display.</p></div></details>
+  <details class="q"><summary>Which statement about the &lt;picture&gt; element is correct?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> it offers several image sources for different conditions, with an &lt;img&gt; inside as the required fallback. It does not replace img, is not limited to one source, and is not for captions.</p></div></details>
+  <details class="q"><summary>Why should tables not be used to lay out an entire web page today?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it breaks accessibility and responsiveness; a table cannot reflow into one column, and tables are for tabular data.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Responsive = one document that adapts: HTML structure + CSS media queries + scalable media.</li>
+    <li>The viewport meta tag (width=device-width, initial-scale=1.0) is essential; without it phones show a shrunken desktop layout.</li>
+    <li>Mobile-first: smallest screen first, enhance upward. Logical source order gives a correct single-column view for free.</li>
+    <li>Media scale with their container (max-width: 100%); srcset/sizes and picture serve the right file; no fixed pixel widths or heights; no layout tables; wide tables scroll in a wrapper.</li>
+    <li>Test in DevTools device mode and on a real phone: no sideways scroll, readable text, tappable controls.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Tool</th><th>Role in responsiveness</th></tr></thead>
+    <tbody>
+      <tr><td>viewport meta</td><td>Real width and 100% zoom on phones</td></tr>
+      <tr><td>Semantic source order</td><td>The phone layout, before CSS</td></tr>
+      <tr><td>max-width: 100%</td><td>Images and videos shrink to fit</td></tr>
+      <tr><td>srcset / sizes / picture</td><td>The right file for the screen</td></tr>
+      <tr><td>@media (min-width: ...)</td><td>CSS that adds columns when there is room (Unit 3)</td></tr>
+      <tr><td>overflow-x: auto wrapper</td><td>Wide tables scroll without breaking the page</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

@@ -1,0 +1,219 @@
+<article class="chapter" data-ch="15">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 15 &middot; Accessibility Fundamentals</p>
+  <h1>Accessibility Fundamentals</h1>
+  <p class="lead">Web accessibility is the practice of building pages that people with visual, auditory, motor or cognitive disabilities can perceive, understand and use. It is mostly a matter of writing correct, meaningful HTML, which is why it belongs in this unit rather than at the end of the course. This chapter covers the fundamentals every page owes its users, the small ARIA vocabulary that fills the gaps, and the mistakes that lock people out.</p>
+  <p class="meta">About 18 minutes &middot; Course outcome CO2 &middot; Chapter 20 covers the WCAG standard</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Define web accessibility and name who benefits.</li>
+      <li>Apply the HTML fundamentals: <code>lang</code>, headings, alt text, labels, landmarks, native controls, link text, captions.</li>
+      <li>Make a page keyboard-operable and add a skip link.</li>
+      <li>Use <code>role</code>, <code>aria-label</code>, <code>aria-labelledby</code>, <code>aria-describedby</code>, <code>aria-hidden</code> and <code>tabindex</code> correctly.</li>
+      <li>State the first rule of ARIA and explain why placeholder is not a label.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>15.1 What accessibility is, and who it is for</h2>
+  <p><b>Web accessibility</b> means building sites that <b>people with visual, auditory, motor or cognitive disabilities can perceive, understand and use</b>. It is not about loading in under a second, ranking first in search results or working only in the newest browser; it is about not locking people out. Users reach pages through <b>assistive technology</b>: a <b>screen reader</b> (NVDA, JAWS, VoiceOver, TalkBack) that speaks the page aloud, a screen magnifier, voice control, a switch device, or simply the keyboard alone because a mouse is unusable.</p>
+  <p>Accessibility also helps everyone else. Captions help a student watching a lecture on a noisy bus. Good contrast helps anyone in bright sunlight. Keyboard operability helps a power user. Clear structure helps a tired reader. And, as Chapter 11 showed, almost every accessibility improvement is a search-engine improvement too.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 170" role="img" aria-label="Four groups of users and what each needs from HTML">
+      <rect x="10" y="20" width="140" height="120" rx="12" class="box saf"/><text x="80" y="48" class="t c b">Visual</text><text x="80" y="70" class="t c s">blind, low vision,</text><text x="80" y="86" class="t c s">colour-blind</text><text x="80" y="112" class="t c s b">alt text, structure,</text><text x="80" y="128" class="t c s b">contrast</text>
+      <rect x="163" y="20" width="140" height="120" rx="12" class="box grn"/><text x="233" y="48" class="t c b">Auditory</text><text x="233" y="70" class="t c s">deaf, hard of</text><text x="233" y="86" class="t c s">hearing</text><text x="233" y="112" class="t c s b">captions,</text><text x="233" y="128" class="t c s b">transcripts</text>
+      <rect x="316" y="20" width="140" height="120" rx="12" class="box blu"/><text x="386" y="48" class="t c b">Motor</text><text x="386" y="70" class="t c s">cannot use a mouse,</text><text x="386" y="86" class="t c s">tremor, switch user</text><text x="386" y="112" class="t c s b">keyboard access,</text><text x="386" y="128" class="t c s b">big targets</text>
+      <rect x="469" y="20" width="140" height="120" rx="12" class="box gry"/><text x="539" y="48" class="t c b">Cognitive</text><text x="539" y="70" class="t c s">dyslexia, ADHD,</text><text x="539" y="86" class="t c s">memory</text><text x="539" y="112" class="t c s b">clear language,</text><text x="539" y="128" class="t c s b">consistent layout</text>
+      <text x="310" y="162" class="t c s">the four groups the WCAG guidelines (Chapter 20) are written for</text>
+    </svg>
+    <figcaption><b>Figure 15.1</b> Different needs, one answer: meaningful HTML plus a few habits.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>15.2 The HTML fundamentals</h2>
+  <p>Most accessibility is already covered by things you have learned. Here they are in one place, with the reason each one matters.</p>
+  <table class="tbl">
+    <thead><tr><th>Fundamental</th><th>Markup</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Declare the language</td><td><code>&lt;html lang="en"&gt;</code></td><td>Screen readers choose the right pronunciation rules</td></tr>
+      <tr><td>Logical headings</td><td>one <code>h1</code>, then <code>h2</code>, <code>h3</code> in order</td><td>Users navigate by headings; skipped levels break the outline</td></tr>
+      <tr><td>Text alternatives</td><td><code>alt</code> on every image; <code>alt=""</code> if decorative</td><td>Images are invisible to screen readers and to search</td></tr>
+      <tr><td>Labelled controls</td><td><code>&lt;label for="email"&gt;</code> matching <code>&lt;input id="email"&gt;</code></td><td>The label is announced with the field and clicking it focuses the field</td></tr>
+      <tr><td>Landmarks</td><td><code>header</code>, <code>nav</code>, <code>main</code>, <code>footer</code></td><td>Users jump straight to the content instead of hearing the menu every time</td></tr>
+      <tr><td>Native controls</td><td><code>&lt;button&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;select&gt;</code>, <code>&lt;a href&gt;</code></td><td>They come with keyboard behaviour and semantics built in</td></tr>
+      <tr><td>Descriptive links</td><td>"View our pricing plans", not "click here"</td><td>Users list links out of context</td></tr>
+      <tr><td>Captions and transcripts</td><td><code>&lt;track kind="captions"&gt;</code> on video; a transcript for audio</td><td>Deaf users, and anyone in a noisy place</td></tr>
+      <tr><td>Named frames</td><td><code>&lt;iframe title="..."&gt;</code></td><td>Otherwise the screen reader says only "frame"</td></tr>
+      <tr><td>Colour is not the only signal</td><td>an icon or text as well as red/green</td><td>Colour-blind users cannot tell them apart</td></tr>
+    </tbody>
+  </table>
+  <h3>Labels: the rule in detail</h3>
+  <p>For <code>&lt;label for="email"&gt;Email&lt;/label&gt;</code> to be associated with its field, the input must carry <b><code>id="email"</code></b>: the <code>for</code> attribute matches the <code>id</code>, not the <code>name</code>, <code>class</code> or <code>type</code>. Alternatively wrap the control inside the label: <code>&lt;label&gt;&lt;input type="checkbox"&gt; Remember me&lt;/label&gt;</code>. Loose text next to a control is not associated with it at all.</p>
+  <div class="callout warn"><b>Placeholder is not a label.</b> Placeholder text <b>disappears as soon as the user starts typing</b>, so halfway through a long form the user cannot remember what the field wanted; and screen readers may skip it entirely. Use it only as a hint alongside a visible label. It can be styled, it does not block submission and it is not deprecated; those are not the problems.</div>
+  <div class="demo">
+    <p class="dlab">Live: click the word "Email" and the field receives focus, because label and id are linked</p>
+    <label for="demo-email">Email</label> <input type="email" id="demo-email" placeholder="you@example.edu">
+    &nbsp; <label><input type="checkbox"> Remember me (wrapped label)</label>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>15.3 Keyboard operability and the skip link</h2>
+  <p>Many users never touch a mouse. Everything on a page must be reachable and usable with <kbd>Tab</kbd> (move to the next control), <kbd>Shift</kbd>+<kbd>Tab</kbd> (previous), <kbd>Enter</kbd> (activate a link or button), <kbd>Space</kbd> (toggle a checkbox, press a button) and the arrow keys (move within radio groups and menus). A user who <b>completes a checkout using only Tab and Enter</b> is testing the <i>Operable</i> principle of WCAG (Chapter 20).</p>
+  <p>Native elements are keyboard-operable for free: links, buttons and form controls all sit in the <b>tab order</b> and respond to Enter and Space. A <code>&lt;div onclick&gt;</code> does none of that. This is the main practical reason to <b>prefer native HTML controls</b> before inventing custom ones. The focused element must also be visible: never remove the focus outline without providing another.</p>
+  <h3>The skip link</h3>
+  <p>Because keyboard users move through every link in order, a page with a forty-link menu makes them press Tab forty times before reaching the content, on every page. A <b>"skip to main content" link</b> at the very top of the page, pointing at <code>#main-content</code>, <b>lets keyboard users bypass repeated navigation blocks</b>. It is usually hidden by CSS until it receives focus. It is not for hiding navigation from mobile users, not for search ranking and not about HTTP requests.</p>
+  <pre class="code" data-run data-title="A skip link (press Tab in the preview to reveal it)" data-h="230">&lt;style&gt;
+  .skip { position: absolute; left: -999px; }
+  .skip:focus { left: 8px; top: 8px; background: #FFF1E0; padding: 8px; }
+&lt;/style&gt;
+&lt;a class="skip" href="#main-content"&gt;Skip to main content&lt;/a&gt;
+&lt;header&gt;
+  &lt;nav&gt;&lt;a href="#"&gt;Home&lt;/a&gt; &lt;a href="#"&gt;Courses&lt;/a&gt; &lt;a href="#"&gt;Results&lt;/a&gt; &lt;a href="#"&gt;Contact&lt;/a&gt;&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main id="main-content"&gt;
+  &lt;h1&gt;Results&lt;/h1&gt;
+  &lt;p&gt;Click inside this preview, then press Tab: the skip link appears first.&lt;/p&gt;
+&lt;/main&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>15.4 ARIA: filling the gaps</h2>
+  <p>ARIA (Accessible Rich Internet Applications) is a set of attributes that tell assistive technology what an element <i>is</i> and how to <i>name</i> or <i>describe</i> it, when HTML alone cannot. Two facts frame everything:</p>
+  <ol>
+    <li><b>The first rule of ARIA: if a native HTML element with the semantics and behaviour you need already exists, use it rather than recreating it with ARIA.</b> A <code>&lt;button&gt;</code> beats <code>&lt;div role="button"&gt;</code> every time. Adding <code>role="button"</code> to a native <code>&lt;button&gt;</code> is redundant and counts as a mistake.</li>
+    <li><b>ARIA changes how assistive technology reports an element; it does not change the element's actual behaviour.</b> <code>role="button"</code> on a div makes a screen reader <i>say</i> "button", but the div still does not respond to Enter or Space, still is not focusable, and still needs JavaScript to do anything. ARIA does not make elements keyboard-operable, does not replace semantic HTML, and is applied through HTML attributes, not CSS.</li>
+  </ol>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>What it does</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>role</code></td><td><b>Clarifies the purpose of a non-semantic element</b> for assistive technology</td><td><code>&lt;svg role="img"&gt;</code>, <code>&lt;div role="alert"&gt;</code>; never on an element that already has that role natively</td></tr>
+      <tr><td><code>aria-label</code></td><td>Gives an element an <b>accessible name when it has no visible text</b></td><td>An icon-only button: <code>&lt;button aria-label="Close"&gt;&times;&lt;/button&gt;</code>; a nav: <code>&lt;nav aria-label="Main"&gt;</code></td></tr>
+      <tr><td><code>aria-labelledby</code></td><td>Names an element by <b>pointing to the id of other visible text</b></td><td><code>&lt;section aria-labelledby="h-results"&gt;&lt;h2 id="h-results"&gt;Results&lt;/h2&gt;</code></td></tr>
+      <tr><td><code>aria-describedby</code></td><td><b>Links an element to additional descriptive text elsewhere on the page</b>, read after the name</td><td>A hint under an input: <code>&lt;input aria-describedby="hint"&gt; &lt;span id="hint"&gt;Use your college address&lt;/span&gt;</code></td></tr>
+      <tr><td><code>aria-hidden="true"</code></td><td>Hides the element from assistive technology (it stays visible on screen)</td><td>A <b>purely decorative icon beside an already-labelled button</b>; never the main heading, a required field or a button's text</td></tr>
+      <tr><td><code>tabindex="0"</code></td><td>Makes a custom element <b>keyboard-focusable in the normal tab order</b></td><td>A custom widget built from a div (and then it still needs key handling)</td></tr>
+      <tr><td><code>tabindex="-1"</code></td><td><b>Removes an element from the tab order while still allowing it to be focused by script</b></td><td>The target of a skip link or a dialog that a script focuses</td></tr>
+    </tbody>
+  </table>
+  <p>Avoid positive <code>tabindex</code> values (<code>tabindex="5"</code>): they rearrange the tab order unpredictably. <code>tabindex="0"</code> does not place an element first and does not hide it; <code>tabindex="-1"</code> does not hide it from screen readers either, it only takes it out of the Tab sequence.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 190" role="img" aria-label="Flowchart: prefer native element; otherwise add role, a name, keyboard focus and key handling">
+      <rect x="215" y="10" width="190" height="36" rx="18" class="box saf"/><text x="310" y="33" class="t c b">I need an interactive thing</text>
+      <path d="M310 46 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 66 L440 100 L310 134 L180 100 Z" class="dec"/><text x="310" y="96" class="t c b">does a native element</text><text x="310" y="112" class="t c b">already do this?</text>
+      <path d="M180 100 L90 100" class="edge grn" marker-end="url(#arr-grn)"/><text x="135" y="92" class="t c s">yes (almost always)</text>
+      <rect x="10" y="78" width="80" height="44" rx="10" class="box grn"/><text x="50" y="98" class="t c b">use it</text><text x="50" y="114" class="t c s">button, a, input</text>
+      <path d="M440 100 L500 100" class="edge" marker-end="url(#arr)"/><text x="470" y="92" class="t c s">no</text>
+      <rect x="502" y="60" width="114" height="80" rx="10" class="box blu"/><text x="559" y="82" class="t c b">then add ALL of:</text><text x="559" y="100" class="t c s">role + aria-label</text><text x="559" y="116" class="t c s">tabindex="0"</text><text x="559" y="132" class="t c s">Enter/Space handling</text>
+      <text x="310" y="172" class="t c s">The first rule of ARIA: native first. ARIA describes; it does not add behaviour.</text>
+    </svg>
+    <figcaption><b>Figure 15.2</b> ARIA is the fallback, not the first choice.</figcaption>
+  </figure>
+</section>
+
+<section id="s5">
+  <h2>15.5 Worked example: an accessible email field</h2>
+  <p>Compare four ways of marking up a required email field with a format hint. Only one gives the field an accessible name <i>and</i> attaches the hint.</p>
+  <table class="tbl">
+    <thead><tr><th>Markup</th><th>Verdict</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;label&gt;Email&lt;/label&gt;&lt;input id="em" type="text" required&gt;</code></td><td>The label has no <code>for</code>, so it is not associated; and <code>type="text"</code> throws away email validation and the @ keyboard.</td></tr>
+      <tr><td><code>&lt;input type="email" required placeholder="Email"&gt;</code></td><td>No label at all; the placeholder vanishes on typing.</td></tr>
+      <tr><td><code>&lt;div&gt;Email&lt;/div&gt;&lt;input type="email" required title="Email"&gt;</code></td><td>A div is not a label; <code>title</code> is only a tooltip.</td></tr>
+      <tr><td><code>&lt;label for="em"&gt;Email&lt;/label&gt;&lt;input id="em" type="email" required aria-describedby="h1"&gt;&lt;span id="h1"&gt;Use your college address&lt;/span&gt;</code></td><td><b>Correct.</b> The label names the field via for/id; the type gives validation; <code>aria-describedby</code> attaches the hint so a screen reader reads "Email, edit text, required, use your college address".</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="The accessible version, live" data-h="150">&lt;form&gt;
+  &lt;label for="em"&gt;Email&lt;/label&gt;
+  &lt;input id="em" name="email" type="email" required aria-describedby="em-hint"&gt;
+  &lt;span id="em-hint"&gt;Use your college address&lt;/span&gt;
+  &lt;button type="submit"&gt;Register&lt;/button&gt;
+&lt;/form&gt;</pre>
+</section>
+
+<section id="s6">
+  <h2>15.6 The mistakes that lock people out</h2>
+  <ul>
+    <li>Images without alt; icon buttons without a name; a logo with <code>alt=""</code>.</li>
+    <li>Forms with placeholders instead of labels; radio groups without a <code>fieldset</code>/<code>legend</code> (Chapter 16).</li>
+    <li>Headings faked with styled divs; levels skipped; several <code>h1</code>s.</li>
+    <li>Custom controls made from divs with click handlers and no keyboard support.</li>
+    <li><code>role="button"</code> on a native button, <code>aria-hidden</code> on content people need, positive <code>tabindex</code>.</li>
+    <li>Pages built only from divs, so there are no landmarks and no skip link target.</li>
+    <li>Colour as the only way to show an error; text that fails the contrast ratio (Chapter 20).</li>
+  </ul>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Web accessibility is the practice of building sites that:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Load in under one second on every device</li><li>B. Rank first in search engine results</li><li>C. People with visual, auditory, motor or cognitive disabilities can perceive, understand and use</li><li>D. Work only in the most recent browser version</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>For &lt;label for="email"&gt;Email&lt;/label&gt; to be correctly associated, the input must carry:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. name="email"</li><li>B. class="email"</li><li>C. id="email"</li><li>D. type="email"</li></ul>
+    <p><b>Answer: C.</b> for matches id.</p></div></details>
+  <details class="q"><summary>Why should placeholder text never fully replace a visible &lt;label&gt;?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Placeholder text cannot be styled with CSS</li><li>B. Placeholder text blocks form submission</li><li>C. The placeholder attribute is deprecated in HTML5</li><li>D. It disappears once typing starts and may be skipped by screen readers</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>A "skip to main content" link at the top of a page exists mainly to:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Hide the navigation from mobile users</li><li>B. Improve the page's position in search results</li><li>C. Reduce the number of HTTP requests</li><li>D. Let keyboard users bypass repeated navigation blocks</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>When a native semantic HTML element already exists for a purpose, best practice is to:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Always use a &lt;div&gt; with a role attribute</li><li>B. Use the native element rather than recreating it with ARIA</li><li>C. Use the native element together with a conflicting role</li><li>D. Avoid semantic elements because ARIA is newer</li></ul>
+    <p><b>Answer: B.</b> The first rule of ARIA.</p></div></details>
+  <details class="q"><summary>Which of the following is a mistake in the use of ARIA?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Adding aria-describedby to link a hint to an input</li><li>B. Adding aria-label to an icon-only button</li><li>C. Adding aria-hidden="true" to a decorative icon</li><li>D. Adding role="button" to a native &lt;button&gt; element</li></ul>
+    <p><b>Answer: D.</b> The native button already has that role; A, B and C are correct uses.</p></div></details>
+  <details class="q"><summary>Which statement about ARIA is correct?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It changes how assistive technology reports an element but does not change the element's actual behaviour</li><li>B. It automatically makes any element keyboard-operable</li><li>C. It replaces the need for semantic HTML elements</li><li>D. It is applied through CSS rather than HTML attributes</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>What does the aria-label attribute provide?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A validation rule for form input</li><li>B. A visible caption below the element</li><li>C. A CSS class used for styling</li><li>D. An accessible name for an element that has no visible text</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>Which ARIA attribute names an element by pointing to the id of other visible text?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. aria-labelledby</li><li>B. aria-label</li><li>C. aria-describedby</li><li>D. aria-hidden</li></ul>
+    <p><b>Answer: A.</b> aria-label supplies the text directly; aria-describedby adds a description, not the name.</p></div></details>
+  <details class="q"><summary>What does aria-describedby do?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Hides the element from assistive technology</li><li>B. Replaces the element's visible label</li><li>C. Links an element to additional descriptive text elsewhere on the page</li><li>D. Sets the element's position in the tab order</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>The attribute aria-hidden="true" is appropriate for:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The page's main heading</li><li>B. A purely decorative icon beside an already-labelled button</li><li>C. A required form field</li><li>D. The submit button's text</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>The role attribute is used to:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Define the element's position in the tab order</li><li>B. Assign a CSS class to an element</li><li>C. Restrict which users may view an element</li><li>D. Clarify the purpose of a non-semantic element for assistive technology</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>What does tabindex="0" do to a custom element, and what does tabindex="-1" do?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> tabindex="0" makes it keyboard-focusable in the normal tab order (it does not place it first or hide it). tabindex="-1" removes it from the tab order while still allowing a script to focus it (it does not hide it from keyboard and screen-reader users entirely).</p></div></details>
+  <details class="q"><summary>Which markup correctly gives a required email field an accessible name and a format hint?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;label for="em"&gt;Email&lt;/label&gt;&lt;input id="em" type="email" required aria-describedby="h1"&gt;&lt;span id="h1"&gt;Use your college address&lt;/span&gt;</code>. A label without for, a placeholder alone, or a div with a title attribute all fail to name the field properly.</p></div></details>
+  <details class="q"><summary>Why should every &lt;iframe&gt; carry a title attribute, and which is the most accessible way to label a radio button?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the title gives screen-reader users an accessible name for the frame. A radio button is labelled with a &lt;label&gt; using for/id, or by wrapping the input in the label; loose text next to it is not associated.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Accessibility: people with visual, auditory, motor or cognitive disabilities can perceive, understand and use the page. It helps everyone and overlaps with SEO.</li>
+    <li>Fundamentals: lang, logical headings, alt text, label for/id, landmarks, native controls, descriptive links, captions, iframe titles, colour plus another cue.</li>
+    <li>Placeholder is not a label: it disappears on typing and may be skipped.</li>
+    <li>Everything must work with Tab, Enter and Space; native elements do this for free; a skip link lets keyboard users bypass the menu.</li>
+    <li>ARIA: role clarifies a non-semantic element; aria-label names an element with no visible text; aria-labelledby names it via another element's id; aria-describedby attaches extra description; aria-hidden hides decoration; tabindex 0 adds to the tab order, -1 removes it but allows script focus.</li>
+    <li>First rule of ARIA: prefer the native element. ARIA changes what is announced, never how the element behaves.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Remember</th></tr></thead>
+    <tbody>
+      <tr><td>aria-label</td><td>Name, written in the attribute</td></tr>
+      <tr><td>aria-labelledby</td><td>Name, taken from another element's id</td></tr>
+      <tr><td>aria-describedby</td><td>Extra description from another element's id</td></tr>
+      <tr><td>aria-hidden="true"</td><td>Hide decoration from screen readers</td></tr>
+      <tr><td>role</td><td>What a non-semantic element is</td></tr>
+      <tr><td>tabindex="0" / "-1"</td><td>In the tab order / focusable by script only</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

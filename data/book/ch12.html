@@ -1,0 +1,208 @@
+<article class="chapter" data-ch="12">
+<header class="ch-head">
+  <p class="eyebrow">Unit 1 &middot; Chapter 12 &middot; HTML Best Practices</p>
+  <h1>HTML Best Practices</h1>
+  <p class="lead">Everything in Unit 1 works even when it is written badly, because browsers forgive. Best practices are the habits that make HTML work <i>everywhere</i>: on other browsers, on phones, in screen readers, in search engines, and for the next person who has to edit it. This chapter collects them, explains the reason behind each, and walks through a code review of a typical first-year page.</p>
+  <p class="meta">About 13 minutes &middot; Course outcome CO1 &middot; Closes Unit 1</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write HTML in the standard style: lowercase, quoted, closed, indented, commented.</li>
+      <li>Keep structure, presentation and behaviour in separate files.</li>
+      <li>Choose semantic elements over generic ones and the right element for the job.</li>
+      <li>Recognise and replace obsolete tags and layout hacks.</li>
+      <li>Validate, test on a phone and avoid the deployment traps.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>12.1 Write it in the standard style</h2>
+  <p>HTML is case-insensitive and tolerant, so a great deal of sloppy markup renders. Every professional style guide, and this course, asks for the same conventions, because they make mistakes visible and code readable.</p>
+  <table class="tbl">
+    <thead><tr><th>Rule</th><th>Do</th><th>Not</th></tr></thead>
+    <tbody>
+      <tr><td>Lowercase tag and attribute names</td><td><code>&lt;p class="intro"&gt;</code></td><td><code>&lt;P CLASS="intro"&gt;</code></td></tr>
+      <tr><td>Quote every attribute value</td><td><code>&lt;div class="my box"&gt;</code></td><td><code>&lt;div class=my box&gt;</code> (splits into two attributes)</td></tr>
+      <tr><td>Close every paired element</td><td><code>&lt;p&gt;text&lt;/p&gt;</code></td><td><code>&lt;p&gt;text</code> and hoping</td></tr>
+      <tr><td>Never close void elements</td><td><code>&lt;br&gt;</code>, <code>&lt;img ...&gt;</code></td><td><code>&lt;/br&gt;</code>, <code>&lt;/img&gt;</code></td></tr>
+      <tr><td>Nest properly</td><td><code>&lt;p&gt;&lt;b&gt;x&lt;/b&gt;&lt;/p&gt;</code></td><td><code>&lt;p&gt;&lt;b&gt;x&lt;/p&gt;&lt;/b&gt;</code></td></tr>
+      <tr><td>Indent children consistently (2 spaces)</td><td>structure visible at a glance</td><td>everything at the margin</td></tr>
+      <tr><td>Comment the sections</td><td><code>&lt;!-- registration form --&gt;</code></td><td>no comments, or secrets in comments</td></tr>
+      <tr><td>Start every document the same way</td><td>doctype, <code>html lang</code>, charset, viewport, title</td><td>a bare <code>&lt;html&gt;&lt;body&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <p>A student who writes <code>&lt;P CLASS=Intro&gt;Text&lt;/P&gt;</code> has broken two of these at once: names should be lowercase and values quoted. Nothing about capital letters in class names, ids on paragraphs, or wrapping paragraphs in divs is a rule.</p>
+</section>
+
+<section id="s2">
+  <h2>12.2 Separate structure, presentation and behaviour</h2>
+  <p>Chapter 1 introduced separation of concerns; here is how it looks in files. HTML holds the content, one external stylesheet holds all the CSS, and one or more script files hold the JavaScript.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="index.html links to style.css and app.js">
+      <rect x="220" y="20" width="180" height="60" rx="12" class="box saf"/><text x="310" y="46" class="t c b mono">index.html</text><text x="310" y="66" class="t c s">structure and content</text>
+      <rect x="30" y="120" width="200" height="60" rx="12" class="box blu"/><text x="130" y="146" class="t c b mono">style.css</text><text x="130" y="166" class="t c s">all presentation, cached once</text>
+      <rect x="390" y="120" width="200" height="60" rx="12" class="box grn"/><text x="490" y="146" class="t c b mono">app.js</text><text x="490" y="166" class="t c s">all behaviour</text>
+      <path d="M270 82 L160 118" class="edge" marker-end="url(#arr)"/><text x="170" y="96" class="t s mono" style="font-size:10.5px">&lt;link rel="stylesheet" href="style.css"&gt; in head</text>
+      <path d="M350 82 L460 118" class="edge" marker-end="url(#arr)"/><text x="395" y="112" class="t s mono" style="font-size:10.5px">&lt;script src="app.js"&gt; before &lt;/body&gt;</text>
+    </svg>
+    <figcaption><b>Figure 12.1</b> One HTML file per page, one stylesheet and one script for the whole site. Change the look in one place; every page follows.</figcaption>
+  </figure>
+  <ul>
+    <li><b>Use an external stylesheet</b>, linked with <code>&lt;link rel="stylesheet" href="style.css"&gt;</code> in the head. One file styles every page and the browser caches it. Inline <code>style</code> attributes and internal <code>&lt;style&gt;</code> blocks are for quick experiments, not projects, and obsolete presentational tags such as <code>&lt;font&gt;</code> are never the answer.</li>
+    <li><b>Put scripts just before <code>&lt;/body&gt;</code></b> so the content is parsed and displayed before they run (Chapter 4).</li>
+    <li><b>Keep presentation out of the markup.</b> No <code>&lt;br&gt;&lt;br&gt;</code> for spacing, no <code>&lt;table&gt;</code> for layout, no <code>&lt;h4&gt;</code> chosen for its size, no <code>&lt;center&gt;</code>. If the reason for a tag is "it looks right", it belongs in CSS.</li>
+  </ul>
+</section>
+
+<section id="s3">
+  <h2>12.3 Use the correct element</h2>
+  <p>The single most valuable habit: <b>choose an element for what the content is, not for how you want it to look</b>.</p>
+  <ul>
+    <li>Going somewhere? <code>&lt;a href&gt;</code>. Performing an action? <code>&lt;button&gt;</code>.</li>
+    <li>A navigation menu is <code>&lt;nav&gt;</code> around a <code>&lt;ul&gt;</code> of links; a copyright line is <code>&lt;footer&gt;</code>; a blog post is <code>&lt;article&gt;</code>; a section with a heading is <code>&lt;section&gt;</code>. <code>&lt;div&gt;</code> is for grouping with no meaning (Chapters 5 and 13).</li>
+    <li>A heading is <code>&lt;h2&gt;</code>, never <code>&lt;div class="h2"&gt;</code>. Style the heading as small as you like in CSS; the fake one <b>loses the document outline</b>, so assistive technology's heading navigation no longer finds it, while the real one can still be styled any way at all.</li>
+    <li>Importance is <code>&lt;strong&gt;</code>; a term is <code>&lt;i&gt;</code>; deleted text is <code>&lt;del&gt;</code>; a data grid is <code>&lt;table&gt;</code>; a set of steps is <code>&lt;ol&gt;</code>.</li>
+  </ul>
+  <p>Semantic HTML is not an extra layer for accessibility experts. It is the cheapest SEO, the cheapest accessibility and the most maintainable code you can write, and it costs nothing at render time: <code>&lt;header&gt;</code> and <code>&lt;div class="header"&gt;</code> look identical.</p>
+</section>
+
+<section id="s4">
+  <h2>12.4 Accessibility and performance basics you owe every page</h2>
+  <ul>
+    <li><code>alt</code> on every image (empty for decorative ones); a <code>&lt;label&gt;</code> for every form control; a <code>title</code> on every iframe; <code>lang</code> on <code>&lt;html&gt;</code>; a logical heading outline; link text that describes the destination. Chapter 15 takes these further.</li>
+    <li>Images compressed and in modern formats, with <code>width</code> and <code>height</code> to stop layout jumps and <code>loading="lazy"</code> below the fold; scripts deferred; as few separate files as sensible; HTTPS.</li>
+    <li>The viewport meta tag, and a real test on a phone: not a shrunk browser window, a phone.</li>
+  </ul>
+</section>
+
+<section id="s5">
+  <h2>12.5 Obsolete tags and layout hacks to recognise</h2>
+  <table class="tbl">
+    <thead><tr><th>Legacy</th><th>Why it is out</th><th>Modern</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;font&gt;</code>, <code>&lt;center&gt;</code>, <code>&lt;big&gt;</code>, <code>&lt;tt&gt;</code>, <code>&lt;strike&gt;</code></td><td>Presentation in markup</td><td>CSS: font-family, text-align, font-size; <code>&lt;code&gt;</code>; <code>&lt;del&gt;</code></td></tr>
+      <tr><td><code>&lt;marquee&gt;</code>, <code>&lt;blink&gt;</code></td><td>Obsolete; moving text is an accessibility and cognitive problem</td><td>CSS @keyframes, and usually nothing</td></tr>
+      <tr><td><code>&lt;frameset&gt;</code>, <code>&lt;frame&gt;</code></td><td>Removed in HTML5</td><td><code>&lt;iframe&gt;</code> for embeds; CSS for layout</td></tr>
+      <tr><td>Tables for page layout</td><td>Breaks accessibility and responsiveness; tables are for tabular data</td><td>CSS Flexbox and Grid (Unit 3)</td></tr>
+      <tr><td><code>&lt;br&gt;&lt;br&gt;</code> for spacing, <code>&amp;nbsp;</code> for indentation</td><td>Presentation in markup; screen readers hear run-on text</td><td>CSS margin and padding</td></tr>
+      <tr><td>Inline <code>onclick="..."</code> and <code>style="..."</code> everywhere</td><td>Mixes behaviour and presentation into structure</td><td>External JS and CSS</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s6">
+  <h2>12.6 Before you publish</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 130" role="img" aria-label="Publishing workflow: write, validate, test on phone, check links and case, publish">
+      <rect x="10" y="40" width="100" height="50" rx="10" class="box saf"/><text x="60" y="70" class="t c b">write</text>
+      <path d="M115 65 L135 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="140" y="40" width="100" height="50" rx="10" class="box"/><text x="190" y="62" class="t c b">validate</text><text x="190" y="80" class="t c s">W3C</text>
+      <path d="M245 65 L265 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="270" y="40" width="100" height="50" rx="10" class="box"/><text x="320" y="62" class="t c b">test</text><text x="320" y="80" class="t c s">phone + DevTools</text>
+      <path d="M375 65 L395 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="400" y="40" width="110" height="50" rx="10" class="box"/><text x="455" y="62" class="t c b">check paths</text><text x="455" y="80" class="t c s">lowercase, relative</text>
+      <path d="M515 65 L535 65" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="540" y="40" width="70" height="50" rx="10" class="box grn"/><text x="575" y="70" class="t c b">publish</text>
+    </svg>
+    <figcaption><b>Figure 12.2</b> Five steps, every time. The two middle ones catch what the browser on your laptop hides.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Validate</b> at validator.w3.org. HTML fails silently; the validator is the only thing that tells you about unclosed tags, duplicate ids and bad nesting (Chapter 3).</li>
+    <li><b>Test on a phone and in DevTools.</b> Press <kbd>F12</kbd>: the Elements panel shows the tree the browser actually built (compare it with what you wrote), the Console shows errors, and the Network tab shows every request and which ones failed.</li>
+    <li><b>Check every path and file name.</b> The server is case-sensitive; use lowercase names with no spaces, and relative paths that match the folder layout exactly. The file the server shows by default must be called <code>index.html</code>.</li>
+    <li><b>Keep it in version control.</b> A GitHub repository is your backup, your history and, with GitHub Pages, your free host (Unit 6).</li>
+  </ol>
+</section>
+
+<section id="s7">
+  <h2>12.7 Worked example: a code review</h2>
+  <p>Here is a page as a student might first write it. Every line has something to fix. Find them before reading the corrected version.</p>
+  <pre class="code">&lt;HTML&gt;
+&lt;BODY&gt;
+&lt;CENTER&gt;&lt;FONT SIZE=6&gt;My Profile&lt;/FONT&gt;&lt;/CENTER&gt;
+&lt;TABLE WIDTH=800&gt;&lt;TR&gt;&lt;TD&gt;
+&lt;IMG SRC=Me.JPG&gt;
+&lt;BR&gt;&lt;BR&gt;
+&lt;B&gt;About me&lt;/B&gt;&lt;BR&gt;
+I study at LPU.&lt;BR&gt;&lt;BR&gt;
+&lt;A&gt;My portfolio&lt;/A&gt; - &lt;A HREF=page2.html&gt;click here&lt;/A&gt;
+&lt;/TD&gt;&lt;/TR&gt;&lt;/TABLE&gt;
+&lt;/BODY&gt;
+&lt;/HTML&gt;</pre>
+  <p>Problems: no doctype (quirks mode), no <code>lang</code>, no head, no charset, no viewport, no title; uppercase tags and unquoted values; obsolete <code>center</code> and <code>font</code> used for a heading; a table used for layout with a fixed width; an image with no alt and a capitalised file name that will break on the server; <code>br br</code> for spacing; a fake heading made from <code>b</code>; a link with no <code>href</code>; and "click here" link text. The corrected page:</p>
+  <pre class="code" data-run data-title="The same page, written properly" data-h="260">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Asha Kumar | Profile&lt;/title&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;header&gt;
+    &lt;h1&gt;My Profile&lt;/h1&gt;
+  &lt;/header&gt;
+  &lt;main&gt;
+    &lt;img src="images/me.jpg" alt="Asha Kumar at the campus library" width="200" height="200"&gt;
+    &lt;section&gt;
+      &lt;h2&gt;About me&lt;/h2&gt;
+      &lt;p&gt;I study at LPU.&lt;/p&gt;
+      &lt;p&gt;See &lt;a href="portfolio.html"&gt;my portfolio&lt;/a&gt; and &lt;a href="page2.html"&gt;my second project&lt;/a&gt;.&lt;/p&gt;
+    &lt;/section&gt;
+  &lt;/main&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>How should tags and attributes be written?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. UPPERCASE</li><li>B. lowercase</li><li>C. Mixed case</li><li>D. It does not matter</li></ul>
+    <p><b>Answer: B.</b> HTML tolerates uppercase, but every style guide requires lowercase.</p></div></details>
+  <details class="q"><summary>Which is the recommended way to attach CSS to a real project?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Inline style attributes</li><li>B. An internal &lt;style&gt; block</li><li>C. An external stylesheet linked with &lt;link&gt;</li><li>D. Using &lt;font&gt;</li></ul>
+    <p><b>Answer: C.</b> One file styles every page and is cached.</p></div></details>
+  <details class="q"><summary>Which is BAD practice in modern HTML?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Using semantic elements</li><li>B. Quoting attribute values</li><li>C. Using &lt;table&gt; for page layout</li><li>D. Adding alt to images</li></ul>
+    <p><b>Answer: C.</b> Tables are for data; layout is CSS's job.</p></div></details>
+  <details class="q"><summary>Why should tables not be used to lay out an entire web page today?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it breaks accessibility (screen readers announce a data table) and responsiveness (fixed grids do not reflow on phones); tables are for tabular data. Tables can contain images, are still supported and are not inherently slower.</p></div></details>
+  <details class="q"><summary>A developer styles a section heading as &lt;div class="h2"&gt;Results&lt;/div&gt;. What is lost?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The document outline, so heading navigation by assistive technology no longer finds it</li><li>B. The ability to apply any CSS to the text</li><li>C. The ability to place the text inside a &lt;section&gt;</li><li>D. The text is no longer rendered by the browser</li></ul>
+    <p><b>Answer: A.</b> A real h2 can be styled identically and keeps the outline.</p></div></details>
+  <details class="q"><summary>A student writes &lt;P CLASS=Intro&gt;Text&lt;/P&gt;. Which best practices does this violate?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> tag and attribute names should be lowercase and attribute values should be quoted.</p></div></details>
+  <details class="q"><summary>Which tool checks your HTML for structural errors, and why does it matter that HTML fails silently?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the W3C Validator at validator.w3.org. Because browsers give no error message, unclosed tags, duplicate ids and bad nesting survive unnoticed until they break on another device; the validator is what reveals them.</p></div></details>
+  <details class="q"><summary>A developer places &lt;script&gt; just before &lt;/body&gt;. Why?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> so the page content is parsed and displayed before the script runs, and the elements the script needs already exist.</p></div></details>
+  <details class="q"><summary>Which habit best prepares HTML for a responsive layout before any CSS is written?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Hardcoding width="800" on every container</li><li>B. Nesting layout tables three levels deep</li><li>C. Using a logical source order and flexible, scalable media</li><li>D. Setting fixed pixel heights on all sections</li></ul>
+    <p><b>Answer: C.</b> Structure first; fixed widths and layout tables fight every screen size.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Style: lowercase names, quoted values, closed elements, correct nesting, indentation, comments, the standard head.</li>
+    <li>Separation: content in HTML, all CSS in an external stylesheet via link, all JS in external files loaded before &lt;/body&gt;.</li>
+    <li>Semantics: the element for what the content is; a is for going somewhere, button for doing something; a heading is a real h-element, never a styled div.</li>
+    <li>Owed to every page: alt, labels, iframe titles, lang, viewport, compressed images with width/height, lazy loading.</li>
+    <li>Obsolete: font, center, big, tt, strike, marquee, frames; layout tables; br br spacing. Replace with CSS and semantic elements.</li>
+    <li>Before publishing: validate, test on a phone with DevTools, check lowercase relative paths and index.html, keep it in GitHub.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Instead of</th><th>Write</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;DIV CLASS=box&gt;</code></td><td><code>&lt;div class="box"&gt;</code></td></tr>
+      <tr><td><code>&lt;font size="6"&gt;Title&lt;/font&gt;</code></td><td><code>&lt;h1&gt;Title&lt;/h1&gt;</code> + CSS</td></tr>
+      <tr><td><code>&lt;div class="h2"&gt;Results&lt;/div&gt;</code></td><td><code>&lt;h2&gt;Results&lt;/h2&gt;</code></td></tr>
+      <tr><td><code>&lt;br&gt;&lt;br&gt;</code> between ideas</td><td>two <code>&lt;p&gt;</code> elements + CSS margin</td></tr>
+      <tr><td><code>&lt;table&gt;</code> for layout</td><td>semantic sections + CSS Flexbox/Grid</td></tr>
+      <tr><td><code>style="..."</code> on everything</td><td>one external stylesheet</td></tr>
+      <tr><td><code>&lt;a href="#" onclick&gt;</code> as a button</td><td><code>&lt;button&gt;</code></td></tr>
+    </tbody>
+  </table>
+</section>
+</article>

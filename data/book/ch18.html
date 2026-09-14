@@ -1,0 +1,185 @@
+<article class="chapter" data-ch="18">
+<header class="ch-head">
+  <p class="eyebrow">Unit 2 &middot; Chapter 18 &middot; Form Validation Basics</p>
+  <h1>Form Validation Basics</h1>
+  <p class="lead">A form that accepts an empty name, a date of birth in the future or an email address without an @ is worse than no form at all. HTML5 lets you describe what a valid value looks like, and the browser checks it before anything is sent, with no JavaScript. This chapter covers every built-in constraint, what the browser does when one fails, how to switch validation off deliberately, and the one rule that never changes: the server must check everything again.</p>
+  <p class="meta">About 14 minutes &middot; Course outcome CO2 &middot; Builds on Chapters 16 and 17</p>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain the difference between client-side and server-side validation and why both are needed.</li>
+      <li>Use <code>required</code>, <code>type</code>, <code>min</code>/<code>max</code>/<code>step</code>, <code>minlength</code>/<code>maxlength</code> and <code>pattern</code> with <code>title</code>.</li>
+      <li>Predict what the browser does when a form is submitted with invalid values.</li>
+      <li>Use <code>novalidate</code> and <code>formnovalidate</code> correctly.</li>
+      <li>Explain why placeholder does not validate and how a required select works.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>18.1 Two layers of validation</h2>
+  <p>Validation happens in two places, and they have different jobs.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Client-side validation in the browser gives fast feedback; server-side validation is the final line of defence">
+      <rect x="20" y="30" width="260" height="150" rx="12" class="box saf"/>
+      <text x="150" y="58" class="t c b">CLIENT-SIDE (in the browser)</text>
+      <text x="150" y="82" class="t c s">HTML attributes + optional JavaScript</text>
+      <text x="150" y="104" class="t c s">instant feedback, no round trip</text>
+      <text x="150" y="126" class="t c s">better user experience</text>
+      <text x="150" y="156" class="t c b" fill="#C42B2B">can be bypassed by the user</text>
+      <path d="M285 105 L335 105" class="edge" marker-end="url(#arr)"/><text x="310" y="96" class="t c s">submit</text>
+      <rect x="340" y="30" width="260" height="150" rx="12" class="box grn"/>
+      <text x="470" y="58" class="t c b">SERVER-SIDE (in backend code)</text>
+      <text x="470" y="82" class="t c s">checks every value again</text>
+      <text x="470" y="104" class="t c s">rejects bad or malicious data</text>
+      <text x="470" y="126" class="t c s">protects the database</text>
+      <text x="470" y="156" class="t c b" fill="#138808">cannot be bypassed</text>
+      <text x="310" y="205" class="t c s">use both: the client for convenience, the server for security</text>
+    </svg>
+    <figcaption><b>Figure 18.1</b> Client-side validation is for the user; server-side validation is for the data.</figcaption>
+  </figure>
+  <p><b>Client-side validation</b> runs in the browser before the form is sent. It <b>improves the user experience</b>: the mistake is pointed out instantly, with no page reload. But it <b>can be bypassed</b>: a determined user can open DevTools, delete the <code>required</code> attribute and submit whatever they like, or send a request without using your form at all. So client-side checks are for <b>convenience, not security</b>.</p>
+  <p><b>Server-side validation</b> runs in the backend code after the data arrives. It is called the <b>final line of defence</b> because <b>it cannot be bypassed by the user</b>: whatever reaches the server is checked there, regardless of what the browser did. It is not faster than client-side checks, it is not written in HTML, and it gives no instant feedback; it is simply the one that counts. Every serious application does both, and client-side validation <b>never removes the need for server-side validation</b>.</p>
+</section>
+
+<section id="s2">
+  <h2>18.2 The built-in constraints</h2>
+  <p>HTML5 calls this <b>constraint validation</b>: attributes on a control describe the valid values, and the browser enforces them when the form is submitted.</p>
+  <table class="tbl">
+    <thead><tr><th>Constraint</th><th>Fails when</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>required</code></td><td>The field is empty (or no radio in the group is chosen, or a checkbox is unticked)</td><td><code>&lt;input type="email" required&gt;</code></td></tr>
+      <tr><td><code>type="email"</code>, <code>"url"</code>, <code>"number"</code>, <code>"date"</code></td><td>The value is not in the format the type demands</td><td><code>student@college</code> fails <code>type="email"</code>: no domain part after the dot</td></tr>
+      <tr><td><code>min</code>, <code>max</code></td><td>The value is below min or above max</td><td><code>&lt;input type="number" min="18" max="60"&gt;</code></td></tr>
+      <tr><td><code>step</code></td><td>The value is not on the step grid</td><td><code>step="5"</code> rejects 12</td></tr>
+      <tr><td><code>minlength</code>, <code>maxlength</code></td><td>Too few characters (maxlength usually cannot be exceeded at all: the browser stops typing)</td><td><code>&lt;input type="password" minlength="8"&gt;</code></td></tr>
+      <tr><td><code>pattern</code></td><td>The value does not match the regular expression (the whole value must match)</td><td><code>pattern="[A-Za-z]{3,}"</code>: at least three letters</td></tr>
+    </tbody>
+  </table>
+  <h3>pattern and title</h3>
+  <p><code>pattern</code> takes a <b>regular expression</b> that the entire value must match. Because the browser's default error message ("Please match the requested format") tells the user nothing, pair it with a <code>title</code> attribute: <b>the <code>title</code> supplies the hint shown when the value fails the pattern</b>. In <code>&lt;input type="text" pattern="[A-Za-z]{3,}" title="At least 3 letters"&gt;</code>, the title is not the field's name for the server, not a default value and not a substitute for a label.</p>
+  <pre class="code" data-run data-title="Every constraint on one form: submit it empty, then fix the fields one by one" data-h="330" data-tall>&lt;form onsubmit="event.preventDefault(); alert('All constraints satisfied - the browser would now submit')"&gt;
+  &lt;p&gt;&lt;label for="u"&gt;Username (letters only, 3+)&lt;/label&gt;&lt;br&gt;
+     &lt;input id="u" name="u" type="text" required pattern="[A-Za-z]{3,}" title="At least 3 letters, no digits"&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="e"&gt;Email&lt;/label&gt;&lt;br&gt;
+     &lt;input id="e" name="e" type="email" required value="student@college"&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="a"&gt;Age (18-60)&lt;/label&gt;&lt;br&gt;
+     &lt;input id="a" name="a" type="number" min="18" max="60" step="1" required&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="p"&gt;Password (8-20 characters)&lt;/label&gt;&lt;br&gt;
+     &lt;input id="p" name="p" type="password" minlength="8" maxlength="20" required&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="c"&gt;Course&lt;/label&gt;&lt;br&gt;
+     &lt;select id="c" name="c" required&gt;
+       &lt;option value=""&gt;-- choose a course --&lt;/option&gt;
+       &lt;option value="cse"&gt;Computer Science&lt;/option&gt;
+     &lt;/select&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label&gt;&lt;input type="checkbox" name="t" required&gt; I accept the rules&lt;/label&gt;&lt;/p&gt;
+  &lt;button type="submit"&gt;Register&lt;/button&gt;
+&lt;/form&gt;</pre>
+  <p>Notice the email field: it is pre-filled with <code>student@college</code>. Press Register and <b>the browser blocks submission because the value is not a valid email format</b>: it does not submit normally, does not "correct" the value and does not silently drop the field. Add <code>.edu</code> and it passes.</p>
+</section>
+
+<section id="s3">
+  <h2>18.3 What the browser does on submit</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="Flowchart of browser validation on submit">
+      <rect x="215" y="10" width="190" height="36" rx="18" class="box saf"/><text x="310" y="33" class="t c b">user presses Submit</text>
+      <path d="M310 46 L310 62" class="edge" marker-end="url(#arr)"/>
+      <path d="M310 66 L440 100 L310 134 L180 100 Z" class="dec"/><text x="310" y="96" class="t c b">novalidate on the form, or</text><text x="310" y="112" class="t c b">formnovalidate on the button?</text>
+      <path d="M440 100 L530 100" class="edge" marker-end="url(#arr)"/><text x="485" y="92" class="t c s">yes</text>
+      <path d="M310 134 L310 154" class="edge" marker-end="url(#arr)"/><text x="335" y="150" class="t s">no</text>
+      <path d="M310 158 L440 192 L310 226 L180 192 Z" class="dec"/><text x="310" y="188" class="t c b">every control satisfies</text><text x="310" y="204" class="t c b">its constraints?</text>
+      <path d="M440 192 L530 192" class="edge grn" marker-end="url(#arr-grn)"/><text x="485" y="184" class="t c s">yes</text>
+      <rect x="530" y="80" width="80" height="40" rx="10" class="box gry"/><text x="570" y="104" class="t c s">skip checks</text>
+      <path d="M570 120 L570 172" class="edge"/>
+      <rect x="530" y="172" width="80" height="40" rx="10" class="box grn"/><text x="570" y="196" class="t c b">send it</text>
+      <path d="M180 192 L90 192" class="edge" marker-end="url(#arr)"/><text x="135" y="184" class="t c s">no</text>
+      <rect x="10" y="160" width="80" height="64" rx="10" class="box red"/><text x="50" y="182" class="t c b">block</text><text x="50" y="198" class="t c s">focus the first</text><text x="50" y="212" class="t c s">invalid field</text>
+      <text x="310" y="262" class="t c s">a blocked submission shows the browser's message bubble (or the title hint for pattern)</text>
+      <text x="310" y="284" class="t c s">and the invalid fields match the CSS :invalid pseudo-class</text>
+    </svg>
+    <figcaption><b>Figure 18.2</b> Validation runs at submit time. Nothing leaves the browser until every constraint passes, unless validation has been switched off.</figcaption>
+  </figure>
+  <p>When a constraint fails, the browser <b>stops the submission</b>, moves focus to the first invalid control and shows a message bubble beside it. Valid and invalid controls can also be styled with the CSS pseudo-classes <code>:valid</code> and <code>:invalid</code> (Unit 3), which is how the red outline you see on many sites is done.</p>
+  <h3>Switching validation off on purpose</h3>
+  <ul>
+    <li><b><code>novalidate</code></b> on the <code>&lt;form&gt;</code> disables built-in validation for the whole form, for example when you handle all checks in JavaScript.</li>
+    <li><b><code>formnovalidate</code></b> on a particular <b>submit button</b> makes the form <b>skip built-in validation when that button is used</b>: the classic case is a "Save draft" button beside "Submit", where a half-filled form is acceptable. It does not make the form unsubmittable, does not remove <code>required</code> from the markup, and does not move validation to the server.</li>
+  </ul>
+  <pre class="code" data-run data-title="formnovalidate on a draft button" data-h="130">&lt;form onsubmit="event.preventDefault(); alert('Submitted via: ' + event.submitter.textContent)"&gt;
+  &lt;label for="t"&gt;Title&lt;/label&gt; &lt;input id="t" name="t" required&gt;
+  &lt;button type="submit"&gt;Publish (validates)&lt;/button&gt;
+  &lt;button type="submit" formnovalidate&gt;Save draft (skips validation)&lt;/button&gt;
+&lt;/form&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>18.4 Three things that confuse everyone</h2>
+  <h3>placeholder has nothing to do with validation</h3>
+  <p><code>placeholder</code> is a hint that shows in an empty field and vanishes when typing starts. It <b>does not count as a value</b>, so it never satisfies <code>required</code>; and <code>required</code> is not ignored when a placeholder is present. The two attributes can legally sit on the same element: <b><code>required</code> controls whether the form submits; <code>placeholder</code> only shows a hint and has no effect on validation</b>.</p>
+  <h3>A required select needs an empty option</h3>
+  <p>A <code>&lt;select required&gt;</code> is satisfied by <i>any</i> selected option, and a select always has one selected by default (the first). The trick is to make the first option a placeholder with an empty value: <code>&lt;option value=""&gt;-- choose --&lt;/option&gt;</code>. Now <b>the form will not submit until a non-empty option is chosen</b>. The browser does not remove the empty option, does not ignore <code>required</code> on selects, and does not auto-select the first real option.</p>
+  <h3>readonly and disabled fields are not validated</h3>
+  <p>A control the user cannot change is never reported as invalid; a <code>disabled</code> control is not even submitted (Chapter 17).</p>
+</section>
+
+<section id="s5">
+  <h2>18.5 A little JavaScript, for later</h2>
+  <p>Unit 5 adds scripted validation on top of these constraints: checking that two password fields match, showing friendlier messages with <code>setCustomValidity()</code>, or validating as the user types. The HTML constraints remain the foundation, because they work with JavaScript disabled and they announce themselves correctly to assistive technology. And whatever you do in the browser, the server checks again.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which attribute blocks submission while a field is still empty?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. placeholder</li><li>B. maxlength</li><li>C. value</li><li>D. required</li></ul>
+    <p><b>Answer: D.</b></p></div></details>
+  <details class="q"><summary>For &lt;input type="email" required value="student@college"&gt;, what happens when the form is submitted?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It submits normally</li><li>B. The browser blocks submission because the value is not a valid email format</li><li>C. The browser corrects the value automatically</li><li>D. The field is silently dropped from the submitted data</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>In &lt;input type="text" pattern="[A-Za-z]{3,}" title="At least 3 letters"&gt;, the title attribute:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Names the field for the server</li><li>B. Supplies the hint shown when the value fails the pattern</li><li>C. Sets the field's default value</li><li>D. Removes the need for a &lt;label&gt;</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which statement about placeholder and required used on the same input is correct?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. placeholder text counts as a value, so required is always satisfied</li><li>B. required controls whether the form submits; placeholder only shows a hint and has no effect on validation</li><li>C. required is ignored whenever a placeholder is present</li><li>D. The two attributes cannot legally appear on the same element</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>A &lt;select required&gt; begins with an empty placeholder &lt;option&gt;. What is the effect?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The form will not submit until a non-empty option is chosen</li><li>B. The empty option is automatically removed by the browser</li><li>C. The required attribute is ignored on &lt;select&gt;</li><li>D. The first real option is selected automatically</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>What is the effect of formnovalidate on a submit button?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The form can never be submitted</li><li>B. The form skips built-in validation when that particular button is used</li><li>C. All required attributes are permanently removed</li><li>D. Validation moves from the browser to the server</li></ul>
+    <p><b>Answer: B.</b></p></div></details>
+  <details class="q"><summary>Which statement about client-side validation is correct?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It improves user experience but can be bypassed, so the server must revalidate</li><li>B. It removes the need for server-side validation</li><li>C. It is more secure than server-side validation</li><li>D. It runs only after the data has reached the server</li></ul>
+    <p><b>Answer: A.</b></p></div></details>
+  <details class="q"><summary>Can a determined user bypass required and minlength?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: yes, trivially</b> (DevTools can remove the attribute, or a request can be sent without the form), so the server must re-check. Client-side validation is for convenience, not security.</p></div></details>
+  <details class="q"><summary>Why is server-side validation described as the final line of defence?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It runs faster than client-side checks</li><li>B. It is written in HTML rather than backend code</li><li>C. It cannot be bypassed by the user</li><li>D. It gives instant feedback before submission</li></ul>
+    <p><b>Answer: C.</b></p></div></details>
+  <details class="q"><summary>Which attributes constrain a number input to values between 18 and 60, and which pair limits how many characters may be typed?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> min="18" max="60" for the value; minlength and maxlength for the character count.</p></div></details>
+  <details class="q"><summary>In &lt;input type="password" minlength="8" required&gt;, what does minlength enforce?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the value must contain at least 8 characters; the browser blocks submission otherwise.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Client-side validation (HTML constraints, JavaScript) gives instant feedback but can be bypassed; server-side validation cannot be bypassed and is the final line of defence. Use both.</li>
+    <li>Constraints: required; type (email, url, number, date); min/max/step; minlength/maxlength; pattern with title as the failure hint.</li>
+    <li>On submit the browser blocks invalid forms, focuses the first bad field and shows a message; :valid/:invalid style them.</li>
+    <li>novalidate (form) and formnovalidate (a submit button, e.g. Save draft) switch built-in validation off deliberately.</li>
+    <li>placeholder never satisfies required; a required select needs an empty first option; disabled fields are neither validated nor submitted.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Validates</th></tr></thead>
+    <tbody>
+      <tr><td>required</td><td>Not empty / something chosen</td></tr>
+      <tr><td>type="email"</td><td>Looks like an email address</td></tr>
+      <tr><td>min / max / step</td><td>Numeric or date value in range and on the step</td></tr>
+      <tr><td>minlength / maxlength</td><td>Character count</td></tr>
+      <tr><td>pattern + title</td><td>Matches the regular expression; title is the hint</td></tr>
+      <tr><td>novalidate / formnovalidate</td><td>Skip validation for the form / for one button</td></tr>
+    </tbody>
+  </table>
+</section>
+</article>
