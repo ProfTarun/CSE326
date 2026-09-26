@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 18 &middot; Form Validation Basics</p>
   <h1>Form Validation Basics</h1>
   <p class="lead">A form that accepts an empty name, a date of birth in the future or an email address without an @ is worse than no form at all. HTML5 lets you describe what a valid value looks like, and the browser checks it before anything is sent, with no JavaScript. This chapter covers every built-in constraint, what the browser does when one fails, how to switch validation off deliberately, and the one rule that never changes: the server must check everything again.</p>
-  <p class="meta">About 14 minutes &middot; Course outcome CO2 &middot; Builds on Chapters 16 and 17</p>
+  <p class="meta">About 21 minutes &middot; Course outcome CO2 &middot; Builds on Chapters 16 and 17</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Input types already check some formats for you &mdash; <a href="book.html?ch=17">Chapter 17</a> (input types).</li>
+      <li><code>required</code> and friends are boolean attributes &mdash; <a href="book.html?ch=5">Chapter 5</a> (boolean attributes).</li>
+      <li>The browser can check a form before it is sent, but it is not the last word.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,8 @@
 
 <section id="s1">
   <h2>18.1 Two layers of validation</h2>
+  <div class="callout analogy"><b>Client-side checking is the guard at the gate; server-side is the lock on the door.</b> The guard turns people away politely and quickly, and that is worth having. But the guard can be walked past. The lock is what actually protects the building. Never rely on the guard alone.</div>
+  <div class="plain">There are two places to check what the user typed. The browser checks instantly, which is kind, but anybody can switch that off. The server checks afterwards, which is slower but cannot be avoided. You do both: the browser for kindness, the server for safety.</div>
   <p>Validation happens in two places, and they have different jobs.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 220" role="img" aria-label="Client-side validation in the browser gives fast feedback; server-side validation is the final line of defence">
@@ -44,7 +54,7 @@
 
 <section id="s2">
   <h2>18.2 The built-in constraints</h2>
-  <p>HTML5 calls this <b>constraint validation</b>: attributes on a control describe the valid values, and the browser enforces them when the form is submitted.</p>
+  <p>HTML5 calls this <b><span class="jw" data-def="A rule the value must satisfy, such as 'not empty', 'looks like an email' or 'at least eight characters'.">constraint</span> validation</b>: attributes on a control describe the valid values, and the browser enforces them when the form is submitted.</p>
   <table class="tbl">
     <thead><tr><th>Constraint</th><th>Fails when</th><th>Example</th></tr></thead>
     <tbody>
@@ -112,6 +122,11 @@
 &lt;/form&gt;</pre>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: your <code>required</code> field has a placeholder. Does that count as filled in?</summary>
+    <p>No. A placeholder is only a hint painted inside an empty box; the box is still empty, so <code>required</code> still fails. This is a favourite trick question.</p>
+  </details>
+
 <section id="s4">
   <h2>18.4 Three things that confuse everyone</h2>
   <h3>placeholder has nothing to do with validation</h3>
@@ -121,6 +136,11 @@
   <h3>readonly and disabled fields are not validated</h3>
   <p>A control the user cannot change is never reported as invalid; a <code>disabled</code> control is not even submitted (Chapter 17).</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: a <code>required</code> dropdown never shows an error. Why?</summary>
+    <p>Because its first option already counts as chosen. Give it an empty first option &mdash; <code>&lt;option value=""&gt;Choose one&lt;/option&gt;</code> &mdash; and the constraint starts working.</p>
+  </details>
 
 <section id="s5">
   <h2>18.5 A little JavaScript, for later</h2>

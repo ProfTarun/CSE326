@@ -11,12 +11,12 @@ No sign-up, no password, nothing to install.
 
 | | |
 |---|---|
-| **21 textbook chapters** | Units 1&ndash;2 in full: theory, diagrams and flowcharts, runnable examples, exam-style checks, and a read-aloud audiobook mode |
+| **39 textbook chapters + reference shelf** | Units 1&ndash;3 in full: theory, diagrams and flowcharts, runnable examples, live CSS sliders, tap-to-explain jargon, exam-style checks, and a read-aloud audiobook mode |
 | **22 step-by-step lessons** | Units 1&ndash;3: HTML fundamentals, semantic HTML and forms, CSS |
 | **110 command drills** | One short drill for every tag, attribute, input type and CSS property that can appear in the paper |
 | **6 lab practicals** | The prescribed Unit 7 experiments, with the marking scheme visible |
 | **Tag reference** | Every examinable tag, searchable, with syntax and an example |
-| **Mock test** | Marked the way CA2 is, including the 0.25 penalty for a wrong answer |
+| **Mock test** | 459 questions, marked the way CA2 is including the 0.25 penalty for a wrong answer. Pick the chapters to be examined on, and every explanation links to the chapter that teaches it |
 | **Progress tracking** | 138 exercises, all marked automatically |
 
 Every practice task is checked line by line and tells you exactly what to
@@ -45,7 +45,8 @@ Just open the link. Suggested order:
 2. **Lessons** &mdash; work through a unit
 3. **Command drills** &mdash; two minutes each, until the syntax is automatic
 4. **Practicals** &mdash; build the prescribed experiments before the lab
-5. **Mock test** &mdash; find out what guessing costs you; every explanation
+5. **Mock test** &mdash; choose your chapters, then find out what
+   guessing costs you; every explanation
    links back to the chapter to revise
 
 Everything is marked automatically, so you always know where you stand.
@@ -80,13 +81,25 @@ chapter means editing one file; no build step. Conventions inside a chapter:
 - `<figure class="fig">` holds an inline SVG diagram; the shared arrowheads
   and colour classes (`box`, `edge`, `dec`, `t`) are defined in `book.html`
   and `css/book.css`.
+- `<div class="prereq">` is the "before you start" recap, `<div class="plain">`
+  restates a hard paragraph in plain words, `<div class="callout analogy">`
+  is an everyday comparison, `<details class="qc">` is an inline quick check,
+  and `<span class="jw" data-def="...">` is a jargon word the reader can tap
+  for a one-line meaning. These five devices carry the plain-language layer
+  and are present in every chapter; `js/book.js` wires the last two up.
+- `<figure class="fig">` diagrams are wrapped at runtime in a scrolling
+  container with an **Enlarge** button, so a 700-unit drawing stays legible
+  on a 375px phone instead of shrinking to 4px text.
 - `<details class="q">` is an exam-style check; the summary is the question,
   the `.a` div the answer.
 - `<div class="callout exam|warn|why">` are the highlighted notes.
 
-The 21 chapters cover every Unit 1 and Unit 2 syllabus topic, and every
+The 39 chapters cover every Unit 1, 2 and 3 syllabus topic, and every
 question in the CA2 paper sets and the mock-test bank has its fact stated in
-the corresponding chapter (checked by script before release). The audiobook
+the corresponding chapter (checked by script before release: Unit 3 passes
+104 of 104 coverage checks, covering all 48 CSS bank questions and every
+topic in both Unit 3 lecture decks). Chapter 40 is a reference shelf of
+hand-checked external links rather than a taught chapter. The audiobook
 uses the browser's own speech engine (Web Speech API): nothing is downloaded
 and no key is needed.
 
@@ -107,9 +120,12 @@ comparisons with zero disagreements.
   fundamentals, forms, input types, validation, tables, accessibility
   standards (WCAG), responsive content structuring
   (textbook chapters 13&ndash;21)
-- **Unit 3** &mdash; CSS: selectors, specificity, the box model, units,
-  positioning, Flexbox, Grid, responsive design, pseudo-classes and
-  pseudo-elements, variables, transitions, animations
+- **Unit 3** &mdash; Cascading Style Sheets: introduction to CSS,
+  selectors and specificity, colours and backgrounds, units and
+  measurements, typography, text styling, the box model, positioning,
+  Flexbox, Grid, pseudo-classes, pseudo-elements, attribute selectors,
+  form styling, CSS variables, responsive web design, animations,
+  transitions (textbook chapters 22&ndash;39, reference shelf in 40)
 
 Units 4&ndash;6 (JavaScript, the DOM, deployment) are not here yet.
 

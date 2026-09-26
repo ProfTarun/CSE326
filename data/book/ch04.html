@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 4 &middot; HTML Document Structure</p>
   <h1>HTML Document Structure</h1>
   <p class="lead">Every valid HTML5 page has the same skeleton: a document type declaration, a root element, a head of information about the page, and a body of visible content. This chapter takes that skeleton apart line by line, shows what belongs in the head and what belongs in the body, and explains the metadata that makes a page render correctly on a phone, in a search result and in a screen reader.</p>
-  <p class="meta">About 19 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A tag is one marker, an element is the opening tag, the content and the closing tag &mdash; <a href="book.html?ch=3">Chapter 3</a> (tags and elements).</li>
+      <li>Nesting means one element sits inside another, and the inner one closes first.</li>
+      <li>Every page you write from now on starts with the skeleton in this chapter. Learn it once and you never think about it again.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>4.1 The skeleton</h2>
+  <div class="plain">Every web page in the world starts with the same five or six lines. They are not creative &mdash; they are paperwork. Type them once, keep a copy, and paste them at the start of every new file.</div>
   <p>Here is the smallest complete, valid HTML5 page. Type it until you can write it without looking; every page you ever build starts from it.</p>
   <pre class="code" data-run data-title="The minimal valid HTML5 document" data-h="150">&lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
@@ -58,7 +67,7 @@
   <h3><code>&lt;html lang="en"&gt;</code>: the root element</h3>
   <p><code>&lt;html&gt;</code> is the <b>root element</b> of every HTML document: the single container that wraps everything else. (The doctype is above it but is not an element, so it is not the root.) Its <code>lang</code> attribute declares the <b>document's language</b>: <code>en</code> for English, <code>hi</code> for Hindi, <code>pa</code> for Punjabi. Screen readers use it to choose the right pronunciation, browsers use it to offer translation and pick hyphenation rules, and search engines use it to serve the page to the right audience. It does not force translation, restrict fonts or limit which characters may be typed; it is a statement of what language the content is written in.</p>
   <h3><code>&lt;head&gt;</code>: information about the document</h3>
-  <p>The head is the <b>container for the document's metadata</b>: data <i>about</i> the page rather than the page itself. <b>Nothing inside the head is rendered</b> on the visible canvas. It holds the title, the character encoding, the viewport setting, links to stylesheets and icons, and hints for search engines. If you put an <code>&lt;h1&gt;</code>, a paragraph or an image in the head, you have made a mistake: they are visible content and belong in the body.</p>
+  <p>The head is the <b>container for the document's <span class="jw" data-def="Information about the page rather than content of the page: its title, its language, its description. It lives in the head and the reader never sees it.">metadata</span></b>: data <i>about</i> the page rather than the page itself. <b>Nothing inside the head is rendered</b> on the visible canvas. It holds the title, the character encoding, the viewport setting, links to stylesheets and icons, and hints for search engines. If you put an <code>&lt;h1&gt;</code>, a paragraph or an image in the head, you have made a mistake: they are visible content and belong in the body.</p>
   <h3><code>&lt;meta charset="UTF-8"&gt;</code>: the character encoding</h3>
   <p>This <b>declares the character encoding</b> of the file, so the browser turns the bytes it received into the right characters. <b>UTF-8</b> is the universal standard: it covers every language's script, mathematical symbols, the rupee sign and emoji. Without it, accented letters and symbols such as &#8377; can render as garbage like <code>â‚¹</code>. Put it first in the head, before the title. It does not set the font, the width, or link anything.</p>
   <h3><code>&lt;meta name="viewport" ...&gt;</code>: telling phones the truth</h3>
@@ -90,8 +99,14 @@
   <p>The body is the <b>container for all visible content</b>: headings, paragraphs, images, tables, forms, audio, video, and the semantic regions of Unit 2. If the user can see it or interact with it, it is in the body.</p>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: where does <code>&lt;title&gt;</code> go, and where does <code>&lt;h1&gt;</code> go?</summary>
+    <p><code>title</code> goes in the <b>head</b>: it is the tab text and the headline in search results. <code>h1</code> goes in the <b>body</b>: it is the heading a reader sees on the page. They usually say similar things but they are different elements in different rooms.</p>
+  </details>
+
 <section id="s3">
   <h2>4.3 Head or body? A decision you will make a thousand times</h2>
+  <div class="plain">There are only two rooms in the house. The <b>head</b> is the label on the outside of the parcel: nobody reading the page sees it. The <b>body</b> is what is inside the parcel: everything the reader actually sees.</div>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 250" role="img" aria-label="Flowchart deciding whether an element belongs in head or body">
       <rect x="210" y="14" width="200" height="40" rx="20" class="box saf"/><text x="310" y="39" class="t c b">an element to place</text>
@@ -121,7 +136,8 @@
 
 <section id="s4">
   <h2>4.4 The page as a tree</h2>
-  <p>The browser reads the document from the outer structure inward and builds a tree (the DOM) in which every element is a node with a parent and children. Seeing the minimal page as a tree makes the rules obvious: <code>head</code> and <code>body</code> are siblings under <code>html</code>; the title lives under head; the visible content lives under body.</p>
+  <div class="callout analogy"><b>The page is a family tree.</b> <code>html</code> is the grandparent. It has two children, <code>head</code> and <code>body</code>. Each of those has children of its own, and so on down. The browser builds exactly this tree in memory and calls it the DOM. Every later thing you learn &mdash; CSS selectors, JavaScript &mdash; is about walking around this tree.</div>
+  <p>The browser reads the document from the outer structure inward and builds a tree (the <span class="jw" data-def="The tree of elements the browser builds in memory after reading your HTML. CSS and JavaScript both work on this tree.">DOM</span>) in which every element is a node with a parent and children. Seeing the minimal page as a tree makes the rules obvious: <code>head</code> and <code>body</code> are siblings under <code>html</code>; the title lives under head; the visible content lives under body.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 300" role="img" aria-label="DOM tree of the minimal document">
       <rect x="260" y="14" width="100" height="34" rx="8" class="box"/><text x="310" y="36" class="t c b mono">html</text>
@@ -143,9 +159,14 @@
   </figure>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: what goes wrong if you leave out <code>&lt;!DOCTYPE html&gt;</code>?</summary>
+    <p>The browser drops into &ldquo;quirks mode&rdquo; and pretends to be a browser from the 1990s, so your layout behaves strangely for reasons you will never find. One line on the top prevents it.</p>
+  </details>
+
 <section id="s5">
   <h2>4.5 A complete, well-formed head</h2>
-  <p>Here is the head you should copy into every project. The order matters a little: charset first (so the browser decodes the rest correctly), viewport second, then title, then the rest.</p>
+  <p>Here is the head you should copy into every project. The order matters a little: <span class="jw" data-def="Which numbering scheme turns the stored bytes back into letters. Get it wrong and accented or Indic characters come out as nonsense.">charset</span> first (so the browser decodes the rest correctly), viewport second, then title, then the rest.</p>
   <pre class="code" data-run data-title="A production-quality head, with a small body to prove it renders" data-h="170">&lt;!DOCTYPE html&gt;
 &lt;html lang="en"&gt;
 &lt;head&gt;

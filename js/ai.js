@@ -25,7 +25,7 @@ var AI = (function () {
       label: "Groq",
       url: "https://console.groq.com/keys",
       free: "Best free tier and very fast. Recommended.",
-      model: "llama-3.3-70b-versatile",
+      model: "openai/gpt-oss-120b",
       endpoint: "https://api.groq.com/openai/v1/chat/completions",
       style: "openai"
     },
@@ -33,23 +33,23 @@ var AI = (function () {
       label: "Google Gemini",
       url: "https://aistudio.google.com/apikey",
       free: "Easy if you have a Google account. About 20-50 requests a day.",
-      model: "gemini-3.1-flash-lite",
+      model: "gemini-3.5-flash",
       endpoint: "https://generativelanguage.googleapis.com/v1beta/models/",
       style: "gemini"
     },
     openrouter: {
       label: "OpenRouter",
       url: "https://openrouter.ai/keys",
-      free: "One key, many models. Some are free.",
-      model: "meta-llama/llama-3.3-70b-instruct:free",
+      free: "One key, many models. The :free ones cost nothing.",
+      model: "nvidia/nemotron-3-super-120b-a12b:free",
       endpoint: "https://openrouter.ai/api/v1/chat/completions",
       style: "openai"
     },
     mistral: {
       label: "Mistral",
       url: "https://console.mistral.ai/api-keys",
-      free: "Free tier available.",
-      model: "mistral-small-latest",
+      free: "Free tier. Use ministral-8b - mistral-small is not free.",
+      model: "ministral-8b-latest",
       endpoint: "https://api.mistral.ai/v1/chat/completions",
       style: "openai"
     }

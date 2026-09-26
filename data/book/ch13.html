@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 13 &middot; Semantic HTML Elements</p>
   <h1>Semantic HTML Elements</h1>
   <p class="lead">A page built from <code>&lt;div class="header"&gt;</code> and a page built from <code>&lt;header&gt;</code> look identical in the browser. The difference is invisible to your eyes and enormous to a screen reader, a search engine and the next developer. This chapter introduces every HTML5 semantic element, what each one means, how to choose between the confusable ones, and the rules about how many and where.</p>
-  <p class="meta">About 18 minutes &middot; Course outcome CO2 &middot; Opens Unit 2</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO2 &middot; Opens Unit 2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>div</code> and <code>span</code> carry no meaning &mdash; <a href="book.html?ch=5">Chapter 5</a> (div and span).</li>
+      <li>Semantic means &ldquo;describes what it is, not what it looks like&rdquo; &mdash; <a href="book.html?ch=6">Chapter 6</a> (logical vs physical).</li>
+      <li>These elements look like plain boxes on screen. Their value is invisible &mdash; and examined.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>13.1 What "semantic" means</h2>
+  <div class="plain">A semantic element looks exactly like a plain box on screen. The difference is that it has a name a machine understands. A screen reader can jump straight to <code>main</code>; it cannot jump to &ldquo;the third div&rdquo;.</div>
   <p>A <b>semantic element</b> is one that <b>describes the meaning and purpose of its content</b>: <code>&lt;nav&gt;</code> says "this is navigation", <code>&lt;article&gt;</code> says "this is a self-contained piece", <code>&lt;footer&gt;</code> says "this is the closing information". A <b>non-semantic</b> element such as <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code> says nothing about its content: it is a box.</p>
   <p>Semantic elements do not apply a distinctive style, do not load faster than a div, and most may appear many times. What they give is <b>machine-readable structure</b>. Three consumers benefit:</p>
   <ul>
@@ -47,6 +56,7 @@
 
 <section id="s2">
   <h2>13.2 The seven page-structure elements</h2>
+  <div class="callout analogy"><b>Semantic elements are the signs in a supermarket.</b> Every aisle is the same shelving. The signs &mdash; DAIRY, BAKERY, CHECKOUT &mdash; are what let you walk straight to what you want instead of pacing every aisle. <code>header</code>, <code>nav</code>, <code>main</code> and <code>footer</code> are those signs, and a screen-reader user navigates by them.</div>
   <dl>
     <dt><code>&lt;header&gt;</code>: introductory content</dt>
     <dd>Holds a page's or a section's <b>introductory content and navigation aids</b>: the logo, the site title, a tagline, often the main <code>nav</code>. A page has one main header, and sections or articles can have their own. Do not confuse it with <code>&lt;head&gt;</code>, which is invisible metadata (Chapter 4).</dd>
@@ -94,6 +104,7 @@
 
 <section id="s3">
   <h2>13.3 Choosing between section, article, aside and div</h2>
+  <div class="plain">Ask yourself one question: would this content still make sense on its own, somewhere else? If yes it is an article. If it is merely related and could be dropped, it is an aside. If it is a themed part of <i>this</i> page with a heading, it is a section. If it means nothing at all, it is a div.</div>
   <p>These four cause most of the confusion, and most of the questions. Ask the questions in order.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 330" role="img" aria-label="Decision flowchart: article, aside, section or div">
@@ -129,6 +140,11 @@
   <div class="callout exam"><b>section versus article, in one line.</b> <code>section</code> groups thematically related content; <code>article</code> is independently distributable. They are not identical, and section is not limited to once per page.</div>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: how many <code>&lt;main&gt;</code> elements may a page have?</summary>
+    <p>One. And it must never be nested inside an article, aside, header, footer or nav. It marks the one block of content that is unique to this page.</p>
+  </details>
+
 <section id="s4">
   <h2>13.4 The rules examiners check</h2>
   <ol>
@@ -150,6 +166,11 @@
     <figcaption><b>Figure 13.3</b> The canonical nesting. Articles and asides normally sit inside main; nav sits inside the header; footer closes the body.</figcaption>
   </figure>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: a sidebar of &lsquo;related articles&rsquo;: which element?</summary>
+    <p><code>aside</code> &mdash; related to the main content but not essential to it. If you deleted it the page would still make sense.</p>
+  </details>
 
 <section id="s5">
   <h2>13.5 The other semantic elements</h2>
@@ -194,7 +215,7 @@
     <ul class="opts"><li>A. Faster rendering in every browser</li><li>B. An automatically smaller file size</li><li>C. Machine-readable structure for screen readers and search engines</li><li>D. Brighter default colours</li></ul>
     <p><b>Answer: C.</b></p></div></details>
   <details class="q"><summary>A screen-reader user on a page built only from divs must:<span class="lvl">L2</span></summary><div class="a">
-    <p><b>Answer:</b> listen through the whole menu on every page load, because there are no landmarks such as main to jump to.</p></div></details>
+    <p><b>Answer:</b> listen through the whole menu on every page load, because there are no <span class="jw" data-def="A named region of the page that assistive technology can jump straight to, such as the navigation or the main content.">landmarks</span> such as main to jump to.</p></div></details>
   <details class="q"><summary>Which element should appear exactly once per page?<span class="lvl">L1</span></summary><div class="a">
     <ul class="opts"><li>A. &lt;section&gt;</li><li>B. &lt;article&gt;</li><li>C. &lt;div&gt;</li><li>D. &lt;main&gt;</li></ul>
     <p><b>Answer: D.</b> main marks the single unique content area.</p></div></details>

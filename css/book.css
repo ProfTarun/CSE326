@@ -291,3 +291,214 @@ svg .cap { fill: #0B2545; font-size: 11px; font-weight: 800;
   .ex pre.code { max-height: none; white-space: pre-wrap; }
   .fig { break-inside: avoid; }
 }
+
+/* ===================================================================
+   PLAIN-LANGUAGE LAYER
+   Teaching devices added for Unit 3 (and usable in any chapter):
+   a prerequisite box, plain-words restatements, analogies, tap-to-
+   explain jargon words, inline quick checks and live CSS sliders.
+   =================================================================== */
+
+/* ---- "Before you start": what you need to know, and where it was ---- */
+.prereq { background: linear-gradient(90deg, #EEF2FF, rgba(238,242,255,.25));
+  border-left: 4px solid #4F46E5; border-radius: 0 12px 12px 0;
+  padding: 12px 18px; margin: 14px 0 0; }
+.prereq h2 { font-size: .8em; text-transform: uppercase; letter-spacing: .1em;
+  color: #3730A3; margin: 0 0 6px; }
+.prereq ul { margin: 0; padding-left: 20px; }
+.prereq li { margin: 3px 0; }
+
+/* ---- "In plain words": the same idea at the kitchen table ---- */
+.plain { background: #FFFDF6; border: 1px dashed #E8C583; border-radius: 12px;
+  padding: 11px 16px 12px; margin: 15px 0; }
+.plain::before { content: "In plain words"; display: block; font-size: 11px;
+  font-weight: 800; letter-spacing: .1em; text-transform: uppercase;
+  color: #B45309; margin-bottom: 5px; }
+.plain p { margin: 0 0 8px; }
+.plain p:last-child, .plain ul:last-child, .plain ol:last-child { margin-bottom: 0; }
+
+/* ---- analogy: the everyday picture ---- */
+.chapter .callout.analogy { background: linear-gradient(90deg, #F5F3FF,
+  rgba(245,243,255,.3)); border-left-color: #7C3AED; }
+.chapter .callout.analogy b:first-child { color: #6D28D9; }
+
+/* ---- jargon word: tap it for a one-line meaning ---- */
+.jw { border-bottom: 2px dotted var(--saffron-d); color: var(--saffron-d);
+  font-weight: 600; cursor: pointer; padding: 0 1px; border-radius: 3px; }
+.jw:hover, .jw.on { background: var(--saffron-pale); }
+.jw:focus-visible { outline: 2px solid var(--saffron-d); outline-offset: 2px; }
+.jw-pop { display: block; margin: 9px 0; background: #FFF8EB;
+  border-left: 3px solid var(--saffron); border-radius: 0 9px 9px 0;
+  padding: 9px 14px; font-size: .92em; line-height: 1.65; color: var(--ink-2);
+  font-weight: 400; }
+.jw-pop b { color: var(--saffron-d); }
+.wordnote { font-size: .86em; color: var(--mut); margin: 10px 0 0;
+  border-top: 1px dashed var(--line); padding-top: 9px; }
+
+/* ---- inline quick check: friendlier than the end-of-chapter exam ---- */
+details.qc { border: 1px solid #CFE6D8; background: #F4FBF6; border-radius: 11px;
+  margin: 14px 0; }
+details.qc summary { cursor: pointer; padding: 10px 15px; font-weight: 700;
+  color: #0A5C34; list-style: none; display: flex; gap: 9px;
+  overflow-wrap: anywhere; }
+details.qc summary::-webkit-details-marker { display: none; }
+details.qc summary::before { content: "\2753"; flex: 0 0 auto; }
+details.qc[open] summary { border-bottom: 1px solid #CFE6D8; }
+details.qc .a { padding: 11px 15px; font-size: .95em; }
+details.qc .a p:last-child { margin-bottom: 0; }
+
+/* ---- live CSS sliders: change a value, watch the box AND the code ---- */
+.tryit { border: 1px solid var(--line); border-radius: 14px; overflow: hidden;
+  margin: 16px 0 20px; background: #fff; box-shadow: var(--shadow); }
+.tryit-head { background: #F7F9FC; border-bottom: 1px solid var(--line);
+  padding: 8px 14px; font-size: 12.5px; font-weight: 700; color: var(--mut);
+  display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+.tryit-head .sp { flex: 1; }
+.tryit-reset { font-size: 12px; font-weight: 700; border: 1px solid var(--line);
+  background: #fff; color: var(--mut); border-radius: 999px; padding: 3px 11px;
+  cursor: pointer; font-family: inherit; }
+.tryit-reset:hover { border-color: var(--saffron); color: var(--saffron-d); }
+.tryit-stage { padding: 22px 18px; display: grid; place-items: center;
+  min-height: 110px; overflow: auto;
+  background: repeating-conic-gradient(#F2F6FA 0% 25%, #fff 0% 50%) 50% / 18px 18px; }
+.tryit-stage .frame { background: #fff; border: 2px dashed #B9C6D6;
+  border-radius: 8px; padding: 10px; width: 100%; max-width: 420px; }
+.tryit-ctl { display: grid; gap: 10px 18px; padding: 13px 16px;
+  grid-template-columns: repeat(auto-fit, minmax(215px, 1fr));
+  border-top: 1px solid var(--line); background: #FBFCFE; }
+.tryit-ctl label { display: grid; grid-template-columns: 1fr auto;
+  align-items: center; gap: 3px 8px; font-family: var(--mono); font-size: 12px;
+  font-weight: 700; color: var(--ink-2); }
+.tryit-ctl input[type="range"] { grid-column: 1 / -1; width: 100%;
+  accent-color: var(--saffron-d); }
+.tryit-ctl select, .tryit-ctl input[type="color"], .tryit-ctl input[type="text"] {
+  grid-column: 1 / -1; font-family: var(--mono); font-size: 12.5px;
+  padding: 5px 7px; border: 1px solid var(--line); border-radius: 7px;
+  background: #fff; width: 100%; }
+.tryit-ctl input[type="color"] { padding: 2px; height: 30px; }
+.tryit-ctl .tv { font-family: var(--mono); font-size: 11.5px; font-weight: 800;
+  color: var(--saffron-d); }
+.tryit-css { margin: 0; border-top: 1px solid var(--line); background: var(--code);
+  color: #DCE7F5; font-family: var(--mono); font-size: 12.5px; line-height: 1.65;
+  padding: 12px 16px; white-space: pre; overflow-x: auto; }
+.tryit-css .hl { color: #FFD08A; font-weight: 700; }
+.tryit-css .sel { color: #7FD1A8; }
+@media (max-width: 520px) { .tryit-ctl { grid-template-columns: 1fr; } }
+
+/* a plain swatch row, for colour and unit chapters */
+.swatches { display: grid; gap: 9px; margin: 14px 0 18px;
+  grid-template-columns: repeat(auto-fit, minmax(122px, 1fr)); }
+.swatches .sw { border: 1px solid var(--line); border-radius: 11px;
+  overflow: hidden; background: #fff; }
+.swatches .sw i { display: block; height: 46px; }
+.swatches .sw span { display: block; padding: 6px 9px; font-family: var(--mono);
+  font-size: 11.5px; color: var(--ink-2); line-height: 1.45; }
+
+@media print {
+  .tryit-ctl, .tryit-head { display: none !important; }
+  .jw { border-bottom: 0; color: inherit; }
+  details.qc .a { display: block; }
+}
+
+/* ============================================================
+   REFERENCE MATERIAL
+   Per-chapter "Reference material" sections and the Reference
+   Shelf appendix (Chapter 40). Links are external and always
+   carry a visible reason to open them.
+   ============================================================ */
+.sr-only{position:absolute;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+.chapter .lead-sm{font-size:.95rem;color:var(--mut);margin:0 0 14px;
+  max-width:62ch}
+
+.refs ul{list-style:none;padding:0;margin:0;display:grid;gap:10px}
+.refs ul li{margin:0;padding:12px 14px;border:1px solid var(--line);
+  border-radius:10px;background:var(--card);
+  border-left:3px solid var(--saffron)}
+.refs ul li > a{font-weight:700;text-decoration:none;
+  border-bottom:1px solid transparent;display:inline-block}
+.refs ul li > a:hover,.refs ul li > a:focus-visible{
+  border-bottom-color:currentColor}
+.refs ul li > b{font-weight:700;color:var(--ink);display:inline-block}
+.refs .ext{font-size:.85em;margin-left:4px;opacity:.7}
+.refs .why{display:block;margin-top:4px;font-size:.9rem;color:var(--mut);
+  line-height:1.55}
+.refs-foot{margin:14px 0 0;font-size:.88rem;color:var(--mut)}
+
+/* the shelf appendix groups links under numbered headings */
+#ch40 .refs{margin-bottom:26px}
+#ch40 .refs ul li{border-left-color:var(--green)}
+
+@media print{
+  .refs ul li{break-inside:avoid;border-left-width:2px}
+  .refs .ext{display:none}
+  .refs ul li > a::after{content:" (" attr(href) ")";font-weight:400;
+    font-size:.82em;word-break:break-all}
+}
+
+/* ============================================================
+   READABLE DIAGRAMS ON SMALL SCREENS
+   A figure is drawn in a 600-720 unit viewBox. Inside a phone's
+   ~270px text column that shrinks 11px labels to about 4px, so
+   on narrow screens the figure breaks out of the column and
+   scrolls sideways at a legible minimum width. Every figure
+   also gets a full-screen view.
+   ============================================================ */
+.chapter .fig { position: relative; }
+.chapter .fig-scroll { overflow-x: auto; overflow-y: hidden;
+  -webkit-overflow-scrolling: touch; }
+
+.chapter .fig-zoom { position: absolute; top: 8px; right: 8px; z-index: 2;
+  font: 600 11.5px/1 var(--font); color: var(--mut); cursor: pointer;
+  background: rgba(255,255,255,.92); border: 1px solid var(--line);
+  border-radius: 999px; padding: 5px 10px; display: inline-flex; gap: 5px;
+  align-items: center; opacity: 0; transition: opacity .15s ease; }
+.chapter .fig:hover .fig-zoom, .chapter .fig-zoom:focus-visible { opacity: 1; }
+.chapter .fig-zoom:hover { color: var(--ink); border-color: var(--saffron); }
+
+/* the swipe hint only appears when the diagram really is cut off */
+.chapter .fig.is-scrollable::after { content: "swipe to see all \2192";
+  position: absolute; left: 16px; top: 8px; font-size: 10.5px;
+  font-weight: 700; letter-spacing: .02em; color: var(--saffron-d);
+  background: var(--saffron-pale); border-radius: 999px; padding: 4px 9px;
+  pointer-events: none; }
+
+@media (max-width: 760px) {
+  /* full-bleed: use the whole phone width, not just the text column */
+  .chapter .fig { margin-left: -16px; margin-right: -16px;
+    padding-left: 0; padding-right: 0; border-radius: 0;
+    border-left: 0; border-right: 0; }
+  .chapter .fig-scroll { padding: 0 16px; }
+  .chapter .fig figcaption { padding: 0 16px; }
+  .chapter .fig svg { min-width: 660px; }          /* keeps labels ~10px */
+  .chapter .fig.narrow svg, .chapter .fig.tiny svg { max-width: none; }
+  .chapter .fig-zoom { opacity: 1; }               /* no hover on touch */
+}
+
+/* ---- full-screen diagram view ---- */
+.fig-lightbox { position: fixed; inset: 0; z-index: 9000; display: flex;
+  flex-direction: column; background: rgba(10,18,32,.93); }
+.fig-lb-bar { display: flex; gap: 8px; align-items: center; padding: 10px 12px;
+  border-bottom: 1px solid rgba(255,255,255,.14); flex: 0 0 auto; }
+.fig-lb-hint { color: #B9C6D8; font: 600 12px/1.3 var(--font); margin-right: auto; }
+.fig-lb-btn { font: 700 15px/1 var(--font); color: #fff; cursor: pointer;
+  background: rgba(255,255,255,.12); border: 1px solid rgba(255,255,255,.22);
+  border-radius: 9px; min-width: 40px; padding: 9px 12px; }
+.fig-lb-btn:hover { background: rgba(255,255,255,.22); }
+.fig-lb-btn.close { background: var(--saffron); border-color: var(--saffron);
+  color: #22160A; font-size: 20px; }
+.fig-lb-stage { flex: 1 1 auto; overflow: auto; padding: 16px;
+  display: flex; flex-direction: column; align-items: flex-start; }
+.fig-lb-stage svg { height: auto; background: #fff; border-radius: 10px;
+  padding: 12px; min-width: 0; }
+.fig-lb-cap { color: #D7E0EC; font-size: 13px; line-height: 1.5; margin: 12px 0 0;
+  max-width: 70ch; }
+.fig-lb-cap b { color: #fff; }
+@media (max-width: 560px) { .fig-lb-hint { display: none; } }
+
+@media print {
+  .fig-zoom, .fig.is-scrollable::after { display: none !important; }
+  .chapter .fig-scroll { overflow: visible; }
+  .chapter .fig svg { min-width: 0; }
+}

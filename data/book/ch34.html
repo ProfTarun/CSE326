@@ -1,0 +1,206 @@
+<article class="chapter" data-ch="34">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 34 &middot; Attribute Selectors</p>
+  <h1>Attribute Selectors</h1>
+  <p class="lead">Sometimes the thing that makes an element special is not its tag or its class, but an attribute it already carries: this input is a <code>type="email"</code>, this link goes to an external site, this file is a PDF. Square brackets let you select on exactly that &mdash; no extra classes, no extra markup.</p>
+  <p class="meta">About 15 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>An <b>attribute</b> is written inside the opening tag as <code>name="value"</code> (<a href="book.html?ch=5">Chapter 5</a>).</li>
+      <li><code>input</code> uses <code>type</code> to decide what kind of control it is (<a href="book.html?ch=17">Chapter 17</a>).</li>
+      <li>An attribute selector counts in the <b>class</b> column for specificity (<a href="book.html?ch=23">Chapter 23</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Select an element because an attribute exists, or because it has a particular value.</li>
+      <li>Use the three matching operators <code>^=</code>, <code>$=</code> and <code>*=</code> correctly.</li>
+      <li>Style every input type differently without adding a single class.</li>
+      <li>Mark external links and file downloads automatically.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>34.1 Square brackets</h2>
+  <p>An <b>attribute selector</b> is written in square brackets after (or instead of) an element name:</p>
+  <pre class="code">[required]              { /* any element that HAS a required attribute */ }
+input[type="email"]     { /* inputs whose type is exactly email         */ }</pre>
+  <p>There are two basic forms:</p>
+  <table class="tbl">
+    <thead><tr><th>Form</th><th>Means</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>[attr]</code></td><td>The attribute is <b>present</b>, whatever its value</td><td><code>[disabled]</code> &mdash; every disabled control</td></tr>
+      <tr><td><code>[attr="value"]</code></td><td>The attribute's value is <b>exactly</b> that</td><td><code>input[type="checkbox"]</code></td></tr>
+    </tbody>
+  </table>
+  <p>Quotes round the value are optional when it is a single simple word, but always writing them is safer and is what you will see in professional code.</p>
+  <div class="callout analogy"><b>Picture this.</b> A class is a badge you pin on someone. An attribute is something they already carry &mdash; a passport, a ticket, a uniform. Attribute selectors let you say "everyone holding a ticket" without going round pinning badges first.</div>
+  <pre class="code" data-run data-title="Styling inputs by their type - no classes at all" data-h="300" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; }
+  label { display: block; margin: 10px 0 3px; font-weight: 700; font-size: 14px; }
+  input { padding: 8px 10px; border: 2px solid #CBD5E1; border-radius: 8px;
+          font-size: 14px; }
+
+  input[type="email"]    { border-color: #1D4ED8; }
+  input[type="password"] { border-color: #6D28D9; letter-spacing: 0.2em; }
+  input[type="date"]     { border-color: #138808; }
+  input[required]        { border-left-width: 6px; }
+  input[disabled]        { background: #F1F5F9; color: #94A3B8; }
+&lt;/style&gt;
+&lt;label&gt;Email (required)&lt;/label&gt;&lt;input type="email" required&gt;
+&lt;label&gt;Password (required)&lt;/label&gt;&lt;input type="password" required&gt;
+&lt;label&gt;Date of birth&lt;/label&gt;&lt;input type="date"&gt;
+&lt;label&gt;Registration number (locked)&lt;/label&gt;&lt;input value="12345678" disabled&gt;</pre>
+  <p>Look at the HTML: not one class. Every rule found its target through an attribute the element had to carry anyway.</p>
+</section>
+
+<section id="s2">
+  <h2>34.2 The three matching operators</h2>
+  <p>Often you do not want an exact match. Three operators handle "starts with", "ends with" and "contains". They are easiest to learn as a group.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="The three attribute matching operators">
+      <rect x="20" y="24" width="186" height="86" rx="12" class="box saf"/>
+      <text x="113" y="52" class="t c b mono" style="font-size:19px">^=</text>
+      <text x="113" y="74" class="t c b">STARTS with</text>
+      <text x="113" y="96" class="t c s">a[href^="https"]</text>
+      <rect x="218" y="24" width="186" height="86" rx="12" class="box grn"/>
+      <text x="311" y="52" class="t c b mono" style="font-size:19px">$=</text>
+      <text x="311" y="74" class="t c b">ENDS with</text>
+      <text x="311" y="96" class="t c s">a[href$=".pdf"]</text>
+      <rect x="416" y="24" width="186" height="86" rx="12" class="box blu"/>
+      <text x="509" y="52" class="t c b mono" style="font-size:19px">*=</text>
+      <text x="509" y="74" class="t c b">CONTAINS</text>
+      <text x="509" y="96" class="t c s">a[href*="youtube"]</text>
+      <text x="310" y="140" class="t c s b">The memory aid:</text>
+      <text x="310" y="160" class="t c s">^ points up at the beginning &middot; $ ends a line (as in a search box) &middot; * is a wildcard, anywhere</text>
+      <text x="310" y="184" class="t c s">Everything is case-sensitive unless you add the i flag: [href$=".PDF" i]</text>
+    </svg>
+    <figcaption><b>Figure 34.1</b> Three operators, three positions. Learning them together is easier than one at a time.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Selector</th><th>Matches when the value&hellip;</th><th>Example match</th></tr></thead>
+    <tbody>
+      <tr><td><code>[href^="https"]</code></td><td><b>starts with</b> https</td><td><code>https://lpu.in</code></td></tr>
+      <tr><td><code>[href$=".pdf"]</code></td><td><b>ends with</b> .pdf</td><td><code>/files/syllabus.pdf</code></td></tr>
+      <tr><td><code>[href*="lpu"]</code></td><td><b>contains</b> lpu anywhere</td><td><code>https://portal.lpu.in/x</code></td></tr>
+      <tr><td><code>[class~="card"]</code></td><td>contains card as a <b>whole word</b> in a space-separated list</td><td><code>class="big card wide"</code></td></tr>
+      <tr><td><code>[lang|="en"]</code></td><td>is <code>en</code> or begins <code>en-</code></td><td><code>lang="en-IN"</code></td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Marking links automatically by where they go" data-h="290" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; line-height: 2; }
+  a { color: #1D4ED8; }
+
+  /* an outward arrow on anything leaving this site */
+  a[href^="https"]::after { content: " \2197"; color: #E07B1E; }
+
+  /* a label on PDF downloads */
+  a[href$=".pdf"]::after {
+    content: " PDF"; background: #C42B2B; color: #fff;
+    font-size: 11px; font-weight: 700; padding: 1px 6px;
+    border-radius: 4px; margin-left: 4px;
+  }
+
+  /* email and phone links get their own icon */
+  a[href^="mailto:"]::before { content: "\2709 "; }
+  a[href^="tel:"]::before    { content: "\260E "; }
+&lt;/style&gt;
+&lt;p&gt;&lt;a href="courses.html"&gt;An ordinary internal link&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="https://example.com"&gt;An external link&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="/files/syllabus.pdf"&gt;Download the syllabus&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="mailto:asha@example.edu"&gt;Email me&lt;/a&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a href="tel:+919876543210"&gt;Call the office&lt;/a&gt;&lt;/p&gt;</pre>
+  <p>Five kinds of link, styled correctly, and the HTML is just links. Add a new PDF tomorrow and it is labelled automatically.</p>
+</section>
+
+<section id="s3">
+  <h2>34.3 Case sensitivity</h2>
+  <p>Attribute values are matched <b>case-sensitively</b> by default, which bites with file extensions: <code>[href$=".pdf"]</code> does not match <code>REPORT.PDF</code>.</p>
+  <p>Add the <code>i</code> flag before the closing bracket to ignore case:</p>
+  <pre class="code">a[href$=".pdf" i] { /* matches .pdf, .PDF, .Pdf */ }</pre>
+  <p>Attribute <i>names</i> in HTML are always case-insensitive, so <code>[HREF]</code> and <code>[href]</code> are the same. It is the values you have to watch.</p>
+</section>
+
+<section id="s4">
+  <h2>34.4 Where attribute selectors earn their keep</h2>
+  <ul>
+    <li><b>Forms.</b> Styling <code>input[type="text"]</code>, <code>input[type="checkbox"]</code> and <code>input[type="submit"]</code> separately is the only sensible approach, because they are all the same tag (<a href="book.html?ch=35">Chapter 35</a>).</li>
+    <li><b>Links.</b> External arrows, file-type badges, mail and phone icons, as above.</li>
+    <li><b>State written in HTML.</b> <code>[disabled]</code>, <code>[required]</code>, <code>[checked]</code>, <code>[aria-expanded="true"]</code> &mdash; styling from an attribute a script is already toggling saves you inventing a parallel set of classes.</li>
+    <li><b>Data attributes.</b> <code>[data-status="done"]</code> lets your HTML carry the information and your CSS decide the colour.</li>
+  </ul>
+  <pre class="code" data-run data-title="Colour by data attribute" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; }
+  .row { padding: 10px 14px; border-radius: 8px; margin-bottom: 8px;
+         border-left: 5px solid #CBD5E1; background: #F8FAFC; }
+  [data-status="done"]     { border-left-color: #138808; background: #F2FBF4; }
+  [data-status="progress"] { border-left-color: #E07B1E; background: #FFF8F0; }
+  [data-status="late"]     { border-left-color: #C42B2B; background: #FDF0F0; }
+  [data-status]::after     { content: " (" attr(data-status) ")";
+                             font-size: 12px; color: #6B7A90; }
+&lt;/style&gt;
+&lt;div class="row" data-status="done"&gt;CSE305 Database Systems&lt;/div&gt;
+&lt;div class="row" data-status="progress"&gt;CSE326 Internet Programming&lt;/div&gt;
+&lt;div class="row" data-status="late"&gt;MTH101 Assignment 3&lt;/div&gt;
+&lt;div class="row"&gt;PHY104 (no status attribute, so plain)&lt;/div&gt;</pre>
+  <p>Notice the last rule combines an attribute selector with <code>attr()</code> from <a href="book.html?ch=33">Chapter 33</a>: the label is read straight out of the HTML, so it can never drift out of step with the colour.</p>
+  <div class="callout warn"><b>Do not over-use them.</b> A plain class is easier to read and slightly faster for the browser to match. Reach for an attribute selector when the attribute is <i>already there and meaningful</i> &mdash; not as a way of avoiding classes on principle.</div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which selector targets inputs of type email?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. input.email</li><li>B. input#email</li><li>C. input[type="email"]</li><li>D. input:email</li></ul>
+    <p><b>Answer: C.</b> Square brackets make an attribute selector. <code>.email</code> would look for a class and <code>:email</code> is not a pseudo-class.</p></div></details>
+  <details class="q"><summary><code>a[href^="https"]</code> selects links whose href:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Contains https</li><li>B. STARTS WITH https</li><li>C. Ends with https</li><li>D. Equals https</li></ul>
+    <p><b>Answer: B.</b> <code>^=</code> starts with, <code>$=</code> ends with, <code>*=</code> contains.</p></div></details>
+  <details class="q"><summary>Which selector would put a PDF badge on download links?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>a[href$=".pdf"]</code></b> &mdash; "ends with .pdf". Add the <code>i</code> flag, <code>a[href$=".pdf" i]</code>, so <code>.PDF</code> matches too.</p></div></details>
+  <details class="q"><summary>What does the selector <code>[required]</code> on its own match?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Every element that carries a <code>required</code> attribute</b>, whatever its value and whatever its tag. The value form <code>[required="required"]</code> is unnecessary for boolean attributes.</p></div></details>
+  <details class="q"><summary>Why is <code>[href$=".pdf"]</code> not matching a link to <code>Notes.PDF</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Attribute values are matched case-sensitively.</b> Add the case-insensitive flag: <code>[href$=".pdf" i]</code>.</p></div></details>
+  <details class="q"><summary>What is the difference between <code>[class="card"]</code> and <code>[class~="card"]</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>=</code> demands the whole attribute be exactly "card"</b>, so <code>class="card wide"</code> would not match. <b><code>~=</code> looks for "card" as a whole word</b> in the space-separated list, so it does. (In practice you would just write <code>.card</code>.)</p></div></details>
+  <details class="q"><summary>How much specificity does an attribute selector have?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>The same as a class</b> &mdash; it counts in the middle column. So <code>input[type="email"]</code> scores (0,&nbsp;1,&nbsp;1): one attribute selector and one element (<a href="book.html?ch=23">Chapter 23</a>).</p></div></details>
+  <details class="q"><summary>Which selector marks links that go anywhere containing "youtube"?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>a[href*="youtube"]</code></b> &mdash; <code>*=</code> matches the text anywhere inside the value.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>[attr]</code> matches when the attribute exists; <code>[attr="value"]</code> when it is exactly that value.</li>
+    <li><code>^=</code> starts with, <code>$=</code> ends with, <code>*=</code> contains. <code>~=</code> is a whole word in a list.</li>
+    <li>Values are case-sensitive; add the <code>i</code> flag to ignore case.</li>
+    <li>Best used for forms (styling by <code>type</code>), links (by <code>href</code>), HTML-carried state (<code>disabled</code>, <code>required</code>) and <code>data-*</code> attributes.</li>
+    <li>They score the same as a class for specificity.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Selector</th><th>Selects</th></tr></thead>
+    <tbody>
+      <tr><td><code>[disabled]</code></td><td>Anything with that attribute</td></tr>
+      <tr><td><code>input[type="checkbox"]</code></td><td>Exactly that type</td></tr>
+      <tr><td><code>a[href^="https"]</code></td><td>External links</td></tr>
+      <tr><td><code>a[href$=".pdf" i]</code></td><td>PDF links, any capitalisation</td></tr>
+      <tr><td><code>a[href*="lpu"]</code></td><td>Links containing lpu</td></tr>
+      <tr><td><code>[data-status="done"]</code></td><td>Styled from data in the HTML</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Attribute_selectors" target="_blank" rel="noopener noreferrer">MDN &mdash; Attribute selectors<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">All seven forms in one short table. This is the whole topic.</span></li>
+    <li><a href="https://www.w3schools.com/css/css_attribute_selectors.asp" target="_blank" rel="noopener noreferrer">W3Schools &mdash; Attribute selectors<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Same seven forms with an editable example beside each.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 2 &middot; Client-Server Architecture</p>
   <h1>Client-Server Architecture</h1>
   <p class="lead">Every web page you have ever seen arrived through the same four-step conversation. This chapter slows that conversation down so you can see each part: the client that asks, the server that answers, the URL that names what is wanted, the HTTP request and response that carry it, and the status codes that report how it went.</p>
-  <p class="meta">About 19 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 1</p>
+  <p class="meta">About 27 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The browser is the <b>client</b>: it asks. The server answers &mdash; <a href="book.html?ch=1">Chapter 1</a> (the Internet and the Web).</li>
+      <li>A web page arrives as <b>text</b>, which the browser then draws.</li>
+      <li>You do not need to know any HTML yet. This chapter is about the conversation, not the page.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -58,6 +66,7 @@
 
 <section id="s2">
   <h2>2.2 The request&ndash;response cycle</h2>
+  <div class="plain">Every time you see something new on screen, a full round trip has happened: your browser sent a message, a server somewhere read it, and sent one back. Nothing appears without that round trip.</div>
   <p>Picture yourself clicking "View Result" on the university portal. Here is everything that happens, in order. The order is the whole point: the browser cannot receive a response before it has sent a request, and the server cannot process a request before it arrives.</p>
   <figure class="fig">
     <svg viewBox="0 0 720 300" role="img" aria-label="Sequence diagram of a page load: browser, DNS, server">
@@ -88,6 +97,7 @@
 
 <section id="s3">
   <h2>2.3 Anatomy of a URL</h2>
+  <div class="callout analogy"><b>A URL is a postal address, read from the outside in.</b> <code>https://portal.lpu.in/results/view.html?reg=12345</code> is &ldquo;deliver by secure post (https), to the building portal.lpu.in, to the room /results/view.html, and the note pinned to it says my registration number is 12345&rdquo;.</div>
   <p>A URL (Uniform Resource Locator) is the address the browser sends its request to. Learn to split one into parts on sight, because questions ask "which part is the path?" or "what is <code>?id=257</code> called?".</p>
   <figure class="fig">
     <svg viewBox="0 0 720 190" role="img" aria-label="The parts of a URL: protocol, domain, path, query string">
@@ -147,11 +157,17 @@ Content-Length: 5120
     <li>The <b>body</b> of a response is the content itself: HTML for a page, or JSON, an image, a PDF.</li>
   </ul>
   <h3>HTTP is stateless</h3>
-  <p>Each request is handled on its own; <b>the server does not remember you between requests</b>. That is what "HTTP is stateless" means. It does not mean pages cannot store data or that only one user can connect. Because real sites need to remember that you logged in, they work around statelessness with <b>cookies</b> (small labels the browser sends back with every request, like the <code>Cookie: session=8f3a9c</code> line above) and tokens.</p>
+  <p>Each request is handled on its own; <b>the server does not remember you between requests</b>. That is what "HTTP is <span class="jw" data-def="Each request stands alone. The server does not remember the previous one, the way a shop counter serves each customer without remembering who came before.">stateless</span>" means. It does not mean pages cannot store data or that only one user can connect. Because real sites need to remember that you logged in, they work around statelessness with <b><span class="jw" data-def="A small note the server asks the browser to keep and send back next time, so a site can remember you even though HTTP itself forgets.">cookies</span></b> (small labels the browser sends back with every request, like the <code>Cookie: session=8f3a9c</code> line above) and tokens.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: you asked for a page that does not exist. Which digit does the status code start with?</summary>
+    <p>4. The 4xx range means the <i>client</i> got it wrong &mdash; you asked for something that is not there or not allowed. 404 is the famous one. A 5xx would mean the server broke, which is not your fault.</p>
+  </details>
 
 <section id="s5">
   <h2>2.5 Status codes: how the server says how it went</h2>
+  <div class="plain">A status code is a three-digit number the server puts at the top of its answer to say how it went. You only need the first digit to know whether to blame yourself or the server.</div>
   <p>Every response starts with a three-digit <b>status code</b>. You only need the meaning of the first digit, plus a few famous individuals.</p>
   <table class="tbl">
     <thead><tr><th>Range</th><th>Meaning</th><th>Famous examples</th></tr></thead>
@@ -188,6 +204,11 @@ Content-Length: 5120
   <div class="callout exam"><b>Exam tip.</b> Memorise the pairs: HTTP = port 80, HTTPS = port 443, HTTPS = HTTP + TLS encryption. Distractors like port 21 (FTP) and port 25 (SMTP email) are real ports for other services.</div>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: why does a website not remember you between two clicks unless it tries hard?</summary>
+    <p>Because HTTP is <b>stateless</b>: each request is a fresh conversation with no memory of the last one. Cookies exist precisely to carry that memory for it.</p>
+  </details>
+
 <section id="s7">
   <h2>2.7 Worked example: reading a portal URL</h2>
   <p>Take <code>https://portal.lpu.in/results/view.html?reg=12345&amp;sem=3#marks</code> and label it:</p>
@@ -208,7 +229,7 @@ Content-Length: 5120
   <h2>Exam-style checks</h2>
   <details class="q"><summary>In a client&ndash;server exchange, which component sends the HTTP request?<span class="lvl">L1</span></summary><div class="a">
     <ul class="opts"><li>A. The web server</li><li>B. The browser acting as the client</li><li>C. The DNS root server</li><li>D. The database engine</li></ul>
-    <p><b>Answer: B.</b> The client asks; the server answers. DNS only translates names and the database only answers the server.</p></div></details>
+    <p><b>Answer: B.</b> The client asks; the server answers. <span class="jw" data-def="The phone book of the Internet: it turns a name you can read, like lpu.in, into the number a machine needs to route to.">DNS</span> only translates names and the database only answers the server.</p></div></details>
   <details class="q"><summary>In the client&ndash;server model, the server's role is to:<span class="lvl">L2</span></summary><div class="a">
     <ul class="opts"><li>A. Render HTML into pixels for the user</li><li>B. Type the URL into the address bar</li><li>C. Store data, run logic and respond to requests</li><li>D. Encrypt the user's keyboard input</li></ul>
     <p><b>Answer: C.</b> Rendering (A) is the browser's job; B is the user's; D is nonsense.</p></div></details>

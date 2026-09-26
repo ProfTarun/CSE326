@@ -1,0 +1,317 @@
+<article class="chapter" data-ch="35">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 35 &middot; Form Styling</p>
+  <h1>Form Styling</h1>
+  <p class="lead">Forms are where your visitor actually does something, and untouched they are the ugliest part of any page: mismatched fonts, boxes of different heights, a submit button that looks like it came from another decade. Four declarations fix most of it. This chapter covers those four, then the states, the controls that resist styling, and the accessibility rules you must not break.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A <code>&lt;label&gt;</code> is joined to its control by <code>for</code> matching the control's <code>id</code> (<a href="book.html?ch=16">Chapter 16</a>).</li>
+      <li><code>input</code> types: text, email, password, checkbox, radio, submit (<a href="book.html?ch=17">Chapter 17</a>).</li>
+      <li><code>:focus</code>, <code>:checked</code>, <code>:valid</code> and <code>:invalid</code> style form states (<a href="book.html?ch=32">Chapter 32</a>).</li>
+      <li><code>box-sizing: border-box</code> makes <code>width</code> include padding and border (<a href="book.html?ch=28">Chapter 28</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain why form controls ignore your page font, and fix it in one line.</li>
+      <li>Style text inputs, textareas, selects and buttons so they match.</li>
+      <li>Give every control a visible focus style and clear validation feedback.</li>
+      <li>Recolour checkboxes and radios the easy way.</li>
+      <li>List the accessibility rules a styled form must still satisfy.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>35.1 Why forms look wrong to begin with</h2>
+  <p>Form controls are not ordinary elements. The operating system draws them, which is why a dropdown looks different on Windows, on a Mac and on Android. Two consequences follow, and they are the reason your form looks untidy:</p>
+  <ul>
+    <li><b>Controls do not inherit your font.</b> <code>font-family</code> and <code>font-size</code> are inherited properties, but browsers deliberately reset them on form controls. Your beautiful page font stops dead at the edge of every input.</li>
+    <li><b>Controls have their own default padding and borders</b>, which differ between browsers, so an input and a button of the same nominal size come out different heights.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 226" role="img" aria-label="The parts of a well-styled form field and its submit button">
+      <text x="40" y="36" class="t b" style="font-size:13px" fill="#0B2545">Email</text>
+      <text x="84" y="36" class="t b" style="font-size:13px" fill="#C42B2B">*</text>
+      <rect x="34" y="44" width="342" height="54" rx="11" fill="none" stroke="#FF9933" stroke-width="3"/>
+      <rect x="40" y="50" width="330" height="42" rx="8" fill="#ffffff" stroke="#E07B1E" stroke-width="2"/>
+      <text x="56" y="76" class="t" style="font-size:13px" fill="#9AA8BC">you@example.edu</text>
+      <path d="M118 26 L118 12" class="edge" marker-end="url(#arr)"/>
+      <text x="126" y="18" class="t s">a real &lt;label&gt;, joined by for / id</text>
+      <path d="M392 62 L436 62" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="444" y="58" class="t s b" fill="#B45309">border</text>
+      <text x="444" y="72" class="t s">2px &mdash; yours, not the browser&rsquo;s</text>
+      <path d="M392 96 L436 96" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="444" y="100" class="t s b" fill="#B45309">outline on :focus</text>
+      <text x="444" y="114" class="t s">takes up no space</text>
+      <path d="M205 100 L205 118" class="edge" marker-end="url(#arr)"/>
+      <text x="205" y="134" class="t c s">padding: 10px 12px &mdash; room to breathe</text>
+      <rect x="40" y="150" width="330" height="40" rx="8" fill="#0B2545"/>
+      <text x="205" y="175" class="t c w b" style="font-size:13px">Send message</text>
+      <path d="M392 170 L436 170" class="edge" marker-end="url(#arr)"/>
+      <text x="444" y="162" class="t s">font: inherit, so the button</text>
+      <text x="444" y="176" class="t s">matches the rest of the page</text>
+      <text x="444" y="190" class="t s">+ cursor: pointer</text>
+      <text x="310" y="216" class="t c s">Everything labelled here is CSS &mdash; except the label itself, which must exist in the HTML.</text>
+    </svg>
+    <figcaption><b>Figure 35.1</b> A field worth copying: a real label, a required marker, your own border, a visible focus ring, and comfortable padding.</figcaption>
+  </figure>
+  <h3>The four lines that fix almost everything</h3>
+  <pre class="code">input, select, textarea, button {
+  font: inherit;              /* 1. use the page's font, at the page's size */
+  box-sizing: border-box;     /* 2. width means the whole box              */
+  padding: 10px 12px;         /* 3. the same breathing room for all        */
+  border-radius: 8px;         /* 4. one shape                               */
+}</pre>
+  <p><code>font: inherit</code> is the one that produces the gasp. One declaration and every field, dropdown and button suddenly belongs to your page.</p>
+  <pre class="code" data-run data-title="Before and after, on identical HTML" data-h="330" data-tall>&lt;style&gt;
+  body { font-family: Georgia, serif; font-size: 16px; padding: 12px; }
+  h3 { font-size: 15px; margin: 14px 0 6px; }
+
+  .fixed input, .fixed select, .fixed button {
+    font: inherit;
+    box-sizing: border-box;
+    padding: 10px 12px;
+    border: 2px solid #CBD5E1;
+    border-radius: 8px;
+  }
+  .fixed button { background: #0B2545; color: #fff; border-color: #0B2545; }
+&lt;/style&gt;
+&lt;h3&gt;Untouched&lt;/h3&gt;
+&lt;div&gt;
+  &lt;input placeholder="Your name"&gt;
+  &lt;select&gt;&lt;option&gt;Choose a course&lt;/option&gt;&lt;/select&gt;
+  &lt;button&gt;Register&lt;/button&gt;
+&lt;/div&gt;
+&lt;h3&gt;With the four lines&lt;/h3&gt;
+&lt;div class="fixed"&gt;
+  &lt;input placeholder="Your name"&gt;
+  &lt;select&gt;&lt;option&gt;Choose a course&lt;/option&gt;&lt;/select&gt;
+  &lt;button&gt;Register&lt;/button&gt;
+&lt;/div&gt;</pre>
+  <p>Same HTML both times. The second group simply agreed to join the page.</p>
+</section>
+
+<section id="s2">
+  <h2>35.2 Laying out the fields</h2>
+  <p>A form reads best as a single column: label above field, generous spacing, full-width inputs. It is easier to scan, and it survives a phone screen without any extra work.</p>
+  <pre class="code">label {
+  display: block;            /* put the label on its own line   */
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+input, select, textarea {
+  width: 100%;               /* fill the column                  */
+  margin-bottom: 16px;       /* space before the next field      */
+}</pre>
+  <p><code>width: 100%</code> only behaves if <code>box-sizing: border-box</code> is in force &mdash; otherwise the padding is added on top and the field pokes out of its container (<a href="book.html?ch=28">Chapter 28</a>). This is the single commonest form-styling bug.</p>
+  <p>For two fields side by side, use Flexbox (<a href="book.html?ch=30">Chapter 30</a>):</p>
+  <pre class="code">.row { display: flex; gap: 14px; }
+.row &gt; div { flex: 1; }     /* each half takes an equal share */</pre>
+  <p>And <code>&lt;fieldset&gt;</code> with <code>&lt;legend&gt;</code> (<a href="book.html?ch=16">Chapter 16</a>) groups related fields. Its default border is dated; most designers replace it:</p>
+  <pre class="code">fieldset { border: 1px solid #E3E9F0; border-radius: 12px; padding: 16px; }
+legend   { font-weight: 800; color: #0B2545; padding: 0 8px; }</pre>
+</section>
+
+<section id="s3">
+  <h2>35.3 States: focus, hover, validity</h2>
+  <p>A form should answer three questions at a glance: <i>where am I</i>, <i>what can I press</i>, and <i>is what I typed acceptable</i>. Three groups of rules.</p>
+  <h3>Focus &mdash; not optional</h3>
+  <pre class="code">input:focus, select:focus, textarea:focus {
+  outline: 3px solid #FF9933;
+  outline-offset: 2px;
+  border-color: #E07B1E;
+}</pre>
+  <p>As <a href="book.html?ch=32">Chapter 32</a> insisted: you may replace the browser's focus ring, never simply delete it. Because <code>outline</code> takes no space (<a href="book.html?ch=28">Chapter 28</a>), a focus ring never nudges your layout.</p>
+  <h3>Hover and press on buttons</h3>
+  <pre class="code">button { cursor: pointer; background: #0B2545; color: #fff; border: none; }
+button:hover  { background: #1B3A63; }
+button:active { transform: translateY(1px); }   /* it presses down */
+button:disabled { background: #CBD5E1; cursor: not-allowed; }</pre>
+  <p><code>cursor: pointer</code> matters more than it looks. Without it a styled <code>&lt;button&gt;</code> does not feel clickable, because the mouse pointer never changes.</p>
+  <h3>Validity feedback</h3>
+  <p>The browser already knows whether a field is acceptable (<a href="book.html?ch=18">Chapter 18</a>). You only have to show it:</p>
+  <pre class="code">input:valid   { border-color: #138808; }
+input:invalid:not(:placeholder-shown) { border-color: #C42B2B; background: #FDF0F0; }</pre>
+  <p>Remember the <code>:not(:placeholder-shown)</code> guard, or an untouched required field is red before the user has typed anything.</p>
+  <div class="callout warn"><b>Colour is never enough.</b> A red border alone is invisible to many colour-blind users. Pair it with a message, an icon, or text such as "Enter a valid email address". WCAG requires that information is not conveyed by colour alone (<a href="book.html?ch=20">Chapter 20</a>).</div>
+</section>
+
+<section id="s4">
+  <h2>35.4 The awkward controls</h2>
+  <h3>Checkboxes and radios &mdash; the easy way</h3>
+  <p>These two are drawn by the operating system and ignore <code>background</code> and <code>border</code>. For years the only way to recolour them was to hide the real control and build a fake one. Today there is one property:</p>
+  <pre class="code">input[type="checkbox"], input[type="radio"] {
+  accent-color: #E07B1E;    /* recolours the tick and the dot */
+  width: 18px; height: 18px;
+}</pre>
+  <p><code>accent-color</code> also works on <code>&lt;input type="range"&gt;</code> and <code>&lt;progress&gt;</code>. It keeps every bit of the native behaviour &mdash; keyboard support, screen-reader announcements, the lot &mdash; which a hand-built fake control usually loses.</p>
+  <p>If a design truly demands a custom shape, the accepted technique is <code>appearance: none</code> on the input plus a styled <code>::before</code>. Do it only when you must, and test it with the keyboard afterwards.</p>
+  <h3>select</h3>
+  <p>The closed box is yours to style; the <b>open dropdown list is drawn by the operating system</b> and cannot be styled with CSS. Accept that, and style the box only:</p>
+  <pre class="code">select {
+  appearance: none;                    /* remove the OS arrow  */
+  background-image: url("data:image/svg+xml,...");  /* draw your own */
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  padding-right: 36px;                 /* leave room for it     */
+}</pre>
+  <h3>textarea</h3>
+  <p>Two useful additions: <code>resize: vertical</code> stops users dragging it sideways out of your layout, and <code>min-height</code> gives it a sensible starting size.</p>
+  <pre class="code">textarea { resize: vertical; min-height: 120px; }</pre>
+  <h3>File inputs</h3>
+  <p><code>&lt;input type="file"&gt;</code> is the least styleable control there is. The usual approach is to hide it and style the <code>&lt;label&gt;</code> that points at it, since clicking a label activates its control.</p>
+</section>
+
+<section id="s5">
+  <h2>35.5 The accessibility rules a styled form must keep</h2>
+  <table class="tbl">
+    <thead><tr><th>Rule</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Every control has a real <code>&lt;label&gt;</code> with <code>for</code>/<code>id</code></td><td>A placeholder disappears as soon as typing starts (<a href="book.html?ch=15">Chapter 15</a>)</td></tr>
+      <tr><td>Visible focus on every interactive element</td><td>Keyboard users must see where they are</td></tr>
+      <tr><td>Errors stated in words, not only in colour</td><td>Colour-blind users, and anyone in bright sunlight</td></tr>
+      <tr><td>Text contrast at least 4.5:1, borders at least 3:1</td><td>WCAG Level AA (<a href="book.html?ch=20">Chapter 20</a>)</td></tr>
+      <tr><td>Tap targets around 44&times;44 pixels</td><td>Fingers are not mouse pointers</td></tr>
+      <tr><td>Keep native controls wherever you can</td><td>They come with keyboard and screen-reader support built in</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>A form can be beautiful and accessible at the same time; they are not in tension. Nearly everything in the table is a line or two of CSS, and the one rule that is HTML &mdash; use a real label &mdash; you already learned in Unit 2.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>35.6 Build it: the contact form</h2>
+  <p>This is the contact section of the project, and it is the kind of form a lab task asks for: labelled fields, a textarea, a styled submit button, visible focus, and validity feedback.</p>
+  <pre class="code" data-run data-title="Project, step 13: a complete styled form" data-h="420" data-tall>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Contact&lt;/title&gt;
+&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #F1F5F9;
+         color: #3C4A60; padding: 20px; }
+
+  form { max-width: 420px; margin: 0 auto; background: #fff;
+         padding: 22px; border-radius: 14px;
+         box-shadow: 0 2px 10px rgba(16,32,64,.08); }
+  h2 { margin: 0 0 4px; color: #0B2545; }
+  .hint { margin: 0 0 18px; font-size: 14px; color: #6B7A90; }
+
+  /* the four lines that make controls belong to the page */
+  input, select, textarea, button {
+    font: inherit;
+    padding: 10px 12px;
+    border: 2px solid #CBD5E1;
+    border-radius: 8px;
+    width: 100%;
+  }
+  label { display: block; font-weight: 700; font-size: 14px;
+          margin: 14px 0 4px; color: #0B2545; }
+  .req::after { content: " *"; color: #C42B2B; }
+
+  textarea { resize: vertical; min-height: 110px; }
+
+  /* states */
+  input:focus, select:focus, textarea:focus, button:focus-visible {
+    outline: 3px solid #FF9933; outline-offset: 2px; border-color: #E07B1E;
+  }
+  input:invalid:not(:placeholder-shown) { border-color: #C42B2B;
+                                          background: #FDF0F0; }
+  input:valid:not(:placeholder-shown)   { border-color: #138808; }
+  input::placeholder, textarea::placeholder { color: #9AA8BC; }
+
+  button {
+    margin-top: 18px; cursor: pointer;
+    background: #0B2545; color: #fff; border-color: #0B2545;
+    font-weight: 700;
+  }
+  button:hover  { background: #1B3A63; }
+  button:active { transform: translateY(1px); }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;form&gt;
+  &lt;h2&gt;Contact Asha&lt;/h2&gt;
+  &lt;p class="hint"&gt;Fields marked * are required.&lt;/p&gt;
+
+  &lt;label class="req" for="email"&gt;Email&lt;/label&gt;
+  &lt;input id="email" name="email" type="email" required placeholder="you@example.edu"&gt;
+
+  &lt;label for="phone"&gt;Phone&lt;/label&gt;
+  &lt;input id="phone" name="phone" type="tel" placeholder="+91 ..."&gt;
+
+  &lt;label class="req" for="msg"&gt;Message&lt;/label&gt;
+  &lt;textarea id="msg" name="message" required placeholder="How can I help?"&gt;&lt;/textarea&gt;
+
+  &lt;button type="submit"&gt;Send message&lt;/button&gt;
+&lt;/form&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Run it and try three things: click into a field and watch the focus ring; type two letters into the email box and watch the border turn red, then finish the address and watch it turn green; press <kbd>Tab</kbd> all the way to the button and confirm you can always see where you are.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Why do form controls not use the font you set on <code>body</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because browsers deliberately reset <code>font</code> on form controls</b> so they match the operating system's widgets. The fix is one declaration: <code>input, select, textarea, button { font: inherit; }</code>.</p></div></details>
+  <details class="q"><summary>An input with <code>width: 100%</code> sticks out past its container. What is missing?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>box-sizing: border-box</code>.</b> Without it, <code>width: 100%</code> sizes the content only, and the padding and border are added on top (<a href="book.html?ch=28">Chapter 28</a>). It is the most common form-styling bug.</p></div></details>
+  <details class="q"><summary>Which property recolours a checkbox or radio button without replacing it?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>accent-color</code></b>. It keeps all the native keyboard and screen-reader behaviour, which a hand-built replacement usually loses.</p></div></details>
+  <details class="q"><summary>Which part of a <code>&lt;select&gt;</code> cannot be styled with CSS?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>The open dropdown list of options</b> &mdash; that is drawn by the operating system. You can style the closed box, and replace the arrow with <code>appearance: none</code> plus a background image.</p></div></details>
+  <details class="q"><summary>Why add <code>cursor: pointer</code> to a styled button?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>So the mouse pointer changes and the element feels clickable.</b> Without it a styled button reads as ordinary text to a mouse user.</p></div></details>
+  <details class="q"><summary>Why should <code>input:invalid</code> usually be written as <code>input:invalid:not(:placeholder-shown)</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>So an empty required field is not shown as an error before the user has typed anything.</b> An untouched required input is technically invalid from page load.</p></div></details>
+  <details class="q"><summary>Is a red border enough to show that a field is wrong?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>No.</b> Colour must never be the only signal &mdash; colour-blind users will not see it. Add a message in words, or an icon, alongside the colour (<a href="book.html?ch=20">Chapter 20</a>).</p></div></details>
+  <details class="q"><summary>Which declaration stops a textarea being dragged wider than your layout?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>resize: vertical;</code></b> &mdash; the user can still make it taller, which is genuinely useful, but not wider.</p></div></details>
+  <details class="q"><summary>You replaced the browser's focus ring with your own <code>outline</code>. Why does the layout not jump?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Because <code>outline</code> is drawn outside the border and takes no space</b>, unlike a <code>border</code> (<a href="book.html?ch=28">Chapter 28</a>). That is exactly why browsers chose it for focus.</p></div></details>
+  <details class="q"><summary>A designer wants a completely custom checkbox shape. What is the risk?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Losing the native behaviour</b> &mdash; keyboard operation with <kbd>Space</kbd>, the announcement of checked or unchecked state to screen readers, and the label association. Prefer <code>accent-color</code>; if you must build a custom control, test it with the keyboard and a screen reader.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Form controls ignore your page font by default. <code>font: inherit</code> on <code>input, select, textarea, button</code> is the first fix.</li>
+    <li><code>box-sizing: border-box</code> plus <code>width: 100%</code> gives a tidy single-column form; without it fields overflow.</li>
+    <li>Style the states: <code>:focus</code> (never remove it), <code>:hover</code> and <code>:active</code> on buttons, <code>:valid</code>/<code>:invalid</code> for feedback.</li>
+    <li><code>accent-color</code> recolours checkboxes, radios and ranges while keeping native behaviour. A select's open list cannot be styled.</li>
+    <li>Keep real labels, visible focus, errors in words as well as colour, 4.5:1 contrast and finger-sized targets.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>font: inherit;</code></td><td>Controls join the page's typography</td></tr>
+      <tr><td><code>box-sizing: border-box;</code></td><td><code>width: 100%</code> finally behaves</td></tr>
+      <tr><td><code>outline: 3px solid ...;</code> on <code>:focus</code></td><td>A visible focus ring that never shifts layout</td></tr>
+      <tr><td><code>accent-color: #E07B1E;</code></td><td>Recolour checkbox, radio, range</td></tr>
+      <tr><td><code>resize: vertical;</code></td><td>Textarea grows down only</td></tr>
+      <tr><td><code>cursor: pointer;</code></td><td>Buttons feel clickable</td></tr>
+      <tr><td><code>:invalid:not(:placeholder-shown)</code></td><td>Error styling only after typing</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Styling_web_forms" target="_blank" rel="noopener noreferrer">MDN &mdash; Styling web forms<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How far you can style each control, and exactly where browsers stop you.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:focus-visible" target="_blank" rel="noopener noreferrer">MDN &mdash; :focus-visible<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The modern way to show a focus ring to keyboard users only.</span></li>
+    <li><a href="https://www.w3.org/WAI/tutorials/forms/" target="_blank" rel="noopener noreferrer">W3C &mdash; Forms tutorial<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The accessibility side: labels, grouping and error messages done properly.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

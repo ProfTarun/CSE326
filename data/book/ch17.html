@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 17 &middot; Input Types and Attributes</p>
   <h1>Input Types and Attributes</h1>
   <p class="lead">One element, <code>&lt;input&gt;</code>, becomes twenty different controls depending on its <code>type</code>: a text box, a password field, a date picker, a colour picker, a slider, a file chooser, a checkbox. Choosing the right type gives you the right keyboard on a phone, the right validation and the right assistive-technology behaviour for free. This chapter is a complete tour of the types and of the attributes that configure them, with every control live on the page so you can try it.</p>
-  <p class="meta">About 16 minutes &middot; Course outcome CO2 &middot; The most heavily examined chapter in Unit 2</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO2 &middot; The most heavily examined chapter in Unit 2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>name</code>, <code>id</code> and <code>value</code> do three different jobs &mdash; <a href="book.html?ch=16">Chapter 16</a> (form basics).</li>
+      <li>Boolean attributes are ON simply by being present &mdash; <a href="book.html?ch=5">Chapter 5</a> (boolean attributes).</li>
+      <li>Every control still needs its label.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -17,6 +25,7 @@
 
 <section id="s1">
   <h2>17.1 Text-like inputs</h2>
+  <div class="plain"><code>&lt;input&gt;</code> is one element that becomes many different controls, and the <code>type</code> attribute chooses which. Change the type and you change the keyboard the phone shows, the checking the browser does, and the picker it offers.</div>
   <p>These all look like a box you type in. The type changes the validation, the keyboard a phone shows, and what a screen reader announces.</p>
   <table class="tbl">
     <thead><tr><th>type</th><th>Collects</th><th>What the type adds</th></tr></thead>
@@ -67,6 +76,7 @@
 
 <section id="s3">
   <h2>17.3 Choices: checkbox and radio</h2>
+  <div class="callout analogy"><b>Radio buttons are the buttons on an old car radio.</b> Press one and the one that was in pops out &mdash; only one station at a time. Checkboxes are a shopping list: tick as many as you like. What makes a set of radios into one radio, rather than four unrelated ones, is that they share a <code>name</code>.</div>
   <h3>Checkbox: independent yes/no choices</h3>
   <p><code>type="checkbox"</code> creates a box the user can tick to select <b>zero, one or many</b> options; each box is an independent choice. Several checkboxes may <b>share the same <code>name</code></b>: that is valid, and they submit together as a set of values (<code>skills=html&amp;skills=css</code>). <code>checked</code> pre-ticks a box. Remember from Chapter 16 that an unticked checkbox sends nothing at all.</p>
   <h3>Radio: exactly one of a group</h3>
@@ -123,6 +133,16 @@
     <div class="row"><label>file <input type="file" accept=".pdf,.jpg,.png"></label> <input type="submit" value="Register"> <input type="reset" value="Clear"> <input type="button" value="Preview (does nothing)"></div>
   </div>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: phone number: <code>type="tel"</code> or <code>type="number"</code>?</summary>
+    <p><code>tel</code>. A phone number is not a quantity: <code>number</code> would strip a leading zero, add an up/down spinner, and refuse spaces and plus signs that real numbers need.</p>
+  </details>
+
+  <details class="qc">
+    <summary>Quick check: what is the difference between <code>maxlength</code> and <code>max</code>?</summary>
+    <p><code>maxlength</code> limits how many <i>characters</i> may be typed. <code>max</code> limits how large the <i>value</i> may be. One counts letters, the other compares numbers.</p>
+  </details>
 
 <section id="s5">
   <h2>17.5 The attributes that configure inputs</h2>
@@ -241,7 +261,7 @@
     <ul class="opts"><li>A. default</li><li>B. focus</li><li>C. autoselect</li><li>D. autofocus</li></ul>
     <p><b>Answer: D.</b></p></div></details>
   <details class="q"><summary>Which attribute blocks submission while a field is still empty, and which pre-fills a default entry into a text input?<span class="lvl">L1</span></summary><div class="a">
-    <p><b>Answer: required</b> and <b>value</b>. placeholder is only a hint.</p></div></details>
+    <p><b>Answer: required</b> and <b>value</b>. <span class="jw" data-def="Faint example text inside an empty box. It is a hint, it disappears as soon as you type, and it is not a label.">placeholder</span> is only a hint.</p></div></details>
   <details class="q"><summary>Which input type produces a button that submits the form when clicked?<span class="lvl">L1</span></summary><div class="a">
     <ul class="opts"><li>A. type="submit"</li><li>B. type="button"</li><li>C. type="send"</li><li>D. type="reset"</li></ul>
     <p><b>Answer: A.</b></p></div></details>

@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 16 &middot; Forms and Form Controls</p>
   <h1>Forms and Form Controls</h1>
   <p class="lead">Forms are how the Web listens: logins, registrations, searches, feedback, checkouts. This chapter explains the <code>form</code> element and how it sends data, every kind of control you can put inside it, how to label and group controls so they are usable, and the rules that decide exactly what reaches the server when the user presses Submit.</p>
-  <p class="meta">About 19 minutes &middot; Course outcome CO2 &middot; Chapter 17 covers the input types in detail</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO2 &middot; Chapter 17 covers the input types in detail</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Attributes configure an element &mdash; <a href="book.html?ch=5">Chapter 5</a> (attributes).</li>
+      <li>Every control needs a real <code>&lt;label&gt;</code> &mdash; <a href="book.html?ch=15">Chapter 15</a> (labelling).</li>
+      <li><code>id</code> must be unique on the page &mdash; <a href="book.html?ch=5">Chapter 5</a> (id and class).</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -16,9 +24,15 @@
   </div>
 </header>
 
+  <details class="qc">
+    <summary>Quick check: when must you use <code>method="post"</code> instead of <code>get</code>?</summary>
+    <p>When the form changes something, carries a password, or uploads a file. <code>get</code> puts everything in the visible web address, which is fine for a search and wrong for a password.</p>
+  </details>
+
 <section id="s1">
   <h2>16.1 The form element and how submission works</h2>
-  <p>A <code>&lt;form&gt;</code> <b>groups the controls that collect user input and submits their values to a server</b>. When the user presses the submit button, the browser gathers every control that has a <code>name</code>, pairs each name with its current value, and sends the pairs to the URL in the form's <code>action</code> using the HTTP method in <code>method</code>.</p>
+  <div class="plain">A form collects what the user types and sends it somewhere. Two attributes decide the whole journey: <code>action</code> is the address it is sent to, and <code>method</code> is how &mdash; tucked into the web address, or wrapped inside the message.</div>
+  <p>A <code>&lt;form&gt;</code> <b>groups the controls that collect user input and <span class="jw" data-def="Sending the form's collected values to the address in its action attribute.">submits</span> their values to a server</b>. When the user presses the submit button, the browser gathers every control that has a <code>name</code>, pairs each name with its current value, and sends the pairs to the URL in the form's <code>action</code> using the HTTP method in <code>method</code>.</p>
   <pre class="code">&lt;form action="/register" method="post"&gt;
   ... controls ...
 &lt;/form&gt;</pre>
@@ -57,6 +71,8 @@
 
 <section id="s2">
   <h2>16.2 name, id and value: three attributes, three jobs</h2>
+  <div class="callout analogy"><b>name is the label on the envelope.</b> The server receives a pile of values and needs to know which is which. <code>name</code> is the word written on each one. A field without a name is an unlabelled envelope, so it is simply thrown away &mdash; which is why &ldquo;my field is not reaching the server&rdquo; is nearly always a missing name.</div>
+  <div class="plain">Three attributes, three different audiences. <code>name</code> is for the server: it is the label on the data. <code>id</code> is for the page: it is how the label finds the box. <code>value</code> is the data itself.</div>
   <p>Beginners confuse these constantly, and questions target the confusion.</p>
   <table class="tbl">
     <thead><tr><th>Attribute</th><th>Who uses it</th><th>Job</th></tr></thead>
@@ -144,6 +160,11 @@
     <label>Battery: <meter min="0" max="100" low="20" high="80" optimum="90" value="35">35%</meter></label>
   </div>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: the user must choose exactly one of four options. Which control?</summary>
+    <p>Radio buttons that all share the same <code>name</code>. Sharing the name is what makes them one group where only one can be chosen; checkboxes would let them tick all four.</p>
+  </details>
 
 <section id="s5">
   <h2>16.5 Choosing the control</h2>

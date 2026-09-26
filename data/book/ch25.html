@@ -1,0 +1,305 @@
+<article class="chapter" data-ch="25">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 25 &middot; Units and Measurements</p>
+  <h1>Units and Measurements</h1>
+  <p class="lead">Every size in CSS needs a unit. Write <code>font-size: 20</code> and nothing happens, because twenty of what? This chapter takes the six units you will actually use, explains what each one is measured against, and gives you a rule for choosing &mdash; so that your pages still work when a reader zooms in or opens them on a phone.</p>
+  <p class="meta">About 23 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A <b>value</b> is the part after the colon: <code>font-size: <b>20px</b>;</code> (<a href="book.html?ch=22">Chapter 22</a>).</li>
+      <li>The <b>parent</b> is the element your element sits inside (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li>The <b>viewport</b> is the part of the screen the page is shown in (<a href="book.html?ch=21">Chapter 21</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what <code>px</code>, <code>%</code>, <code>em</code>, <code>rem</code>, <code>vw</code> and <code>vh</code> are each measured against.</li>
+      <li>Explain why <code>em</code> can multiply unexpectedly and <code>rem</code> cannot.</li>
+      <li>Say why <code>rem</code> is the accessible choice for font sizes.</li>
+      <li>Convert between <code>rem</code> and pixels in your head.</li>
+      <li>Pick a sensible unit for a font size, a width, a border and a full-screen panel.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>25.1 A number needs a unit</h2>
+  <p>CSS has no default unit. <code>width: 300</code> is ignored; <code>width: 300px</code> works. The only exception is zero, because zero of anything is zero, so <code>margin: 0</code> is legal and common.</p>
+  <p>Units split into two families, and the whole chapter follows from the difference:</p>
+  <ul>
+    <li><b>Absolute</b> units are fixed. <code>px</code> is the one that matters. 20px is 20px whatever else happens on the page.</li>
+    <li><b>Relative</b> units are measured against something else &mdash; the parent's size, the root font size, or the window. Change that something and every relative size follows.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> "Make it 30 centimetres wide" is absolute: the same in every room. "Make it half the width of the table" is relative: put it on a different table and it resizes itself. Relative units are how a page fits a phone <i>and</i> a monitor without you writing it twice.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Each unit and what it is measured against">
+      <rect x="20" y="20" width="270" height="86" rx="12" class="box gry"/>
+      <text x="155" y="44" class="t c b">ABSOLUTE</text>
+      <text x="155" y="68" class="t c b mono" style="font-size:15px">px</text>
+      <text x="155" y="90" class="t c s">fixed. 20px is 20px, always.</text>
+      <rect x="330" y="20" width="270" height="180" rx="12" class="box saf"/>
+      <text x="465" y="44" class="t c b">RELATIVE &mdash; measured against&hellip;</text>
+      <text x="356" y="72" class="t mono b">%</text><text x="400" y="72" class="t s">the parent's size</text>
+      <text x="356" y="98" class="t mono b">em</text><text x="400" y="98" class="t s">this element's own font size</text>
+      <text x="356" y="124" class="t mono b">rem</text><text x="400" y="124" class="t s">the ROOT font size (usually 16px)</text>
+      <text x="356" y="150" class="t mono b">vw</text><text x="400" y="150" class="t s">1% of the window's width</text>
+      <text x="356" y="176" class="t mono b">vh</text><text x="400" y="176" class="t s">1% of the window's height</text>
+      <text x="155" y="140" class="t c s">Use px for hairlines</text>
+      <text x="155" y="158" class="t c s">and tiny fixed details.</text>
+      <text x="155" y="182" class="t c s">Use relative units for</text>
+      <text x="155" y="198" class="t c s">everything that should adapt.</text>
+    </svg>
+    <figcaption><b>Figure 25.1</b> Six units. The only thing you must remember is what each one is measured against.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>25.2 px &mdash; the pixel</h2>
+  <p><code>px</code> is an <b>absolute</b> unit used for fixed sizes: widths, heights, padding, margins, borders and font sizes.</p>
+  <pre class="code">.box {
+  width: 300px;
+  padding: 16px;
+  border: 1px solid #ccc;
+  font-size: 18px;
+}</pre>
+  <p>A CSS pixel is not exactly one dot on your screen &mdash; modern phones pack several physical dots into one CSS pixel so text stays sharp &mdash; but you can safely think of it as "one small fixed step".</p>
+  <p><b>Where px is right:</b> borders (<code>1px</code>, <code>2px</code>), small shadows, and anything that genuinely must not scale.</p>
+  <p><b>Where px causes trouble:</b> font sizes. A reader who has set a larger default text size in their browser &mdash; because their eyesight needs it &mdash; gets ignored, because you pinned the size. That is an accessibility failure, and it is why the next two units exist.</p>
+</section>
+
+<section id="s3">
+  <h2>25.3 % &mdash; a share of the parent</h2>
+  <p>A percentage is <b>relative to the size of the parent element</b>. <code>width: 50%</code> means half the width of whatever box this element sits in.</p>
+  <pre class="code" data-run data-title="Percentages resize with their container" data-h="210">&lt;style&gt;
+  .frame { border: 2px dashed #94A3B8; padding: 8px; margin-bottom: 10px; }
+  .narrow { width: 260px; }
+  .bar { background: #E07B1E; color: #fff; padding: 8px; width: 50%; }
+&lt;/style&gt;
+&lt;div class="frame"&gt;&lt;div class="bar"&gt;50% of a wide parent&lt;/div&gt;&lt;/div&gt;
+&lt;div class="frame narrow"&gt;&lt;div class="bar"&gt;50% of a 260px parent&lt;/div&gt;&lt;/div&gt;</pre>
+  <p>Same declaration, two different results, because the parents differ. That is exactly what you want for a responsive layout: <code>width: 100%</code> fills whatever space is available, on any screen.</p>
+  <div class="callout warn"><b>The percentage-height trap.</b> <code>width: 50%</code> nearly always works. <code>height: 50%</code> usually does nothing, because a parent's height is normally decided by its contents, so there is no fixed number to take half of. If you need a tall box, use <code>vh</code> (section 25.6) or <code>min-height</code>.</div>
+</section>
+
+<section id="s4">
+  <h2>25.4 em &mdash; relative to the current font size</h2>
+  <p><code>em</code> is measured against the <b>font size of the element itself</b>. If an element's text is 20px, then <code>1em</code> is 20px, <code>0.5em</code> is 10px and <code>2em</code> is 40px, inside that element.</p>
+  <p>It is at its best for padding and margins that should grow with the text:</p>
+  <pre class="code">.btn {
+  font-size: 18px;
+  padding: 0.6em 1.2em;   /* about 11px and 22px - and it scales with the text */
+}</pre>
+  <p>Make the button's text bigger and the padding grows in proportion, so the button keeps its shape. That is a genuinely useful trick.</p>
+  <p>Drag the font-size slider below and watch the padding follow it, because the padding is written in <code>em</code>.</p>
+  <div class="tryit" data-el=".t-em" data-rule=".box">
+    <div class="tryit-head">font-size is in px, padding is in em &mdash; watch padding follow the font</div>
+    <div class="tryit-stage"><div class="frame"><div class="t-em" style="background:#FFF1E0;border:1px solid #E07B1E;border-radius:8px;color:#0B2545;font-weight:700">Padding written in em</div></div></div>
+    <div class="tryit-ctl">
+      <label>font-size <input type="range" min="10" max="34" value="16" data-prop="font-size" data-unit="px"></label>
+      <label>padding <input type="range" min="0" max="3" step="0.1" value="1" data-prop="padding" data-unit="em"></label>
+      <label>width <input type="range" min="30" max="100" value="100" data-prop="width" data-unit="%"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+  <h3>The compounding problem</h3>
+  <p>Here is where <code>em</code> bites. When you set <code>font-size</code> itself in <code>em</code>, it is measured against the <b>parent's</b> font size &mdash; and if that parent also used <code>em</code>, the sizes multiply.</p>
+  <pre class="code" data-run data-title="Nested em sizes multiply" data-h="200">&lt;style&gt;
+  body { font-size: 16px; }
+  .a { font-size: 1.5em; }   /* 16 x 1.5  = 24px */
+  .b { font-size: 1.5em; }   /* 24 x 1.5  = 36px  (!) */
+  .c { font-size: 1.5em; }   /* 36 x 1.5  = 54px  (!!) */
+&lt;/style&gt;
+&lt;div class="a"&gt;First level: 24px
+  &lt;div class="b"&gt;Second: 36px
+    &lt;div class="c"&gt;Third: 54px, and nobody asked for that&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Every level multiplies again. In a real page with cards inside sections inside articles, this is how text ends up mysteriously enormous in one corner. The fix is the next unit.</p>
+</section>
+
+<section id="s5">
+  <h2>25.5 rem &mdash; relative to the root, and the accessible choice</h2>
+  <p><code>rem</code> means <b>root em</b>. It is measured against the font size of the <b>root element</b>, which is <code>&lt;html&gt;</code> &mdash; one single number for the whole page. Nesting changes nothing, so nothing compounds.</p>
+  <p>The root font size is <b>16px</b> by default in every browser. That gives you an easy conversion:</p>
+  <table class="tbl">
+    <thead><tr><th>rem</th><th>Pixels (at the default root size)</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>0.875rem</code></td><td>14px</td><td>Small print, captions</td></tr>
+      <tr><td><code>1rem</code></td><td>16px</td><td>Body text</td></tr>
+      <tr><td><code>1.25rem</code></td><td>20px</td><td>A lead paragraph</td></tr>
+      <tr><td><code>1.5rem</code></td><td>24px</td><td>A sub-heading</td></tr>
+      <tr><td><code>2rem</code></td><td>32px</td><td>A page heading</td></tr>
+    </tbody>
+  </table>
+  <p>To convert, divide by 16: 24px &divide; 16 = 1.5rem. To go back, multiply by 16.</p>
+  <pre class="code" data-run data-title="rem does not compound, however deep you nest" data-h="190">&lt;style&gt;
+  .a, .b, .c { font-size: 1.5rem; }   /* all three are 24px */
+&lt;/style&gt;
+&lt;div class="a"&gt;First level: 24px
+  &lt;div class="b"&gt;Second: still 24px
+    &lt;div class="c"&gt;Third: still 24px. Predictable.&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+  <h3>Why rem is the accessible choice</h3>
+  <p>This is the part that earns marks. A reader who finds text hard to read can raise the default font size in their browser settings &mdash; say from 16px to 20px. That setting <b>changes the root font size</b>.</p>
+  <ul>
+    <li>Text sized in <code>rem</code> grows with it. The page respects the reader.</li>
+    <li>Text sized in <code>px</code> does not move at all. The reader's setting is ignored.</li>
+  </ul>
+  <p>So the reason to prefer <code>rem</code> over <code>px</code> for font sizes is not that it is shorter, or newer, or faster: it is that <b><code>rem</code> respects the reader's browser font setting</b>. <code>px</code> is not deprecated and remains correct for borders and hairlines &mdash; but not for text.</p>
+  <div class="plain">
+    <p><code>em</code> looks at the element it is on, so it multiplies when you nest. <code>rem</code> always looks at one number at the top of the page, so it never surprises you. Use <code>rem</code> for text sizes, and <code>em</code> for padding that should grow with its own text.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>25.6 vw and vh &mdash; a share of the window</h2>
+  <p>The <span class="jw" data-def="The visible area of the page inside the browser window, not counting toolbars.">viewport</span> units are measured against the browser window itself:</p>
+  <ul>
+    <li><b><code>1vw</code> is 1% of the viewport's width.</b> So <code>100vw</code> is the full width, and <code>50vw</code> is half of it.</li>
+    <li><b><code>1vh</code> is 1% of the viewport's height.</b> <code>100vh</code> is a panel exactly as tall as the window.</li>
+  </ul>
+  <pre class="code" data-run data-title="A full-height welcome panel" data-h="250">&lt;style&gt;
+  .hero {
+    height: 60vh;                 /* 60% of the window's height */
+    background: linear-gradient(135deg, #FF9933, #138808);
+    color: #fff;
+    display: grid;
+    place-items: center;
+    font-size: 4vw;               /* grows and shrinks with the window */
+    font-weight: 800;
+    border-radius: 12px;
+  }
+&lt;/style&gt;
+&lt;div class="hero"&gt;Resize the preview&lt;/div&gt;</pre>
+  <p>Run that, then drag the edge of the preview or turn your phone sideways. Both the panel and the text resize, because both are measured against the window. Change <code>60vh</code> to <code>100vh</code> and the panel fills the screen exactly &mdash; the standard way to build a full-screen hero section.</p>
+  <div class="callout warn"><b>Do not size body text in <code>vw</code>.</b> On a narrow phone <code>font-size: 4vw</code> can fall below 14px and become unreadable, and the reader cannot fix it by zooming. Keep <code>vw</code> for big display headings, and use <code>rem</code> for text people have to read.</div>
+</section>
+
+<section id="s7">
+  <h2>25.7 A few more you will meet</h2>
+  <table class="tbl">
+    <thead><tr><th>Unit or keyword</th><th>Means</th><th>Handy for</th></tr></thead>
+    <tbody>
+      <tr><td><code>auto</code></td><td>"Work it out for me"</td><td><code>margin: 0 auto</code> to centre a box; <code>height: auto</code> to fit the content</td></tr>
+      <tr><td><code>ch</code></td><td>The width of the digit "0" in the current font</td><td><code>max-width: 65ch</code> &mdash; a comfortable line length for reading</td></tr>
+      <tr><td><code>fr</code></td><td>One share of the leftover space, in Grid only</td><td>Splitting a grid into columns (<a href="book.html?ch=31">Chapter 31</a>)</td></tr>
+      <tr><td><code>calc()</code></td><td>Arithmetic, and units may be mixed</td><td><code>width: calc(100% - 40px)</code> &mdash; full width minus a fixed gutter</td></tr>
+      <tr><td><code>clamp()</code></td><td>A minimum, an ideal and a maximum</td><td><code>font-size: clamp(1rem, 2.5vw, 2rem)</code> &mdash; fluid, but never silly (<a href="book.html?ch=37">Chapter 37</a>)</td></tr>
+    </tbody>
+  </table>
+  <p><code>calc()</code> needs spaces around the operator: <code>calc(100% - 40px)</code> works, <code>calc(100%-40px)</code> does not.</p>
+</section>
+
+<section id="s8">
+  <h2>25.8 Which unit should I use?</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Decision guide for choosing a CSS unit">
+      <rect x="205" y="10" width="210" height="34" rx="17" class="box saf"/><text x="310" y="32" class="t c b">what am I sizing?</text>
+      <path d="M310 44 L310 58" class="edge"/>
+      <path d="M90 58 L530 58" class="edge"/>
+      <path d="M90 58 L90 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M237 58 L237 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M384 58 L384 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M530 58 L530 74" class="edge" marker-end="url(#arr)"/>
+      <rect x="18" y="78" width="144" height="76" rx="10" class="box grn"/>
+      <text x="90" y="100" class="t c b">text size</text><text x="90" y="122" class="t c b mono">rem</text><text x="90" y="142" class="t c s">respects the reader</text>
+      <rect x="165" y="78" width="144" height="76" rx="10" class="box blu"/>
+      <text x="237" y="100" class="t c b">widths, columns</text><text x="237" y="122" class="t c b mono">% or fr</text><text x="237" y="142" class="t c s">adapts to the space</text>
+      <rect x="312" y="78" width="144" height="76" rx="10" class="box saf"/>
+      <text x="384" y="100" class="t c b">spacing inside</text><text x="384" y="122" class="t c b mono">em or rem</text><text x="384" y="142" class="t c s">grows with the text</text>
+      <rect x="459" y="78" width="144" height="76" rx="10" class="box gry"/>
+      <text x="531" y="100" class="t c b">borders, hairlines</text><text x="531" y="122" class="t c b mono">px</text><text x="531" y="142" class="t c s">must stay crisp</text>
+      <text x="310" y="186" class="t c s">Full-screen panels: vh. Big display headings: vw or clamp(). Centring a fixed box: auto.</text>
+    </svg>
+    <figcaption><b>Figure 25.2</b> A working rule, not a law. When in doubt, choose the relative unit.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Project, step 4: sensible units throughout" data-h="290" data-tall>&lt;style&gt;
+  html { font-size: 100%; }          /* respect the reader's setting: 16px default */
+  body {
+    font-family: system-ui, sans-serif;
+    font-size: 1rem;                  /* 16px, and it scales if the reader zooms */
+    line-height: 1.7;
+    color: #3C4A60;
+    max-width: 60rem;                 /* never absurdly wide on a big monitor */
+    margin: 0 auto;                   /* auto: centre the page */
+    padding: 1.5rem;
+  }
+  h1 { font-size: 2rem; }             /* 32px */
+  .card {
+    background: #fff;
+    border: 1px solid #E3E9F0;        /* px: a hairline must stay 1px */
+    border-radius: 0.75rem;
+    padding: 1em 1.25em;              /* em: grows with the card's own text */
+    margin-bottom: 1rem;
+    width: 100%;                      /* % : fill whatever space there is */
+  }
+&lt;/style&gt;
+&lt;h1&gt;Asha Kumar&lt;/h1&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE326&lt;/b&gt; &mdash; Internet Programming&lt;/div&gt;
+&lt;div class="card" style="font-size:1.25rem"&gt;&lt;b&gt;Bigger card&lt;/b&gt; &mdash; its padding grew too, because it is in em&lt;/div&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which unit is relative to the ROOT font size?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. px</li><li>B. em</li><li>C. rem</li><li>D. %</li></ul>
+    <p><b>Answer: C.</b> <code>rem</code> is predictable because it always looks at one number on <code>&lt;html&gt;</code>; <code>em</code> compounds relative to the parent.</p></div></details>
+  <details class="q"><summary>Why prefer rem over px for font sizes?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It is shorter to type</li><li>B. It respects the reader's browser font setting</li><li>C. It renders faster</li><li>D. px is deprecated</li></ul>
+    <p><b>Answer: B.</b> That is an accessibility win: <code>px</code> pins the size and ignores the reader's preference. <code>px</code> is not deprecated and is still correct for borders.</p></div></details>
+  <details class="q"><summary>What does 1vw mean?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 1 pixel</li><li>B. 1% of the viewport width</li><li>C. 1% of the parent</li><li>D. 1 character width</li></ul>
+    <p><b>Answer: B.</b> <code>vh</code> is the same for height, so <code>100vh</code> is a full-window-height panel.</p></div></details>
+  <details class="q"><summary>The % unit defines a size relative to what?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: the size of the parent element.</b> So <code>width: 50%</code> is half the parent's width, and the same declaration gives different pixel results in different containers.</p></div></details>
+  <details class="q"><summary>At the default root font size, how many pixels is 2rem?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: 32px</b>, because the default root size is 16px and 1rem = 16px. Divide by 16 to convert pixels to rem, multiply by 16 to go back.</p></div></details>
+  <details class="q"><summary>A parent is 16px. Inside it, <code>.a { font-size: 1.5em }</code> contains <code>.b { font-size: 1.5em }</code>. How big is the text in <code>.b</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>36px.</b> <code>em</code> is measured against the parent's font size, so the factors multiply: 16 &times; 1.5 = 24, then 24 &times; 1.5 = 36. Writing both in <code>rem</code> would have given 24px in both places.</p></div></details>
+  <details class="q"><summary>Which unit would you choose for a 1-pixel table border?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>px</code>.</b> A hairline should stay crisp and must not grow when the reader enlarges text. Borders and small shadows are exactly what absolute units are for.</p></div></details>
+  <details class="q"><summary><code>height: 50%</code> on a div appears to do nothing. Why?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because the parent has no definite height</b> &mdash; its height is being decided by its own contents, so there is no fixed number to take half of. Use <code>vh</code>, or set a height on the parent, or use <code>min-height</code>.</p></div></details>
+  <details class="q"><summary>Which declaration makes a section exactly as tall as the browser window?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>height: 100vh;</code></b> &mdash; 100 lots of 1% of the viewport height.</p></div></details>
+  <details class="q"><summary>What does <code>calc(100% - 40px)</code> compute, and what is the common mistake when writing it?<span class="lvl">L3</span></summary><div class="a">
+    <p>It means "the full width of the parent, minus 40 pixels" &mdash; and it is one of the few places CSS lets you mix units. The common mistake is leaving out the spaces around the minus sign: <code>calc(100%-40px)</code> is invalid and is ignored.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Every size needs a unit. Only <code>0</code> may go bare.</li>
+    <li><code>px</code> is absolute and fixed. <code>%</code> is a share of the parent. <code>em</code> is the element's own font size. <code>rem</code> is the root font size (16px by default). <code>vw</code>/<code>vh</code> are 1% of the window's width/height.</li>
+    <li><code>em</code> compounds when nested; <code>rem</code> never does.</li>
+    <li>Use <code>rem</code> for text, because it respects the reader's browser font setting; <code>px</code> for borders; <code>%</code> or <code>fr</code> for widths; <code>vh</code> for full-screen panels.</li>
+    <li><code>auto</code> centres a fixed-width box with <code>margin: 0 auto</code>. <code>calc()</code> does arithmetic and needs spaces round the operator.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Unit</th><th>Measured against</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>px</code></td><td>Nothing &mdash; fixed</td><td><code>border: 1px solid</code></td></tr>
+      <tr><td><code>%</code></td><td>The parent's size</td><td><code>width: 50%</code></td></tr>
+      <tr><td><code>em</code></td><td>This element's font size</td><td><code>padding: 0.6em 1.2em</code></td></tr>
+      <tr><td><code>rem</code></td><td>The root font size (16px)</td><td><code>font-size: 1.5rem</code> = 24px</td></tr>
+      <tr><td><code>vw</code></td><td>1% of viewport width</td><td><code>font-size: 4vw</code></td></tr>
+      <tr><td><code>vh</code></td><td>1% of viewport height</td><td><code>height: 100vh</code></td></tr>
+      <tr><td><code>auto</code></td><td>Whatever fits</td><td><code>margin: 0 auto</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/length" target="_blank" rel="noopener noreferrer">MDN &mdash; &lt;length&gt; units<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The complete unit list with the definition of each one.</span></li>
+    <li><a href="https://web.dev/learn/css/sizing" target="_blank" rel="noopener noreferrer">web.dev &mdash; Sizing units<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Explains when relative units beat absolute ones, with pictures.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_values_and_units" target="_blank" rel="noopener noreferrer">MDN &mdash; Values and units<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The wider picture: percentages, functions and keywords, not just lengths.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

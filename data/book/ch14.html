@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 14 &middot; Page Structure and Layout</p>
   <h1>Page Structure and Layout</h1>
   <p class="lead">Chapter 13 gave you the vocabulary; this chapter is about assembling a whole page with it. You will learn to see a page as a tree, to turn a sketch of a layout into an HTML skeleton, to keep the structure independent of how it will eventually be styled, and to recognise the layout mistakes (tables, line breaks, fake headings) that break a page for everyone but the person who wrote it.</p>
-  <p class="meta">About 12 minutes &middot; Course outcome CO2</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The seven page-structure elements and when to use each &mdash; <a href="book.html?ch=13">Chapter 13</a> (semantic elements).</li>
+      <li>The page is a tree &mdash; <a href="book.html?ch=4">Chapter 4</a> (the DOM).</li>
+      <li>No CSS yet. This chapter is about getting the skeleton right first.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -51,7 +59,8 @@
 
 <section id="s2">
   <h2>14.2 From wireframe to skeleton</h2>
-  <p>Designers sketch pages as boxes: a banner across the top, a menu, a wide content column, a narrow sidebar, a footer. Each box maps to a semantic element. Draw the boxes, label them, and the HTML skeleton writes itself.</p>
+  <div class="plain">Draw the page as boxes on paper first. Then give each box the element whose name matches what it is. The banner becomes a header, the menu a nav, the wide column a main, the strip at the bottom a footer. That is the whole method.</div>
+  <p>Designers sketch pages as boxes: a banner across the top, a menu, a wide content column, a narrow sidebar, a footer. Each box maps to a semantic element. Draw the boxes, label them, and the HTML <span class="jw" data-def="The bare structure of a page, written as semantic elements with no styling and no content details yet.">skeleton</span> writes itself.</p>
   <figure class="fig">
     <svg viewBox="0 0 720 300" role="img" aria-label="A wireframe with header, nav, main, section, article, aside and footer boxes, and the matching HTML skeleton">
       <rect x="20" y="20" width="330" height="260" rx="8" fill="#fff" stroke="#0B2545" stroke-width="1.5"/>
@@ -127,6 +136,8 @@
 
 <section id="s3">
   <h2>14.3 Structure first, style later</h2>
+  <div class="callout analogy"><b>Structure first is building the house before choosing the curtains.</b> You do not decide where the walls go by holding up curtain fabric. Get the rooms right in HTML, then decorate in CSS. A page with no CSS at all should still read correctly from top to bottom &mdash; that is the test.</div>
+  <div class="plain">Write the HTML in the order the content makes sense when read aloud, top to bottom. CSS will move things sideways later. If the order only makes sense once the CSS loads, the order is wrong.</div>
   <p>Notice that the page above has no layout at all: everything stacks top to bottom in the order it was written. That is correct. <b>HTML provides the logical structure; CSS, written afterwards, decides how that structure is arranged on a desktop, a tablet or a phone</b> (Unit 3 covers Flexbox, Grid and media queries). The habit that makes this work is <b>logical source order</b>: write the elements in the order a reader should encounter them, header, navigation, main content, related content, footer, and let CSS move them into columns. A screen reader, a search engine and a phone with no CSS all read the source order, so it must make sense on its own.</p>
   <figure class="fig">
     <svg viewBox="0 0 720 210" role="img" aria-label="The same source order shown as a single column on a phone and two columns on a desktop">
@@ -151,6 +162,11 @@
   <p>Two habits that prepare HTML for responsive layout before any CSS exists: a <b>logical source order</b> and <b>flexible, scalable media</b> (images and videos that can shrink to their container, Chapter 21). Two habits that fight it: hard-coding <code>width="800"</code> on containers, and nesting layout tables.</p>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: may a <code>&lt;section&gt;</code> have its own header and footer?</summary>
+    <p>Yes. Sections and articles may each carry their own header and footer. The one thing you may never have twice is <code>main</code>.</p>
+  </details>
+
 <section id="s4">
   <h2>14.4 Headings, headers and footers inside regions</h2>
   <p>The heading outline (Chapter 6) and the landmark structure work together. The page's single <code>h1</code> usually sits in the page <code>header</code>. Each <code>section</code> starts with an <code>h2</code>; each <code>article</code> inside it with an <code>h3</code>. An <code>aside</code> gets a heading too. The result is an outline that matches the regions, so a screen-reader user can navigate by either.</p>
@@ -171,6 +187,11 @@
   &lt;footer&gt;&lt;p&gt;Tags: HTML, accessibility&lt;/p&gt;&lt;/footer&gt;
 &lt;/article&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: why is laying out a page with a table a mistake?</summary>
+    <p>A table says &ldquo;this is a grid of data&rdquo;, so a screen reader announces rows and columns that do not exist, and the layout cannot reflow into one column on a phone. Layout is CSS's job.</p>
+  </details>
 
 <section id="s5">
   <h2>14.5 Layout mistakes to unlearn</h2>

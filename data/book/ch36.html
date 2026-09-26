@@ -1,0 +1,328 @@
+<article class="chapter" data-ch="36">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 36 &middot; CSS Variables</p>
+  <h1>CSS Variables</h1>
+  <p class="lead">Your brand colour appears in nineteen places in your stylesheet. The client asks for a different orange. You start hunting. CSS variables &mdash; properly called custom properties &mdash; let you name a value once and use it everywhere, so that change becomes a single edit. They are also how dark mode is built.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>:root</code> is a pseudo-class that matches the <code>&lt;html&gt;</code> element (<a href="book.html?ch=32">Chapter 32</a>).</li>
+      <li>Some properties <b>inherit</b> from parent to child (<a href="book.html?ch=23">Chapter 23</a>).</li>
+      <li>A <b>declaration</b> is <code>property: value;</code> (<a href="book.html?ch=22">Chapter 22</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Declare a custom property and use it with <code>var()</code>.</li>
+      <li>Say why they are nearly always declared on <code>:root</code>.</li>
+      <li>Give a fallback value, and redefine a variable for one component.</li>
+      <li>Build a small theme, and switch it in three lines.</li>
+      <li>Spot the four mistakes that make a variable silently do nothing.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>36.1 The problem</h2>
+  <p>Here is a stylesheet that has grown normally:</p>
+  <pre class="code">.header   { background: #E07B1E; }
+.btn      { background: #E07B1E; }
+.card     { border-left: 5px solid #E07B1E; }
+.tag      { color: #E07B1E; }
+h2        { color: #E07B1E; }
+.link:hover { color: #E07B1E; }</pre>
+  <p>Six copies of one colour, and this is a small file. Change the brand and you must find every one, including the ones you spell slightly differently and the one hiding inside a <code>linear-gradient</code>. Miss one and the page has a stray orange somewhere nobody notices until a marker does.</p>
+  <div class="callout analogy"><b>Picture this.</b> Writing a phone number on nineteen sticky notes around your desk. When the number changes you have to find all nineteen. A variable is writing it once on the wall and pointing at it nineteen times.</div>
+</section>
+
+<section id="s2">
+  <h2>36.2 Declaring and using</h2>
+  <p>A custom property has a name that <b>must begin with two dashes</b>, and you use it with the <code>var()</code> function:</p>
+  <pre class="code">:root {
+  --brand: #E07B1E;          /* declare: two dashes, then any name you like */
+}
+
+.btn {
+  background: var(--brand);  /* use: var(--name) */
+}</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 190" role="img" aria-label="Declaring a variable on root and using it with var in several rules">
+      <rect x="150" y="16" width="320" height="52" rx="10" class="box saf"/>
+      <text x="310" y="38" class="t c b mono" style="font-size:14px">:root { --brand: #E07B1E; }</text>
+      <text x="310" y="58" class="t c s">declared once, at the top of the page</text>
+      <path d="M240 68 L110 104" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M310 68 L310 104" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M380 68 L512 104" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="20" y="108" width="180" height="46" rx="8" class="box"/>
+      <text x="110" y="130" class="t c mono" style="font-size:11.5px">.btn { background:</text>
+      <text x="110" y="146" class="t c mono b" style="font-size:11.5px">var(--brand) }</text>
+      <rect x="220" y="108" width="180" height="46" rx="8" class="box"/>
+      <text x="310" y="130" class="t c mono" style="font-size:11.5px">h2 { color:</text>
+      <text x="310" y="146" class="t c mono b" style="font-size:11.5px">var(--brand) }</text>
+      <rect x="420" y="108" width="180" height="46" rx="8" class="box"/>
+      <text x="510" y="130" class="t c mono" style="font-size:11.5px">.card { border-color:</text>
+      <text x="510" y="146" class="t c mono b" style="font-size:11.5px">var(--brand) }</text>
+      <text x="310" y="180" class="t c s">Change the one declaration at the top and all three follow.</text>
+    </svg>
+    <figcaption><b>Figure 36.1</b> Declare once, use anywhere. The variable is the single source of truth for that value.</figcaption>
+  </figure>
+  <p>Three rules about the syntax, and each one is a mistake waiting to happen:</p>
+  <ul>
+    <li><b>The name needs two dashes at the front.</b> <code>--brand</code>, not <code>brand</code>, <code>$brand</code> or <code>@brand</code>. (Those last two belong to Sass and Less, which are different tools.)</li>
+    <li><b>Names are case-sensitive.</b> <code>--Brand</code> and <code>--brand</code> are two different variables.</li>
+    <li><b>You must use <code>var()</code> to read it.</b> Writing <code>background: --brand;</code> does nothing at all.</li>
+  </ul>
+  <pre class="code" data-run data-title="One variable, four places" data-h="290" data-tall>&lt;style&gt;
+  :root {
+    --brand: #E07B1E;
+    --brand-light: #FFF8F0;
+    --ink: #0B2545;
+    --radius: 12px;
+  }
+  body { font-family: system-ui, sans-serif; padding: 16px; color: #3C4A60; }
+  h2   { color: var(--ink); }
+  .card {
+    background: var(--brand-light);
+    border-left: 5px solid var(--brand);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+  }
+  .btn {
+    background: var(--brand); color: #fff; border: none;
+    border-radius: var(--radius); padding: 10px 18px;
+    font: inherit; font-weight: 700; cursor: pointer;
+  }
+&lt;/style&gt;
+&lt;h2&gt;Courses&lt;/h2&gt;
+&lt;div class="card"&gt;CSE326 Internet Programming&lt;/div&gt;
+&lt;div class="card"&gt;CSE305 Database Systems&lt;/div&gt;
+&lt;button class="btn"&gt;Continue Learning&lt;/button&gt;
+&lt;p style="font-size:14px;color:#6B7A90"&gt;Open this in the Playground and change
+--brand once. Everything orange follows.&lt;/p&gt;</pre>
+  <div class="tryit" data-el=".t-var" data-rule=":root">
+    <div class="tryit-head">Change a variable &mdash; watch three different properties follow it</div>
+    <div class="tryit-stage"><div class="frame"><div class="t-var" style="--brand:#E07B1E;--radius:12px"><div style="border-left:5px solid var(--brand);border-radius:var(--radius);background:#fff;padding:12px 14px;margin-bottom:8px;border-top:1px solid #E3E9F0;border-right:1px solid #E3E9F0;border-bottom:1px solid #E3E9F0"><b style="color:var(--brand)">CSE326</b> Internet Programming</div><div style="display:inline-block;background:var(--brand);color:#fff;padding:8px 16px;border-radius:var(--radius);font-weight:700;font-size:14px">Continue Learning</div></div></div></div>
+    <div class="tryit-ctl">
+      <label>--brand <input type="color" value="#e07b1e" data-prop="--brand"></label>
+      <label>--radius <input type="range" min="0" max="24" value="12" data-prop="--radius" data-unit="px"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>36.3 Why :root?</h2>
+  <p>A custom property behaves like an inherited property: it is available to the element it was declared on <b>and to everything inside it</b>.</p>
+  <p><code>:root</code> is the <code>&lt;html&gt;</code> element &mdash; the outermost element on the page. Declare a variable there and <b>every rule on the page can see it</b>. That is why variables are declared on <code>:root</code> rather than on <code>body</code> or inside a particular rule.</p>
+  <p>Declare one inside <code>.card</code> instead and only <code>.card</code> and its children can use it. Everything else gets nothing, silently.</p>
+  <h3>Redefining for one component</h3>
+  <p>That scoping is a feature, not just a limitation. Declare a variable on <code>:root</code> for the normal case, then <b>override it</b> on one component:</p>
+  <pre class="code" data-run data-title="The same rule, three colours" data-h="260">&lt;style&gt;
+  :root { --card-accent: #6B7A90; }
+
+  .card {
+    border-left: 6px solid var(--card-accent);
+    background: #fff; padding: 12px 16px; margin-bottom: 10px;
+    border-radius: 10px; font-family: system-ui, sans-serif;
+  }
+  .card b { color: var(--card-accent); }
+
+  /* override the variable, not the rules */
+  .card.done     { --card-accent: #138808; }
+  .card.progress { --card-accent: #E07B1E; }
+  .card.late     { --card-accent: #C42B2B; }
+&lt;/style&gt;
+&lt;div class="card done"&gt;&lt;b&gt;CSE305&lt;/b&gt; Database Systems&lt;/div&gt;
+&lt;div class="card progress"&gt;&lt;b&gt;CSE326&lt;/b&gt; Internet Programming&lt;/div&gt;
+&lt;div class="card late"&gt;&lt;b&gt;MTH101&lt;/b&gt; Assignment overdue&lt;/div&gt;
+&lt;div class="card"&gt;&lt;b&gt;PHY104&lt;/b&gt; No status&lt;/div&gt;</pre>
+  <p>Read what happened: the <code>.card</code> rule was written <b>once</b>, with two uses of the variable. The three state classes change nothing except the value of <code>--card-accent</code>. Without variables you would repeat the border and the colour in every state class.</p>
+</section>
+
+<section id="s4">
+  <h2>36.4 Fallback values</h2>
+  <p><code>var()</code> takes an optional second argument, used if the variable is missing:</p>
+  <pre class="code">color: var(--brand, #333);      /* if --brand is not defined, use #333 */</pre>
+  <p>This matters for components you might reuse elsewhere, and for guarding against a typo. Without a fallback, a misspelled variable name makes the whole declaration invalid, and the property falls back to whatever it inherited &mdash; which is rarely what you wanted, and gives no error message.</p>
+</section>
+
+<section id="s5">
+  <h2>36.5 Theming and dark mode</h2>
+  <p>This is where variables stop being a convenience and become the only sane approach. Because every colour in your stylesheet points at a variable, changing the whole theme means changing the variables &mdash; not one rule.</p>
+  <pre class="code" data-run data-title="A light and a dark theme sharing every rule" data-h="330" data-tall>&lt;style&gt;
+  :root {
+    --bg: #FBFCFE;
+    --surface: #ffffff;
+    --ink: #0B2545;
+    --muted: #6B7A90;
+    --brand: #E07B1E;
+    --line: #E3E9F0;
+  }
+  .dark {
+    --bg: #0E1B2E;
+    --surface: #16263D;
+    --ink: #E8EEF6;
+    --muted: #9AB0C8;
+    --brand: #FFB765;
+    --line: #26405F;
+  }
+
+  /* not one rule below mentions a colour directly */
+  .panel {
+    background: var(--bg); padding: 16px; border-radius: 12px;
+    font-family: system-ui, sans-serif; margin-bottom: 12px;
+  }
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--brand); border-radius: 10px;
+    padding: 12px 16px; color: var(--ink);
+  }
+  .card small { color: var(--muted); }
+&lt;/style&gt;
+&lt;div class="panel"&gt;
+  &lt;div class="card"&gt;&lt;b&gt;CSE326&lt;/b&gt;&lt;br&gt;&lt;small&gt;Light theme&lt;/small&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="panel dark"&gt;
+  &lt;div class="card"&gt;&lt;b&gt;CSE326&lt;/b&gt;&lt;br&gt;&lt;small&gt;Dark theme &mdash; same CSS rules&lt;/small&gt;&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Adding a class to one element re-coloured everything inside it. In a real site a single line of JavaScript toggles <code>class="dark"</code> on <code>&lt;html&gt;</code>, and you can respect the reader's own system setting with a media query:</p>
+  <pre class="code">@media (prefers-color-scheme: dark) {
+  :root { --bg: #0E1B2E; --ink: #E8EEF6; /* ... */ }
+}</pre>
+</section>
+
+<section id="s6">
+  <h2>36.6 Naming, and the four silent failures</h2>
+  <p>Good names describe the <b>job</b>, not the colour. <code>--brand</code> and <code>--danger</code> survive a redesign; <code>--orange</code> becomes a lie the day it turns blue. A small, ordinary set for a project:</p>
+  <pre class="code">:root {
+  /* colour */
+  --brand: #E07B1E;
+  --ink: #0B2545;
+  --muted: #6B7A90;
+  --surface: #ffffff;
+  --line: #E3E9F0;
+  /* spacing and shape */
+  --gap: 16px;
+  --radius: 12px;
+  /* type */
+  --font: system-ui, sans-serif;
+}</pre>
+  <table class="tbl">
+    <thead><tr><th>Mistake</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td><code>brand: #E07B1E;</code> (no dashes)</td><td>Not a custom property at all &mdash; an unknown property, ignored</td></tr>
+      <tr><td><code>background: --brand;</code> (no <code>var()</code>)</td><td>Invalid value, ignored, no error</td></tr>
+      <tr><td>Declared inside <code>.card</code>, used in <code>.footer</code></td><td>Out of scope: the footer is not inside the card, so it sees nothing</td></tr>
+      <tr><td><code>var(--brnad)</code> (a typo)</td><td>The declaration is invalid; the property falls back to its inherited value. A fallback, <code>var(--brand, #333)</code>, saves you.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>These are not Sass variables.</b> CSS custom properties are live in the browser: they inherit, they can be changed by a media query or by JavaScript at runtime, and DevTools shows their current value. Sass variables (<code>$brand</code>) are replaced before the browser ever sees the file. If you find <code>$</code> or <code>@</code> in a tutorial, it is a different tool.</div>
+</section>
+
+<section id="s7">
+  <h2>36.7 Build it: the project's design tokens</h2>
+  <pre class="code" data-run data-title="Project, step 14: every value named once" data-h="360" data-tall>&lt;style&gt;
+  :root {
+    --font: system-ui, "Segoe UI", sans-serif;
+    --ink: #0B2545;
+    --body: #3C4A60;
+    --muted: #6B7A90;
+    --surface: #ffffff;
+    --bg: #F1F5F9;
+    --line: #E3E9F0;
+    --brand: #E07B1E;
+    --brand-soft: #FFF8F0;
+    --ok: #138808;
+    --radius: 12px;
+    --gap: 16px;
+  }
+  * { box-sizing: border-box; }
+  body { font-family: var(--font); background: var(--bg); color: var(--body);
+         padding: var(--gap); line-height: 1.7; }
+  h1 { color: var(--ink); margin: 0 0 var(--gap); }
+
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--line);
+    border-left: 5px solid var(--card-accent, var(--brand));
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: var(--gap);
+  }
+  .card b { color: var(--card-accent, var(--brand)); }
+  .card.done { --card-accent: var(--ok); background: #F6FCF7; }
+  .card.featured { background: var(--brand-soft); }
+
+  .btn {
+    background: var(--brand); color: #fff; border: none;
+    border-radius: var(--radius); padding: 10px 20px;
+    font: inherit; font-weight: 700; cursor: pointer;
+  }
+&lt;/style&gt;
+&lt;h1&gt;Asha Kumar&lt;/h1&gt;
+&lt;div class="card featured"&gt;&lt;b&gt;CSE326&lt;/b&gt; Internet Programming&lt;/div&gt;
+&lt;div class="card done"&gt;&lt;b&gt;CSE305&lt;/b&gt; Database Systems&lt;/div&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE201&lt;/b&gt; Data Structures&lt;/div&gt;
+&lt;button class="btn"&gt;Continue Learning&lt;/button&gt;</pre>
+  <p>Notice the nested fallback, <code>var(--card-accent, var(--brand))</code>: use the card's own accent if it has one, otherwise the brand colour. And notice what the stylesheet no longer contains: a single repeated hex code.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Where must CSS variables be declared to be available everywhere?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. In body</li><li>B. On :root</li><li>C. In a media query</li><li>D. In each rule</li></ul>
+    <p><b>Answer: B.</b> <code>:root</code> is the html element, so every rule on the page can see the variable.</p></div></details>
+  <details class="q"><summary>How do you USE a custom property named <code>--brand</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. brand</li><li>B. $brand</li><li>C. var(--brand)</li><li>D. @brand</li></ul>
+    <p><b>Answer: C.</b> <code>var(--brand)</code>, with a fallback such as <code>var(--brand, #333)</code> if you wish. <code>$</code> and <code>@</code> belong to Sass and Less.</p></div></details>
+  <details class="q"><summary>How must a custom property's name begin?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>With two dashes:</b> <code>--brand</code>. Without them it is just an unknown property and is ignored.</p></div></details>
+  <details class="q"><summary>What does <code>var(--brand, #333)</code> mean?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>"Use <code>--brand</code>; if it is not defined, use <code>#333</code> instead."</b> The second argument is a fallback, which protects you against a typo or a missing declaration.</p></div></details>
+  <details class="q"><summary>You declare <code>--gap</code> inside <code>.card</code> and use it in <code>.footer</code>. What happens?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Nothing &mdash; the footer cannot see it.</b> Custom properties inherit downwards, so a variable declared on <code>.card</code> is visible only to <code>.card</code> and its descendants. Declare shared values on <code>:root</code>.</p></div></details>
+  <details class="q"><summary>Why is it useful that variables can be redefined on a child element?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because one set of rules can then produce many variants.</b> Write <code>.card</code> once using <code>var(--accent)</code>, then have <code>.card.done</code> and <code>.card.late</code> change only the variable. It is also exactly how dark mode works.</p></div></details>
+  <details class="q"><summary>Why are CSS custom properties different from Sass variables?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>CSS custom properties are live in the browser:</b> they inherit, they can be changed at runtime by a media query, a class or JavaScript, and DevTools shows their current value. Sass variables are substituted before the browser ever sees the CSS, so they cannot respond to anything.</p></div></details>
+  <details class="q"><summary><code>background: --brand;</code> does nothing. Why?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>The <code>var()</code> function is missing.</b> It must be <code>background: var(--brand);</code>. The value <code>--brand</code> on its own is not valid for <code>background</code>, so the declaration is thrown away silently.</p></div></details>
+  <details class="q"><summary>Which is the better variable name, <code>--orange</code> or <code>--brand</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>--brand</code></b> &mdash; it names the job, not the current colour. When the brand turns blue, <code>--orange: #1D4ED8</code> is a lie that future readers of the stylesheet have to decode.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Declare with two dashes: <code>--brand: #E07B1E;</code>. Read with <code>var(--brand)</code>.</li>
+    <li>Declare on <code>:root</code> so the whole page can see it. Variables inherit, so a variable declared deeper is visible only inside that element.</li>
+    <li><code>var(--name, fallback)</code> guards against a missing or misspelled name.</li>
+    <li>Redefining a variable on a component gives you variants and themes without duplicating rules &mdash; including dark mode.</li>
+    <li>Name by job (<code>--brand</code>, <code>--danger</code>), not by colour. They are live in the browser, unlike Sass variables.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>:root { --brand: #E07B1E; }</code></td><td>Declare, page-wide</td></tr>
+      <tr><td><code>color: var(--brand);</code></td><td>Use it</td></tr>
+      <tr><td><code>color: var(--brand, #333);</code></td><td>Use it, with a fallback</td></tr>
+      <tr><td><code>.card.done { --accent: green; }</code></td><td>Override for one component</td></tr>
+      <tr><td><code>.dark { --bg: #0E1B2E; }</code></td><td>A whole theme in one class</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/--*" target="_blank" rel="noopener noreferrer">MDN &mdash; Custom properties (--*)<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The formal definition, including what happens when a variable is invalid.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/var" target="_blank" rel="noopener noreferrer">MDN &mdash; var()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The fallback second argument, which this chapter used for safety.</span></li>
+    <li><a href="https://web.dev/learn/css/functions" target="_blank" rel="noopener noreferrer">web.dev &mdash; Functions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">var(), calc(), min(), max() and clamp() together, since they are usually used together.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

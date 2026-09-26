@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 6 &middot; Text Formatting</p>
   <h1>Text Formatting</h1>
   <p class="lead">Most of any page is text, and HTML gives you about thirty elements for it. The trick is that they come in two families: <b>logical</b> (semantic) elements that say what a piece of text <i>means</i>, and <b>physical</b> (presentational) elements that only say how it should look. This chapter covers headings, paragraphs, breaks, emphasis, quotations, code, scientific notation and contact details, and teaches you to pick the element by meaning.</p>
-  <p class="meta">About 22 minutes &middot; Course outcome CO1 &middot; The most heavily examined chapter in Unit 1</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO1 &middot; The most heavily examined chapter in Unit 1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Block elements stack, inline elements sit within a line &mdash; <a href="book.html?ch=5">Chapter 5</a> (block and inline).</li>
+      <li>Whitespace in your file collapses to a single space when it is shown.</li>
+      <li>Everything here is about <i>meaning</i>, not appearance. Appearance is Unit 3.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>6.1 Headings: the outline of the document</h2>
+  <div class="plain">Headings are not font sizes. They are the contents page of your document. <code>h1</code> is the title, <code>h2</code> are the chapters, <code>h3</code> are the sections inside a chapter. Choose the number by where it sits in that outline, never by how big you want the text.</div>
   <p>HTML provides <b>six levels of heading</b>, <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code>. <code>&lt;h1&gt;</code> is the <b>highest level</b>, the title of the whole page's content; <code>&lt;h2&gt;</code> marks the major sections; <code>&lt;h3&gt;</code> subsections within them, and so on down. Browsers render h1 largest and h6 smallest, but the sizes are a side effect. What headings really do is build the <b>document outline</b>: the table of contents that screen readers let their users jump through and that search engines use to understand what the page is about.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="Heading outline as an indented tree">
@@ -47,6 +56,11 @@
 &lt;h2&gt;Courses&lt;/h2&gt;
 &lt;h3&gt;CSE326 Internet Programming&lt;/h3&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: you want a gap between two paragraphs. Is <code>&lt;br&gt;&lt;br&gt;</code> the answer?</summary>
+    <p>No. Two paragraphs should be two <code>&lt;p&gt;</code> elements, and the gap between them is set in CSS. <code>&lt;br&gt;</code> is for a line break <i>inside</i> one block, such as the lines of an address or a poem.</p>
+  </details>
 
 <section id="s2">
   <h2>6.2 Paragraphs, line breaks, thematic breaks and preformatted text</h2>
@@ -79,6 +93,8 @@ Rahul    90      A+
 
 <section id="s3">
   <h2>6.3 Logical versus physical formatting</h2>
+  <div class="callout analogy"><b>strong and b are 'shout' versus 'bold ink'.</b> <code>&lt;strong&gt;</code> means &ldquo;this matters &mdash; say it with urgency&rdquo;, so a screen reader can change its voice. <code>&lt;b&gt;</code> just means &ldquo;print this in heavier ink&rdquo;. They look identical on screen, which is exactly why examiners like asking about them.</div>
+  <div class="plain">Some tags say what the text <i>means</i> and some only say what it should <i>look like</i>. Prefer the meaning ones: a screen reader can act on meaning, but it cannot act on 'make this fatter'.</div>
   <p>Here is the idea that organises the whole chapter. Some elements describe <b>meaning</b>: <code>&lt;strong&gt;</code> says "this is important", <code>&lt;em&gt;</code> says "stress this word". Others describe only <b>appearance</b>: <code>&lt;b&gt;</code> says "bold", <code>&lt;i&gt;</code> says "italic". Both kinds still exist in HTML5, but they mean different things, and the exam asks you to know which is which.</p>
   <table class="tbl">
     <thead><tr><th>Logical (semantic)</th><th>Meaning</th><th>Physical (presentational)</th><th>Meaning</th></tr></thead>
@@ -111,7 +127,7 @@ Rahul    90      A+
     <figcaption><b>Figure 6.2</b> Choosing by meaning. If the words carry importance or stress, use the logical element; if you only want a look, use the physical one (or, better, CSS).</figcaption>
   </figure>
   <div class="demo">
-    <p class="dlab">Live: the logical and physical versions look the same, which is exactly why you must choose by meaning</p>
+    <p class="dlab">Live: the <span class="jw" data-def="Marking up what the text MEANS, so a screen reader or a search engine can act on it. The opposite of physical, which only says how it should look.">logical</span> and physical versions look the same, which is exactly why you must choose by meaning</p>
     <p><strong>Important: bring your ID card.</strong> &nbsp; <b>HTML</b> is the first topic. &nbsp; Submit it <em>today</em>. &nbsp; The term <i>markup</i> matters. &nbsp; <u>Check the spelling</u>.</p>
   </div>
 </section>
@@ -188,6 +204,11 @@ Rahul    90      A+
   &lt;/address&gt;
 &lt;/footer&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: a friend's old code uses <code>&lt;center&gt;</code> and <code>&lt;font&gt;</code>. What do you tell them?</summary>
+    <p>Those are <span class="jw" data-def="Officially removed from the language. Browsers may still display it out of politeness, but you must not write it.">obsolete</span>: they describe appearance, which belongs in CSS. Use <code>text-align</code> and <code>font-family</code> instead. You still need to <i>recognise</i> them, because the exam asks.</p>
+  </details>
 
 <section id="s8">
   <h2>6.8 Obsolete formatting tags</h2>

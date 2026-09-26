@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 10 &middot; Multimedia Elements: Audio, Video and Iframes</p>
   <h1>Multimedia Elements: Audio, Video and Iframes</h1>
   <p class="lead">Before HTML5, playing a video meant installing a plug-in. Now the browser plays audio and video natively, and an iframe can drop a map, a YouTube player or another whole page into yours. This chapter covers the <code>audio</code> and <code>video</code> elements and every attribute that controls them, the <code>source</code> and <code>track</code> children that make them robust and accessible, and the <code>iframe</code> with the security attributes you must understand before embedding anything.</p>
-  <p class="meta">About 17 minutes &middot; Course outcome CO1</p>
+  <p class="meta">About 29 minutes &middot; Course outcome CO1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Void elements have no closing tag; paired elements do &mdash; <a href="book.html?ch=3">Chapter 3</a> (void and paired elements).</li>
+      <li>Boolean attributes are ON whenever they are present &mdash; <a href="book.html?ch=5">Chapter 5</a> (boolean attributes).</li>
+      <li><code>src</code> pulls in a file &mdash; <a href="book.html?ch=8">Chapter 8</a> (src and href).</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,7 +26,8 @@
 
 <section id="s1">
   <h2>10.1 Native media in HTML5</h2>
-  <p>HTML5 added three things that changed the web: <code>&lt;audio&gt;</code> for sound, <code>&lt;video&gt;</code> for moving pictures, and standard, plug-in-free playback built into every browser. The pattern for both elements is the same: the element itself (which is <b>not</b> void: it always needs a closing tag), one or more <code>&lt;source&gt;</code> children pointing at media files, optional <code>&lt;track&gt;</code> children for captions, and fallback text between the tags for browsers that cannot play the element at all.</p>
+  <div class="plain">Before HTML5 you needed a plug-in such as Flash to play a video. Now the browser can do it itself: you point at the file and it provides the play button, the volume and the progress bar for free.</div>
+  <p>HTML5 added three things that changed the web: <code>&lt;audio&gt;</code> for sound, <code>&lt;video&gt;</code> for moving pictures, and standard, plug-in-free playback built into every browser. The pattern for both elements is the same: the element itself (which is <b>not</b> void: it always needs a closing tag), one or more <code>&lt;source&gt;</code> children pointing at media files, optional <code>&lt;track&gt;</code> children for <span class="jw" data-def="The spoken words written on screen, for deaf viewers and for anyone in a noisy place.">captions</span>, and <span class="jw" data-def="A second choice used automatically when the first one does not work in this browser.">fallback</span> text between the tags for browsers that cannot play the element at all.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="Anatomy of a video element and its children">
       <rect x="20" y="20" width="580" height="190" rx="12" class="box"/>
@@ -45,6 +54,11 @@
   <p>Typical uses: music, narration, podcasts, pronunciation clips. As with images, provide a text alternative (a transcript) for audio that carries information.</p>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: your autoplay video refuses to start. What is almost always missing?</summary>
+    <p><code>muted</code>. Browsers block sound that starts by itself, because it is intolerable, so autoplay only works on a muted video.</p>
+  </details>
+
 <section id="s3">
   <h2>10.3 The video element and its attributes</h2>
   <pre class="code" data-run data-title="Video with controls, poster and a fallback" data-h="330" data-tall>&lt;video controls width="480" poster="https://picsum.photos/id/1015/480/270" preload="metadata"&gt;
@@ -70,6 +84,8 @@
 
 <section id="s4">
   <h2>10.4 source and track</h2>
+  <div class="callout analogy"><b>Several sources are a shortlist, not a playlist.</b> You are not asking for all of them to play one after another. You are saying &ldquo;here is the same film in three formats &mdash; use whichever you can read&rdquo;. The browser picks one and ignores the rest.</div>
+  <div class="plain">Different browsers can play different file formats. So you list several versions of the same video and the browser walks down your list and plays the first one it understands.</div>
   <h3>Why several source elements?</h3>
   <p>Browsers do not all support the same video formats. <code>&lt;source&gt;</code> lets you list several files; the browser reads them <b>in order and plays the first format it supports</b>, ignoring the rest. They do not all play at once, they do not increase resolution, and there is no minimum number. MP4 (H.264) plus WebM covers essentially every browser. The <code>type</code> attribute tells the browser the format so it can skip files it cannot play without downloading them.</p>
   <figure class="fig narrow">
@@ -92,6 +108,11 @@
   &lt;track src="captions-hi.vtt" kind="captions" srclang="hi" label="Hindi"&gt;
 &lt;/video&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: why must every <code>&lt;iframe&gt;</code> have a <code>title</code>?</summary>
+    <p>Without one a screen reader announces just &ldquo;frame&rdquo;, which tells the user nothing. The title is a short description of what is embedded &mdash; it is not displayed on the page.</p>
+  </details>
 
 <section id="s5">
   <h2>10.5 The iframe: a window into another document</h2>

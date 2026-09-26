@@ -1,0 +1,295 @@
+<article class="chapter" data-ch="37">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 37 &middot; Responsive Web Design</p>
+  <h1>Responsive Web Design</h1>
+  <p class="lead">More than half the people who will ever open your page are holding a phone. Responsive design is using HTML and CSS to make one page automatically resize, hide, shrink or enlarge itself so it works on a phone, a tablet and a monitor. <a href="book.html?ch=21">Chapter 21</a> prepared the HTML; this chapter is the CSS half.</p>
+  <p class="meta">About 21 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The <b>viewport meta tag</b> makes a phone use its real width (<a href="book.html?ch=21">Chapter 21</a>).</li>
+      <li><code>%</code>, <code>rem</code>, <code>vw</code> and <code>vh</code> are relative units (<a href="book.html?ch=25">Chapter 25</a>).</li>
+      <li><code>max-width</code> lets a box shrink; <code>width</code> does not (<a href="book.html?ch=28">Chapter 28</a>).</li>
+      <li>Flexbox wraps with <code>flex-wrap</code>; Grid adapts with <code>auto-fit</code> (Chapters 30 and 31).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write the viewport meta tag and say what breaks without it.</li>
+      <li>Write a media query and read <code>min-width</code> and <code>max-width</code> correctly.</li>
+      <li>Explain mobile-first and why it produces simpler CSS.</li>
+      <li>Choose sensible breakpoints, and know when you need none at all.</li>
+      <li>Make images, text and layouts flexible, and test the result.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>37.1 The one line without which nothing works</h2>
+  <p>Before any CSS, the HTML must carry this in its <code>&lt;head&gt;</code>:</p>
+  <pre class="code">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</pre>
+  <p>Mobile browsers were built when every page was a desktop page, so by default they <b>pretend to be about 980 pixels wide</b>, lay your page out at that width and shrink the result to fit the screen. The reader gets a perfect miniature of a desktop site and has to pinch to read anything.</p>
+  <p>Worse for this chapter: your <b>media queries then measure the wrong width</b>. The browser believes it is 980px wide, so a rule written for screens under 600px never fires. If your media queries are being ignored on a phone, this missing tag is almost certainly why &mdash; not a missing reset, not a missing doctype, not a missing <code>display: flex</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="A phone without and with the viewport meta tag">
+      <rect x="90" y="16" width="150" height="168" rx="16" class="box gry"/>
+      <rect x="102" y="32" width="126" height="136" fill="#fff" stroke="#CBD5E1"/>
+      <g fill="#94A3B8">
+        <rect x="108" y="38" width="44" height="4"/><rect x="108" y="46" width="114" height="2"/>
+        <rect x="108" y="52" width="114" height="2"/><rect x="108" y="58" width="80" height="2"/>
+        <rect x="108" y="68" width="52" height="24"/><rect x="166" y="68" width="56" height="2"/>
+        <rect x="166" y="74" width="56" height="2"/><rect x="166" y="80" width="40" height="2"/>
+        <rect x="108" y="100" width="114" height="2"/><rect x="108" y="106" width="114" height="2"/>
+      </g>
+      <text x="165" y="196" class="t c b" fill="#C42B2B" style="font-size:11px">no viewport tag</text>
+      <text x="165" y="150" class="t c s">unreadable</text>
+      <path d="M262 100 L308 100" class="edge" marker-end="url(#arr)"/>
+      <rect x="330" y="16" width="150" height="168" rx="16" class="box gry"/>
+      <rect x="342" y="32" width="126" height="136" fill="#fff" stroke="#CBD5E1"/>
+      <g fill="#3C4A60">
+        <rect x="350" y="42" width="80" height="10" rx="2"/>
+        <rect x="350" y="60" width="110" height="5" rx="2"/><rect x="350" y="70" width="110" height="5" rx="2"/>
+        <rect x="350" y="80" width="86" height="5" rx="2"/>
+        <rect x="350" y="96" width="110" height="34" rx="4" fill="#FFF1E0"/>
+        <rect x="350" y="138" width="110" height="5" rx="2"/><rect x="350" y="148" width="70" height="5" rx="2"/>
+      </g>
+      <text x="405" y="196" class="t c b" fill="#138808" style="font-size:11px">with the viewport tag</text>
+      <text x="496" y="96" class="t s">real width,</text><text x="496" y="112" class="t s">readable text,</text><text x="496" y="128" class="t s">media queries work</text>
+    </svg>
+    <figcaption><b>Figure 37.1</b> The viewport tag is the difference between a shrunken desktop page and a real mobile page.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>37.2 Media queries</h2>
+  <p>A <b>media query</b> wraps a block of CSS in a condition. The rules inside apply only when the condition is true:</p>
+  <pre class="code">@media (min-width: 700px) {
+  .layout { display: flex; }
+}</pre>
+  <p>Read it literally: <i>"when the viewport is at least 700 pixels wide, make .layout a flex container."</i> Below 700px the rule simply does not exist, so the layout stays stacked.</p>
+  <table class="tbl">
+    <thead><tr><th>Condition</th><th>Applies when the screen is</th><th>Think of it as</th></tr></thead>
+    <tbody>
+      <tr><td><code>(min-width: 700px)</code></td><td><b>700px or wider</b></td><td>"from here upwards"</td></tr>
+      <tr><td><code>(max-width: 699px)</code></td><td>699px or narrower</td><td>"up to here"</td></tr>
+      <tr><td><code>(min-width: 700px) and (max-width: 1099px)</code></td><td>Between the two</td><td>"only in this band"</td></tr>
+      <tr><td><code>(orientation: landscape)</code></td><td>Wider than it is tall</td><td>Phone turned sideways</td></tr>
+      <tr><td><code>print</code></td><td>The page is being printed</td><td>Hide the navigation, use black text</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>min- and max- are easy to get backwards.</b> <code>min-width</code> sets a <i>minimum the screen must reach</i> &mdash; so it targets <b>big</b> screens. <code>max-width</code> sets a maximum, so it targets <b>small</b> ones. Say "min means from this width up" out loud a few times.</div>
+  <pre class="code" data-run data-title="Drag the preview edge slowly across 500px" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  .box {
+    background: #FFF1E0; border: 2px solid #E07B1E;
+    padding: 20px; border-radius: 12px; text-align: center; font-weight: 700;
+  }
+  .box::after { content: " - narrow screen"; font-weight: 400; }
+
+  @media (min-width: 500px) {
+    .box { background: #E9F7E7; border-color: #138808; }
+    .box::after { content: " - 500px or wider"; }
+  }
+&lt;/style&gt;
+&lt;div class="box"&gt;This box knows how wide you are&lt;/div&gt;</pre>
+</section>
+
+<section id="s3">
+  <h2>37.3 Mobile-first</h2>
+  <p><b>Mobile-first</b> means writing the phone layout as the <b>default</b> CSS &mdash; no media query at all &mdash; and then <b>adding</b> with <code>min-width</code> queries as the screen gets bigger.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 180" role="img" aria-label="Mobile-first adds rules as the screen grows; desktop-first strips them away">
+      <rect x="14" y="26" width="330" height="128" rx="12" class="box grn"/>
+      <text x="179" y="50" class="t c b">MOBILE-FIRST &mdash; build upward</text>
+      <text x="179" y="74" class="t c s mono" style="font-size:11px">.row { display: block; }</text>
+      <text x="179" y="92" class="t c s mono" style="font-size:11px">@media (min-width: 700px) {</text>
+      <text x="179" y="108" class="t c s mono" style="font-size:11px">  .row { display: flex; } }</text>
+      <text x="179" y="134" class="t c s">simple default, add when there is room</text>
+      <rect x="376" y="26" width="330" height="128" rx="12" class="box gry"/>
+      <text x="541" y="50" class="t c b">DESKTOP-FIRST &mdash; strip back</text>
+      <text x="541" y="74" class="t c s mono" style="font-size:11px">.row { display: flex; gap: 40px; }</text>
+      <text x="541" y="92" class="t c s mono" style="font-size:11px">@media (max-width: 699px) {</text>
+      <text x="541" y="108" class="t c s mono" style="font-size:11px">  .row { display: block; gap: 0; } }</text>
+      <text x="541" y="134" class="t c s">every desktop rule needs undoing later</text>
+    </svg>
+    <figcaption><b>Figure 37.2</b> Mobile-first writes less CSS, because adding is shorter than undoing.</figcaption>
+  </figure>
+  <p>Three reasons it is the standard approach:</p>
+  <ul>
+    <li><b>Simpler CSS.</b> A phone layout is usually one column, which is close to what HTML does anyway. Adding columns for a wide screen is a short rule; undoing a desktop layout for a phone means cancelling several.</li>
+    <li><b>Phones do the least work.</b> The device with the slowest connection and the smallest battery gets the smallest set of rules.</li>
+    <li><b>It forces you to prioritise.</b> If it has to fit a 375px screen, you find out quickly what actually matters.</li>
+  </ul>
+  <p>Note what mobile-first is <i>not</i>: it does not mean designing for phones and discarding the desktop, and it is not only about testing on a phone first.</p>
+</section>
+
+<section id="s4">
+  <h2>37.4 Breakpoints</h2>
+  <p>A <b>breakpoint</b> is the width at which your layout changes. Common starting values:</p>
+  <table class="tbl">
+    <thead><tr><th>Breakpoint</th><th>Roughly</th><th>Typical change</th></tr></thead>
+    <tbody>
+      <tr><td>(no query)</td><td>Phones, up to ~600px</td><td>One column, stacked navigation</td></tr>
+      <tr><td><code>min-width: 600px</code></td><td>Large phones, small tablets</td><td>Two columns of cards</td></tr>
+      <tr><td><code>min-width: 900px</code></td><td>Tablets, small laptops</td><td>Sidebar appears beside the content</td></tr>
+      <tr><td><code>min-width: 1200px</code></td><td>Desktops</td><td>Wider gutters, a maximum content width</td></tr>
+    </tbody>
+  </table>
+  <p>Treat those as a starting point, not a law. The professional habit is to <b>let the content choose the breakpoint</b>: widen the browser slowly and add a query at the width where the design starts to look wrong. Chasing particular device sizes is a losing game &mdash; there are hundreds, and new ones every year.</p>
+  <div class="callout why"><b>The best breakpoint is often no breakpoint.</b> <code>repeat(auto-fit, minmax(200px, 1fr))</code> in Grid (<a href="book.html?ch=31">Chapter 31</a>) and <code>flex-wrap: wrap</code> with <code>flex: 1 1 200px</code> in Flexbox (<a href="book.html?ch=30">Chapter 30</a>) both adapt continuously, at every width, with no query at all. Reach for a media query when something must genuinely <i>change</i>, not merely resize.</div>
+</section>
+
+<section id="s5">
+  <h2>37.5 Flexible everything</h2>
+  <h3>Images and media</h3>
+  <p>One rule keeps every image inside its box:</p>
+  <pre class="code">img, video, iframe {
+  max-width: 100%;
+  height: auto;       /* keep the proportions */
+}</pre>
+  <p>Without it, a 1200px-wide photo pushes the whole layout sideways on a 375px phone and produces a horizontal scrollbar. Chapter 8's <code>srcset</code> then goes further and downloads a <i>smaller file</i> rather than merely scaling a large one.</p>
+  <h3>Containers</h3>
+  <pre class="code">.page {
+  max-width: 1100px;   /* never absurdly wide on a big monitor */
+  margin: 0 auto;      /* centred                               */
+  padding: 0 16px;     /* never touching the screen edge        */
+}</pre>
+  <p>Those three lines are a complete, responsive page wrapper. No media query needed.</p>
+  <h3>Fluid type with clamp()</h3>
+  <p><code>clamp(minimum, ideal, maximum)</code> lets a value scale smoothly but never go silly:</p>
+  <pre class="code">h1 { font-size: clamp(1.75rem, 5vw, 3rem); }</pre>
+  <p>Read it as: <i>"never smaller than 1.75rem, never bigger than 3rem, and in between grow with the window."</i> One line replaces three media queries, and unlike plain <code>vw</code> it cannot become unreadable on a narrow phone (<a href="book.html?ch=25">Chapter 25</a>).</p>
+  <h3>Hiding things &mdash; carefully</h3>
+  <pre class="code">@media (max-width: 599px) {
+  .desktop-only { display: none; }
+}</pre>
+  <p>Legitimate for a decorative image or a duplicate navigation. <b>Not</b> legitimate for content a phone user needs. "They are on a phone so they will not want the contact details" has never once been true.</p>
+</section>
+
+<section id="s6">
+  <h2>37.6 Build it: the responsive profile page</h2>
+  <pre class="code" data-run data-title="Project, step 15: one page, every screen" data-h="400" data-tall>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Asha Kumar&lt;/title&gt;
+&lt;style&gt;
+  * { box-sizing: border-box; }
+  img { max-width: 100%; height: auto; }
+
+  body { font-family: system-ui, sans-serif; margin: 0; background: #F1F5F9;
+         color: #3C4A60; line-height: 1.7; }
+  .page { max-width: 1000px; margin: 0 auto; padding: 16px; }
+
+  h1 { font-size: clamp(1.6rem, 5vw, 2.5rem); color: #0B2545; margin: 0 0 4px; }
+
+  /* MOBILE FIRST: everything stacks, no query needed */
+  .layout { display: grid; gap: 16px; }
+  .panel  { background: #fff; border-radius: 12px; padding: 16px;
+            box-shadow: 0 2px 8px rgba(16,32,64,.08); }
+
+  /* the cards adapt with NO media query at all */
+  .cards { display: grid; gap: 12px;
+           grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); }
+  .cards div { background: #FFF8F0; border: 1px solid #F0C79A;
+               border-radius: 8px; padding: 12px; font-size: 14px; }
+
+  /* ADD a sidebar only when there is room for one */
+  @media (min-width: 720px) {
+    .layout { grid-template-columns: 260px 1fr; align-items: start; }
+  }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="page"&gt;
+  &lt;h1&gt;Asha Kumar&lt;/h1&gt;
+  &lt;div class="layout"&gt;
+    &lt;div class="panel"&gt;
+      &lt;b&gt;About&lt;/b&gt;
+      &lt;p style="font-size:14px;margin:6px 0 0"&gt;B.Tech Computer Science, first year.
+      Drag this preview narrow and wide.&lt;/p&gt;
+    &lt;/div&gt;
+    &lt;div class="panel"&gt;
+      &lt;b&gt;Courses&lt;/b&gt;
+      &lt;div class="cards" style="margin-top:10px"&gt;
+        &lt;div&gt;CSE326&lt;/div&gt;&lt;div&gt;CSE305&lt;/div&gt;&lt;div&gt;CSE201&lt;/div&gt;&lt;div&gt;MTH101&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Count the media queries: <b>one</b>. Everything else adapts by itself, because the units are relative, the images are capped, the grid uses <code>auto-fit</code> and the heading uses <code>clamp()</code>.</p>
+  <h3>Testing</h3>
+  <ol>
+    <li>Press <kbd>F12</kbd>, then <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> for the device toolbar, and drag the width slowly. Watch for the moment the design breaks &mdash; that is where your next breakpoint goes.</li>
+    <li>Check for a horizontal scrollbar at 375px. If there is one, something has a fixed width or an image is uncapped.</li>
+    <li>Open it on a real phone. Emulators do not reproduce touch targets, real keyboards or a slow connection.</li>
+    <li>Zoom the browser to 200%. Text should reflow, not disappear.</li>
+  </ol>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Your media queries are ignored on a phone. What is almost certainly missing?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A CSS reset</li><li>B. The viewport meta tag</li><li>C. display:flex</li><li>D. A doctype</li></ul>
+    <p><b>Answer: B.</b> Without <code>width=device-width</code> the phone pretends to be a 980px desktop, so the queries measure the wrong width.</p></div></details>
+  <details class="q"><summary>What does 'mobile-first' mean in practice?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Design for phones then discard the desktop</li><li>B. Write the phone layout as the default, then ADD with min-width queries</li><li>C. Use max-width queries only</li><li>D. Test on a phone first</li></ul>
+    <p><b>Answer: B.</b> It produces simpler CSS, and phones do the least work.</p></div></details>
+  <details class="q"><summary><code>@media (min-width: 700px)</code> applies when the screen is:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Narrower than 700px</li><li>B. 700px or wider</li><li>C. Exactly 700px</li><li>D. Any size</li></ul>
+    <p><b>Answer: B.</b> <code>min-width</code> means "from this width upward", so it targets bigger screens.</p></div></details>
+  <details class="q"><summary>Write the viewport meta tag from memory.<span class="lvl">L1</span></summary><div class="a">
+    <p><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code> &mdash; in the <code>&lt;head&gt;</code> of every page.</p></div></details>
+  <details class="q"><summary>Which rule stops a large image breaking a phone layout?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>img { max-width: 100%; height: auto; }</code></b> &mdash; the image can never be wider than its container, and keeps its proportions.</p></div></details>
+  <details class="q"><summary>Which layout technique adapts to any width with NO media query?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>grid-template-columns: repeat(auto-fit, minmax(200px, 1fr))</code></b>, or Flexbox with <code>flex-wrap: wrap</code> and <code>flex: 1 1 200px</code>. Both recalculate continuously as the window changes.</p></div></details>
+  <details class="q"><summary>What does <code>font-size: clamp(1.75rem, 5vw, 3rem)</code> do?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Never smaller than 1.75rem, never larger than 3rem, and between those it grows with the viewport width.</b> It replaces several media queries and avoids plain <code>vw</code>'s habit of becoming unreadable on a narrow screen.</p></div></details>
+  <details class="q"><summary>A designer wants the contact details hidden on phones "to save space". What do you say?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>No.</b> Hiding with <code>display: none</code> is fine for decoration or a duplicated menu, never for content a phone user needs &mdash; and contact details are among the things people most often look for on a phone. Make it fit instead.</p></div></details>
+  <details class="q"><summary>How do you choose where to put a breakpoint?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Let the content decide.</b> Widen the browser slowly and add a query at the width where the design starts to look wrong. Chasing specific device widths fails, because there are hundreds and more arrive every year.</p></div></details>
+  <details class="q"><summary>Name three things to check before calling a page responsive.<span class="lvl">L2</span></summary><div class="a">
+    <p>No horizontal scrollbar at 375px; text readable without zooming; every control large enough to tap. Add: it works at 200% zoom, and you tried it on a real phone rather than only an emulator.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>The viewport meta tag is compulsory. Without it a phone pretends to be 980px wide and your media queries measure the wrong width.</li>
+    <li><code>@media (min-width: 700px)</code> applies from 700px <b>upwards</b>; <code>max-width</code> applies downwards.</li>
+    <li>Mobile-first: the phone layout is the default, and <code>min-width</code> queries add to it. Less CSS, less work for phones.</li>
+    <li>Let the content choose the breakpoints. Often the best number of breakpoints is zero: <code>auto-fit</code> grids and wrapping flex rows adapt on their own.</li>
+    <li><code>img { max-width: 100%; height: auto; }</code>, a <code>max-width</code> page wrapper, and <code>clamp()</code> for headings cover most of the rest.</li>
+    <li>Test by dragging the width, at 375px, at 200% zoom, and on a real phone.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;meta name="viewport" ...&gt;</code></td><td>Use the device's real width</td></tr>
+      <tr><td><code>@media (min-width: 700px) { }</code></td><td>Rules for 700px and wider</td></tr>
+      <tr><td><code>@media (max-width: 599px) { }</code></td><td>Rules for 599px and narrower</td></tr>
+      <tr><td><code>img { max-width: 100%; height: auto; }</code></td><td>Images never overflow</td></tr>
+      <tr><td><code>max-width: 1100px; margin: 0 auto;</code></td><td>A centred, capped page wrapper</td></tr>
+      <tr><td><code>clamp(1.75rem, 5vw, 3rem)</code></td><td>Fluid type with sane limits</td></tr>
+      <tr><td><code>repeat(auto-fit, minmax(200px, 1fr))</code></td><td>A responsive grid with no query</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Core/CSS_layout/Responsive_Design" target="_blank" rel="noopener noreferrer">MDN &mdash; Responsive web design<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Mobile-first thinking, breakpoints, and why content decides where they go.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@media" target="_blank" rel="noopener noreferrer">MDN &mdash; @media<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every media feature you can test, not just width.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_media_queries/Using_media_queries" target="_blank" rel="noopener noreferrer">MDN &mdash; Using media queries<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The practical guide: where to put breakpoints and why content decides them.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

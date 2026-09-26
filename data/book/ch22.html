@@ -1,0 +1,443 @@
+<article class="chapter" data-ch="22">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 22 &middot; Introduction to CSS</p>
+  <h1>Introduction to CSS</h1>
+  <p class="lead">A page written with HTML alone works perfectly, and looks like a photocopy from 1994. This chapter is where that changes. You will learn what a style is, the exact shape of a CSS rule down to the last bracket, the three places CSS can live, and how the browser puts your page and your styles together.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO3 &middot; The first chapter of Unit 3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><b>HTML</b> is the language that says what each piece of content <i>is</i>: a heading, a paragraph, an image (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li>An <b>element</b> is an opening tag, some content and a closing tag, like <code>&lt;p&gt;Hello&lt;/p&gt;</code> (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li>An <b>attribute</b> is extra information inside the opening tag, like <code>class="card"</code> (<a href="book.html?ch=5">Chapter 5</a>).</li>
+      <li>The <b>head</b> holds information about the page and is never drawn on screen (<a href="book.html?ch=4">Chapter 4</a>).</li>
+    </ul>
+    <p style="margin:8px 0 0">If any of those felt unfamiliar, open that chapter for five minutes first. Nothing here needs more than that.</p>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what CSS is and why a plain HTML page looks plain.</li>
+      <li>Write a CSS rule and name every part of it: selector, braces, property, value, declaration.</li>
+      <li>Add CSS to a page in all three ways, and say which one a real project uses.</li>
+      <li>Explain what the word <i>cascading</i> is doing in the name.</li>
+      <li>Write a comment, and find the missing semicolon when a rule stops working.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>22.1 Why a plain page looks plain</h2>
+  <p>Open any HTML file you have written so far and look at it honestly. Black text. A serif font you did not choose. Headings in a few sizes. Blue underlined links. Everything stacked down the left edge.</p>
+  <p>Nothing is broken. That look is the browser's <b>default style</b>: the appearance a <span class="jw" data-def="The program you view web pages with - Chrome, Edge, Firefox or Safari.">browser</span> falls back on when you have not said what you want. Every browser ships with a small built-in stylesheet so that a bare page is at least readable.</p>
+  <p>HTML's job is to say what each piece of content <i>is</i>. It has no opinion about colour, size or position. Something else has to supply that, and that something is <b>CSS</b>.</p>
+  <p><b>CSS stands for Cascading Style Sheets.</b> It is the language you use to describe how HTML elements should be displayed. Take the name apart:</p>
+  <ul>
+    <li><b>Style</b> &mdash; colour, size, spacing, position. The look.</li>
+    <li><b>Sheet</b> &mdash; the rules live together in a sheet, normally one file, which many pages can share.</li>
+    <li><b>Cascading</b> &mdash; when several rules want to style the same thing, a fixed order of priority decides the winner. Section 22.6 introduces it and <a href="book.html?ch=23">Chapter 23</a> finishes the job.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> Writing HTML is like typing the words of a wedding invitation: the names, the date, the address. Every fact is there and anyone can read it. CSS is choosing the card, the gold border, the size of the couple's names and how far the date sits below them. Same words, completely different card.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="The same HTML shown twice: plain with browser defaults, and styled with CSS">
+      <rect x="20" y="24" width="270" height="160" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="155" y="16" class="t c b">HTML alone (browser defaults)</text>
+      <text x="38" y="58" style="font-family:Times New Roman,serif;font-size:20px;font-weight:700" fill="#000">Student Profile</text>
+      <text x="38" y="82" style="font-family:Times New Roman,serif;font-size:12px" fill="#000">Asha Kumar</text>
+      <text x="38" y="102" style="font-family:Times New Roman,serif;font-size:12px" fill="#000">B.Tech CSE, first year.</text>
+      <text x="38" y="128" style="font-family:Times New Roman,serif;font-size:12px;text-decoration:underline" fill="#00e">View portfolio</text>
+      <text x="155" y="170" class="t c s">readable, and nothing else</text>
+      <path d="M300 104 L340 104" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="320" y="96" class="t c s">+ CSS</text>
+      <rect x="350" y="24" width="250" height="160" rx="10" fill="#fff" stroke="#E3E9F0"/>
+      <text x="475" y="16" class="t c b">the same HTML, with CSS</text>
+      <rect x="366" y="38" width="218" height="132" rx="12" fill="#FFF8F0" stroke="#F0C79A"/>
+      <rect x="366" y="38" width="218" height="6" rx="3" fill="#E07B1E"/>
+      <text x="475" y="74" class="t c b" style="font-size:17px" fill="#0B2545">Student Profile</text>
+      <text x="475" y="98" class="t c" style="font-size:12.5px" fill="#3C4A60">Asha Kumar</text>
+      <text x="475" y="116" class="t c s">B.Tech CSE, first year.</text>
+      <rect x="425" y="132" width="100" height="26" rx="13" fill="#138808"/>
+      <text x="475" y="149" class="t c w" style="font-size:11.5px;font-weight:700">View portfolio</text>
+      <text x="475" y="184" class="t c s">same words, chosen look</text>
+    </svg>
+    <figcaption><b>Figure 22.1</b> The HTML is identical on both sides. Only the styling differs. CSS never changes what your content <i>is</i>; it changes how it is presented.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>22.2 Your very first style</h2>
+  <p>Here is the smallest possible before-and-after. Press <b>Run</b>, look at the result, then read the two lines.</p>
+  <pre class="code" data-run data-title="One plain paragraph, one styled paragraph" data-h="130">&lt;p&gt;I am a normal paragraph.&lt;/p&gt;
+
+&lt;p style="color: green; font-size: 24px;"&gt;I have been styled.&lt;/p&gt;</pre>
+  <p>The second paragraph carries a <code>style</code> attribute holding two instructions:</p>
+  <ul>
+    <li><code>color: green</code> &mdash; paint the text green.</li>
+    <li><code>font-size: 24px</code> &mdash; make the letters 24 pixels tall.</li>
+  </ul>
+  <p>That is CSS. Two facts to take from it. First, styling is always written as <b>a name, a colon, and a value</b>. Second, the browser applies it immediately &mdash; there is nothing to install, compile or switch on.</p>
+  <p>Now try it yourself. The panel below is live: move a slider, open a colour box, change the dropdown. Watch two things at once &mdash; the sample at the top, and the CSS underneath. The line you just touched is highlighted.</p>
+  <div class="tryit" data-el=".t-h1" data-rule="h1">
+    <div class="tryit-head">Change a value and watch both the heading and the CSS</div>
+    <div class="tryit-stage"><div class="frame"><div class="t-h1" style="font-weight:800;padding:14px;border-radius:10px">Student Profile</div></div></div>
+    <div class="tryit-ctl">
+      <label>color <input type="color" value="#0b2545" data-prop="color"></label>
+      <label>background-color <input type="color" value="#fff1e0" data-prop="background-color"></label>
+      <label>font-size <input type="range" min="14" max="52" step="1" value="28" data-prop="font-size" data-unit="px"></label>
+      <label>text-align <select data-prop="text-align"><option>left</option><option selected>center</option><option>right</option></select></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+  <p>Nothing about that heading changed in the HTML. The words are the same. Only the CSS moved.</p>
+</section>
+
+<section id="s3">
+  <h2>22.3 The shape of a CSS rule</h2>
+  <p>Inline styles like the one above are fine for a first look, but real CSS is written as <b>rules</b>, away from the HTML. A rule has two halves: <i>who</i> to style, and <i>what</i> to do to them.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Anatomy of a CSS rule: selector, braces, property, colon, value, semicolon">
+      <g class="mono" style="font-size:25px;font-weight:700">
+        <text x="30" y="56" fill="#138808">p</text>
+        <text x="58" y="56" fill="#E07B1E">{</text>
+        <text x="96" y="56" fill="#4F46E5">color</text>
+        <text x="166" y="56" fill="#0B2545">:</text>
+        <text x="184" y="56" fill="#C42B2B">navy</text>
+        <text x="248" y="56" fill="#0B2545">;</text>
+        <text x="268" y="56" fill="#E07B1E">}</text>
+      </g>
+      <path d="M36 68 L36 92" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="36" y="110" class="t c b" fill="#138808">selector</text>
+      <text x="36" y="126" class="t c s">who to style</text>
+      <path d="M66 68 L66 150" class="edge saf"/><path d="M276 68 L276 150" class="edge saf"/>
+      <path d="M66 150 L276 150" class="edge saf"/>
+      <path d="M171 150 L171 168" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="171" y="186" class="t c b" fill="#E07B1E">curly brackets (braces)</text>
+      <text x="171" y="202" class="t c s">everything between them belongs to that selector</text>
+      <path d="M120 40 L120 24" class="edge" style="stroke:#4F46E5" marker-end="url(#arr)"/>
+      <text x="120" y="18" class="t c b" fill="#4F46E5">property</text>
+      <path d="M212 40 L212 24" class="edge" style="stroke:#C42B2B" marker-end="url(#arr)"/>
+      <text x="214" y="18" class="t c b" fill="#C42B2B">value</text>
+      <rect x="96" y="212" width="290" height="30" rx="8" class="box blu"/>
+      <text x="241" y="232" class="t c b">property + colon + value = one declaration</text>
+      <text x="470" y="100" class="t c s">the colon separates</text>
+      <text x="470" y="116" class="t c s">name from value</text>
+      <text x="470" y="140" class="t c s">the semicolon ends</text>
+      <text x="470" y="156" class="t c s">the declaration</text>
+    </svg>
+    <figcaption><b>Figure 22.2</b> Every CSS rule you will ever write has this shape. Learn the five words in it and the rest of Unit 3 is vocabulary.</figcaption>
+  </figure>
+  <dl>
+    <dt><b>Selector</b> &mdash; <code>p</code></dt>
+    <dd>Points at the elements you want to style. Here it means "every paragraph on the page". <a href="book.html?ch=23">Chapter 23</a> is entirely about selectors.</dd>
+    <dt><b>Braces</b> &mdash; <code>{ }</code></dt>
+    <dd>Also called curly brackets. Everything between them applies to whatever the selector picked. Every opening brace needs a closing one.</dd>
+    <dt><b>Property</b> &mdash; <code>color</code></dt>
+    <dd>The name of the thing you are changing. There are a few hundred; you will meet about forty in this unit. Property names are fixed words &mdash; you cannot invent <code>colour</code> or <code>textsize</code>.</dd>
+    <dt><b>Value</b> &mdash; <code>navy</code></dt>
+    <dd>What you are setting the property to. Which values are allowed depends on the property: <code>color</code> takes a colour, <code>font-size</code> takes a size.</dd>
+    <dt><b>Declaration</b> &mdash; <code>color: navy;</code></dt>
+    <dd><b>Property + colon + value.</b> One complete instruction, ended by a semicolon. A rule can hold as many declarations as you like.</dd>
+  </dl>
+  <div class="plain">
+    <p>A rule reads out loud as a sentence: <i>"For every paragraph, set the colour to navy."</i> Selector first, then the list of changes.</p>
+  </div>
+  <pre class="code" data-run data-title="One selector, several declarations" data-h="170">&lt;style&gt;
+  p {
+    color: navy;
+    font-size: 18px;
+    line-height: 1.7;
+  }
+&lt;/style&gt;
+
+&lt;p&gt;Both of these paragraphs are navy, 18 pixels and comfortably spaced.&lt;/p&gt;
+&lt;p&gt;I did not have to style them one at a time.&lt;/p&gt;</pre>
+  <p>Look at what you just got for free. <b>One rule styled every paragraph on the page</b>, and it would style two hundred of them just as easily. That is the saving CSS is really about.</p>
+  <details class="qc"><summary>Quick check: in <code>h1 { text-align: center; }</code>, which part is the property and which is the value?</summary><div class="a">
+    <p><code>text-align</code> is the <b>property</b>, <code>center</code> is the <b>value</b>, <code>h1</code> is the <b>selector</b>, and <code>text-align: center;</code> altogether is one <b>declaration</b>.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>22.4 The three places CSS can live</h2>
+  <p>CSS has to reach the page somehow. There are exactly three ways, and you will be asked to name them.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 220" role="img" aria-label="Three ways to add CSS: inline in the tag, internal in a style element, external in a linked file">
+      <rect x="12" y="24" width="222" height="180" rx="12" class="box gry"/>
+      <text x="123" y="48" class="t c b">1 &middot; INLINE</text>
+      <text x="123" y="68" class="t c s">in the element's style attribute</text>
+      <rect x="26" y="80" width="194" height="34" rx="6" fill="#fff" stroke="#CBD5E1"/>
+      <text x="36" y="101" class="t mono" style="font-size:10.5px">&lt;p style="color:red"&gt;Hi&lt;/p&gt;</text>
+      <text x="123" y="134" class="t c s">styles ONE element</text>
+      <text x="123" y="158" class="t c s b" fill="#C42B2B">avoid in real work</text>
+      <text x="123" y="178" class="t c s">hard to reuse, hard to</text>
+      <text x="123" y="192" class="t c s">override, mixes look in</text>
+      <rect x="246" y="24" width="222" height="180" rx="12" class="box saf"/>
+      <text x="357" y="48" class="t c b">2 &middot; INTERNAL</text>
+      <text x="357" y="68" class="t c s">a &lt;style&gt; element in &lt;head&gt;</text>
+      <rect x="260" y="80" width="194" height="48" rx="6" fill="#fff" stroke="#F0C79A"/>
+      <text x="270" y="96" class="t mono" style="font-size:10.5px">&lt;style&gt;</text>
+      <text x="278" y="110" class="t mono" style="font-size:10.5px">p { color: red; }</text>
+      <text x="270" y="124" class="t mono" style="font-size:10.5px">&lt;/style&gt;</text>
+      <text x="357" y="148" class="t c s">styles ONE page</text>
+      <text x="357" y="170" class="t c s b" fill="#B45309">fine for a demo</text>
+      <text x="357" y="190" class="t c s">or a lab exercise</text>
+      <rect x="480" y="24" width="228" height="180" rx="12" class="box grn"/>
+      <text x="594" y="48" class="t c b">3 &middot; EXTERNAL</text>
+      <text x="594" y="68" class="t c s">a .css file joined with &lt;link&gt;</text>
+      <rect x="494" y="80" width="200" height="48" rx="6" fill="#fff" stroke="#A9E3C4"/>
+      <text x="502" y="96" class="t mono" style="font-size:9.5px">&lt;link rel="stylesheet"</text>
+      <text x="516" y="110" class="t mono" style="font-size:9.5px">href="style.css"&gt;</text>
+      <text x="594" y="148" class="t c s">styles EVERY page</text>
+      <text x="594" y="170" class="t c s b" fill="#0B6205">use this for real work</text>
+      <text x="594" y="190" class="t c s">one edit changes the site</text>
+    </svg>
+    <figcaption><b>Figure 22.3</b> Three ways in, one right answer for a project. Inline styles one element, internal styles one page, external styles the whole site.</figcaption>
+  </figure>
+  <h3>1. Inline CSS</h3>
+  <p>Written in the <code>style</code> <span class="jw" data-def="Extra information written inside an opening tag, in the form name=&quot;value&quot;.">attribute</span> of a single element. It applies a unique style to that one element and nothing else.</p>
+  <pre class="code">&lt;h1 style="color: teal; text-align: center;"&gt;Welcome&lt;/h1&gt;</pre>
+  <p>Notice there is no selector and no braces &mdash; the element it belongs to is obvious, because the style is written inside it. You only write the declarations.</p>
+  <p>It is genuinely useful for a two-second experiment. It is a poor way to build anything, because the look is now tangled into the content, you must repeat it on every element, and it beats almost every other rule so nothing can override it politely.</p>
+  <h3>2. Internal CSS</h3>
+  <p>Written once inside a <code>&lt;style&gt;</code> element in the <code>&lt;head&gt;</code> of the page. It defines the style for that single HTML page.</p>
+  <pre class="code" data-run data-title="Internal CSS: one style block, whole page" data-h="210">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Internal CSS&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: system-ui, sans-serif; background: #FFFDF7; }
+    h1   { color: #B45309; }
+    p    { color: #3C4A60; line-height: 1.7; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Internal styles&lt;/h1&gt;
+  &lt;p&gt;Everything on this page follows the rules written in the head.&lt;/p&gt;
+  &lt;p&gt;Adding a third paragraph costs nothing.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>This is what you will use in class exercises and in most of this book's examples, because one file shows the whole story.</p>
+  <h3>3. External CSS</h3>
+  <p>The rules go into their own file, by convention named something like <code>style.css</code>, which contains <b>only CSS</b> &mdash; no HTML tags at all, not even <code>&lt;style&gt;</code>. Each page that wants those rules joins itself to the file with a <code>&lt;link&gt;</code> element in its head.</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;head&gt;
+  &lt;link rel="stylesheet" href="style.css"&gt;
+&lt;/head&gt;
+
+/* style.css - a separate file, no HTML inside it */
+body { font-family: system-ui, sans-serif; }
+h1   { color: #B45309; }</pre>
+  <p>Two attributes do the work: <code>rel="stylesheet"</code> says what the linked file <i>is</i>, and <code>href="style.css"</code> says where to find it. Both are needed.</p>
+  <div class="callout why"><b>Why external wins.</b> A site with forty pages and one stylesheet needs one edit to change every heading on the site. The browser also <span class="jw" data-def="Keeps a copy of a file it has already downloaded, so it does not have to fetch it again.">caches</span> the file after the first page, so the other thirty-nine load faster. This is the standard answer to "which is the best way to include CSS in a real project?"</div>
+  <table class="tbl">
+    <thead><tr><th>Way</th><th>Where it is written</th><th>How far it reaches</th><th>Use it when</th></tr></thead>
+    <tbody>
+      <tr><td>Inline</td><td><code>style</code> attribute on the element</td><td>That one element</td><td>A quick test. Almost never otherwise.</td></tr>
+      <tr><td>Internal</td><td><code>&lt;style&gt;</code> in the <code>&lt;head&gt;</code></td><td>That one page</td><td>A single-page demo or a lab exercise.</td></tr>
+      <tr><td>External</td><td>A separate <code>.css</code> file, joined with <code>&lt;link&gt;</code></td><td>Every page that links it</td><td>Every real project.</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: your teacher says "put your CSS in an external stylesheet". What two things must you create?</summary><div class="a">
+    <p>(1) A file such as <code>style.css</code> containing only CSS rules, and (2) a <code>&lt;link rel="stylesheet" href="style.css"&gt;</code> inside the <code>&lt;head&gt;</code> of each HTML page. Miss the link and the page looks unstyled &mdash; the single most common "my CSS is not working" cause.</p></div></details>
+</section>
+
+<section id="s5">
+  <h2>22.5 What the browser actually does</h2>
+  <p>It helps to know the order of events, because most styling bugs are really ordering bugs.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 150" role="img" aria-label="The browser reads HTML, then CSS, matches rules to elements, and paints the page">
+      <rect x="10" y="40" width="130" height="60" rx="12" class="box saf"/><text x="75" y="64" class="t c b">1 read HTML</text><text x="75" y="84" class="t c s">build the tree of elements</text>
+      <path d="M145 70 L172 70" class="edge" marker-end="url(#arr)"/>
+      <rect x="176" y="40" width="130" height="60" rx="12" class="box"/><text x="241" y="64" class="t c b">2 read CSS</text><text x="241" y="84" class="t c s">collect every rule</text>
+      <path d="M311 70 L338 70" class="edge" marker-end="url(#arr)"/>
+      <rect x="342" y="40" width="150" height="60" rx="12" class="box blu"/><text x="417" y="60" class="t c b">3 match</text><text x="417" y="78" class="t c s">for each element, find</text><text x="417" y="92" class="t c s">the rules that apply</text>
+      <path d="M497 70 L524 70" class="edge" marker-end="url(#arr)"/>
+      <rect x="528" y="40" width="180" height="60" rx="12" class="box grn"/><text x="618" y="60" class="t c b">4 paint</text><text x="618" y="78" class="t c s">settle every property to one</text><text x="618" y="92" class="t c s">value, then draw the page</text>
+      <text x="360" y="128" class="t c s">Step 3 is why selectors matter. Step 4 is where the cascade settles ties.</text>
+    </svg>
+    <figcaption><b>Figure 22.4</b> The browser never guesses. It matches rules to elements and then resolves every property to exactly one value before painting a single pixel.</figcaption>
+  </figure>
+  <p>Two consequences worth remembering now:</p>
+  <ul>
+    <li>If a <span class="jw" data-def="The part of a rule that says which elements it applies to, such as p or .card.">selector</span> matches nothing, the rule sits there doing nothing and no error is shown. CSS, like HTML, fails silently.</li>
+    <li>If two rules set the same property on the same element, one of them has to win. That contest has rules, and it is the subject of the next chapter.</li>
+  </ul>
+</section>
+
+<section id="s6">
+  <h2>22.6 The "cascading" in Cascading Style Sheets</h2>
+  <p>Styles can arrive from more than one place: the browser's defaults, your stylesheet, and sometimes the reader's own settings. On top of that, your own stylesheet may contain several rules aimed at the same element. The <b>cascade</b> is the fixed procedure the browser follows to pick one value.</p>
+  <p>For now, two of its three ideas are enough:</p>
+  <ol>
+    <li><b>Later beats earlier, when everything else is equal.</b> If you write <code>p { color: red; }</code> and then <code>p { color: blue; }</code>, paragraphs are blue. The second rule was read last, so it overwrites.</li>
+    <li><b>More specific beats less specific.</b> A rule aimed at one particular element beats a rule aimed at all of them, no matter which came first. That is why an inline style is so hard to override.</li>
+  </ol>
+  <pre class="code" data-run data-title="Later wins, when the selectors are equally specific" data-h="140">&lt;style&gt;
+  p { color: red; }
+  p { color: blue; }   /* written later, so this one wins */
+&lt;/style&gt;
+&lt;p&gt;Which colour am I?&lt;/p&gt;</pre>
+  <p>The third idea is <b>inheritance</b>: some properties pass down from a parent element to the elements inside it. Set <code>color</code> on <code>body</code> and every paragraph inside receives it, without being named. That is why sensible stylesheets set fonts and colours once, high up, instead of on every element.</p>
+  <pre class="code" data-run data-title="Inheritance: set it once on body" data-h="150">&lt;style&gt;
+  body { font-family: Georgia, serif; color: #6D28D9; }
+&lt;/style&gt;
+&lt;h2&gt;Nobody styled this heading directly&lt;/h2&gt;
+&lt;p&gt;Or this paragraph. Both inherited the font and the colour from &lt;b&gt;body&lt;/b&gt;.&lt;/p&gt;</pre>
+  <div class="callout exam"><b>Exam tip.</b> "Cascading" is not decoration in the name. It refers to this ordered decision procedure: origin, then specificity, then source order, with inheritance filling in anything nobody set. <a href="book.html?ch=23">Chapter 23</a> scores specificity properly.</div>
+</section>
+
+<section id="s7">
+  <h2>22.7 Comments, spacing, and the missing semicolon</h2>
+  <p>A <b>comment</b> in CSS starts with <code>/*</code> and ends with <code>*/</code>. The browser ignores everything between. Use comments to label the sections of your stylesheet.</p>
+  <pre class="code">/* ---- page layout ---- */
+body { margin: 0; }
+
+/* p { color: red; }   switched off while I test something */</pre>
+  <p>Note that HTML's <code>&lt;!-- ... --&gt;</code> does <b>not</b> work inside CSS, and CSS's <code>/* ... */</code> does not work inside HTML. Each language has its own.</p>
+  <p>Spacing and line breaks are free. These two rules are identical to the browser:</p>
+  <pre class="code">h1 { color: navy; font-size: 32px; }
+
+h1 {
+  color: navy;
+  font-size: 32px;
+}</pre>
+  <p>Write the second form. One declaration per line is much easier to read and to fix.</p>
+  <h3>The four mistakes that break beginners' CSS</h3>
+  <div class="fix">
+    <div class="w"><b>&#10007; Missing semicolon</b><pre>p {
+  color: navy
+  font-size: 18px;
+}</pre>Both declarations are lost, not just one. The browser reads <code>navy font-size: 18px</code> as one broken value and throws the whole thing away.</div>
+    <div class="r"><b>&#10003; End every declaration</b><pre>p {
+  color: navy;
+  font-size: 18px;
+}</pre>Keep the semicolon on the last line too. Then adding a line later cannot break it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; Missing closing brace</b><pre>h1 { color: navy;
+p  { color: grey; }</pre>Everything after the unclosed rule is swallowed. A whole stylesheet can appear to stop working halfway down.</div>
+    <div class="r"><b>&#10003; Braces in pairs</b><pre>h1 { color: navy; }
+p  { color: grey; }</pre>Indent your declarations so an unclosed brace is visible at a glance.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; Colon and semicolon swapped</b><pre>p { color; navy: }</pre>Nothing happens, and no error appears.</div>
+    <div class="r"><b>&#10003; Colon inside, semicolon at the end</b><pre>p { color: navy; }</pre><b>Name, colon, value, semicolon.</b> Say it while you type it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; Inventing a property or a value</b><pre>p { text-colour: navy; }
+p { color: navyblue; }</pre>Both are ignored silently. British spelling is not accepted: it is always <code>color</code>.</div>
+    <div class="r"><b>&#10003; Use the real names</b><pre>p { color: navy; }</pre>If a line does nothing, the first suspect is a typo in the property name.</div>
+  </div>
+  <div class="callout warn"><b>When CSS "does not work".</b> Check in this order: (1) is the stylesheet actually linked, with the right file name and the right capital letters? (2) is there a missing semicolon or brace <i>above</i> the rule that fails? (3) is the property name spelled exactly right? (4) is another rule winning &mdash; the subject of the next chapter? Press <kbd>F12</kbd>, click the element, and the browser lists every rule that applied to it, with the losing ones crossed out.</div>
+</section>
+
+<section id="s8">
+  <h2>22.8 Build it: start the student profile card</h2>
+  <p>Through Unit 3 you will build one page piece by piece: a student profile card with courses, skills and a contact form. Each chapter adds the part it has just taught. Here is the beginning &mdash; plain HTML, one internal stylesheet, nothing you have not met.</p>
+  <pre class="code" data-run data-title="Project, step 1: a page that is no longer plain" data-h="300" data-tall>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Asha Kumar | Student Profile&lt;/title&gt;
+  &lt;style&gt;
+    /* ---- the whole page ---- */
+    body {
+      font-family: system-ui, sans-serif;
+      color: #3C4A60;
+      background: #FBFCFE;
+      line-height: 1.7;
+      padding: 24px;
+    }
+    /* ---- headings ---- */
+    h1 {
+      color: #0B2545;
+      font-size: 30px;
+    }
+    h2 {
+      color: #B45309;
+      font-size: 20px;
+    }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Asha Kumar&lt;/h1&gt;
+  &lt;p&gt;B.Tech Computer Science, first year. Learning to build for the web.&lt;/p&gt;
+
+  &lt;h2&gt;Courses&lt;/h2&gt;
+  &lt;p&gt;CSE326 Internet Programming &mdash; in progress.&lt;/p&gt;
+
+  &lt;h2&gt;Contact&lt;/h2&gt;
+  &lt;p&gt;asha@example.edu&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Press <b>Run</b>, then <b>Open in Playground</b> and change three things: the two colours, the <code>font-size</code> of <code>h1</code>, and the <code>background</code> of <code>body</code>. Nothing you do there can break anything. Keep the file &mdash; <a href="book.html?ch=23">Chapter 23</a> continues from it.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer before you open each one. Four options, exactly one right, same as CA2.</p>
+  <details class="q"><summary>What does CSS stand for?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Creative Style System</li><li>B. Cascading Style Sheets</li><li>C. Computer Styled Sections</li><li>D. Coded Style Syntax</li></ul>
+    <p><b>Answer: B.</b> Cascading Style Sheets: <i>style</i> for the look, <i>sheet</i> because the rules live together in a file, <i>cascading</i> for the ordered way conflicts are settled.</p></div></details>
+  <details class="q"><summary>In the rule <code>p { color: navy; }</code>, what is <code>color: navy</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A selector</li><li>B. A declaration</li><li>C. An attribute</li><li>D. A property only</li></ul>
+    <p><b>Answer: B.</b> Property plus colon plus value is a <b>declaration</b>. <code>color</code> alone is the property, <code>navy</code> alone is the value, and <code>p</code> is the selector.</p></div></details>
+  <details class="q"><summary>Which is the best way to include CSS in a real project?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. style attributes on each element</li><li>B. A &lt;style&gt; block in every page</li><li>C. One external .css file linked with &lt;link&gt;</li><li>D. JavaScript</li></ul>
+    <p><b>Answer: C.</b> Reusable across every page and cached by the browser, so one edit restyles the whole site.</p></div></details>
+  <details class="q"><summary>Which element attaches an external stylesheet, and where does it go?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer:</b> <code>&lt;link rel="stylesheet" href="style.css"&gt;</code>, inside the <code>&lt;head&gt;</code>. <code>&lt;style&gt;</code> holds CSS written in the page itself; <code>&lt;script&gt;</code> is for JavaScript; <code>&lt;meta&gt;</code> is metadata.</p></div></details>
+  <details class="q"><summary>Where is an internal stylesheet written?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. In a separate .css file</li><li>B. In a &lt;style&gt; element inside &lt;head&gt;</li><li>C. In the style attribute of each element</li><li>D. At the end of &lt;body&gt;</li></ul>
+    <p><b>Answer: B.</b> It styles that one page.</p></div></details>
+  <details class="q"><summary>Which of these is an inline style?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>&lt;p style="color:red"&gt;Hi&lt;/p&gt;</code></li><li>B. <code>&lt;style&gt;p { color: red; }&lt;/style&gt;</code></li><li>C. <code>&lt;link href="a.css"&gt;</code></li><li>D. <code>p { color: red; }</code> in style.css</li></ul>
+    <p><b>Answer: A.</b> Inline means written in the element's own <code>style</code> attribute, and it styles only that element. Note there are no braces and no selector in an inline style.</p></div></details>
+  <details class="q"><summary>How do you write a comment in CSS?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;!-- comment --&gt;</li><li>B. // comment</li><li>C. /* comment */</li><li>D. # comment</li></ul>
+    <p><b>Answer: C.</b> <code>&lt;!-- --&gt;</code> is the HTML comment and does nothing inside CSS.</p></div></details>
+  <details class="q"><summary>A stylesheet works down to a certain rule and then everything below it is ignored. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> a missing closing brace (or a missing semicolon) in the last rule that worked. The browser keeps reading the following text as part of the broken rule and discards it. No error message is shown; DevTools usually reveals it.</p></div></details>
+  <details class="q"><summary>Two rules, equally specific: <code>p { color: red; }</code> then later <code>p { color: blue; }</code>. What colour are paragraphs?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: blue.</b> When specificity ties, the rule written later wins. That is the cascade in action.</p></div></details>
+  <details class="q"><summary>You set <code>color</code> on <code>body</code> and never mention paragraphs. What colour is a paragraph?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: the same colour.</b> <code>color</code> is an <b>inherited</b> property, so elements inside <code>body</code> receive it unless something else sets it. Box properties such as <code>border</code> and <code>padding</code> are not inherited.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>HTML says what content <b>is</b>; CSS says how it <b>looks</b>. Without CSS you get the browser's default style.</li>
+    <li>CSS = Cascading Style Sheets. A <b>rule</b> is <code>selector { property: value; }</code>. Property + colon + value = a <b>declaration</b>, ended with a semicolon; declarations live between <b>braces</b>.</li>
+    <li>Three ways to add it: <b>inline</b> (style attribute, one element), <b>internal</b> (<code>&lt;style&gt;</code> in the head, one page), <b>external</b> (a .css file joined with <code>&lt;link rel="stylesheet" href="..."&gt;</code>, every page). Real projects use external.</li>
+    <li>The cascade settles conflicts: more specific wins, and when specificity ties the later rule wins. Inheritance passes properties such as <code>color</code> and <code>font-family</code> down to children.</li>
+    <li>Comments are <code>/* ... */</code>. A missing semicolon or brace silently kills more than the line it is on.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Word</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>Rule</td><td>A selector plus a block of declarations</td></tr>
+      <tr><td>Selector</td><td>Which elements the rule applies to</td></tr>
+      <tr><td>Property</td><td>The name of what you are changing (<code>color</code>)</td></tr>
+      <tr><td>Value</td><td>What you are setting it to (<code>navy</code>)</td></tr>
+      <tr><td>Declaration</td><td><code>property: value;</code> &mdash; one instruction</td></tr>
+      <tr><td>Braces <code>{ }</code></td><td>Hold the declarations for one selector</td></tr>
+      <tr><td>Inline / internal / external</td><td>One element / one page / every page</td></tr>
+      <tr><td>Cascade</td><td>The order that decides which rule wins</td></tr>
+      <tr><td>Inheritance</td><td>Some properties pass from parent to child</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://www.w3schools.com/css/css_intro.asp" target="_blank" rel="noopener noreferrer">W3Schools &mdash; CSS Introduction<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The gentlest possible second explanation, with an editable example on every page.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Reference" target="_blank" rel="noopener noreferrer">MDN &mdash; CSS reference<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full alphabetical list of every property. Bookmark it; you will use it all year.</span></li>
+    <li><a href="https://web.dev/learn/css" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn CSS<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A free, modern course by browser engineers. 39 short modules; start at &ldquo;Box Model&rdquo;.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

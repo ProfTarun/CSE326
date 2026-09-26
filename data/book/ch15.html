@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 15 &middot; Accessibility Fundamentals</p>
   <h1>Accessibility Fundamentals</h1>
   <p class="lead">Web accessibility is the practice of building pages that people with visual, auditory, motor or cognitive disabilities can perceive, understand and use. It is mostly a matter of writing correct, meaningful HTML, which is why it belongs in this unit rather than at the end of the course. This chapter covers the fundamentals every page owes its users, the small ARIA vocabulary that fills the gaps, and the mistakes that lock people out.</p>
-  <p class="meta">About 18 minutes &middot; Course outcome CO2 &middot; Chapter 20 covers the WCAG standard</p>
+  <p class="meta">About 27 minutes &middot; Course outcome CO2 &middot; Chapter 20 covers the WCAG standard</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>alt</code> describes an image &mdash; <a href="book.html?ch=8">Chapter 8</a> (alt text).</li>
+      <li>Landmarks let a screen reader jump about &mdash; <a href="book.html?ch=13">Chapter 13</a> (semantic elements).</li>
+      <li><code>lang</code> declares the page language &mdash; <a href="book.html?ch=4">Chapter 4</a> (the html element).</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,7 +26,8 @@
 
 <section id="s1">
   <h2>15.1 What accessibility is, and who it is for</h2>
-  <p><b>Web accessibility</b> means building sites that <b>people with visual, auditory, motor or cognitive disabilities can perceive, understand and use</b>. It is not about loading in under a second, ranking first in search results or working only in the newest browser; it is about not locking people out. Users reach pages through <b>assistive technology</b>: a <b>screen reader</b> (NVDA, JAWS, VoiceOver, TalkBack) that speaks the page aloud, a screen magnifier, voice control, a switch device, or simply the keyboard alone because a mouse is unusable.</p>
+  <div class="plain">Accessibility means the page still works if you cannot see it, cannot hear it, cannot use a mouse, or find dense text hard to follow. Almost everything it asks for is something you were already supposed to do.</div>
+  <p><b>Web accessibility</b> means building sites that <b>people with visual, auditory, motor or cognitive disabilities can perceive, understand and use</b>. It is not about loading in under a second, ranking first in search results or working only in the newest browser; it is about not locking people out. Users reach pages through <b><span class="jw" data-def="Technology that helps someone use a computer, such as a screen reader that reads the page aloud or a switch that replaces a mouse.">assistive</span> technology</b>: a <b>screen reader</b> (NVDA, JAWS, VoiceOver, TalkBack) that speaks the page aloud, a screen magnifier, voice control, a switch device, or simply the keyboard alone because a mouse is unusable.</p>
   <p>Accessibility also helps everyone else. Captions help a student watching a lecture on a noisy bus. Good contrast helps anyone in bright sunlight. Keyboard operability helps a power user. Clear structure helps a tired reader. And, as Chapter 11 showed, almost every accessibility improvement is a search-engine improvement too.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 170" role="img" aria-label="Four groups of users and what each needs from HTML">
@@ -34,6 +43,7 @@
 
 <section id="s2">
   <h2>15.2 The HTML fundamentals</h2>
+  <div class="callout analogy"><b>A label is the name on a form field, not the faint example inside it.</b> On a paper form the word &ldquo;Email&rdquo; is printed beside the box and stays there while you write. A <code>placeholder</code> is more like pencil writing inside the box that you rub out as you start &mdash; useful as a hint, useless as a label, and gone exactly when the user wants to check what the field was for.</div>
   <p>Most accessibility is already covered by things you have learned. Here they are in one place, with the reason each one matters.</p>
   <table class="tbl">
     <thead><tr><th>Fundamental</th><th>Markup</th><th>Why</th></tr></thead>
@@ -60,6 +70,11 @@
   </div>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: what is a skip link and who uses it?</summary>
+    <p>A link at the very top, often invisible until focused, that jumps past the menu to the main content. Someone using only a keyboard would otherwise have to tab through thirty menu items on every single page.</p>
+  </details>
+
 <section id="s3">
   <h2>15.3 Keyboard operability and the skip link</h2>
   <p>Many users never touch a mouse. Everything on a page must be reachable and usable with <kbd>Tab</kbd> (move to the next control), <kbd>Shift</kbd>+<kbd>Tab</kbd> (previous), <kbd>Enter</kbd> (activate a link or button), <kbd>Space</kbd> (toggle a checkbox, press a button) and the arrow keys (move within radio groups and menus). A user who <b>completes a checkout using only Tab and Enter</b> is testing the <i>Operable</i> principle of WCAG (Chapter 20).</p>
@@ -82,6 +97,7 @@
 
 <section id="s4">
   <h2>15.4 ARIA: filling the gaps</h2>
+  <div class="plain">ARIA is a set of extra attributes that tell assistive technology what something is, for the cases where HTML has no element that says it. It changes what gets announced. It never changes how anything behaves.</div>
   <p>ARIA (Accessible Rich Internet Applications) is a set of attributes that tell assistive technology what an element <i>is</i> and how to <i>name</i> or <i>describe</i> it, when HTML alone cannot. Two facts frame everything:</p>
   <ol>
     <li><b>The first rule of ARIA: if a native HTML element with the semantics and behaviour you need already exists, use it rather than recreating it with ARIA.</b> A <code>&lt;button&gt;</code> beats <code>&lt;div role="button"&gt;</code> every time. Adding <code>role="button"</code> to a native <code>&lt;button&gt;</code> is redundant and counts as a mistake.</li>
@@ -114,6 +130,11 @@
     <figcaption><b>Figure 15.2</b> ARIA is the fallback, not the first choice.</figcaption>
   </figure>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: the first rule of ARIA is?</summary>
+    <p>Do not use ARIA. Use the native element instead &mdash; a real <code>&lt;button&gt;</code> beats a div with <code>role="button"</code> every time, because the real button already works with the keyboard.</p>
+  </details>
 
 <section id="s5">
   <h2>15.5 Worked example: an accessible email field</h2>

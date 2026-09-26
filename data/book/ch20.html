@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 20 &middot; Accessibility Standards</p>
   <h1>Accessibility Standards</h1>
   <p class="lead">Chapter 15 taught the habits; this chapter explains the rulebook behind them. The Web Content Accessibility Guidelines (WCAG) are the international standard that laws, universities and companies point to when they say a site must be accessible. You will learn how WCAG is organised, what its four principles and three levels mean, the numbers you must remember (the contrast ratios), the companion standard ARIA, the laws that apply in India and abroad, and how to test a page.</p>
-  <p class="meta">About 13 minutes &middot; Course outcome CO2</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The practical accessibility rules &mdash; <a href="book.html?ch=15">Chapter 15</a> (accessibility fundamentals).</li>
+      <li>The W3C publishes the web standards &mdash; <a href="book.html?ch=1">Chapter 1</a> (standards bodies).</li>
+      <li>This chapter is the <i>standard</i> behind the habits you already have.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>20.1 WCAG: the standard</h2>
+  <div class="plain">WCAG is the rulebook everyone agrees to measure accessibility against. It is organised as four big ideas, broken into guidelines, broken again into numbered rules you can actually test a page against.</div>
   <p><b>WCAG stands for Web Content Accessibility Guidelines.</b> It is published by the <b>W3C</b> through its Web Accessibility Initiative (WAI), the same organisation that publishes the HTML and CSS standards (Chapter 1). Version 2.0 appeared in 2008, 2.1 in 2018 and <b>2.2 in 2023</b>; each version adds criteria and keeps the earlier ones, so a page that meets 2.2 also meets 2.0. It is not "World Code Access Group", not "Web Compliance and Grading", and not an auto-generator.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="WCAG structure: 4 principles, 13 guidelines, success criteria at levels A, AA and AAA">
@@ -33,6 +42,7 @@
 
 <section id="s2">
   <h2>20.2 The four principles: POUR</h2>
+  <div class="callout analogy"><b>POUR is four questions about a doorway.</b> <b>Perceivable</b>: can you tell the door is there? <b>Operable</b>: can you open it, with a hand or an elbow or a wheelchair? <b>Understandable</b>: is it obvious which way it opens? <b>Robust</b>: does it still work with a different handle fitted? A page has to pass all four.</div>
   <p>Everything in WCAG hangs off four principles, remembered as <b>POUR</b>. Exam questions describe a situation and ask which principle it tests, so learn the distinguishing idea of each.</p>
   <dl>
     <dt>Perceivable</dt>
@@ -57,6 +67,7 @@
 
 <section id="s3">
   <h2>20.3 Conformance levels: A, AA, AAA</h2>
+  <div class="plain">The levels stack. A is the bare minimum, without which some people simply cannot use the page. AA adds the things that remove most remaining barriers, and is what laws and organisations ask for. AAA is the ideal, and some content can never reach it.</div>
   <p>Every success criterion is assigned a level.</p>
   <table class="tbl">
     <thead><tr><th>Level</th><th>Meaning</th><th>Example criterion</th></tr></thead>
@@ -66,8 +77,13 @@
       <tr><td><b>AAA</b></td><td>The highest level; not required for whole sites because some content cannot meet it</td><td>Contrast 7:1; sign-language interpretation; reading level of lower secondary education</td></tr>
     </tbody>
   </table>
-  <p>Conformance is cumulative: AA means all A and all AA criteria pass. There is no "Level B". When a policy, a tender or a law says "WCAG 2.x compliant", it almost always means <b>Level AA</b>.</p>
+  <p><span class="jw" data-def="The level a page is measured as meeting: A, AA or AAA. They are cumulative, so AA includes everything in A.">Conformance</span> is cumulative: AA means all A and all AA criteria pass. There is no "Level B". When a policy, a tender or a law says "WCAG 2.x compliant", it almost always means <b>Level AA</b>.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: what contrast does normal body text need at level AA?</summary>
+    <p>4.5 : 1 against its background. Large text needs only 3 : 1, and AAA raises normal text to 7 : 1. These numbers are commonly asked for directly.</p>
+  </details>
 
 <section id="s4">
   <h2>20.4 The numbers: colour contrast</h2>
@@ -111,6 +127,11 @@
   </table>
   <p>The practical message: <b>Level AA of the current WCAG version</b> is the bar you build to, wherever your site will be used.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: which test finds a button that cannot be reached without a mouse?</summary>
+    <p>Putting the mouse down and pressing Tab. Automated scanners cannot find it, because the markup may look perfectly valid.</p>
+  </details>
 
 <section id="s7">
   <h2>20.7 Testing a page</h2>

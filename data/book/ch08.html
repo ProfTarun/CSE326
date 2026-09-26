@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 8 &middot; Hyperlinks and Images</p>
   <h1>Hyperlinks and Images</h1>
   <p class="lead">Links are what make the Web a web, and images are what make it worth looking at. This chapter covers the anchor element and every kind of URL it can point to, the rules for relative paths that break so many deployed sites, the image element and the art of writing alt text, and the HTML5 tools for responsive images.</p>
-  <p class="meta">About 23 minutes &middot; Course outcome CO1</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Attributes configure an element and live in the opening tag &mdash; <a href="book.html?ch=5">Chapter 5</a> (attributes).</li>
+      <li><code>href</code> points to a destination; <code>src</code> pulls in a file.</li>
+      <li>Images are void elements: no closing tag.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -41,10 +49,11 @@
 
 <section id="s2">
   <h2>8.2 What href can point to</h2>
+  <div class="plain">A path is just directions to a file. A name on its own means &ldquo;in this same folder&rdquo;. Two dots mean &ldquo;go up one folder first&rdquo;. A leading slash means &ldquo;start again from the top of the site&rdquo;.</div>
   <h3>Absolute URLs: another site</h3>
-  <p>An absolute URL includes the protocol and domain: <code>&lt;a href="https://github.com"&gt;GitHub&lt;/a&gt;</code>. Use it for external sites. It means the same thing wherever it is written.</p>
+  <p>An <span class="jw" data-def="A path written out in full, starting with the protocol and the domain, so it works from anywhere.">absolute</span> URL includes the protocol and domain: <code>&lt;a href="https://github.com"&gt;GitHub&lt;/a&gt;</code>. Use it for external sites. It means the same thing wherever it is written.</p>
   <h3>Relative URLs: your own pages</h3>
-  <p>A relative URL omits the protocol and domain and is resolved against the address of the page it appears on. Within your own site always use relative links: they are shorter, they work on your laptop and on the live server alike, and the whole site can move to another domain without editing a single link.</p>
+  <p>A <span class="jw" data-def="A path worked out from where the current page sits, rather than written out in full from the very beginning.">relative</span> URL omits the protocol and domain and is resolved against the address of the page it appears on. Within your own site always use relative links: they are shorter, they work on your laptop and on the live server alike, and the whole site can move to another domain without editing a single link.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 250" role="img" aria-label="A site folder tree with relative path examples">
       <rect x="20" y="16" width="270" height="220" rx="12" fill="#fff" stroke="#E3E9F0"/>
@@ -92,6 +101,11 @@
 &lt;a href="tel:+911234567890"&gt;Call the helpdesk&lt;/a&gt;</pre>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: when should a link open in a new tab?</summary>
+    <p>Rarely. It takes the Back button away from the reader, which is disorienting. When you genuinely need it &mdash; a PDF, an external site &mdash; use <code>target="_blank"</code> and add <code>rel="noopener noreferrer"</code>.</p>
+  </details>
+
 <section id="s3">
   <h2>8.3 target, rel, download and title</h2>
   <dl>
@@ -114,6 +128,8 @@
 
 <section id="s4">
   <h2>8.4 The image element</h2>
+  <div class="callout analogy"><b>alt text is describing a photo to someone on the phone.</b> You would not say &ldquo;there is a JPEG here&rdquo;. If it is a chart you would say what it shows. If it is a printer icon on a button you would say &ldquo;Print&rdquo;, because that is what it <i>does</i>. And if it is a decorative swirl you would say nothing at all &mdash; which in HTML is written <code>alt=""</code>.</div>
+  <div class="plain"><code>alt</code> is what the image <i>says</i>, not what it looks like. If you read the page aloud down the phone, whatever you would say instead of the picture is the alt text.</div>
   <p><code>&lt;img&gt;</code> embeds an image. It is a <b>void element</b> (no closing tag) and it takes two attributes you should treat as mandatory: <code>src</code>, <b>the resource location</b> (a relative path such as <code>images/campus.jpg</code> or an absolute URL), and <code>alt</code>, <b>a meaningful text alternative</b>.</p>
   <pre class="code" data-run data-title="An image with src and alt" data-h="120">&lt;img src="https://picsum.photos/id/1015/300/160" alt="A river winding between forested mountains"&gt;
 &lt;p&gt;Break the src on purpose to see the alt text appear:&lt;/p&gt;
@@ -173,6 +189,11 @@
 &lt;/figure&gt;</pre>
   <p>Do not mix this up with <code>&lt;caption&gt;</code>, which is the title of a <i>table</i> (Chapter 19), or with <code>&lt;picture&gt;</code>, which is about choosing between image files, not captioning.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: a decorative divider image: what alt text?</summary>
+    <p><code>alt=""</code> &mdash; empty, but present. Empty tells the screen reader to skip it silently. Leaving the attribute out altogether makes the reader announce the file name instead, which is worse than nothing.</p>
+  </details>
 
 <section id="s6">
   <h2>8.6 Responsive images: srcset, sizes and picture</h2>

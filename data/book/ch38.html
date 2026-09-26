@@ -1,0 +1,341 @@
+<article class="chapter" data-ch="38">
+<style>
+/* demos for this chapter only - every selector is scoped to .d38 */
+.d38 { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.d38 .box38 { background: #0B2545; color: #fff; padding: 12px 18px;
+  border-radius: 10px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.d38 .no38:hover { background: #E07B1E; }
+.d38 .yes38 { transition: background-color .35s ease; }
+.d38 .yes38:hover { background: #E07B1E; }
+.d38 .lift38 { transition: transform .25s ease, box-shadow .25s ease; }
+.d38 .lift38:hover { transform: translateY(-6px); box-shadow: 0 10px 20px rgba(16,32,64,.25); }
+.d38 .grow38 { transition: transform .25s ease; }
+.d38 .grow38:hover { transform: scale(1.12); }
+.d38 .spin38 { transition: transform .5s ease; }
+.d38 .spin38:hover { transform: rotate(8deg); }
+.d38 .timing38 { width: 100%; }
+.d38 .trk38 { background: #F1F5F9; border-radius: 8px; padding: 6px; margin-bottom: 6px;
+  display: flex; align-items: center; gap: 10px; }
+.d38 .trk38 span { font-family: var(--mono); font-size: 11px; color: #6B7A90; width: 96px; }
+.d38 .dot38 { width: 26px; height: 26px; border-radius: 50%; background: #E07B1E; }
+.d38 .timing38:hover .dot38 { transform: translateX(180px); }
+.d38 .t-lin .dot38 { transition: transform 1.2s linear; }
+.d38 .t-ease .dot38 { transition: transform 1.2s ease; }
+.d38 .t-in .dot38 { transition: transform 1.2s ease-in; }
+.d38 .t-out .dot38 { transition: transform 1.2s ease-out; }
+@media (prefers-reduced-motion: reduce) {
+  .d38 * { transition: none !important; }
+}
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 38 &middot; CSS Transitions</p>
+  <h1>CSS Transitions</h1>
+  <p class="lead">Every state change you have written so far happens instantly: the button is dark, then in the same frame it is orange. A transition tells the browser to take the journey slowly instead. One property, one duration, and a page stops feeling like a slide show.</p>
+  <p class="meta">About 21 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>:hover</code> and <code>:focus</code> style an element in a state (<a href="book.html?ch=32">Chapter 32</a>).</li>
+      <li>Both a normal rule and a <code>:hover</code> rule can set the same property (<a href="book.html?ch=23">Chapter 23</a>).</li>
+      <li><code>box-shadow</code> and <code>border-radius</code> are box properties (<a href="book.html?ch=28">Chapter 28</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a transition with all four of its parts.</li>
+      <li>Say which rule the <code>transition</code> property belongs in, and why.</li>
+      <li>Use <code>transform</code> to move, scale and rotate without disturbing the layout.</li>
+      <li>Choose a timing function and a sensible duration.</li>
+      <li>Respect a reader who has asked for less motion.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>38.1 Instant, and smooth</h2>
+  <p>Hover the two buttons below. They have identical colours; only the second has a transition.</p>
+  <div class="demo">
+    <p class="dlab">Live &mdash; hover each one</p>
+    <div class="d38">
+      <div class="box38 no38">No transition</div>
+      <div class="box38 yes38">With a transition</div>
+    </div>
+  </div>
+  <p>The first snaps. The second glides. The difference is one declaration:</p>
+  <pre class="code">.btn        { background: #0B2545; transition: background-color 0.35s ease; }
+.btn:hover  { background: #E07B1E; }</pre>
+  <p>A <b>transition</b> tells the browser: <i>"when this property changes, do not jump to the new value &mdash; travel there over this much time."</i> You still write only the start state and the end state. The browser invents every frame in between.</p>
+  <div class="callout analogy"><b>Picture this.</b> A light switch is instant: dark, then bright. A dimmer takes a second to get there. Same two states, completely different feeling. <code>transition</code> is the dimmer.</div>
+</section>
+
+<section id="s2">
+  <h2>38.2 The four parts</h2>
+  <pre class="code">transition: background-color 0.35s ease 0s;
+/*          |                |     |    |
+            |                |     |    delay: wait this long first (optional)
+            |                |     timing function: the speed curve
+            |                duration: how long it takes  (REQUIRED)
+            property: which one to animate                             */</pre>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>Values</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>transition-property</code></td><td><code>background-color</code>, <code>transform</code>, <code>opacity</code>, <code>all</code></td><td>Name the property. <code>all</code> is tempting and usually a mistake.</td></tr>
+      <tr><td><code>transition-duration</code></td><td><code>0.3s</code>, <code>200ms</code></td><td><b>Required.</b> With no duration nothing happens, because the default is 0.</td></tr>
+      <tr><td><code>transition-timing-function</code></td><td><code>ease</code>, <code>linear</code>, <code>ease-in</code>, <code>ease-out</code>, <code>ease-in-out</code></td><td>The speed curve. Default is <code>ease</code>.</td></tr>
+      <tr><td><code>transition-delay</code></td><td><code>0s</code>, <code>0.2s</code></td><td>Wait before starting. Rarely needed.</td></tr>
+    </tbody>
+  </table>
+  <p>You can transition several properties by separating them with commas:</p>
+  <pre class="code">transition: transform 0.25s ease, box-shadow 0.25s ease;</pre>
+  <div class="callout warn"><b>Why not <code>transition: all</code>?</b> It animates every property that changes, including ones you did not intend, and the browser has to watch them all. It is a common cause of sluggish pages and of odd little movements nobody asked for. Name the properties you mean.</div>
+  <h3>Timing functions</h3>
+  <p>Hover the strip below and watch the four dots start together and arrive differently.</p>
+  <div class="demo">
+    <p class="dlab">Live &mdash; hover anywhere on this block</p>
+    <div class="d38"><div class="timing38">
+      <div class="trk38 t-lin"><span>linear</span><div class="dot38"></div></div>
+      <div class="trk38 t-ease"><span>ease</span><div class="dot38"></div></div>
+      <div class="trk38 t-in"><span>ease-in</span><div class="dot38"></div></div>
+      <div class="trk38 t-out"><span>ease-out</span><div class="dot38"></div></div>
+    </div></div>
+  </div>
+  <ul>
+    <li><b><code>linear</code></b> &mdash; the same speed all the way. Machine-like; right for a loading bar, wrong for a button.</li>
+    <li><b><code>ease</code></b> &mdash; starts briskly, slows at the end. The default, and a good default.</li>
+    <li><b><code>ease-in</code></b> &mdash; starts slowly. Good for something leaving.</li>
+    <li><b><code>ease-out</code></b> &mdash; ends slowly. Good for something arriving; the most natural feel for hovers.</li>
+    <li><b><code>ease-in-out</code></b> &mdash; gentle at both ends. Good for longer movements.</li>
+  </ul>
+  <h3>How long?</h3>
+  <table class="tbl">
+    <thead><tr><th>Duration</th><th>Feels</th></tr></thead>
+    <tbody>
+      <tr><td>Under 100ms</td><td>Instant &mdash; you have wasted the effect</td></tr>
+      <tr><td><b>150&ndash;300ms</b></td><td><b>Right for hovers, buttons and small moves</b></td></tr>
+      <tr><td>300&ndash;500ms</td><td>Right for panels and larger movements</td></tr>
+      <tr><td>Over 600ms</td><td>The interface starts to feel slow and unresponsive</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s3">
+  <h2>38.3 Which rule does the transition go in?</h2>
+  <p>This is the exam question, and it has one right answer: <b>put <code>transition</code> on the normal state rule, not on the <code>:hover</code> rule.</b></p>
+  <p>Here is why. The transition property is read from whichever rule currently applies.</p>
+  <ul>
+    <li><b>On the normal rule:</b> it applies while the mouse arrives <i>and</i> while it leaves. The effect eases in and eases out. Correct.</li>
+    <li><b>On the <code>:hover</code> rule only:</b> it exists while hovering, so the effect eases <b>in</b> &mdash; but the moment the mouse leaves, the hover rule no longer applies, the transition vanishes with it, and the element <b>snaps back</b>. Half-broken, and a very recognisable glitch.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 170" role="img" aria-label="Transition on the normal rule eases both ways; on hover only it snaps back">
+      <rect x="20" y="20" width="270" height="120" rx="12" class="box grn"/>
+      <text x="155" y="44" class="t c b">on the NORMAL rule</text>
+      <text x="155" y="66" class="t c s mono" style="font-size:11px">.btn { transition: ... }</text>
+      <text x="155" y="82" class="t c s mono" style="font-size:11px">.btn:hover { background: ... }</text>
+      <path d="M50 104 L260 104" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M260 120 L50 120" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="155" y="136" class="t c s">smooth in AND smooth out</text>
+      <rect x="330" y="20" width="270" height="120" rx="12" class="box red"/>
+      <text x="465" y="44" class="t c b">on the HOVER rule only</text>
+      <text x="465" y="66" class="t c s mono" style="font-size:11px">.btn { }</text>
+      <text x="465" y="82" class="t c s mono" style="font-size:11px">.btn:hover { transition: ...; background: ... }</text>
+      <path d="M360 104 L570 104" class="edge" style="stroke:#138808" marker-end="url(#arr-grn)"/>
+      <path d="M570 120 L360 120" class="edge" style="stroke:#C42B2B;stroke-dasharray:3 3" marker-end="url(#arr)"/>
+      <text x="465" y="136" class="t c s">smooth in, then SNAPS back</text>
+    </svg>
+    <figcaption><b>Figure 38.1</b> The transition belongs with the resting state, so it is in force in both directions.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Both versions - hover each, then move away slowly" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; display: flex; gap: 16px; padding: 18px; }
+  div { background: #0B2545; color: #fff; padding: 14px 20px;
+        border-radius: 10px; font-weight: 700; }
+
+  /* correct: on the normal rule */
+  .good { transition: background-color .4s ease; }
+  .good:hover { background: #138808; }
+
+  /* wrong: only while hovered */
+  .bad:hover { transition: background-color .4s ease; background: #C42B2B; }
+&lt;/style&gt;
+&lt;div class="good"&gt;Correct&lt;/div&gt;
+&lt;div class="bad"&gt;Wrong&lt;/div&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>38.4 transform: move, scale and rotate</h2>
+  <p><code>transform</code> changes an element's shape or position <b>without disturbing the layout around it</b>. Nothing else moves to make room, which is exactly what you want for a hover effect.</p>
+  <table class="tbl">
+    <thead><tr><th>Function</th><th>Does</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>translateY(-6px)</code></td><td>Moves it up 6 pixels</td><td>A card lifting on hover</td></tr>
+      <tr><td><code>translateX(10px)</code></td><td>Moves it right</td><td>An arrow nudging forward</td></tr>
+      <tr><td><code>scale(1.1)</code></td><td>Makes it 10% bigger, from the centre</td><td>A button or image growing</td></tr>
+      <tr><td><code>rotate(8deg)</code></td><td>Turns it clockwise</td><td>A badge, an icon</td></tr>
+      <tr><td><code>translateY(-6px) scale(1.02)</code></td><td>Several at once, space-separated</td><td>Lift and grow together</td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live &mdash; hover each one</p>
+    <div class="d38">
+      <div class="box38 lift38">translateY(-6px)</div>
+      <div class="box38 grow38">scale(1.12)</div>
+      <div class="box38 spin38">rotate(8deg)</div>
+    </div>
+  </div>
+  <p><b>Why <code>transform</code> and not <code>margin-top</code> or <code>width</code>?</b> Two reasons. First, changing a margin or a width makes the browser re-calculate the position of everything else on the page, so neighbours jump about. Second, <code>transform</code> and <code>opacity</code> are the two properties browsers can animate on the graphics card, so they stay smooth even on a cheap phone. Animating <code>width</code>, <code>height</code>, <code>top</code> or <code>margin</code> is visibly jerkier.</p>
+  <div class="plain">
+    <p>For anything that moves, reach for <b><code>transform</code></b>. For anything that fades, reach for <b><code>opacity</code></b>. Those two cover most effects and are the two that stay smooth.</p>
+  </div>
+  <pre class="code" data-run data-title="The card that lifts - the classic hover effect" data-h="280">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; background: #F1F5F9; padding: 20px; }
+  .card {
+    background: #fff; border-radius: 12px; padding: 18px;
+    box-shadow: 0 2px 6px rgba(16,32,64,.10);
+    transition: transform .25s ease, box-shadow .25s ease;   /* normal rule */
+  }
+  .card:hover {
+    transform: translateY(-6px);
+    box-shadow: 0 14px 28px rgba(16,32,64,.18);
+  }
+  .card h3 { margin: 0 0 4px; color: #0B2545; }
+  .card p  { margin: 0; color: #6B7A90; font-size: 14px; }
+&lt;/style&gt;
+&lt;div class="card"&gt;
+  &lt;h3&gt;CSE326 Internet Programming&lt;/h3&gt;
+  &lt;p&gt;Hover me. The shadow grows as the card rises, which is what makes it
+  read as lifting rather than sliding.&lt;/p&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>38.5 What cannot be transitioned</h2>
+  <p>A property can only be transitioned if the browser can calculate the values in between. Colours, lengths, opacity and transforms all work.</p>
+  <p><b><code>display</code> does not.</b> There is no halfway between <code>none</code> and <code>block</code>, so a fade-in written with <code>display</code> simply pops. The usual pattern is to animate <code>opacity</code> and <code>transform</code> instead, and keep the element in the layout:</p>
+  <pre class="code">.panel        { opacity: 0; transform: translateY(-8px);
+                transition: opacity .25s ease, transform .25s ease; }
+.panel.is-open{ opacity: 1; transform: translateY(0); }</pre>
+  <p>Other things that cannot be transitioned: <code>font-family</code>, <code>position</code>, and any value that is a keyword with nothing in between.</p>
+</section>
+
+<section id="s6">
+  <h2>38.6 Motion and the reader</h2>
+  <p>Movement on screen makes some people genuinely unwell &mdash; vestibular disorders, migraine, motion sensitivity. Those readers can ask their operating system to reduce motion, and CSS can hear that request:</p>
+  <pre class="code">@media (prefers-reduced-motion: reduce) {
+  * {
+    transition-duration: 0.01ms !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+  }
+}</pre>
+  <p>Paste that at the end of your stylesheet. For almost every reader nothing changes; for the ones who asked, the motion stops and your interface still works, because a transition is decoration on top of a state change that happens anyway.</p>
+  <div class="callout warn"><b>Three rules for tasteful motion.</b> Keep it short (150&ndash;300ms). Keep it small (a few pixels, a few per cent). Make it <b>respond to the user</b> &mdash; a hover, a click, a panel opening. Motion that happens on its own, repeatedly, is a distraction, and <a href="book.html?ch=39">Chapter 39</a> has more to say about that.</div>
+</section>
+
+<section id="s7">
+  <h2>38.7 Build it: the project's interactive polish</h2>
+  <pre class="code" data-run data-title="Project, step 16: everything moves, nothing shouts" data-h="360" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  :root { --brand: #E07B1E; --ink: #0B2545; }
+  body { font-family: system-ui, sans-serif; background: #F1F5F9;
+         padding: 20px; color: #3C4A60; }
+
+  .card {
+    background: #fff; border-radius: 12px; padding: 16px 18px;
+    margin-bottom: 14px; border-left: 5px solid #E3E9F0;
+    box-shadow: 0 2px 6px rgba(16,32,64,.08);
+    transition: transform .22s ease, box-shadow .22s ease,
+                border-left-color .22s ease;
+  }
+  .card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(16,32,64,.16);
+    border-left-color: var(--brand);
+  }
+
+  .btn {
+    display: inline-block; text-decoration: none; font-weight: 700;
+    background: var(--ink); color: #fff; padding: 11px 22px;
+    border-radius: 999px;
+    transition: background-color .2s ease, transform .12s ease;
+  }
+  .btn:hover  { background: var(--brand); }
+  .btn:active { transform: scale(0.96); }        /* presses in */
+  .btn:focus-visible { outline: 3px solid #FF9933; outline-offset: 3px; }
+
+  a.arrow { color: #1D4ED8; text-decoration: none; }
+  a.arrow::after { content: " \2192"; display: inline-block;
+                   transition: transform .2s ease; }
+  a.arrow:hover::after { transform: translateX(5px); }
+
+  @media (prefers-reduced-motion: reduce) {
+    * { transition-duration: 0.01ms !important; }
+  }
+&lt;/style&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE326 Internet Programming&lt;/b&gt;&lt;br&gt;
+  &lt;a class="arrow" href="#"&gt;Course page&lt;/a&gt;&lt;/div&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE305 Database Systems&lt;/b&gt;&lt;br&gt;
+  &lt;a class="arrow" href="#"&gt;Course page&lt;/a&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a class="btn" href="#"&gt;Continue Learning&lt;/a&gt;&lt;/p&gt;</pre>
+  <p>Four transitions, none longer than a quarter of a second, every one triggered by the user. Hover the arrow links: the arrow slides because the transition is on the <code>::after</code> pseudo-element, which can be styled and animated exactly like any other box.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Where should the <code>transition</code> property be written?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. On the :hover rule</li><li>B. On the normal state rule</li><li>C. On both</li><li>D. Inside @keyframes</li></ul>
+    <p><b>Answer: B.</b> On <code>:hover</code> only, the effect eases <b>in</b> and snaps back <b>out</b>, because the transition disappears with the hover rule.</p></div></details>
+  <details class="q"><summary>Which part of a transition is compulsory?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>The duration.</b> It defaults to <code>0s</code>, so a transition with no duration does nothing at all. The property, timing function and delay all have usable defaults.</p></div></details>
+  <details class="q"><summary>What does <code>transition: transform 0.25s ease;</code> mean, word by word?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>"When <code>transform</code> changes, take 0.25 seconds to get there, starting briskly and slowing at the end."</b> Property, duration, timing function.</p></div></details>
+  <details class="q"><summary>Why prefer <code>transform: translateY(-6px)</code> over <code>margin-top: -6px</code> for a hover lift?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because <code>transform</code> does not affect the layout</b>, so neighbouring elements do not shift; and because browsers can animate <code>transform</code> and <code>opacity</code> on the graphics card, so the movement stays smooth on a cheap phone. Animating margins, widths or <code>top</code> forces a re-layout every frame.</p></div></details>
+  <details class="q"><summary>Which two properties are the smoothest to animate?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>transform</code> and <code>opacity</code>.</b> Anything that moves should use <code>transform</code>; anything that fades should use <code>opacity</code>.</p></div></details>
+  <details class="q"><summary>Why does a fade-in written with <code>display</code> not work?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because there is no value halfway between <code>none</code> and <code>block</code></b>, so <code>display</code> cannot be transitioned. Animate <code>opacity</code> (and usually <code>transform</code>) instead, and toggle a class.</p></div></details>
+  <details class="q"><summary>What is a sensible duration for a button hover?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>About 150&ndash;300 milliseconds.</b> Under 100ms is imperceptible; over 600ms makes the interface feel slow to respond.</p></div></details>
+  <details class="q"><summary>Why avoid <code>transition: all</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>It animates every property that happens to change</b>, including ones you never meant, and the browser has to watch them all. It causes both surprise movements and sluggishness. Name the properties, separated by commas.</p></div></details>
+  <details class="q"><summary>Which media query respects a reader who has asked for less motion?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>@media (prefers-reduced-motion: reduce)</code></b>. Inside it, cut transition and animation durations to almost nothing. Motion can cause real nausea and migraine for some readers.</p></div></details>
+  <details class="q"><summary>Which timing function keeps a constant speed throughout?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>linear</code></b>. It suits a progress bar or a continuously spinning loader, but feels mechanical on a button, where <code>ease</code> or <code>ease-out</code> is more natural.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>transition: property duration timing-function delay;</code> &mdash; the duration is the only compulsory part.</li>
+    <li>Write it on the <b>normal state rule</b>, so the effect eases both in and out.</li>
+    <li><code>transform</code> moves, scales and rotates without disturbing the layout. With <code>opacity</code> it is one of the two smoothest properties to animate.</li>
+    <li>150&ndash;300ms for hovers; <code>ease</code> or <code>ease-out</code> feels natural; avoid <code>transition: all</code>.</li>
+    <li><code>display</code> cannot be transitioned &mdash; fade with <code>opacity</code> instead.</li>
+    <li>Honour <code>prefers-reduced-motion</code>. Motion should be short, small and a response to the user.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>transition: background-color .3s ease;</code></td><td>Colour fades instead of snapping</td></tr>
+      <tr><td><code>transition: transform .25s ease, box-shadow .25s ease;</code></td><td>Two properties, one duration each</td></tr>
+      <tr><td><code>transform: translateY(-6px);</code></td><td>Lift, without moving neighbours</td></tr>
+      <tr><td><code>transform: scale(1.05);</code></td><td>Grow from the centre</td></tr>
+      <tr><td><code>transform: rotate(8deg);</code></td><td>Turn clockwise</td></tr>
+      <tr><td><code>@media (prefers-reduced-motion: reduce)</code></td><td>Turn motion off for those who asked</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transition" target="_blank" rel="noopener noreferrer">MDN &mdash; transition<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The four parts of the shorthand and the list of animatable properties.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/transition-timing-function" target="_blank" rel="noopener noreferrer">MDN &mdash; timing functions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Live graphs of ease, linear, ease-in-out and cubic-bezier().</span></li>
+    <li><a href="https://cubic-bezier.com/" target="_blank" rel="noopener noreferrer">cubic-bezier.com<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Drag two handles, watch the preview, copy the curve. How professionals pick easing.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

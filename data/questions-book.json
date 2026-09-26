@@ -1,0 +1,4018 @@
+[
+ {
+  "id": "bk001",
+  "q": "What is the difference between the Internet and the World Wide Web?",
+  "options": [
+   "They are two names for the same thing",
+   "The Internet is the network infrastructure; the Web is one service running on it",
+   "The Web is the hardware; the Internet is the software",
+   "The Internet is only for email; the Web is for pages"
+  ],
+  "answer": 1,
+  "why": "The Internet is a network of networks (infrastructure plus TCP/IP). The Web is one service on it: HTML pages joined by links and delivered by HTTP.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 1
+ },
+ {
+  "id": "bk002",
+  "q": "Which of these uses the Internet but is NOT part of the Web?",
+  "options": [
+   "A news article you open in Chrome",
+   "A WhatsApp message",
+   "A Wikipedia page",
+   "An online form you submit"
+  ],
+  "answer": 1,
+  "why": "Email, games, streaming and WhatsApp all travel over the Internet, but they are not HTML pages delivered over HTTP, so they are not the Web.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 1
+ },
+ {
+  "id": "bk003",
+  "q": "In the client-server model, which side displays the page?",
+  "options": [
+   "The server",
+   "The database",
+   "The browser, which is the client",
+   "The DNS resolver"
+  ],
+  "answer": 2,
+  "why": "The browser is the client: it requests and displays. The server stores data, runs logic and responds.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 1
+ },
+ {
+  "id": "bk004",
+  "q": "HTML, CSS and JavaScript are responsible for, in order:",
+  "options": [
+   "Behaviour, structure, presentation",
+   "Structure, presentation, behaviour",
+   "Presentation, behaviour, structure",
+   "Structure, behaviour, presentation"
+  ],
+  "answer": 1,
+  "why": "HTML is structure, CSS is presentation, JavaScript is behaviour.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 1
+ },
+ {
+  "id": "bk005",
+  "q": "Why is HTML called a markup language rather than a programming language?",
+  "options": [
+   "It runs slower than a programming language",
+   "It labels what content is, rather than computing or deciding anything",
+   "It cannot be written by hand",
+   "It has no syntax rules"
+  ],
+  "answer": 1,
+  "why": "HTML marks up content to say what it is. It has no logic, variables or decisions, so it is a markup language, not a programming language.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 1
+ },
+ {
+  "id": "bk006",
+  "q": "Which body publishes the open standards of the web, including WCAG?",
+  "options": [
+   "ISO",
+   "The W3C",
+   "IEEE",
+   "The IETF alone"
+  ],
+  "answer": 1,
+  "why": "The W3C (World Wide Web Consortium) publishes the open web standards and WCAG; WHATWG maintains the HTML living standard and MDN documents them.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 1
+ },
+ {
+  "id": "bk007",
+  "q": "A student says 'I hid the answer key in the HTML, so students cannot see it.' What is wrong?",
+  "options": [
+   "Nothing, HTML is compiled",
+   "The response is text the browser interprets, so nothing sent to a browser is secret",
+   "HTML cannot store text",
+   "Only CSS can hide things"
+  ],
+  "answer": 1,
+  "why": "The server's response is text which the browser interprets. Anything sent to a browser can be read, so nothing sent to a browser is secret.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 1
+ },
+ {
+  "id": "bk008",
+  "q": "What does it mean that HTTP is stateless?",
+  "options": [
+   "It cannot carry data",
+   "The server does not remember you between requests",
+   "It works only once per session",
+   "It has no status codes"
+  ],
+  "answer": 1,
+  "why": "HTTP is stateless: the server does not remember you between requests, which is why cookies exist to do the remembering.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 2
+ },
+ {
+  "id": "bk009",
+  "q": "In https://portal.lpu.in/results/view.html?reg=12345, what is '?reg=12345'?",
+  "options": [
+   "The path",
+   "The fragment",
+   "The query string",
+   "The protocol"
+  ],
+  "answer": 2,
+  "why": "A URL is protocol :// domain / path ? query string. Everything after ? is the query string: parameters for the server.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 2
+ },
+ {
+  "id": "bk010",
+  "q": "A status code beginning with 4 means:",
+  "options": [
+   "The server failed",
+   "Your request was bad or not allowed",
+   "The page moved",
+   "The request succeeded"
+  ],
+  "answer": 1,
+  "why": "By first digit: 2 success, 3 redirect, 4 client error (your request was bad or not allowed, e.g. 404), 5 server error.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 2
+ },
+ {
+  "id": "bk011",
+  "q": "Which status code means the server itself failed, not your request?",
+  "options": [
+   "404",
+   "403",
+   "301",
+   "500"
+  ],
+  "answer": 3,
+  "why": "500 Internal Server Error is a 5xx: your request was fine, the server failed. 404 and 403 are 4xx client errors; 301 is a redirect.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 2
+ },
+ {
+  "id": "bk012",
+  "q": "Where does a GET request carry its parameters, and where does POST carry them?",
+  "options": [
+   "Both in the URL",
+   "GET in the URL, POST in the body",
+   "GET in the body, POST in the URL",
+   "Both in the headers"
+  ],
+  "answer": 1,
+  "why": "GET carries parameters in the URL; POST carries them in the body of the message.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 2
+ },
+ {
+  "id": "bk013",
+  "q": "HTTPS differs from HTTP because it adds:",
+  "options": [
+   "Compression",
+   "TLS encryption and authentication",
+   "Faster routing",
+   "A different HTML version"
+  ],
+  "answer": 1,
+  "why": "HTTPS = HTTP + TLS encryption and authentication, on port 443. Plain HTTP uses port 80.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 2
+ },
+ {
+  "id": "bk014",
+  "q": "What is the job of DNS in the request-response cycle?",
+  "options": [
+   "It encrypts the request",
+   "It translates a domain name into an IP address",
+   "It stores the page",
+   "It renders the HTML"
+  ],
+  "answer": 1,
+  "why": "DNS translates a domain name into an IP address so the browser knows which server to contact.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 2
+ },
+ {
+  "id": "bk015",
+  "q": "A URL ends with #marks. What does the browser do with it?",
+  "options": [
+   "Sends it to the server as a parameter",
+   "Scrolls to the element with id='marks'; the fragment is not sent to the server",
+   "Opens a new tab",
+   "Treats it as a comment"
+  ],
+  "answer": 1,
+  "why": "The fragment scrolls to the element with that id. It is handled by the browser and is not sent to the server.",
+  "topic": "Web basics",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 2
+ },
+ {
+  "id": "bk016",
+  "q": "What is the difference between a tag and an element?",
+  "options": [
+   "They are the same thing",
+   "A tag is one bracketed marker; an element is the opening tag, content and closing tag",
+   "An element is one marker; a tag is the whole thing",
+   "A tag has attributes; an element cannot"
+  ],
+  "answer": 1,
+  "why": "A tag is one bracketed marker. An element is the opening tag plus content plus the closing tag.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 3
+ },
+ {
+  "id": "bk017",
+  "q": "Which of these is a void element?",
+  "options": [
+   "<p>",
+   "<div>",
+   "<img>",
+   "<textarea>"
+  ],
+  "answer": 2,
+  "why": "Void elements have no content and no closing tag: br, hr, img, input, meta, link, source, track. p, div and textarea are paired.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 3
+ },
+ {
+  "id": "bk018",
+  "q": "Why is </br> invalid?",
+  "options": [
+   "It is spelled wrongly",
+   "br is a void element, so it has no closing tag",
+   "It must be uppercase",
+   "It works only inside a p"
+  ],
+  "answer": 1,
+  "why": "br is void: it has no content and therefore no closing tag. Writing </br> is invalid.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 3
+ },
+ {
+  "id": "bk019",
+  "q": "What happens if you forget to close an HTML comment?",
+  "options": [
+   "Nothing",
+   "The rest of the page is swallowed and does not render",
+   "The browser shows an error message",
+   "Only the next element is hidden"
+  ],
+  "answer": 1,
+  "why": "An unclosed comment blanks the rest of the page, because everything after it is treated as comment text.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 3
+ },
+ {
+  "id": "bk020",
+  "q": "Why must you write &amp;lt; instead of a literal < in page text?",
+  "options": [
+   "It is shorter",
+   "A literal < would start a tag",
+   "It changes the colour",
+   "It is required by CSS"
+  ],
+  "answer": 1,
+  "why": "A literal < would start a tag, so the entity &lt; is used to display the character itself.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 3
+ },
+ {
+  "id": "bk021",
+  "q": "In HTML, several spaces and line breaks in a row are:",
+  "options": [
+   "Preserved exactly",
+   "Collapsed to a single space, except inside pre",
+   "Removed completely",
+   "Turned into &nbsp;"
+  ],
+  "answer": 1,
+  "why": "Whitespace collapses to one space everywhere except inside pre, which preserves it.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 3
+ },
+ {
+  "id": "bk022",
+  "q": "Your page looks fine in the browser but the validator reports errors. What does that tell you?",
+  "options": [
+   "The validator is wrong",
+   "Browsers forgive mistakes and repair markup silently; validators do not",
+   "The page will not work on phones",
+   "The doctype is missing"
+  ],
+  "answer": 1,
+  "why": "Browsers forgive and repair broken markup silently, so a page can look fine and still be invalid. HTML fails silently, which is why you validate.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 3
+ },
+ {
+  "id": "bk023",
+  "q": "What does <!DOCTYPE html> on line one do?",
+  "options": [
+   "Imports HTML5",
+   "Puts the browser in HTML5 standards mode",
+   "Declares the language",
+   "Links the stylesheet"
+  ],
+  "answer": 1,
+  "why": "The doctype selects HTML5 standards mode. Without it the browser falls back to quirks mode.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 4
+ },
+ {
+  "id": "bk024",
+  "q": "Which of these belongs in the <head>, not the <body>?",
+  "options": [
+   "<h1>",
+   "<meta charset='UTF-8'>",
+   "<form>",
+   "<footer>"
+  ],
+  "answer": 1,
+  "why": "The head holds invisible metadata: charset, viewport, title, description, link and style. The body holds everything visible.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 4
+ },
+ {
+  "id": "bk025",
+  "q": "What is the difference between <title> and <h1>?",
+  "options": [
+   "None",
+   "title is the tab text and search headline; h1 is the visible main heading on the page",
+   "h1 goes in the head",
+   "title is shown at the top of the page"
+  ],
+  "answer": 1,
+  "why": "title is the tab text, bookmark name and search headline. h1 is the visible main heading in the body.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 4
+ },
+ {
+  "id": "bk026",
+  "q": "Why is <meta charset='UTF-8'> important?",
+  "options": [
+   "It sets the font",
+   "It prevents garbled characters",
+   "It makes the page responsive",
+   "It is required for CSS"
+  ],
+  "answer": 1,
+  "why": "The charset declaration prevents garbled characters by telling the browser how the bytes encode text.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 4
+ },
+ {
+  "id": "bk027",
+  "q": "Why are scripts usually placed just before </body>?",
+  "options": [
+   "They run faster there",
+   "So the content is parsed and displayed first",
+   "It is the only legal place",
+   "So they can be cached"
+  ],
+  "answer": 1,
+  "why": "Scripts go just before </body> so the content is parsed and displayed before the scripts run.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 4
+ },
+ {
+  "id": "bk028",
+  "q": "<head> and <header> are:",
+  "options": [
+   "The same element",
+   "Different: head is invisible metadata, header is a visible introductory region",
+   "Both invisible",
+   "Both visible"
+  ],
+  "answer": 1,
+  "why": "head holds invisible metadata; header is a visible introductory region in the body. They are not the same.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 4
+ },
+ {
+  "id": "bk029",
+  "q": "What does lang='en' on the <html> element declare?",
+  "options": [
+   "The country of the server",
+   "The content language, for screen readers and search engines",
+   "The keyboard layout",
+   "The character encoding"
+  ],
+  "answer": 1,
+  "why": "lang declares the content language for screen readers and search engines. Encoding is set by meta charset.",
+  "topic": "Document structure",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 4
+ },
+ {
+  "id": "bk030",
+  "q": "Which global attribute must be unique on the page?",
+  "options": [
+   "class",
+   "id",
+   "style",
+   "title"
+  ],
+  "answer": 1,
+  "why": "id is a unique identifier for one element. class is a reusable group name and an element may carry several.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 5
+ },
+ {
+  "id": "bk031",
+  "q": "What happens if two elements share the same id?",
+  "options": [
+   "The browser shows an error",
+   "It fails silently: fragment links and scripts find only the first",
+   "Both are styled",
+   "The page will not load"
+  ],
+  "answer": 1,
+  "why": "Duplicate ids fail silently. Fragment links and scripts find only the first one.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 5
+ },
+ {
+  "id": "bk032",
+  "q": "A video has controls='false'. What happens?",
+  "options": [
+   "The controls are hidden",
+   "The controls still show, because controls is a boolean attribute",
+   "The video will not play",
+   "It is a syntax error"
+  ],
+  "answer": 1,
+  "why": "Boolean attributes are on whenever they are present, whatever their value. To hide the controls you remove the attribute.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 5
+ },
+ {
+  "id": "bk033",
+  "q": "Which attribute points to an embedded resource rather than a link destination?",
+  "options": [
+   "href",
+   "src",
+   "alt",
+   "target"
+  ],
+  "answer": 1,
+  "why": "href is for link destinations; src is for embedded resources such as images, scripts and media.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 5
+ },
+ {
+  "id": "bk034",
+  "q": "Which list contains only inline elements?",
+  "options": [
+   "div, p, section",
+   "span, a, strong",
+   "ul, li, h1",
+   "form, table, main"
+  ],
+  "answer": 1,
+  "why": "span, a, strong, em and img are inline: they flow within a line. div, p, section, ul and h1 are block elements.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 5
+ },
+ {
+  "id": "bk035",
+  "q": "You need a container purely so CSS can style two columns. Which element is correct?",
+  "options": [
+   "section",
+   "article",
+   "div",
+   "main"
+  ],
+  "answer": 2,
+  "why": "div and span are meaningless containers, used exactly when no semantic element fits. section and article carry meaning.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 5
+ },
+ {
+  "id": "bk036",
+  "q": "What are data-* attributes for?",
+  "options": [
+   "Styling",
+   "Custom data for scripts, named as you like after data-",
+   "Database connections",
+   "Validation rules"
+  ],
+  "answer": 1,
+  "why": "data-* attributes hold custom data for scripts, named freely after the data- prefix.",
+  "topic": "Elements and attributes",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 5
+ },
+ {
+  "id": "bk037",
+  "q": "What is the difference between <strong> and <b>?",
+  "options": [
+   "None, both are bold",
+   "strong carries strong importance; b draws attention with no extra importance",
+   "b is obsolete",
+   "strong is inline, b is block"
+  ],
+  "answer": 1,
+  "why": "strong is logical: strong importance, seriousness or urgency. b is physical: draw attention, bold with no extra importance.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 6
+ },
+ {
+  "id": "bk038",
+  "q": "Which element preserves the whitespace exactly as typed?",
+  "options": [
+   "<p>",
+   "<pre>",
+   "<code>",
+   "<blockquote>"
+  ],
+  "answer": 1,
+  "why": "pre preserves whitespace. Everywhere else it collapses to a single space.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 6
+ },
+ {
+  "id": "bk039",
+  "q": "Why should you not use <br><br> to create space between paragraphs?",
+  "options": [
+   "It is slow",
+   "br is a line break within one block; spacing is CSS's job, and two paragraphs should be two p elements",
+   "It is invalid HTML",
+   "It breaks screen readers only in Chrome"
+  ],
+  "answer": 1,
+  "why": "br is for a line break within one block, such as an address or a poem. Never use br br for spacing.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 6
+ },
+ {
+  "id": "bk040",
+  "q": "Which element marks a keyboard key the user should press?",
+  "options": [
+   "<code>",
+   "<samp>",
+   "<kbd>",
+   "<var>"
+  ],
+  "answer": 2,
+  "why": "kbd is keyboard input by the user. code is inline code, samp is sample output, var is a variable.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 6
+ },
+ {
+  "id": "bk041",
+  "q": "The <cite> element marks:",
+  "options": [
+   "The URL of a source",
+   "The title of a work",
+   "A blockquote",
+   "A footnote"
+  ],
+  "answer": 1,
+  "why": "The cite element marks the title of a work. The cite attribute on q or blockquote holds the source URL.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 6
+ },
+ {
+  "id": "bk042",
+  "q": "Which of these is obsolete and should be replaced?",
+  "options": [
+   "<del>",
+   "<mark>",
+   "<strike>",
+   "<small>"
+  ],
+  "answer": 2,
+  "why": "strike, font, center, big, tt and marquee are obsolete. Use del for removed content, or CSS.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 6
+ },
+ {
+  "id": "bk043",
+  "q": "Headings h1 to h6 should be chosen by:",
+  "options": [
+   "The size you want the text",
+   "The level in the document outline, with no skipped levels",
+   "How important the colour is",
+   "Alphabetical order"
+  ],
+  "answer": 1,
+  "why": "Headings build an outline: one h1, no skipped levels. Sizes are set in CSS, not by choosing a heading level.",
+  "topic": "Text formatting",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 6
+ },
+ {
+  "id": "bk044",
+  "q": "Which element may sit directly inside <ul>?",
+  "options": [
+   "<p>",
+   "<div>",
+   "<li>",
+   "<span>"
+  ],
+  "answer": 2,
+  "why": "Only li may sit directly inside ul or ol. Anything else must go inside an li.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 7
+ },
+ {
+  "id": "bk045",
+  "q": "You need a list where the order matters. Which element?",
+  "options": [
+   "<ul>",
+   "<ol>",
+   "<dl>",
+   "<menu>"
+  ],
+  "answer": 1,
+  "why": "ul is for lists where order does not matter; ol is for lists where order or rank matters; dl pairs terms with descriptions.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 7
+ },
+ {
+  "id": "bk046",
+  "q": "<ol type='i'> produces:",
+  "options": [
+   "1, 2, 3",
+   "a, b, c",
+   "i, ii, iii",
+   "I, II, III"
+  ],
+  "answer": 2,
+  "why": "type='i' gives lowercase Roman numerals. type='I' gives uppercase, type='a' lowercase letters, type='1' decimals.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 7
+ },
+ {
+  "id": "bk047",
+  "q": "What does the reversed attribute on <ol> do?",
+  "options": [
+   "Reverses the items on screen",
+   "Counts the numbers downwards while the items stay in source order",
+   "Sorts the list",
+   "Removes the numbers"
+  ],
+  "answer": 1,
+  "why": "reversed counts downwards (3, 2, 1). The items stay in source order on screen; only the numbers descend.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 7
+ },
+ {
+  "id": "bk048",
+  "q": "Where does a nested list go?",
+  "options": [
+   "After the </ul>",
+   "Inside the li it belongs to, before that li closes",
+   "Inside the ul but outside any li",
+   "In a separate ul"
+  ],
+  "answer": 1,
+  "why": "A nested list goes inside the li it belongs to, before that li closes.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 7
+ },
+ {
+  "id": "bk049",
+  "q": "Why is a navigation menu marked up as a list of links inside <nav>?",
+  "options": [
+   "To get bullets",
+   "So screen readers announce the item count",
+   "Because links must be in lists",
+   "For faster loading"
+  ],
+  "answer": 1,
+  "why": "Menus are lists of links inside nav, so screen readers announce how many items there are. The bullets are removed with CSS.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 7
+ },
+ {
+  "id": "bk050",
+  "q": "In a description list, which element holds the description?",
+  "options": [
+   "<dt>",
+   "<dd>",
+   "<li>",
+   "<dfn>"
+  ],
+  "answer": 1,
+  "why": "dl holds terms in dt and their descriptions in dd.",
+  "topic": "Lists",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 7
+ },
+ {
+  "id": "bk051",
+  "q": "What does the relative URL ../images/logo.png mean?",
+  "options": [
+   "A folder named .. ",
+   "Go up one folder, then into images",
+   "The site root, then images",
+   "An absolute URL"
+  ],
+  "answer": 1,
+  "why": "../ moves to the parent folder. A leading / means the site root; a bare name means the same folder.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 8
+ },
+ {
+  "id": "bk052",
+  "q": "Which attribute supplies the text alternative for an image?",
+  "options": [
+   "title",
+   "alt",
+   "src",
+   "longdesc"
+  ],
+  "answer": 1,
+  "why": "alt gives the text alternative. src gives the location of the file.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 8
+ },
+ {
+  "id": "bk053",
+  "q": "A purely decorative image should have:",
+  "options": [
+   "No alt attribute",
+   "alt=''",
+   "alt='decorative image'",
+   "alt='image'"
+  ],
+  "answer": 1,
+  "why": "A decorative image takes alt='': empty but present, so a screen reader skips it silently. Omitting the attribute is wrong.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 8
+ },
+ {
+  "id": "bk054",
+  "q": "A printer icon is used as a button that prints the page. What should its alt be?",
+  "options": [
+   "'printer icon'",
+   "'Print'",
+   "''",
+   "'image of a printer'"
+  ],
+  "answer": 1,
+  "why": "A functional image describes the action, not the picture: alt='Print'.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 8
+ },
+ {
+  "id": "bk055",
+  "q": "Why add rel='noopener noreferrer' to a target='_blank' link?",
+  "options": [
+   "To open faster",
+   "To protect against the new page gaining access to yours, for untrusted sites",
+   "To improve SEO",
+   "It is required by HTML5"
+  ],
+  "answer": 1,
+  "why": "target='_blank' opens a new tab; rel='noopener noreferrer' is added for untrusted sites as a safety measure.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 8
+ },
+ {
+  "id": "bk056",
+  "q": "Why set width and height on an <img>?",
+  "options": [
+   "To compress the file",
+   "To stop the layout jumping as the image loads",
+   "To enable lazy loading",
+   "To set the alt text"
+  ],
+  "answer": 1,
+  "why": "width and height reserve the space, which stops layout jumps as the image loads.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 8
+ },
+ {
+  "id": "bk057",
+  "q": "Which element pairs an illustration with a caption?",
+  "options": [
+   "<picture> and <source>",
+   "<figure> and <figcaption>",
+   "<div> and <p>",
+   "<img> and <alt>"
+  ],
+  "answer": 1,
+  "why": "figure with figcaption marks a captioned illustration. picture with source and an img fallback chooses between conditional sources.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 8
+ },
+ {
+  "id": "bk058",
+  "q": "Good link text should:",
+  "options": [
+   "Say 'click here'",
+   "Describe the destination",
+   "Be the full URL",
+   "Be as short as possible"
+  ],
+  "answer": 1,
+  "why": "Link text describes the destination, never 'click here'.",
+  "topic": "Links and images",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 8
+ },
+ {
+  "id": "bk059",
+  "q": "Why does SVG stay sharp at any size?",
+  "options": [
+   "It uses more pixels",
+   "It stores instructions rather than pixels",
+   "It is compressed",
+   "It is always small"
+  ],
+  "answer": 1,
+  "why": "SVG = Scalable Vector Graphics: it stores drawing instructions, not pixels, so it is sharp at any size.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 9
+ },
+ {
+  "id": "bk060",
+  "q": "In an SVG, what does viewBox define?",
+  "options": [
+   "The rendered size on screen",
+   "The coordinate grid the shapes are drawn on",
+   "The background colour",
+   "The aspect ratio only"
+  ],
+  "answer": 1,
+  "why": "width and height are the rendered size; viewBox is the coordinate grid, with the origin at the top-left and y increasing downward.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 9
+ },
+ {
+  "id": "bk061",
+  "q": "With viewBox='0 0 200 100' and width='400', a <rect width='100'> appears how wide?",
+  "options": [
+   "100px",
+   "200px",
+   "400px",
+   "50px"
+  ],
+  "answer": 1,
+  "why": "The 200-unit grid is drawn 400px wide, so each unit is 2px and a 100-unit rect appears 200 pixels wide.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 9
+ },
+ {
+  "id": "bk062",
+  "q": "A shape drawn outside the viewBox range is:",
+  "options": [
+   "Scaled to fit",
+   "Clipped and simply not drawn",
+   "Drawn at the edge",
+   "An error"
+  ],
+  "answer": 1,
+  "why": "Anything outside the viewBox is clipped and not drawn. There is no error and no automatic scaling.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 9
+ },
+ {
+  "id": "bk063",
+  "q": "Which SVG element is closed automatically back to its first point?",
+  "options": [
+   "<polyline>",
+   "<polygon>",
+   "<line>",
+   "<path>"
+  ],
+  "answer": 1,
+  "why": "polygon closes automatically back to the first point; polyline stays open.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 9
+ },
+ {
+  "id": "bk064",
+  "q": "Why is <line> sometimes invisible?",
+  "options": [
+   "It needs a fill",
+   "It needs a stroke; the default stroke is none",
+   "It needs a viewBox",
+   "Lines cannot be seen in SVG"
+  ],
+  "answer": 1,
+  "why": "fill colours the inside; stroke draws the outline. A line has no interior, so without a stroke it is invisible.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 9
+ },
+ {
+  "id": "bk065",
+  "q": "In a path's d attribute, what does M do?",
+  "options": [
+   "Draws a line",
+   "Moves the pen without drawing",
+   "Closes the shape",
+   "Makes a curve"
+  ],
+  "answer": 1,
+  "why": "In a path: M move, L line, H horizontal, V vertical, Q curve, Z close. Lowercase letters are relative.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 9
+ },
+ {
+  "id": "bk066",
+  "q": "How do you give an inline SVG an accessible name?",
+  "options": [
+   "alt",
+   "role='img' with aria-label",
+   "title attribute only",
+   "a figcaption is required"
+  ],
+  "answer": 1,
+  "why": "Inline SVG takes role='img' plus aria-label. SVG has no alt attribute.",
+  "topic": "SVG",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 9
+ },
+ {
+  "id": "bk067",
+  "q": "Which attribute shows the native play/pause/volume UI on a video?",
+  "options": [
+   "player",
+   "controls",
+   "ui",
+   "show"
+  ],
+  "answer": 1,
+  "why": "controls shows the native player UI. It is boolean: controls='false' still shows them.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 10
+ },
+ {
+  "id": "bk068",
+  "q": "Why does autoplay often not work?",
+  "options": [
+   "It is obsolete",
+   "Browsers block it unless the video is also muted",
+   "It needs a poster",
+   "It works only on mobile"
+  ],
+  "answer": 1,
+  "why": "autoplay is blocked by browsers unless the video is also muted.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 10
+ },
+ {
+  "id": "bk069",
+  "q": "What does the poster attribute supply?",
+  "options": [
+   "Subtitles",
+   "The image shown before playback begins",
+   "The file name",
+   "A download link"
+  ],
+  "answer": 1,
+  "why": "poster is the image shown before playback begins. It is not a subtitle and not autoplay.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 10
+ },
+ {
+  "id": "bk070",
+  "q": "Why include several <source> elements inside a <video>?",
+  "options": [
+   "To play them in sequence",
+   "As a fallback chain: the browser plays the first format it supports",
+   "To show several videos",
+   "For subtitles"
+  ],
+  "answer": 1,
+  "why": "Several source elements form a fallback chain; the browser plays the first format it supports. mp4 plus webm covers everyone.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 10
+ },
+ {
+  "id": "bk071",
+  "q": "Which element supplies subtitles or captions?",
+  "options": [
+   "<caption>",
+   "<track>",
+   "<source>",
+   "<subtitle>"
+  ],
+  "answer": 1,
+  "why": "track with src, kind, srclang and label supplies subtitles and captions from a .vtt file.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 10
+ },
+ {
+  "id": "bk072",
+  "q": "Every <iframe> should carry a title attribute because:",
+  "options": [
+   "It is required for loading",
+   "Without it a screen reader announces only 'frame'",
+   "It sets the heading",
+   "It improves speed"
+  ],
+  "answer": 1,
+  "why": "The title gives the embedded content an accessible name. Without it a screen reader announces only 'frame'.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 10
+ },
+ {
+  "id": "bk073",
+  "q": "What does the sandbox attribute on an iframe do?",
+  "options": [
+   "Grants extra capabilities",
+   "Removes capabilities, which you then restore individually",
+   "Sets the size",
+   "Enables lazy loading"
+  ],
+  "answer": 1,
+  "why": "sandbox removes capabilities; you add allow-scripts or allow-forms to restore them. allow grants capabilities such as fullscreen or camera.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 10
+ },
+ {
+  "id": "bk074",
+  "q": "Do <audio> and <video> take an alt attribute?",
+  "options": [
+   "Yes, like img",
+   "No: fallback text goes between the opening and closing tags",
+   "Only video does",
+   "Only when muted"
+  ],
+  "answer": 1,
+  "why": "audio and video are paired elements with no alt attribute. Fallback text goes between the tags.",
+  "topic": "Multimedia",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 10
+ },
+ {
+  "id": "bk075",
+  "q": "What are the four stages of how a search engine works?",
+  "options": [
+   "Search, sort, store, show",
+   "Crawl, index, rank, click",
+   "Fetch, parse, cache, serve",
+   "Read, write, rank, report"
+  ],
+  "answer": 1,
+  "why": "Crawl, index, rank, click. Links get you crawled, clear HTML gets you understood, quality and speed get you ranked, title and description win the click.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 11
+ },
+ {
+  "id": "bk076",
+  "q": "What appears as the clickable headline in a search result?",
+  "options": [
+   "The h1",
+   "The <title>",
+   "The meta description",
+   "The URL"
+  ],
+  "answer": 1,
+  "why": "title is the clickable headline in results and the tab text. The meta description is the grey summary underneath.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 11
+ },
+ {
+  "id": "bk077",
+  "q": "Has the meta keywords tag had SEO value in recent years?",
+  "options": [
+   "Yes, it is the main signal",
+   "No, Google has ignored it since 2009",
+   "Only for images",
+   "Only on mobile"
+  ],
+  "answer": 1,
+  "why": "Google has ignored the keywords meta tag since 2009. It has no SEO value today.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 11
+ },
+ {
+  "id": "bk078",
+  "q": "What does robots.txt do?",
+  "options": [
+   "Blocks users from the site",
+   "Publicly requests that crawlers skip certain paths",
+   "Encrypts the site",
+   "Lists every page for indexing"
+  ],
+  "answer": 1,
+  "why": "robots.txt is a public, advisory file at the site root listing paths crawlers should skip. sitemap.xml lists pages to index.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 11
+ },
+ {
+  "id": "bk079",
+  "q": "Which tag keeps a single page out of the search index?",
+  "options": [
+   "robots.txt",
+   "<meta name='robots' content='noindex'>",
+   "<meta name='keywords'>",
+   "sitemap.xml"
+  ],
+  "answer": 1,
+  "why": "meta robots noindex keeps that page out of the index.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 11
+ },
+ {
+  "id": "bk080",
+  "q": "A page repeats 'web development' fifty times in white text on white. What happens?",
+  "options": [
+   "It ranks higher",
+   "Search engines treat it as manipulation and lower or remove the page",
+   "Nothing",
+   "The page fails validation"
+  ],
+  "answer": 1,
+  "why": "Keyword stuffing and hidden text are treated as manipulation. The page is lowered or removed; it does not simply fail validation.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 11
+ },
+ {
+  "id": "bk081",
+  "q": "Why do SEO and accessibility overlap so much?",
+  "options": [
+   "They are unrelated",
+   "Both depend on clear structure, alt text, headings and descriptive link text",
+   "Both need JavaScript",
+   "Both are set in the head"
+  ],
+  "answer": 1,
+  "why": "The same signals serve both: semantic landmarks, one h1 and a logical outline, alt text and link text that names the destination.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 11
+ },
+ {
+  "id": "bk082",
+  "q": "Which is the correct house style for HTML?",
+  "options": [
+   "<P CLASS=intro>",
+   "<p class='intro'>",
+   "<P class=intro>",
+   "<p CLASS='intro'>"
+  ],
+  "answer": 1,
+  "why": "Lowercase element and attribute names, and every attribute value quoted.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 12
+ },
+ {
+  "id": "bk083",
+  "q": "Writing <div class=my box> breaks because:",
+  "options": [
+   "div cannot take a class",
+   "The unquoted value splits into two attributes",
+   "Spaces are illegal in HTML",
+   "class must come first"
+  ],
+  "answer": 1,
+  "why": "An unquoted value ends at the space, so it splits into two attributes. Quote every attribute value.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 12
+ },
+ {
+  "id": "bk084",
+  "q": "Separation of concerns means:",
+  "options": [
+   "Three files per element",
+   "Content in HTML, CSS in an external stylesheet, JavaScript in external files",
+   "No CSS at all",
+   "CSS inside every tag"
+  ],
+  "answer": 1,
+  "why": "Content goes in HTML, all CSS in an external stylesheet via link, and all JS in external files loaded before </body>.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 12
+ },
+ {
+  "id": "bk085",
+  "q": "When should you use <a> rather than <button>?",
+  "options": [
+   "Always",
+   "When the user is going somewhere; button is for doing something",
+   "When the styling is different",
+   "Never, they are identical"
+  ],
+  "answer": 1,
+  "why": "a is for going somewhere, button is for doing something.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 12
+ },
+ {
+  "id": "bk086",
+  "q": "Which of these was removed in HTML5?",
+  "options": [
+   "<iframe>",
+   "<frameset>",
+   "<section>",
+   "<figure>"
+  ],
+  "answer": 1,
+  "why": "frameset and frame were removed in HTML5. Use iframe for embeds and CSS for layout.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L1",
+  "ch": 12
+ },
+ {
+  "id": "bk087",
+  "q": "Why are tables not used for page layout?",
+  "options": [
+   "They are slow",
+   "They break accessibility and responsiveness; tables are for tabular data",
+   "They are obsolete",
+   "They cannot be styled"
+  ],
+  "answer": 1,
+  "why": "Layout tables break accessibility and responsiveness. Tables are for tabular data; layout is CSS Flexbox and Grid.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L2",
+  "ch": 12
+ },
+ {
+  "id": "bk088",
+  "q": "Before publishing, which check finds silent HTML mistakes?",
+  "options": [
+   "Opening it in two browsers",
+   "Running it through the W3C validator",
+   "Checking the file size",
+   "Viewing the source"
+  ],
+  "answer": 1,
+  "why": "HTML fails silently, so you validate at validator.w3.org, then test on a phone with DevTools and check relative paths.",
+  "topic": "SEO and best practice",
+  "unit": "u1",
+  "level": "L3",
+  "ch": 12
+ },
+ {
+  "id": "bk089",
+  "q": "What do semantic elements give you that a styled <div> does not?",
+  "options": [
+   "A different visual appearance",
+   "Landmarks for screen readers and a map for search engines",
+   "Faster rendering",
+   "Automatic responsiveness"
+  ],
+  "answer": 1,
+  "why": "Semantic elements render like divs but describe meaning, giving screen readers landmarks and search engines a map of the page.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 13
+ },
+ {
+  "id": "bk090",
+  "q": "How many <main> elements may a page have?",
+  "options": [
+   "As many as you like",
+   "One",
+   "One per section",
+   "Two: header and footer"
+  ],
+  "answer": 1,
+  "why": "There is one main per page, and it is never nested inside article, aside, header, footer or nav.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 13
+ },
+ {
+  "id": "bk091",
+  "q": "A blog post that would still make sense republished on another site should be:",
+  "options": [
+   "<section>",
+   "<article>",
+   "<aside>",
+   "<div>"
+  ],
+  "answer": 1,
+  "why": "Use article if the content makes sense elsewhere; section for a themed group with a heading; aside for related but dispensable content.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 13
+ },
+ {
+  "id": "bk092",
+  "q": "A 'Related articles' sidebar is marked up as:",
+  "options": [
+   "<section>",
+   "<aside>",
+   "<nav>",
+   "<footer>"
+  ],
+  "answer": 1,
+  "why": "aside is related but non-essential content.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 13
+ },
+ {
+  "id": "bk093",
+  "q": "Which is true of <footer>?",
+  "options": [
+   "It may appear only once, at the end of the page",
+   "It holds closing information and may also sit inside an article",
+   "It must contain a nav",
+   "It cannot contain links"
+  ],
+  "answer": 1,
+  "why": "footer holds closing information and may sit inside an article as well as at the end of the page.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 13
+ },
+ {
+  "id": "bk094",
+  "q": "Which element groups navigation links?",
+  "options": [
+   "<menu>",
+   "<nav>",
+   "<links>",
+   "<header>"
+  ],
+  "answer": 1,
+  "why": "nav marks a group of navigation links; there is one per group of links.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 13
+ },
+ {
+  "id": "bk095",
+  "q": "When is <div> the right choice?",
+  "options": [
+   "For every container",
+   "When there is no meaning to convey and it exists only for CSS",
+   "Never in HTML5",
+   "For the page's main content"
+  ],
+  "answer": 1,
+  "why": "div carries no meaning; use it only when no semantic element fits, for example a wrapper that exists only so CSS can style two columns.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 13
+ },
+ {
+  "id": "bk096",
+  "q": "Why must the HTML read correctly with no CSS at all?",
+  "options": [
+   "CSS often fails to load",
+   "HTML supplies structure and CSS only arranges it later; the source order is the real order",
+   "Search engines disable CSS",
+   "It makes the page faster"
+  ],
+  "answer": 1,
+  "why": "HTML supplies structure; CSS later arranges it for each screen. The source must read correctly with no CSS at all.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 14
+ },
+ {
+  "id": "bk097",
+  "q": "In a typical page, the direct children of <body> are:",
+  "options": [
+   "head, main, footer",
+   "header, nav, main, footer",
+   "html, body, main",
+   "section, article, aside"
+  ],
+  "answer": 1,
+  "why": "body holds header, nav, main and footer; main then holds the sections, articles and aside.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 14
+ },
+ {
+  "id": "bk098",
+  "q": "How many <h1> elements should a page normally have?",
+  "options": [
+   "One per section",
+   "One, in the header",
+   "One per article",
+   "As many as needed"
+  ],
+  "answer": 1,
+  "why": "One h1 in the header, then h2 per section and h3 per article.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 14
+ },
+ {
+  "id": "bk099",
+  "q": "A wireframe shows a narrow 'related links' column beside the content. Which element?",
+  "options": [
+   "<nav> after the footer",
+   "<aside> inside <main>",
+   "<section> outside <main>",
+   "<div> in the header"
+  ],
+  "answer": 1,
+  "why": "A narrow related column maps to aside, placed inside main.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 14
+ },
+ {
+  "id": "bk100",
+  "q": "Which of these is a layout mistake to unlearn?",
+  "options": [
+   "Using main once",
+   "Laying out with tables, br stacks or fixed widths",
+   "Writing sections in logical order",
+   "Putting nav inside header"
+  ],
+  "answer": 1,
+  "why": "Do not lay out with tables, br stacks, styled divs or fixed widths.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 14
+ },
+ {
+  "id": "bk101",
+  "q": "May a <section> contain its own header and footer?",
+  "options": [
+   "No",
+   "Yes",
+   "Only if it has no heading",
+   "Only inside an article"
+  ],
+  "answer": 1,
+  "why": "Sections and articles may carry their own header and footer. What you may never have is a second main.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 14
+ },
+ {
+  "id": "bk102",
+  "q": "Why is a placeholder not a substitute for a label?",
+  "options": [
+   "It is the wrong colour",
+   "It disappears as soon as the user types, and may be skipped by screen readers",
+   "It cannot be translated",
+   "It is obsolete"
+  ],
+  "answer": 1,
+  "why": "Placeholder is not a label: it disappears on typing and may be skipped.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 15
+ },
+ {
+  "id": "bk103",
+  "q": "What joins a <label> to its input?",
+  "options": [
+   "name and id",
+   "for and id",
+   "class and id",
+   "for and name"
+  ],
+  "answer": 1,
+  "why": "label for must match the input's id, or the label may wrap the control.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 15
+ },
+ {
+  "id": "bk104",
+  "q": "What is the first rule of ARIA?",
+  "options": [
+   "Add roles to every element",
+   "Prefer the native element; use ARIA only to fill a gap",
+   "Always use aria-label",
+   "ARIA replaces semantic HTML"
+  ],
+  "answer": 1,
+  "why": "The first rule of ARIA is to prefer the native element. ARIA changes what is announced, never how the element behaves.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 15
+ },
+ {
+  "id": "bk105",
+  "q": "What does tabindex='-1' do?",
+  "options": [
+   "Puts the element first in the tab order",
+   "Removes it from the tab order but allows script focus",
+   "Adds it to the tab order",
+   "Disables the element"
+  ],
+  "answer": 1,
+  "why": "tabindex 0 adds an element to the tab order; -1 removes it from the tab order but still allows scripts to focus it.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 15
+ },
+ {
+  "id": "bk106",
+  "q": "An icon-only close button shows only an x. How do you name it?",
+  "options": [
+   "title='Close'",
+   "aria-label='Close'",
+   "alt='Close'",
+   "placeholder='Close'"
+  ],
+  "answer": 1,
+  "why": "aria-label gives an element an accessible name when it has no visible text.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 15
+ },
+ {
+  "id": "bk107",
+  "q": "What is a skip link for?",
+  "options": [
+   "Skipping validation",
+   "Letting keyboard users bypass the menu and jump to the content",
+   "Skipping to the next page",
+   "Hiding decorative images"
+  ],
+  "answer": 1,
+  "why": "Everything must work with Tab, Enter and Space, and a skip link lets keyboard users bypass the menu.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 15
+ },
+ {
+  "id": "bk108",
+  "q": "Why must colour never be the only signal?",
+  "options": [
+   "Colours look different on each monitor",
+   "Colour-blind users cannot tell the states apart",
+   "Colour slows the page",
+   "CSS may fail"
+  ],
+  "answer": 1,
+  "why": "Colour plus another cue, such as an icon or text, because colour-blind users cannot tell red from green.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 15
+ },
+ {
+  "id": "bk109",
+  "q": "Which attribute decides where a form's data is sent?",
+  "options": [
+   "method",
+   "action",
+   "name",
+   "enctype"
+  ],
+  "answer": 1,
+  "why": "action is where the data goes; method is how (get puts it in the URL, post in the body).",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 16
+ },
+ {
+  "id": "bk110",
+  "q": "A field's value never arrives at the server. What is the most likely cause?",
+  "options": [
+   "It has no id",
+   "It has no name",
+   "It has no label",
+   "It has no placeholder"
+  ],
+  "answer": 1,
+  "why": "name is the submission key: a control without a name is not submitted at all. That is the commonest reason a field goes missing.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 16
+ },
+ {
+  "id": "bk111",
+  "q": "Which of these is NOT submitted with the form?",
+  "options": [
+   "A readonly field",
+   "A disabled field",
+   "A hidden field",
+   "A pre-filled text field"
+  ],
+  "answer": 1,
+  "why": "Disabled controls and unchecked checkboxes are not submitted. readonly fields are submitted.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 16
+ },
+ {
+  "id": "bk112",
+  "q": "When must a form use method='post'?",
+  "options": [
+   "For every form",
+   "When it changes data, carries secrets or uploads files",
+   "Only for searches",
+   "Only when there is no action"
+  ],
+  "answer": 1,
+  "why": "get puts data in the URL and suits searches; post puts it in the body and suits changes, secrets and files.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 16
+ },
+ {
+  "id": "bk113",
+  "q": "Which enctype is required to upload a file?",
+  "options": [
+   "text/plain",
+   "multipart/form-data",
+   "application/json",
+   "application/x-www-form-urlencoded"
+  ],
+  "answer": 1,
+  "why": "enctype='multipart/form-data' is required for uploads.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 16
+ },
+ {
+  "id": "bk114",
+  "q": "What does <button> do if you write no type attribute?",
+  "options": [
+   "Nothing",
+   "It submits the form, because submit is the default type",
+   "It resets the form",
+   "It is invalid"
+  ],
+  "answer": 1,
+  "why": "submit is the default button type. type='button' does nothing on its own; type='reset' clears the form.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 16
+ },
+ {
+  "id": "bk115",
+  "q": "Which pair groups related controls and captions the group?",
+  "options": [
+   "<section> and <h2>",
+   "<fieldset> and <legend>",
+   "<div> and <label>",
+   "<optgroup> and <option>"
+  ],
+  "answer": 1,
+  "why": "fieldset groups related controls and legend captions the group.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 16
+ },
+ {
+  "id": "bk116",
+  "q": "The user must pick exactly one of three options. Which control?",
+  "options": [
+   "Three checkboxes",
+   "A radio group sharing one name",
+   "A textarea",
+   "Three separate selects"
+  ],
+  "answer": 1,
+  "why": "Radio buttons are for one of a few choices; they form a group by sharing one name.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 16
+ },
+ {
+  "id": "bk117",
+  "q": "Which input type masks what the user types?",
+  "options": [
+   "hidden",
+   "password",
+   "secret",
+   "text"
+  ],
+  "answer": 1,
+  "why": "password masks the typed characters as dots. hidden is not displayed at all.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 17
+ },
+ {
+  "id": "bk118",
+  "q": "Why use type='tel' rather than type='number' for a phone number?",
+  "options": [
+   "tel validates the format",
+   "number would strip leading zeros and add a spinner",
+   "tel is shorter",
+   "number is obsolete"
+  ],
+  "answer": 1,
+  "why": "tel shows a numeric keypad on phones and does not validate format. number would strip leading zeros and add a spinner.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 17
+ },
+ {
+  "id": "bk119",
+  "q": "What makes a group of radio buttons one group?",
+  "options": [
+   "A shared id",
+   "A shared name",
+   "A shared class",
+   "Being inside one fieldset"
+  ],
+  "answer": 1,
+  "why": "Radios form a group by sharing a name; different names make separate groups.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 17
+ },
+ {
+  "id": "bk120",
+  "q": "Which attribute pre-selects a checkbox or a radio button?",
+  "options": [
+   "selected",
+   "checked",
+   "default",
+   "value"
+  ],
+  "answer": 1,
+  "why": "checked pre-selects a checkbox or radio. selected is the equivalent on an option inside a select.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 17
+ },
+ {
+  "id": "bk121",
+  "q": "What does the accept attribute do on <input type='file'>?",
+  "options": [
+   "Limits the file size",
+   "Suggests which file types to offer",
+   "Accepts the upload automatically",
+   "Allows several files"
+  ],
+  "answer": 1,
+  "why": "accept narrows the file types offered; multiple allows more than one file.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 17
+ },
+ {
+  "id": "bk122",
+  "q": "Which pair limits the number of characters, not the value?",
+  "options": [
+   "min and max",
+   "minlength and maxlength",
+   "size and step",
+   "pattern and title"
+  ],
+  "answer": 1,
+  "why": "min/max/step constrain the value; minlength/maxlength constrain the character count; size is the visible width.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 17
+ },
+ {
+  "id": "bk123",
+  "q": "What does the size attribute control on an input?",
+  "options": [
+   "The maximum characters allowed",
+   "The visible width of the box",
+   "The font size",
+   "The file size"
+  ],
+  "answer": 1,
+  "why": "size is the visible width of the control, not a limit on what can be typed.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 17
+ },
+ {
+  "id": "bk124",
+  "q": "You want a date of birth with a native calendar. Which type?",
+  "options": [
+   "text with a pattern",
+   "date",
+   "datetime-local",
+   "month"
+  ],
+  "answer": 1,
+  "why": "date gives a native calendar picker. datetime-local adds a time, month picks a month and year.",
+  "topic": "Input types",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 17
+ },
+ {
+  "id": "bk125",
+  "q": "Why is client-side validation never enough on its own?",
+  "options": [
+   "It is slow",
+   "It can be bypassed; server-side validation is the final line of defence",
+   "It does not work on phones",
+   "It needs JavaScript"
+  ],
+  "answer": 1,
+  "why": "Client-side validation gives instant feedback but can be bypassed. Server-side validation cannot be, so you use both.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk126",
+  "q": "Does a placeholder satisfy the required constraint?",
+  "options": [
+   "Yes",
+   "No: a placeholder is only a hint and the field is still empty",
+   "Only for text inputs",
+   "Only with minlength"
+  ],
+  "answer": 1,
+  "why": "A placeholder never satisfies required. The field is still empty.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk127",
+  "q": "A required <select> always passes validation even when untouched. Why?",
+  "options": [
+   "select cannot be required",
+   "Its first option has a value, so something is always selected",
+   "Validation ignores selects",
+   "The form has novalidate"
+  ],
+  "answer": 1,
+  "why": "A required select needs an empty first option; otherwise the first real option is already selected and the constraint always passes.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 18
+ },
+ {
+  "id": "bk128",
+  "q": "Which attribute supplies the hint shown when a pattern fails?",
+  "options": [
+   "placeholder",
+   "title",
+   "label",
+   "alt"
+  ],
+  "answer": 1,
+  "why": "pattern is the regular expression and title is the failure hint.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 18
+ },
+ {
+  "id": "bk129",
+  "q": "How much of the value must match a pattern?",
+  "options": [
+   "Any part of it",
+   "The whole value",
+   "The first character",
+   "At least three characters"
+  ],
+  "answer": 1,
+  "why": "The whole value must match the regular expression.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk130",
+  "q": "Which attribute turns built-in validation off for one button, such as 'Save draft'?",
+  "options": [
+   "novalidate on the form",
+   "formnovalidate on the button",
+   "disabled on the button",
+   "required='false'"
+  ],
+  "answer": 1,
+  "why": "novalidate on the form and formnovalidate on a submit button switch built-in validation off deliberately.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk131",
+  "q": "When a form is submitted with an invalid field, the browser:",
+  "options": [
+   "Submits it anyway",
+   "Blocks submission, focuses the first bad field and shows a message",
+   "Clears the form",
+   "Removes the field"
+  ],
+  "answer": 1,
+  "why": "The browser blocks invalid forms, focuses the first bad field and shows a message. :valid and :invalid let you style them.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk132",
+  "q": "Are disabled fields validated?",
+  "options": [
+   "Yes",
+   "No: they are neither validated nor submitted",
+   "Only if required",
+   "Only on the server"
+  ],
+  "answer": 1,
+  "why": "Disabled fields are neither validated nor submitted.",
+  "topic": "Forms",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 18
+ },
+ {
+  "id": "bk133",
+  "q": "What is the correct order of children inside <table>?",
+  "options": [
+   "thead, caption, tbody, tfoot",
+   "caption, colgroup, thead, tbody, tfoot",
+   "caption, thead, tfoot, tbody",
+   "colgroup, caption, tbody, thead"
+  ],
+  "answer": 1,
+  "why": "Order inside table: caption, colgroup, thead, tbody, tfoot. The caption is the first child.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 19
+ },
+ {
+  "id": "bk134",
+  "q": "What is the difference between <th> and <td>?",
+  "options": [
+   "th is bold",
+   "th is a header cell for a column or row; td is a data cell",
+   "th goes in thead only",
+   "td cannot hold numbers"
+  ],
+  "answer": 1,
+  "why": "th is a header cell, td is a data cell. Both live inside a tr.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 19
+ },
+ {
+  "id": "bk135",
+  "q": "A row in a four-column table has a cell with colspan='3'. How many more cells does that row need?",
+  "options": [
+   "None",
+   "One",
+   "Three",
+   "Four"
+  ],
+  "answer": 1,
+  "why": "The row must still add up to four columns, so one more cell is needed.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 19
+ },
+ {
+  "id": "bk136",
+  "q": "In the row beneath a cell with rowspan='2', what happens?",
+  "options": [
+   "It repeats the cell",
+   "It omits that cell, because the cell above occupies the space",
+   "It needs an empty td",
+   "It must use colspan"
+  ],
+  "answer": 1,
+  "why": "The row under a rowspan cell omits that cell; the cell above already occupies the space.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 19
+ },
+ {
+  "id": "bk137",
+  "q": "Which attribute tells a screen reader that a <th> heads a row rather than a column?",
+  "options": [
+   "headers='row'",
+   "scope='row'",
+   "role='rowheader'",
+   "axis='row'"
+  ],
+  "answer": 1,
+  "why": "scope='col' or scope='row' on th, plus headers='ids' on td for complex tables, is how screen readers read tables.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 19
+ },
+ {
+  "id": "bk138",
+  "q": "What is <caption> for?",
+  "options": [
+   "A footnote",
+   "The table's title, written as its first child",
+   "Column widths",
+   "A cell tooltip"
+  ],
+  "answer": 1,
+  "why": "caption is the table's title and the first child of table.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 19
+ },
+ {
+  "id": "bk139",
+  "q": "Which pair sets properties for whole columns?",
+  "options": [
+   "thead and tbody",
+   "colgroup and col",
+   "tr and td",
+   "scope and headers"
+  ],
+  "answer": 1,
+  "why": "colgroup and col style whole columns.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 19
+ },
+ {
+  "id": "bk140",
+  "q": "When is a table the right element?",
+  "options": [
+   "For page layout",
+   "For tabular data only",
+   "For any grid of boxes",
+   "For navigation menus"
+  ],
+  "answer": 1,
+  "why": "Tables are for tabular data only. Never lay out a page with a table.",
+  "topic": "Tables",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 19
+ },
+ {
+  "id": "bk141",
+  "q": "What does WCAG stand for?",
+  "options": [
+   "Web Content Accessibility Guidelines",
+   "Web Consortium for Accessible Graphics",
+   "Web Compliance and Accessibility Group",
+   "Working Committee on Accessible Growth"
+  ],
+  "answer": 0,
+  "why": "WCAG = Web Content Accessibility Guidelines, published by the W3C's Web Accessibility Initiative. Version 2.2 (2023) is current.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 20
+ },
+ {
+  "id": "bk142",
+  "q": "What do the four letters of POUR stand for?",
+  "options": [
+   "Precise, Open, Usable, Readable",
+   "Perceivable, Operable, Understandable, Robust",
+   "Public, Online, Universal, Responsive",
+   "Portable, Optimised, Uniform, Reliable"
+  ],
+  "answer": 1,
+  "why": "POUR: Perceivable, Operable, Understandable, Robust.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 20
+ },
+ {
+  "id": "bk143",
+  "q": "Which conformance level do most organisations and laws require?",
+  "options": [
+   "A",
+   "AA",
+   "AAA",
+   "All three equally"
+  ],
+  "answer": 1,
+  "why": "Level AA is the target most organisations and laws require. The levels are cumulative: AA includes A.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 20
+ },
+ {
+  "id": "bk144",
+  "q": "What is the minimum contrast ratio for normal text at level AA?",
+  "options": [
+   "3:1",
+   "4.5:1",
+   "7:1",
+   "2:1"
+  ],
+  "answer": 1,
+  "why": "AA requires 4.5:1 for normal text and 3:1 for large text. AAA raises these to 7:1 and 4.5:1.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 20
+ },
+ {
+  "id": "bk145",
+  "q": "What is the minimum contrast for icons, form borders and focus indicators?",
+  "options": [
+   "4.5:1",
+   "3:1",
+   "7:1",
+   "No requirement"
+  ],
+  "answer": 1,
+  "why": "Non-text contrast (WCAG 2.1) requires 3:1 for icons, form borders and focus indicators.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 20
+ },
+ {
+  "id": "bk146",
+  "q": "Why is AAA not required for whole sites?",
+  "options": [
+   "It is optional by choice",
+   "Some content simply cannot meet it",
+   "It is not yet published",
+   "It applies only to video"
+  ],
+  "answer": 1,
+  "why": "AAA is the highest level and is not required for whole sites because some content cannot meet it.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 20
+ },
+ {
+  "id": "bk147",
+  "q": "Which Indian law requires public-facing ICT, including websites, to be accessible?",
+  "options": [
+   "The IT Act 2000",
+   "The Rights of Persons with Disabilities Act, 2016",
+   "The Companies Act",
+   "Section 508"
+  ],
+  "answer": 1,
+  "why": "In India the RPwD Act 2016 and the GIGW guidelines apply; Section 508 and the ADA are United States instruments.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 20
+ },
+ {
+  "id": "bk148",
+  "q": "Which testing method would find a control that cannot be reached by keyboard?",
+  "options": [
+   "An automated scanner alone",
+   "Navigating the page with the keyboard only",
+   "Checking the contrast",
+   "Validating the HTML"
+  ],
+  "answer": 1,
+  "why": "Test with an automated tool, then keyboard only, a screen reader, zoom and contrast, and validation. Only keyboard testing finds unreachable controls.",
+  "topic": "Semantic structure",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 20
+ },
+ {
+  "id": "bk149",
+  "q": "What does 'responsive' mean?",
+  "options": [
+   "A separate mobile site",
+   "One document that adapts, using HTML structure, CSS media queries and scalable media",
+   "A page that loads quickly",
+   "A page with no images"
+  ],
+  "answer": 1,
+  "why": "Responsive means one document that adapts: HTML structure plus CSS media queries plus scalable media.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 21
+ },
+ {
+  "id": "bk150",
+  "q": "What is the correct viewport meta tag?",
+  "options": [
+   "<meta name='viewport' content='width=1024'>",
+   "<meta name='viewport' content='width=device-width, initial-scale=1.0'>",
+   "<meta charset='viewport'>",
+   "<meta name='screen' content='mobile'>"
+  ],
+  "answer": 1,
+  "why": "width=device-width, initial-scale=1.0 gives the real width and 100% zoom. Without it phones show a shrunken desktop layout.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L1",
+  "ch": 21
+ },
+ {
+  "id": "bk151",
+  "q": "A section has a fixed pixel height. What breaks on a phone?",
+  "options": [
+   "The background disappears",
+   "The text overflows when it wraps onto more lines",
+   "The section is centred",
+   "Images stop loading"
+  ],
+  "answer": 1,
+  "why": "Fixed pixel heights break because text wraps onto more lines on a narrow screen and overflows. Let height come from the content.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 21
+ },
+ {
+  "id": "bk152",
+  "q": "Which CSS declaration stops images overflowing their container?",
+  "options": [
+   "width: 100%",
+   "max-width: 100%",
+   "height: auto",
+   "object-fit: cover"
+  ],
+  "answer": 1,
+  "why": "max-width: 100% lets media scale down with the container without stretching beyond its natural size.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 21
+ },
+ {
+  "id": "bk153",
+  "q": "A page scrolls sideways on a phone. Which habit is the most likely cause?",
+  "options": [
+   "Too many images",
+   "A fixed pixel width on a container",
+   "Using semantic elements",
+   "Too many headings"
+  ],
+  "answer": 1,
+  "why": "Fixed pixel widths on containers are wider than the phone and force sideways scrolling. Use fluid widths or max-widths.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L3",
+  "ch": 21
+ },
+ {
+  "id": "bk154",
+  "q": "How should a wide table behave on a phone?",
+  "options": [
+   "Shrink its font until it fits",
+   "Scroll sideways inside a wrapper",
+   "Be replaced by a list",
+   "Be hidden"
+  ],
+  "answer": 1,
+  "why": "Wide tables scroll inside a wrapper rather than forcing the whole page to scroll.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 21
+ },
+ {
+  "id": "bk155",
+  "q": "Why does logical source order matter for responsive pages?",
+  "options": [
+   "It changes the file size",
+   "It gives a correct single-column view for free",
+   "It is required by validators",
+   "It affects the viewport tag"
+  ],
+  "answer": 1,
+  "why": "Logical source order gives a correct single-column view for free, before any CSS is applied.",
+  "topic": "Responsive design",
+  "unit": "u2",
+  "level": "L2",
+  "ch": 21
+ },
+ {
+  "id": "bk156",
+  "q": "In the rule h1 { color: navy; font-size: 2rem; }, how many declarations are there?",
+  "options": [
+   "One",
+   "Two",
+   "Three",
+   "Four"
+  ],
+  "answer": 1,
+  "why": "A declaration is one property-value pair ending in a semicolon. There are two here: color: navy and font-size: 2rem.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 22
+ },
+ {
+  "id": "bk157",
+  "q": "Which way of adding CSS should a real project use?",
+  "options": [
+   "A style attribute on each element",
+   "A <style> block in the head",
+   "An external stylesheet linked with <link rel='stylesheet'>",
+   "Whichever is shortest"
+  ],
+  "answer": 2,
+  "why": "An external stylesheet keeps one file styling every page, so a single change updates the whole site.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 22
+ },
+ {
+  "id": "bk158",
+  "q": "What is the correct syntax for a CSS comment?",
+  "options": [
+   "<!-- like this -->",
+   "// like this",
+   "/* like this */",
+   "# like this"
+  ],
+  "answer": 2,
+  "why": "CSS comments are /* ... */. The <!-- --> form is HTML and // is JavaScript.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 22
+ },
+ {
+  "id": "bk159",
+  "q": "Your rule appears in DevTools but is crossed out. What does that mean?",
+  "options": [
+   "The property does not exist",
+   "Another rule won the cascade and overrode it",
+   "The file failed to load",
+   "The selector matched nothing"
+  ],
+  "answer": 1,
+  "why": "A crossed-out rule was matched but overridden. If the rule were not listed at all, the selector matched nothing.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 22
+ },
+ {
+  "id": "bk160",
+  "q": "What does CSS stand for?",
+  "options": [
+   "Computer Style System",
+   "Cascading Style Sheets",
+   "Creative Styling Standard",
+   "Client Side Styling"
+  ],
+  "answer": 1,
+  "why": "CSS = Cascading Style Sheets. 'Cascading' names the rules that decide which declaration wins.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 22
+ },
+ {
+  "id": "bk161",
+  "q": "In p { color: red; }, which part is the selector?",
+  "options": [
+   "color",
+   "red",
+   "p",
+   "color: red"
+  ],
+  "answer": 2,
+  "why": "The selector chooses the elements (p); the declaration block in braces says what to do to them.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 22
+ },
+ {
+  "id": "bk162",
+  "q": "Why is CSS kept separate from HTML?",
+  "options": [
+   "CSS loads faster that way",
+   "HTML carries meaning and CSS carries appearance, so each can change without the other",
+   "Browsers require it",
+   "It reduces the number of files"
+  ],
+  "answer": 1,
+  "why": "HTML carries meaning, CSS carries appearance. Separating them lets you restyle a whole site without touching the content.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 22
+ },
+ {
+  "id": "bk163",
+  "q": "Which selector targets class='card'?",
+  "options": [
+   "#card",
+   ".card",
+   "card",
+   "*card"
+  ],
+  "answer": 1,
+  "why": "A full stop selects a class; a hash selects an id; a bare name selects an element type.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 23
+ },
+ {
+  "id": "bk164",
+  "q": "What does the universal selector * match?",
+  "options": [
+   "Only the body",
+   "Every element on the page",
+   "Elements with no class",
+   "Nothing until you add a class"
+  ],
+  "answer": 1,
+  "why": "* matches every element. It is often used to apply box-sizing: border-box to the whole page.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 23
+ },
+ {
+  "id": "bk165",
+  "q": "When two selectors have the same specificity, which rule wins?",
+  "options": [
+   "The shorter one",
+   "The one written later in the stylesheet",
+   "The first one written",
+   "Neither; the browser ignores both"
+  ],
+  "answer": 1,
+  "why": "Source order is the tie-breaker. With equal specificity the later rule wins.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 23
+ },
+ {
+  "id": "bk166",
+  "q": "When does source order decide the winner?",
+  "options": [
+   "Always",
+   "Only when the specificity scores are equal",
+   "Only for id selectors",
+   "Never"
+  ],
+  "answer": 1,
+  "why": "Source order is the tie-breaker: it decides only when specificity is equal. The later rule wins.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 23
+ },
+ {
+  "id": "bk167",
+  "q": "Which selector selects only direct children?",
+  "options": [
+   "article p",
+   "article > p",
+   "article + p",
+   "article ~ p"
+  ],
+  "answer": 1,
+  "why": "> selects direct children only; a space selects any descendant; + is the next sibling and ~ all later siblings.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 23
+ },
+ {
+  "id": "bk168",
+  "q": "Which group of properties is inherited by children?",
+  "options": [
+   "padding and margin",
+   "color and font-family",
+   "border and width",
+   "position and z-index"
+  ],
+  "answer": 1,
+  "why": "Text properties such as color, font-family and line-height inherit. Box properties such as padding, border, margin and width do not.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 23
+ },
+ {
+  "id": "bk169",
+  "q": "Why is !important discouraged?",
+  "options": [
+   "It is invalid CSS",
+   "It overrides the cascade, so the only way to beat it later is another !important",
+   "It is slow",
+   "It works in one browser only"
+  ],
+  "answer": 1,
+  "why": "!important short-circuits the cascade. Once used, the only way to override it is another !important, which escalates quickly.",
+  "topic": "Specificity and the cascade",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 23
+ },
+ {
+  "id": "bk170",
+  "q": "What does #FF0000 represent?",
+  "options": [
+   "Pure green",
+   "Pure red",
+   "Pure blue",
+   "Black"
+  ],
+  "answer": 1,
+  "why": "A hex colour is #RRGGBB. FF is the maximum for red, 00 for green and blue, so #FF0000 is pure red.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 24
+ },
+ {
+  "id": "bk171",
+  "q": "What does the fourth value in rgba(255, 0, 0, 0.5) control?",
+  "options": [
+   "Brightness",
+   "Opacity",
+   "Saturation",
+   "Hue"
+  ],
+  "answer": 1,
+  "why": "The fourth value in rgba() is alpha: the opacity, from 0 (transparent) to 1 (opaque).",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 24
+ },
+ {
+  "id": "bk172",
+  "q": "In hsl(), what are the three values in order?",
+  "options": [
+   "Height, size, length",
+   "Hue, saturation, lightness",
+   "Hex, shade, level",
+   "Highlight, shadow, luminance"
+  ],
+  "answer": 1,
+  "why": "hsl() takes hue in degrees, saturation as a percentage and lightness as a percentage.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 24
+ },
+ {
+  "id": "bk173",
+  "q": "Which property stops a background image repeating?",
+  "options": [
+   "background-size: cover",
+   "background-repeat: no-repeat",
+   "background-position: center",
+   "background-attachment: fixed"
+  ],
+  "answer": 1,
+  "why": "background-repeat: no-repeat stops the tiling. Backgrounds tile by default.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 24
+ },
+ {
+  "id": "bk174",
+  "q": "Why must you check colour contrast before shipping a colour pair?",
+  "options": [
+   "To match the brand",
+   "Because text below the contrast minimum is unreadable for many users and fails WCAG AA",
+   "To reduce file size",
+   "Because browsers reject low contrast"
+  ],
+  "answer": 1,
+  "why": "WCAG AA requires 4.5:1 for normal text. A pair that looks fine to you can be unreadable for others.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 24
+ },
+ {
+  "id": "bk175",
+  "q": "Does padding take the element's background colour?",
+  "options": [
+   "No, only the content does",
+   "Yes: the background fills the content and the padding",
+   "Only with border-box",
+   "Only if a border is set"
+  ],
+  "answer": 1,
+  "why": "The background colour fills the content and the padding, right out to the border. The margin stays transparent.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 24
+ },
+ {
+  "id": "bk176",
+  "q": "Which of these is an absolute unit?",
+  "options": [
+   "em",
+   "rem",
+   "px",
+   "%"
+  ],
+  "answer": 2,
+  "why": "px is absolute. em, rem and % are all relative to something else.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 25
+ },
+ {
+  "id": "bk177",
+  "q": "What does height: 100vh give an element?",
+  "options": [
+   "The full height of the page",
+   "The full height of the viewport",
+   "The height of its parent",
+   "One hundred pixels"
+  ],
+  "answer": 1,
+  "why": "vh is a percentage of the viewport height, so 100vh is exactly the height of the visible window.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 25
+ },
+ {
+  "id": "bk178",
+  "q": "Why can nested em font sizes compound unexpectedly?",
+  "options": [
+   "em is invalid when nested",
+   "Each level is relative to its parent's computed size, so they multiply",
+   "Browsers round em values",
+   "em only works on text"
+  ],
+  "answer": 1,
+  "why": "em is relative to the element's inherited font size, so nesting multiplies the factor at each level. rem avoids this by always referring to the root.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 25
+ },
+ {
+  "id": "bk179",
+  "q": "The unit ch is measured as:",
+  "options": [
+   "The number of characters allowed",
+   "The width of the digit zero in the current font",
+   "One character height",
+   "A fixed 8 pixels"
+  ],
+  "answer": 1,
+  "why": "1ch is the width of the '0' character in the current font, which makes it useful for setting readable line lengths.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 25
+ },
+ {
+  "id": "bk180",
+  "q": "A percentage width is measured against:",
+  "options": [
+   "The viewport",
+   "The containing block's width",
+   "The root font size",
+   "The element's content"
+  ],
+  "answer": 1,
+  "why": "A percentage is a share of the containing block, which is why a percentage width needs a parent with a known width.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 25
+ },
+ {
+  "id": "bk181",
+  "q": "What is a font stack and why does it end with a generic family?",
+  "options": [
+   "A list of sizes; the last is the default",
+   "A list of fallbacks; the generic family guarantees something readable renders",
+   "A stack of weights",
+   "A CSS function"
+  ],
+  "answer": 1,
+  "why": "font-family lists fallbacks in order. Ending with a generic family such as sans-serif guarantees a readable result if none of the named fonts exist.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 26
+ },
+ {
+  "id": "bk182",
+  "q": "Which value makes text bold?",
+  "options": [
+   "font-style: bold",
+   "font-weight: 700",
+   "text-weight: bold",
+   "font: bold"
+  ],
+  "answer": 1,
+  "why": "font-weight controls boldness; 400 is normal and 700 is bold. font-style controls italics.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 26
+ },
+ {
+  "id": "bk183",
+  "q": "A unitless line-height such as 1.5 is preferred because:",
+  "options": [
+   "It is shorter",
+   "It scales with each element's own font size instead of being inherited as a fixed length",
+   "It is the only valid form",
+   "It disables inheritance"
+  ],
+  "answer": 1,
+  "why": "A unitless line-height is inherited as a ratio, so every element computes it from its own font size.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 26
+ },
+ {
+  "id": "bk184",
+  "q": "Which is true of the font shorthand?",
+  "options": [
+   "The order does not matter",
+   "font-size and font-family are required and must come last, in that order",
+   "It cannot set the family",
+   "It only accepts two values"
+  ],
+  "answer": 1,
+  "why": "The font shorthand has a required order ending in font-size and font-family; omitting either makes the declaration invalid.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 26
+ },
+ {
+  "id": "bk185",
+  "q": "How many typefaces should a typical page use?",
+  "options": [
+   "One per section",
+   "Two, or at most three",
+   "As many as look good",
+   "Exactly five"
+  ],
+  "answer": 1,
+  "why": "Pick two, never five: usually one for headings and one for body text.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 26
+ },
+ {
+  "id": "bk186",
+  "q": "Which property centres a line of text inside its box?",
+  "options": [
+   "align-items: center",
+   "text-align: center",
+   "margin: 0 auto",
+   "justify-content: center"
+  ],
+  "answer": 1,
+  "why": "text-align: center centres the inline content inside the box. margin: 0 auto centres the box itself.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 27
+ },
+ {
+  "id": "bk187",
+  "q": "Why is text-align: justify used carefully in narrow columns?",
+  "options": [
+   "It is not supported",
+   "The extra word spacing forms distracting vertical rivers of white",
+   "It reverses the text",
+   "It removes hyphens"
+  ],
+  "answer": 1,
+  "why": "Justify straightens the right edge by stretching the spaces between words; in a narrow column those gaps line up into rivers.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 27
+ },
+ {
+  "id": "bk188",
+  "q": "Which property removes the underline from a link?",
+  "options": [
+   "text-transform: none",
+   "text-decoration: none",
+   "text-style: plain",
+   "font-decoration: none"
+  ],
+  "answer": 1,
+  "why": "text-decoration: none removes the underline. Remember to leave another cue so links stay identifiable.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 27
+ },
+ {
+  "id": "bk189",
+  "q": "text-transform: uppercase changes:",
+  "options": [
+   "The text in the HTML source",
+   "Only how the text is displayed",
+   "The font family",
+   "The character encoding"
+  ],
+  "answer": 1,
+  "why": "text-transform changes only the presentation. The underlying text in the HTML is unchanged, which matters for screen readers and copy-paste.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 27
+ },
+ {
+  "id": "bk190",
+  "q": "In text-shadow: 2px 4px 6px grey, what is 6px?",
+  "options": [
+   "The horizontal offset",
+   "The vertical offset",
+   "The blur radius",
+   "The spread"
+  ],
+  "answer": 2,
+  "why": "text-shadow takes horizontal offset, vertical offset, blur radius, then colour.",
+  "topic": "CSS basics",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 27
+ },
+ {
+  "id": "bk191",
+  "q": "Which layer is the space INSIDE the border?",
+  "options": [
+   "margin",
+   "padding",
+   "content",
+   "outline"
+  ],
+  "answer": 1,
+  "why": "From the inside out: content, padding, border, margin. Padding is inside the border; margin is outside it.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 28
+ },
+ {
+  "id": "bk192",
+  "q": "width: 200px, padding: 20px, border: 5px, with no box-sizing. How wide is the box on screen?",
+  "options": [
+   "200px",
+   "225px",
+   "250px",
+   "245px"
+  ],
+  "answer": 2,
+  "why": "By default width sizes the content only: 5 + 20 + 200 + 20 + 5 = 250px.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 28
+ },
+ {
+  "id": "bk193",
+  "q": "Which layer of the box model is always transparent?",
+  "options": [
+   "content",
+   "padding",
+   "border",
+   "margin"
+  ],
+  "answer": 3,
+  "why": "The background fills the content and the padding out to the border. The margin is always transparent.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 28
+ },
+ {
+  "id": "bk194",
+  "q": "In 'padding: 10px 20px 30px', what does 20px apply to?",
+  "options": [
+   "Top only",
+   "Left and right",
+   "Bottom only",
+   "All four sides"
+  ],
+  "answer": 1,
+  "why": "With three values the order is top, then left-and-right, then bottom.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 28
+ },
+ {
+  "id": "bk195",
+  "q": "Which layer sits between the padding and the margin?",
+  "options": [
+   "The content",
+   "The border",
+   "The outline",
+   "Nothing"
+  ],
+  "answer": 1,
+  "why": "From the inside out: content, padding, border, margin. The border is the visible edge between padding and margin.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 28
+ },
+ {
+  "id": "bk196",
+  "q": "Which pair of margins can collapse into one?",
+  "options": [
+   "Left and right margins of neighbours",
+   "The vertical margins of stacked block elements",
+   "Margin and padding",
+   "Margins inside a flex container"
+  ],
+  "answer": 1,
+  "why": "Vertical margins between stacked block elements collapse into the larger of the two rather than adding up.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 28
+ },
+ {
+  "id": "bk197",
+  "q": "How do you horizontally centre a block that has a set width?",
+  "options": [
+   "text-align: center",
+   "margin: 0 auto",
+   "float: center",
+   "align: middle"
+  ],
+  "answer": 1,
+  "why": "margin: 0 auto shares the leftover horizontal space equally, which centres the box. There is no float: center.",
+  "topic": "Box model",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 28
+ },
+ {
+  "id": "bk198",
+  "q": "What is the default value of position?",
+  "options": [
+   "relative",
+   "static",
+   "absolute",
+   "normal"
+  ],
+  "answer": 1,
+  "why": "Every element is position: static until you say otherwise, and offsets are ignored on a static box.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 29
+ },
+ {
+  "id": "bk199",
+  "q": "Which position moves an element but keeps its original space in the flow?",
+  "options": [
+   "absolute",
+   "relative",
+   "fixed",
+   "sticky"
+  ],
+  "answer": 1,
+  "why": "relative offsets the element visually while its original space stays reserved. absolute and fixed remove it from the flow.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 29
+ },
+ {
+  "id": "bk200",
+  "q": "An absolutely positioned box flies to the corner of the page. What is missing?",
+  "options": [
+   "A width",
+   "A positioned ancestor, so it is using the page as its reference",
+   "A z-index",
+   "display: block"
+  ],
+  "answer": 1,
+  "why": "An absolute box is placed against its nearest positioned ancestor. With none, it falls back to the page.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 29
+ },
+ {
+  "id": "bk201",
+  "q": "Which position is measured against the viewport, so it stays put when you scroll?",
+  "options": [
+   "relative",
+   "absolute",
+   "fixed",
+   "static"
+  ],
+  "answer": 2,
+  "why": "fixed is measured against the viewport and does not move when the page scrolls.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 29
+ },
+ {
+  "id": "bk202",
+  "q": "position: sticky silently does nothing. What is usually missing?",
+  "options": [
+   "A z-index",
+   "A threshold such as top, and a scrollable ancestor that is tall enough",
+   "display: flex",
+   "A width"
+  ],
+  "answer": 1,
+  "why": "Sticky needs an offset such as top: 0 to stick to, and room to scroll within its parent.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 29
+ },
+ {
+  "id": "bk203",
+  "q": "Why does z-index sometimes appear to do nothing?",
+  "options": [
+   "It needs a unit",
+   "It applies only to positioned elements, and only within the same stacking context",
+   "It works on text only",
+   "Values above 10 are ignored"
+  ],
+  "answer": 1,
+  "why": "z-index applies only to positioned elements, and it orders siblings within one stacking context.",
+  "topic": "Positioning",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 29
+ },
+ {
+  "id": "bk204",
+  "q": "Where do you put display: flex?",
+  "options": [
+   "On each child",
+   "On the parent container",
+   "On the body",
+   "In a media query"
+  ],
+  "answer": 1,
+  "why": "display: flex goes on the parent. Its direct children become flex items.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 30
+ },
+ {
+  "id": "bk205",
+  "q": "Which property aligns flex items along the CROSS axis?",
+  "options": [
+   "justify-content",
+   "align-items",
+   "flex-wrap",
+   "flex-basis"
+  ],
+  "answer": 1,
+  "why": "align-items works along the cross axis; justify-content works along the main axis.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 30
+ },
+ {
+  "id": "bk206",
+  "q": "What does flex-direction: row-reverse do?",
+  "options": [
+   "Stacks the items vertically",
+   "Lays the items along the row in the opposite order",
+   "Reverses the text in each item",
+   "Wraps the items"
+  ],
+  "answer": 1,
+  "why": "row-reverse keeps the main axis horizontal but runs it the other way, so the items appear in reverse order.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 30
+ },
+ {
+  "id": "bk207",
+  "q": "Which pair centres content both horizontally and vertically in a flex row?",
+  "options": [
+   "text-align and vertical-align",
+   "justify-content: center and align-items: center",
+   "margin: auto and padding: auto",
+   "place-self: center and gap: auto"
+  ],
+  "answer": 1,
+  "why": "In a flex row, justify-content: center centres along the main axis and align-items: center along the cross axis.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 30
+ },
+ {
+  "id": "bk208",
+  "q": "What does flex: 1 on every item achieve?",
+  "options": [
+   "They all become 1px wide",
+   "They share the leftover space equally",
+   "They stop wrapping",
+   "They stack vertically"
+  ],
+  "answer": 1,
+  "why": "flex: 1 lets each item take an equal share of the leftover space.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 30
+ },
+ {
+  "id": "bk209",
+  "q": "By default, do flex items wrap onto a new line?",
+  "options": [
+   "Yes, always",
+   "No: they stay on one line until flex-wrap: wrap is set",
+   "Only in a column",
+   "Only if gap is set"
+  ],
+  "answer": 1,
+  "why": "Flex items stay on one line by default and squash to fit. flex-wrap: wrap lets them move onto a new line.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 30
+ },
+ {
+  "id": "bk210",
+  "q": "What does flex: 0 0 140px mean on an item?",
+  "options": [
+   "Grow, shrink, and start at 140px",
+   "Never grow, never shrink, stay 140px wide",
+   "Grow to 140px",
+   "Shrink to 140px"
+  ],
+  "answer": 1,
+  "why": "The three parts are grow, shrink and basis. 0 0 140px means it neither grows nor shrinks from its 140px basis.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 30
+ },
+ {
+  "id": "bk211",
+  "q": "grid-template-columns: 200px 1fr 200px creates how many columns?",
+  "options": [
+   "Two",
+   "Three",
+   "Four",
+   "It depends on the content"
+  ],
+  "answer": 1,
+  "why": "Each value in grid-template-columns defines one column track, so this is three columns: two fixed and one flexible.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 31
+ },
+ {
+  "id": "bk212",
+  "q": "What does minmax(200px, 1fr) mean for a grid track?",
+  "options": [
+   "Exactly 200px",
+   "At least 200px, at most one share of the free space",
+   "Between 200px and 200 units",
+   "A maximum of 200px"
+  ],
+  "answer": 1,
+  "why": "minmax sets a floor and a ceiling: never narrower than 200px, and at most one share of the leftover space.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 31
+ },
+ {
+  "id": "bk213",
+  "q": "Flexbox handles one dimension. Grid handles:",
+  "options": [
+   "One dimension too",
+   "Rows and columns together",
+   "Only tables",
+   "Only images"
+  ],
+  "answer": 1,
+  "why": "Flexbox arranges along one line; Grid defines rows and columns together so things line up in both directions.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 31
+ },
+ {
+  "id": "bk214",
+  "q": "Which property defines the columns of a grid?",
+  "options": [
+   "grid-columns",
+   "grid-template-columns",
+   "column-count",
+   "flex-basis"
+  ],
+  "answer": 1,
+  "why": "grid-template-columns lists the column tracks; grid-template-rows does the same for rows.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 31
+ },
+ {
+  "id": "bk215",
+  "q": "You need a row of buttons that simply sit in a line. Flex or Grid?",
+  "options": [
+   "Grid, always",
+   "Flex: it is one dimension",
+   "Neither, use floats",
+   "Grid, because buttons are boxes"
+  ],
+  "answer": 1,
+  "why": "Use Flex for a line of things and Grid for a plan with rows and columns.",
+  "topic": "Flexbox and Grid",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 31
+ },
+ {
+  "id": "bk216",
+  "q": "How many colons does a pseudo-CLASS use?",
+  "options": [
+   "One",
+   "Two",
+   "Three",
+   "None"
+  ],
+  "answer": 0,
+  "why": "A pseudo-class uses one colon (:hover). A pseudo-element uses two (::before).",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 32
+ },
+ {
+  "id": "bk217",
+  "q": "Which pseudo-class matches a form control the user cannot interact with?",
+  "options": [
+   ":invalid",
+   ":disabled",
+   ":readonly",
+   ":inactive"
+  ],
+  "answer": 1,
+  "why": ":disabled matches a disabled control. :checked, :required and :invalid describe other form states.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 32
+ },
+ {
+  "id": "bk218",
+  "q": "What does li:nth-child(odd) select?",
+  "options": [
+   "Only the first item",
+   "The 1st, 3rd, 5th items and so on",
+   "The 2nd, 4th, 6th items",
+   "Every item"
+  ],
+  "answer": 1,
+  "why": "odd matches the 1st, 3rd, 5th and so on; even matches the 2nd, 4th, 6th.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 32
+ },
+ {
+  "id": "bk219",
+  "q": "Which pseudo-class matches a ticked checkbox?",
+  "options": [
+   ":selected",
+   ":checked",
+   ":active",
+   ":valid"
+  ],
+  "answer": 1,
+  "why": ":checked matches a checked checkbox or radio; :disabled, :required and :invalid describe other form states.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 32
+ },
+ {
+  "id": "bk220",
+  "q": "What does :first-child mean?",
+  "options": [
+   "The first element of its type",
+   "An element that is the first child of its parent",
+   "The first element on the page",
+   "The first letter"
+  ],
+  "answer": 1,
+  "why": ":first-child matches an element that is the first child of its parent, whatever its type.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 32
+ },
+ {
+  "id": "bk221",
+  "q": "In the order of link pseudo-classes, which must come last for hover to work?",
+  "options": [
+   ":link",
+   ":visited",
+   ":hover then :active",
+   ":active then :hover"
+  ],
+  "answer": 2,
+  "why": "The order is :link, :visited, :hover, :active. Since they have equal specificity, a later rule wins, so hover and active must come after visited.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 32
+ },
+ {
+  "id": "bk222",
+  "q": "Why do ::before and ::after not work on an <img>?",
+  "options": [
+   "Images cannot be styled",
+   "They insert content inside an element, and a void element has no inside",
+   "Images need a class first",
+   "They work only on text"
+  ],
+  "answer": 1,
+  "why": "::before and ::after add a child inside the element. A void element such as img has no content model, so there is nowhere to insert.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 33
+ },
+ {
+  "id": "bk223",
+  "q": "content: '' together with a width and height is typically used to:",
+  "options": [
+   "Hide the element",
+   "Draw a purely decorative shape",
+   "Insert the alt text",
+   "Clear a float only"
+  ],
+  "answer": 1,
+  "why": "An empty content value still creates the box, so you can give it a size and a background and use it as decoration.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 33
+ },
+ {
+  "id": "bk224",
+  "q": "Where does ::before insert its content?",
+  "options": [
+   "Before the element in the HTML",
+   "Inside the element, before its existing content",
+   "In the head",
+   "After the closing tag"
+  ],
+  "answer": 1,
+  "why": "::before inserts inside the element, before its content. ::after inserts inside, after its content.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 33
+ },
+ {
+  "id": "bk225",
+  "q": "Content generated by ::before is:",
+  "options": [
+   "Editable by the user",
+   "Presentational, and not reliably available to assistive technology or copy-paste",
+   "Added to the HTML source",
+   "Indexed by search engines as body text"
+  ],
+  "answer": 1,
+  "why": "Generated content is decoration. Anything that carries meaning belongs in the HTML.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 33
+ },
+ {
+  "id": "bk226",
+  "q": "Which pseudo-element styles the first line of a paragraph?",
+  "options": [
+   "::first-letter",
+   "::first-line",
+   "::line(1)",
+   ":first-line-of"
+  ],
+  "answer": 1,
+  "why": "::first-line styles the first rendered line; ::first-letter styles only the opening character.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 33
+ },
+ {
+  "id": "bk227",
+  "q": "Which selector matches an element whose class list contains the whole word 'card'?",
+  "options": [
+   "[class='card']",
+   "[class~='card']",
+   "[class^='card']",
+   "[class*='card']"
+  ],
+  "answer": 1,
+  "why": "~= matches one whole word in a space-separated list. *= would also match 'cardboard'.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 34
+ },
+ {
+  "id": "bk228",
+  "q": "a[href^='https'] selects links whose href:",
+  "options": [
+   "Contains https anywhere",
+   "Starts with https",
+   "Ends with https",
+   "Equals https exactly"
+  ],
+  "answer": 1,
+  "why": "^= means starts with, $= means ends with, and *= means contains anywhere.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 34
+ },
+ {
+  "id": "bk229",
+  "q": "Which selector finds links to PDF files?",
+  "options": [
+   "a[href^='.pdf']",
+   "a[href$='.pdf']",
+   "a[href*='.pdf']",
+   "a[href='.pdf']"
+  ],
+  "answer": 1,
+  "why": "$= matches the end of the value, so a[href$='.pdf'] finds links ending in .pdf.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 34
+ },
+ {
+  "id": "bk230",
+  "q": "What does [data-state] with no value select?",
+  "options": [
+   "Elements whose data-state is empty",
+   "Every element that has a data-state attribute at all",
+   "Nothing",
+   "Elements whose data-state is 'true'"
+  ],
+  "answer": 1,
+  "why": "An attribute selector with no value matches every element that carries the attribute, whatever its value.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 34
+ },
+ {
+  "id": "bk231",
+  "q": "Why set font: inherit on form controls?",
+  "options": [
+   "To make them bold",
+   "Browsers give controls their own font, so without it they do not match the page",
+   "It is required for validation",
+   "To enable placeholder styling"
+  ],
+  "answer": 1,
+  "why": "Form controls come with a browser font of their own. font: inherit makes them match the rest of the page.",
+  "topic": "Forms",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 35
+ },
+ {
+  "id": "bk232",
+  "q": "Why prefer changing the outline on :focus rather than removing it?",
+  "options": [
+   "outline is easier to animate",
+   "Removing it leaves keyboard users with no visible indication of where they are",
+   "outline cannot be removed",
+   "It affects layout"
+  ],
+  "answer": 1,
+  "why": "An outline takes up no space and shows keyboard users where they are. Replace it with something visible; never simply remove it.",
+  "topic": "Forms",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 35
+ },
+ {
+  "id": "bk233",
+  "q": "Which does NOT take up space in the layout?",
+  "options": [
+   "border",
+   "padding",
+   "outline",
+   "margin"
+  ],
+  "answer": 2,
+  "why": "An outline is drawn over the layout and takes no space, which is why it suits focus rings.",
+  "topic": "Forms",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 35
+ },
+ {
+  "id": "bk234",
+  "q": "A styled form still needs a real <label> because:",
+  "options": [
+   "CSS cannot style placeholders",
+   "The label is announced with the field and clicking it focuses the field",
+   "Labels are required by CSS",
+   "It sets the width"
+  ],
+  "answer": 1,
+  "why": "Styling is CSS's job, but the label must exist in the HTML: it is announced with the field and clicking it focuses the control.",
+  "topic": "Forms",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 35
+ },
+ {
+  "id": "bk235",
+  "q": "Where must a CSS variable be declared to be available everywhere?",
+  "options": [
+   "On body",
+   "On :root",
+   "In a media query",
+   "On each element"
+  ],
+  "answer": 1,
+  "why": ":root is the html element, the top of the tree, so custom properties declared there are inherited by everything.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 36
+ },
+ {
+  "id": "bk236",
+  "q": "Which is a valid custom property declaration?",
+  "options": [
+   "$brand: navy;",
+   "--brand: navy;",
+   "@brand: navy;",
+   "var brand = navy;"
+  ],
+  "answer": 1,
+  "why": "A custom property is declared with two leading hyphens: --brand: navy; and read back with var(--brand).",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 36
+ },
+ {
+  "id": "bk237",
+  "q": "What is the second argument in var(--brand, navy)?",
+  "options": [
+   "A second colour to blend",
+   "A fallback used if --brand is not defined",
+   "The opacity",
+   "A comment"
+  ],
+  "answer": 1,
+  "why": "The second argument is a fallback, used when the custom property is missing or invalid.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 36
+ },
+ {
+  "id": "bk238",
+  "q": "Custom properties differ from Sass variables because they:",
+  "options": [
+   "Are compiled away",
+   "Are live in the browser and inherit, so they can be changed at runtime",
+   "Cannot hold colours",
+   "Work only on :root"
+  ],
+  "answer": 1,
+  "why": "Custom properties are real CSS: they inherit down the tree and can be changed at runtime, including from JavaScript.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 36
+ },
+ {
+  "id": "bk239",
+  "q": "Your media queries are ignored on a phone. What is almost always missing?",
+  "options": [
+   "A doctype",
+   "The viewport meta tag",
+   "A stylesheet link",
+   "A min-width value"
+  ],
+  "answer": 1,
+  "why": "Without <meta name='viewport' content='width=device-width, initial-scale=1.0'> the phone pretends to be a wide desktop, so width-based media queries never match.",
+  "topic": "Responsive design",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 37
+ },
+ {
+  "id": "bk240",
+  "q": "What does @media (max-width: 600px) target?",
+  "options": [
+   "Screens exactly 600px wide",
+   "Screens 600px and narrower",
+   "Screens wider than 600px",
+   "Printed pages only"
+  ],
+  "answer": 1,
+  "why": "max-width is a ceiling: the rules apply at that width and below. min-width is a floor.",
+  "topic": "Responsive design",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 37
+ },
+ {
+  "id": "bk241",
+  "q": "What does mobile-first mean in CSS terms?",
+  "options": [
+   "Writing the desktop rules first and overriding them",
+   "Writing the base rules for small screens, then adding min-width queries",
+   "Using only max-width queries",
+   "Hiding content on phones"
+  ],
+  "answer": 1,
+  "why": "Mobile-first writes the small-screen layout as the base and adds rules with min-width as space allows.",
+  "topic": "Responsive design",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 37
+ },
+ {
+  "id": "bk242",
+  "q": "Where should a breakpoint be placed?",
+  "options": [
+   "At 768px, always",
+   "Where the content starts to look wrong",
+   "Every 100px",
+   "At the width of the newest iPhone"
+  ],
+  "answer": 1,
+  "why": "Content decides breakpoints: resize slowly and add one where the layout breaks, rather than chasing device sizes.",
+  "topic": "Responsive design",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 37
+ },
+ {
+  "id": "bk243",
+  "q": "What is the default transition-timing-function?",
+  "options": [
+   "linear",
+   "ease",
+   "ease-in",
+   "steps(1)"
+  ],
+  "answer": 1,
+  "why": "The default is ease: it starts slowly, speeds up and slows down at the end. linear runs at a constant rate.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 38
+ },
+ {
+  "id": "bk244",
+  "q": "In transition: background-color 0.3s ease, what is 0.3s?",
+  "options": [
+   "The delay",
+   "The duration",
+   "The timing function",
+   "The repeat count"
+  ],
+  "answer": 1,
+  "why": "The order is property, duration, timing function, then optional delay.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L1",
+  "ch": 38
+ },
+ {
+  "id": "bk245",
+  "q": "Which property pair is cheapest for the browser to animate smoothly?",
+  "options": [
+   "width and height",
+   "transform and opacity",
+   "margin and padding",
+   "top and left"
+  ],
+  "answer": 1,
+  "why": "transform and opacity can be handled without re-running layout, so they stay smooth. Animating width, height or margin forces a reflow.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 38
+ },
+ {
+  "id": "bk246",
+  "q": "Can every CSS property be transitioned?",
+  "options": [
+   "Yes",
+   "No: only animatable properties, so display cannot be transitioned",
+   "Only colours",
+   "Only with JavaScript"
+  ],
+  "answer": 1,
+  "why": "Only animatable properties transition. display is not one, which is why fading something out usually uses opacity plus visibility.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 38
+ },
+ {
+  "id": "bk247",
+  "q": "Which animation property decides how the element looks before it starts and after it ends?",
+  "options": [
+   "animation-direction",
+   "animation-fill-mode",
+   "animation-play-state",
+   "animation-delay"
+  ],
+  "answer": 1,
+  "why": "animation-fill-mode decides whether the first and last keyframe values are held outside the animation's running time.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 39
+ },
+ {
+  "id": "bk248",
+  "q": "What does animation-iteration-count: infinite do?",
+  "options": [
+   "Runs the animation once very slowly",
+   "Repeats it for ever",
+   "Reverses it",
+   "Pauses it"
+  ],
+  "answer": 1,
+  "why": "infinite repeats the animation without stopping.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 39
+ },
+ {
+  "id": "bk249",
+  "q": "Which is the key difference between a transition and an animation?",
+  "options": [
+   "Animations are faster",
+   "A transition needs a trigger such as :hover; an animation can run on its own and use many keyframes",
+   "Transitions cannot use easing",
+   "Animations work only on transform"
+  ],
+  "answer": 1,
+  "why": "A transition interpolates between two states when something changes. An animation defines its own keyframe sequence and can run without any trigger.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 39
+ },
+ {
+  "id": "bk250",
+  "q": "Why respect prefers-reduced-motion?",
+  "options": [
+   "It saves battery",
+   "Motion can cause nausea and migraine for some users, and WCAG requires a way to avoid it",
+   "It is faster to render",
+   "Older browsers need it"
+  ],
+  "answer": 1,
+  "why": "Some users experience nausea or migraine from motion. The media query lets you honour the setting they have already chosen.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L3",
+  "ch": 39
+ },
+ {
+  "id": "bk251",
+  "q": "In @keyframes, what do 'from' and 'to' correspond to?",
+  "options": [
+   "0% and 100%",
+   "1% and 99%",
+   "The first and last element",
+   "Start delay and end delay"
+  ],
+  "answer": 0,
+  "why": "from is 0% and to is 100%. Percentage keyframes let you add steps in between.",
+  "topic": "Pseudo-classes and motion",
+  "unit": "u3",
+  "level": "L2",
+  "ch": 39
+ }
+]

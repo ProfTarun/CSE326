@@ -1,0 +1,332 @@
+<article class="chapter" data-ch="24">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 24 &middot; Colours and Backgrounds</p>
+  <h1>Colours and Backgrounds</h1>
+  <p class="lead">Colour is the first thing anyone notices and the first place beginners get stuck, because CSS offers four ways of writing the same colour and nobody explains why. This chapter explains all four from scratch &mdash; including what those <code>#</code> codes actually mean &mdash; then covers backgrounds, images, gradients, and how to choose colours people can actually read.</p>
+  <p class="meta">About 26 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A <b>declaration</b> is <code>property: value;</code> (<a href="book.html?ch=22">Chapter 22</a>).</li>
+      <li><code>color</code> is an <b>inherited</b> property: children get it unless they set their own (<a href="book.html?ch=23">Chapter 23</a>).</li>
+      <li>WCAG asks for a contrast ratio of at least <b>4.5&nbsp;:&nbsp;1</b> for normal text (<a href="book.html?ch=20">Chapter 20</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a colour four ways: by name, hex, <code>rgb()</code> and <code>hsl()</code>, and say what each one means.</li>
+      <li>Read a hex code such as <code>#2563eb</code> and know roughly what colour it is.</li>
+      <li>Add transparency with <code>rgba()</code> or a fourth hex pair.</li>
+      <li>Tell <code>color</code> from <code>background-color</code>, and place a background image where you want it.</li>
+      <li>Make a gradient, and check that your text is readable.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>24.1 Two properties before anything else</h2>
+  <p>Two properties do most of the work, and mixing them up is the commonest colour mistake.</p>
+  <ul>
+    <li><code>color</code> sets the colour of the <b>text</b> inside an element.</li>
+    <li><code>background-color</code> sets the colour <b>behind</b> everything in the element.</li>
+  </ul>
+  <p>Note the spelling. It is <code>color</code>, never <code>colour</code>, and there is no <code>text-color</code> or <code>font-color</code> property. CSS uses American spelling everywhere.</p>
+  <pre class="code" data-run data-title="color paints the letters, background-color paints behind them" data-h="180">&lt;style&gt;
+  .a { color: white; background-color: #C42B2B; padding: 10px; }
+  .b { color: #C42B2B; background-color: white; padding: 10px;
+       border: 2px solid #C42B2B; }
+&lt;/style&gt;
+&lt;p class="a"&gt;White letters on a red background.&lt;/p&gt;
+&lt;p class="b"&gt;Red letters on a white background.&lt;/p&gt;</pre>
+  <p>Remember from <a href="book.html?ch=23">Chapter 23</a> that <code>color</code> is inherited and <code>background-color</code> is not. Set <code>color</code> on <code>body</code> and the whole page follows; set a background on <code>body</code> and only <code>body</code> has it &mdash; though since everything else is transparent by default, the page still looks coloured.</p>
+</section>
+
+<section id="s2">
+  <h2>24.2 Four ways to name a colour</h2>
+  <p>CSS accepts a colour in several formats. They are not four different colour systems in any useful sense &mdash; they are four ways of writing down the same thing, and you will meet all four in real code.</p>
+  <h3>1. Colour names</h3>
+  <p>About 147 words are built into CSS: <code>red</code>, <code>blue</code>, <code>tomato</code>, <code>rebeccapurple</code>, <code>darkslategray</code>. Just write the word.</p>
+  <pre class="code">h1 { color: crimson; }
+p  { background-color: seashell; }</pre>
+  <p>Names are handy for a quick test. They are useless for real design, because you cannot say "a bit darker" &mdash; there is no <code>slightlydarkercrimson</code>.</p>
+  <h3>2. Hex codes &mdash; and what they actually mean</h3>
+  <p>Now the part nobody explains. A screen makes colour by mixing three lights: <b>red, green and blue</b>. Every colour you have ever seen on a screen is some amount of each.</p>
+  <p>Each light has a strength from <b>0</b> (off) to <b>255</b> (full). Red at 255, green at 0, blue at 0 gives pure red. All three at 255 gives white. All three at 0 gives black.</p>
+  <p>A <b>hex code</b> is just those three numbers written in a compact way. "Hex" is short for hexadecimal, a way of counting that uses <b>sixteen</b> digits instead of ten:</p>
+  <pre class="code">0 1 2 3 4 5 6 7 8 9 a  b  c  d  e  f
+0 1 2 3 4 5 6 7 8 9 10 11 12 13 14 15</pre>
+  <p>So <code>a</code> means ten, <code>f</code> means fifteen. Two of those characters together can count from <code>00</code> (zero) up to <code>ff</code> (255) &mdash; which is exactly the range a light strength needs. That is the whole trick.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="A hex code split into its red, green and blue pairs">
+      <g class="mono" style="font-size:34px;font-weight:700">
+        <text x="150" y="60" fill="#0B2545">#</text>
+        <text x="180" y="60" fill="#C42B2B">25</text>
+        <text x="250" y="60" fill="#138808">63</text>
+        <text x="320" y="60" fill="#1D4ED8">eb</text>
+      </g>
+      <path d="M205 72 L205 96" class="edge" style="stroke:#C42B2B" marker-end="url(#arr)"/>
+      <path d="M275 72 L275 96" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M345 72 L345 96" class="edge" style="stroke:#1D4ED8" marker-end="url(#arr)"/>
+      <text x="205" y="114" class="t c b" fill="#C42B2B">red</text>
+      <text x="275" y="114" class="t c b" fill="#138808">green</text>
+      <text x="345" y="114" class="t c b" fill="#1D4ED8">blue</text>
+      <text x="205" y="132" class="t c s">25 = 37</text>
+      <text x="275" y="132" class="t c s">63 = 99</text>
+      <text x="345" y="132" class="t c s">eb = 235</text>
+      <text x="275" y="158" class="t c s">a little red, some green, almost all the blue</text>
+      <rect x="215" y="168" width="120" height="30" rx="7" fill="#2563eb"/>
+      <text x="275" y="188" class="t c w b">so: a strong blue</text>
+      <text x="70" y="188" class="t s">Each pair runs</text><text x="70" y="202" class="t s">00 (none) to ff (full)</text>
+    </svg>
+    <figcaption><b>Figure 24.1</b> <code>#2563eb</code> is not a code you have to memorise. It is three strengths in a row: red, then green, then blue.</figcaption>
+  </figure>
+  <p>You do not have to do the arithmetic. You only need to read the pattern:</p>
+  <div class="swatches">
+    <div class="sw"><i style="background:#ff0000"></i><span>#ff0000<br>red full, rest off</span></div>
+    <div class="sw"><i style="background:#00ff00"></i><span>#00ff00<br>green full</span></div>
+    <div class="sw"><i style="background:#0000ff"></i><span>#0000ff<br>blue full</span></div>
+    <div class="sw"><i style="background:#ffffff"></i><span>#ffffff<br>all full = white</span></div>
+    <div class="sw"><i style="background:#000000"></i><span>#000000<br>all off = black</span></div>
+    <div class="sw"><i style="background:#888888"></i><span>#888888<br>all equal = grey</span></div>
+  </div>
+  <p>Two rules of thumb that make hex readable at a glance:</p>
+  <ul>
+    <li><b>All three pairs the same</b> (<code>#333</code>, <code>#888</code>, <code>#ddd</code>) means a shade of <b>grey</b>. Lower is darker.</li>
+    <li><b>The biggest pair tells you the family.</b> <code>#2563eb</code> ends in the biggest number, so it is bluish. <code>#e07b1e</code> starts biggest, so it is reddish-orange.</li>
+  </ul>
+  <p>When all three pairs are doubled letters you may shorten them: <code>#ff0000</code> can be written <code>#f00</code>, and <code>#ffffff</code> as <code>#fff</code>. Capital letters are allowed and mean the same thing: <code>#FF0000</code> equals <code>#ff0000</code>.</p>
+  <h3>3. rgb() &mdash; the same numbers, in plain decimal</h3>
+  <p>If hexadecimal is uncomfortable, <code>rgb()</code> writes the identical information in ordinary numbers from 0 to 255:</p>
+  <pre class="code">color: #2563eb;              /* these three lines are */
+color: rgb(37, 99, 235);     /* exactly the same colour */
+color: rgb(37 99 235);       /* modern spacing, also fine */</pre>
+  <h3>4. hsl() &mdash; the one humans find easiest</h3>
+  <p><code>hsl()</code> describes a colour the way a person would:</p>
+  <ul>
+    <li><b>Hue</b>: which colour, as an angle round a colour wheel from 0 to 360. 0 red, 120 green, 240 blue.</li>
+    <li><b>Saturation</b>: how strong, from 0% (grey) to 100% (vivid).</li>
+    <li><b>Lightness</b>: how light, from 0% (black) through 50% (the pure colour) to 100% (white).</li>
+  </ul>
+  <pre class="code">color: hsl(217, 83%, 53%);   /* the same blue again */</pre>
+  <p>Its advantage is that a set of matching colours is easy to build: keep the hue, change only the lightness, and you have a light tint and a dark shade of the same colour.</p>
+  <div class="swatches">
+    <div class="sw"><i style="background:hsl(217,83%,92%)"></i><span>hsl(217,83%,92%)</span></div>
+    <div class="sw"><i style="background:hsl(217,83%,75%)"></i><span>hsl(217,83%,75%)</span></div>
+    <div class="sw"><i style="background:hsl(217,83%,53%)"></i><span>hsl(217,83%,53%)</span></div>
+    <div class="sw"><i style="background:hsl(217,83%,38%)"></i><span>hsl(217,83%,38%)</span></div>
+    <div class="sw"><i style="background:hsl(217,83%,24%)"></i><span>hsl(217,83%,24%)</span></div>
+  </div>
+  <div class="tryit" data-el=".t-swatch" data-rule=".swatch">
+    <div class="tryit-head">Build a colour by hand &mdash; every format below is the same colour</div>
+    <div class="tryit-stage"><div class="frame"><div class="t-swatch" style="height:86px;border-radius:10px;display:grid;place-items:center;font-weight:800;color:#fff;text-shadow:0 1px 3px rgba(0,0,0,.45)">Watch me change</div></div></div>
+    <div class="tryit-ctl">
+      <label>background-color <input type="color" value="#2563eb" data-prop="background-color"></label>
+      <label>opacity <input type="range" min="0.1" max="1" step="0.05" value="1" data-prop="opacity"></label>
+      <label>border-radius <input type="range" min="0" max="43" value="10" data-prop="border-radius" data-unit="px"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+  <table class="tbl">
+    <thead><tr><th>Format</th><th>Looks like</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr><td>Name</td><td><code>crimson</code></td><td>Quick tests only</td></tr>
+      <tr><td>Hex</td><td><code>#2563eb</code></td><td>The everyday standard; what design tools give you</td></tr>
+      <tr><td>rgb()</td><td><code>rgb(37, 99, 235)</code></td><td>The same, in decimal; easy to tweak one channel</td></tr>
+      <tr><td>hsl()</td><td><code>hsl(217, 83%, 53%)</code></td><td>Building a family of matching shades</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: without any arithmetic, is <code>#1a7f37</code> reddish, greenish or bluish?</summary><div class="a">
+    <p><b>Greenish.</b> The three pairs are <code>1a</code> (small), <code>7f</code> (medium-large) and <code>37</code> (small). The middle pair &mdash; green &mdash; is clearly the biggest, so green dominates. It is a medium green.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>24.3 Transparency</h2>
+  <p>Sometimes you want a colour you can partly see through &mdash; a dark overlay on a photograph, a soft tint over a background. Two ways:</p>
+  <ul>
+    <li><b><code>rgba()</code></b> adds a fourth number, the <span class="jw" data-def="How opaque a colour is: 0 is fully see-through, 1 is fully solid.">alpha</span>, from 0 (invisible) to 1 (solid): <code>rgba(0, 0, 0, 0.5)</code> is black at half strength.</li>
+    <li><b>An eight-digit hex</b> adds a fourth pair for the same purpose: <code>#00000080</code> is that same half-transparent black.</li>
+  </ul>
+  <p>Do not confuse this with the <code>opacity</code> property. <code>opacity: 0.5</code> fades the <b>whole element</b>, text and children included. <code>rgba()</code> fades <b>only the colour you applied it to</b>, so text on top stays perfectly sharp.</p>
+  <pre class="code" data-run data-title="rgba fades the background; opacity fades everything" data-h="230">&lt;style&gt;
+  .photo { background: linear-gradient(120deg,#E07B1E,#138808); padding: 14px; }
+  .a { background: rgba(0,0,0,0.55); color: #fff; padding: 12px; margin-bottom: 8px; }
+  .b { background: #000; opacity: 0.45; color: #fff; padding: 12px; }
+&lt;/style&gt;
+&lt;div class="photo"&gt;
+  &lt;p class="a"&gt;rgba background: the text stays crisp and readable.&lt;/p&gt;
+  &lt;p class="b"&gt;opacity: the text faded too, and is now hard to read.&lt;/p&gt;
+&lt;/div&gt;</pre>
+  <p>There is also the keyword <code>transparent</code>, which is simply a colour with an alpha of zero. It is useful for borders you want to reserve space for but not show yet.</p>
+</section>
+
+<section id="s4">
+  <h2>24.4 Background images</h2>
+  <p><code>background-image</code> places a picture behind the content of an element. The value is <code>url(...)</code> with the path to the file &mdash; the same kind of path an <code>&lt;img&gt;</code> uses (<a href="book.html?ch=8">Chapter 8</a>).</p>
+  <pre class="code">.hero {
+  background-image: url("campus.jpg");
+}</pre>
+  <p>By itself that tiles the image across the element, which is almost never what you want. Four companion properties fix it:</p>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Common values</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>background-repeat</code></td><td><code>no-repeat</code>, <code>repeat-x</code>, <code>repeat</code></td><td>Stops (or controls) the tiling. Default is to tile both ways.</td></tr>
+      <tr><td><code>background-size</code></td><td><code>cover</code>, <code>contain</code>, <code>200px</code>, <code>100% 100%</code></td><td><b>cover</b>: fill the box, cropping if needed. <b>contain</b>: fit the whole image in, leaving gaps.</td></tr>
+      <tr><td><code>background-position</code></td><td><code>center</code>, <code>top left</code>, <code>50% 20%</code></td><td>Which part of the image stays visible when it is cropped.</td></tr>
+      <tr><td><code>background-attachment</code></td><td><code>scroll</code>, <code>fixed</code></td><td><code>fixed</code> holds the image still while the page scrolls.</td></tr>
+    </tbody>
+  </table>
+  <p>You can write them all at once with the <code>background</code> shorthand, and most people do:</p>
+  <pre class="code" data-run data-title="A hero banner with readable text over a photo" data-h="230">&lt;style&gt;
+  .hero {
+    background: url("https://picsum.photos/id/1015/800/400") center/cover no-repeat;
+    min-height: 170px;
+    display: grid;
+    place-items: center;
+    border-radius: 12px;
+  }
+  .hero h2 {
+    color: #fff;
+    background: rgba(11,37,69,0.6);   /* a dark panel so the text is legible */
+    padding: 10px 18px;
+    border-radius: 8px;
+    margin: 0;
+  }
+&lt;/style&gt;
+&lt;div class="hero"&gt;&lt;h2&gt;School of Computing&lt;/h2&gt;&lt;/div&gt;</pre>
+  <div class="callout warn"><b>Text on a photograph.</b> A photo is light in some places and dark in others, so plain white text will be unreadable somewhere on it. Put a semi-transparent panel behind the words, as above, or darken the whole image with a gradient overlay. Never leave legibility to luck.</div>
+  <div class="callout"><b>Background image or <code>&lt;img&gt;</code>?</b> If the picture is <i>content</i> &mdash; a product, a person, a chart &mdash; use <code>&lt;img&gt;</code> with <code>alt</code> text so screen readers and search engines can see it (<a href="book.html?ch=8">Chapter 8</a>). If it is <i>decoration</i> &mdash; a texture, a banner backdrop &mdash; a CSS background is right, because it carries no meaning to miss.</div>
+</section>
+
+<section id="s5">
+  <h2>24.5 Gradients</h2>
+  <p>A gradient is a smooth fade from one colour to another. The browser draws it for you, so there is no image file to download.</p>
+  <pre class="code" data-run data-title="Three gradients" data-h="230">&lt;style&gt;
+  div { height: 52px; border-radius: 10px; margin-bottom: 10px;
+        color: #fff; display: grid; place-items: center; font-weight: 700; }
+  .g1 { background: linear-gradient(to right, #E07B1E, #138808); }
+  .g2 { background: linear-gradient(135deg, #1D4ED8, #6D28D9, #C42B2B); }
+  .g3 { background: radial-gradient(circle, #FF9933, #0B2545); }
+&lt;/style&gt;
+&lt;div class="g1"&gt;left to right, two colours&lt;/div&gt;
+&lt;div class="g2"&gt;at 135 degrees, three colours&lt;/div&gt;
+&lt;div class="g3"&gt;radial: out from the centre&lt;/div&gt;</pre>
+  <p>The direction comes first &mdash; either a keyword such as <code>to right</code> or <code>to bottom left</code>, or an angle such as <code>135deg</code> &mdash; then the list of colours. Add as many colours as you like.</p>
+  <p>Gradients count as images, so they go in <code>background</code> or <code>background-image</code>, never in <code>color</code>. A common professional trick is to layer a dark gradient over a photo so that white text is readable everywhere:</p>
+  <pre class="code">.hero {
+  background: linear-gradient(rgba(0,0,0,.55), rgba(0,0,0,.15)),
+              url("campus.jpg") center/cover;
+}</pre>
+  <p>Two backgrounds separated by a comma: the first one listed sits on top.</p>
+</section>
+
+<section id="s6">
+  <h2>24.6 Choosing colours people can read</h2>
+  <p>A colour scheme is not only a matter of taste. <a href="book.html?ch=20">Chapter 20</a> gave the numbers: WCAG Level AA asks for a contrast ratio of at least <b>4.5&nbsp;:&nbsp;1</b> between normal text and its background, and <b>3&nbsp;:&nbsp;1</b> for large text. Those numbers are checkable, and your marks in a lab may depend on them.</p>
+  <div class="swatches">
+    <div class="sw"><i style="background:#fff;color:#0B2545;display:grid;place-items:center;font-weight:700;font-size:12px">Aa 15:1</i><span>#0B2545 on white<br>passes AA and AAA</span></div>
+    <div class="sw"><i style="background:#fff;color:#767676;display:grid;place-items:center;font-weight:700;font-size:12px">Aa 4.5:1</i><span>#767676 on white<br>just passes AA</span></div>
+    <div class="sw"><i style="background:#fff;color:#bbb;display:grid;place-items:center;font-weight:700;font-size:12px">Aa 2.1:1</i><span>#bbb on white<br>fails</span></div>
+    <div class="sw"><i style="background:#FF9933;color:#fff;display:grid;place-items:center;font-weight:700;font-size:12px">Aa 2.4:1</i><span>white on #FF9933<br>fails for body text</span></div>
+  </div>
+  <p>Three habits that keep you out of trouble:</p>
+  <ul>
+    <li><b>Check, do not guess.</b> Chrome's DevTools shows the contrast ratio when you inspect a colour, and free web contrast checkers do the same.</li>
+    <li><b>Never use colour as the only signal.</b> A red border alone does not tell a colour-blind user that a field is wrong; add an icon or a message (<a href="book.html?ch=20">Chapter 20</a>).</li>
+    <li><b>Set both, or neither.</b> If you set <code>color</code>, set <code>background-color</code> too. Otherwise your dark grey text may land on a dark background the reader's own settings supplied.</li>
+  </ul>
+  <h3>A tiny palette that works</h3>
+  <p>For coursework, four colours are plenty: one dark for text, one white or near-white for surfaces, one brand colour for accents, and one light tint of the brand colour for panels.</p>
+  <pre class="code" data-run data-title="Project, step 3: a small palette applied" data-h="290" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; background: #FBFCFE;
+         color: #3C4A60; line-height: 1.7; padding: 20px; }
+  h1   { color: #0B2545; }                 /* dark: headings */
+  .card {
+    background: #ffffff;                    /* surface */
+    border: 1px solid #E3E9F0;
+    border-left: 5px solid #E07B1E;         /* accent */
+    border-radius: 10px;
+    padding: 14px 18px;
+    margin-bottom: 12px;
+  }
+  .featured { background: #FFF8F0; }        /* tint of the accent */
+  .tag { background: #E9F7E7; color: #0B6205; padding: 2px 10px;
+         border-radius: 999px; font-size: 13px; }
+&lt;/style&gt;
+&lt;h1&gt;Asha Kumar&lt;/h1&gt;
+&lt;div class="card featured"&gt;
+  &lt;b&gt;CSE326 Internet Programming&lt;/b&gt; &lt;span class="tag"&gt;Featured&lt;/span&gt;
+  &lt;p&gt;In progress &mdash; Unit 3, Cascading Style Sheets.&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="card"&gt;
+  &lt;b&gt;CSE305 Database Systems&lt;/b&gt;
+  &lt;p&gt;Completed last semester.&lt;/p&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which property sets the colour of the text inside an element?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. text-color</li><li>B. font-color</li><li>C. color</li><li>D. colour</li></ul>
+    <p><b>Answer: C.</b> It is <code>color</code>, spelled the American way. <code>text-color</code> and <code>font-color</code> do not exist, and <code>colour</code> is silently ignored.</p></div></details>
+  <details class="q"><summary>Which of these is NOT a valid way to write a colour in CSS?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>red</code></li><li>B. <code>#2563eb</code></li><li>C. <code>rgb(37, 99, 235)</code></li><li>D. <code>colour(blue)</code></li></ul>
+    <p><b>Answer: D.</b> The four accepted formats are a colour name, a hex code, <code>rgb()</code> / <code>rgba()</code> and <code>hsl()</code> / <code>hsla()</code>.</p></div></details>
+  <details class="q"><summary>In the hex code <code>#2563eb</code>, what do the three pairs represent?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: the strengths of red, green and blue light</b>, in that order, each from <code>00</code> (none) to <code>ff</code> (full). So <code>#ff0000</code> is pure red and <code>#ffffff</code>, being all three at full, is white.</p></div></details>
+  <details class="q"><summary>What colour is <code>#000000</code>, and what colour is <code>#ffffff</code>?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Black and white.</b> All three lights off gives black; all three at full gives white. Three equal pairs anywhere in between give a grey.</p></div></details>
+  <details class="q"><summary>Which property places an image behind the content of an element?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. image</li><li>B. background-image</li><li>C. src</li><li>D. background-picture</li></ul>
+    <p><b>Answer: B.</b> <code>background-image: url("campus.jpg");</code>. <code>src</code> is an HTML attribute on <code>&lt;img&gt;</code>, not a CSS property.</p></div></details>
+  <details class="q"><summary>A background image repeats across the whole box and you only want it once. Which declaration fixes it?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: <code>background-repeat: no-repeat;</code></b>. Tiling in both directions is the default.</p></div></details>
+  <details class="q"><summary>What is the difference between <code>background-size: cover</code> and <code>contain</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>cover</code></b> scales the image until it fills the whole box, cropping whatever does not fit. <b><code>contain</code></b> scales it until the entire image is visible, which can leave empty strips. Use <code>cover</code> for banners, <code>contain</code> when nothing may be cut off.</p></div></details>
+  <details class="q"><summary>What is the difference between <code>rgba(0,0,0,0.5)</code> and <code>opacity: 0.5</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>rgba()</code> fades only the colour it is applied to</b>, so text sitting on top stays fully sharp. <b><code>opacity</code> fades the entire element</b>, including its text and everything nested inside it. For a readable overlay panel, use <code>rgba()</code>.</p></div></details>
+  <details class="q"><summary>Which function describes a colour as hue, saturation and lightness?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>Answer: <code>hsl()</code></b>, for example <code>hsl(217, 83%, 53%)</code>. Keeping the hue and changing only the lightness produces a matching family of tints and shades.</p></div></details>
+  <details class="q"><summary>Which declaration creates a smooth fade from orange to green across an element?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>background: linear-gradient(to right, orange, green);</code> &mdash; direction first, then the colours. A gradient is treated as an image, so it belongs in <code>background</code>, not in <code>color</code>.</p></div></details>
+  <details class="q"><summary>Your body text is light grey on white and measures 3:1. Does it satisfy WCAG Level AA?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>No.</b> Normal-size text needs at least <b>4.5:1</b> at Level AA; 3:1 is only enough for large text (18pt, or 14pt bold) and for non-text items such as icons and borders (<a href="book.html?ch=20">Chapter 20</a>).</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>color</code> paints the text, <code>background-color</code> paints behind it. Always the American spelling.</li>
+    <li>Four formats: name, hex <code>#rrggbb</code>, <code>rgb()</code>, <code>hsl()</code>. A hex code is three light strengths from <code>00</code> to <code>ff</code> for red, green and blue.</li>
+    <li>Transparency: <code>rgba(r,g,b,a)</code> or an eight-digit hex fade only that colour; <code>opacity</code> fades the whole element including its text.</li>
+    <li><code>background-image: url(...)</code> plus <code>no-repeat</code>, <code>cover</code>/<code>contain</code> and a position. The <code>background</code> shorthand writes them in one line.</li>
+    <li>Gradients are images: <code>linear-gradient(direction, colour, colour)</code>. Layer one over a photo to keep text readable.</li>
+    <li>Check contrast: 4.5:1 for normal text at AA, and never let colour be the only signal.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>color: #0B2545;</code></td><td>Text colour</td></tr>
+      <tr><td><code>background-color: #FFF8F0;</code></td><td>Colour behind the content</td></tr>
+      <tr><td><code>background: rgba(0,0,0,.5);</code></td><td>Half-transparent black panel</td></tr>
+      <tr><td><code>background-image: url("a.jpg");</code></td><td>A picture behind the content</td></tr>
+      <tr><td><code>background-repeat: no-repeat;</code></td><td>Show it once</td></tr>
+      <tr><td><code>background-size: cover;</code></td><td>Fill the box, cropping the overflow</td></tr>
+      <tr><td><code>background-position: center;</code></td><td>Which part stays visible</td></tr>
+      <tr><td><code>background: url(a.jpg) center/cover no-repeat;</code></td><td>All of the above in one line</td></tr>
+      <tr><td><code>background: linear-gradient(to right, #a, #b);</code></td><td>A two-colour fade</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/color_value" target="_blank" rel="noopener noreferrer">MDN &mdash; &lt;color&gt; values<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every colour notation, including the newer ones you will meet later.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/background" target="_blank" rel="noopener noreferrer">MDN &mdash; background<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">All eight background sub-properties and what each shorthand slot means.</span></li>
+    <li><a href="https://webaim.org/resources/contrastchecker/" target="_blank" rel="noopener noreferrer">WebAIM Contrast Checker<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Type two colours, get the contrast ratio. Use it before you ship any colour pair.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

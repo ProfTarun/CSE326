@@ -1,0 +1,338 @@
+<article class="chapter" data-ch="30">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 30 &middot; Flexbox Layout</p>
+  <h1>Flexbox Layout</h1>
+  <p class="lead">Putting three cards in a row used to be the hardest easy thing in CSS. Flexbox solved it. Add one line to the parent and its children line up, space themselves out, centre perfectly and wrap onto a new line on a phone. This chapter gives you the five properties that do all of it, and the one idea &mdash; the two axes &mdash; that makes them make sense.</p>
+  <p class="meta">About 22 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><b>Normal flow</b>: block elements stack downwards, one per line (<a href="book.html?ch=29">Chapter 29</a>).</li>
+      <li>A <b>parent</b> contains <b>children</b>; the children are its direct descendants (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li><code>box-sizing: border-box</code> makes widths behave (<a href="book.html?ch=28">Chapter 28</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Turn any element into a flex container and say which elements become items.</li>
+      <li>Point at the main axis and the cross axis for any <code>flex-direction</code>.</li>
+      <li>Space and align items with <code>justify-content</code>, <code>align-items</code> and <code>gap</code>.</li>
+      <li>Centre something perfectly in two lines.</li>
+      <li>Make cards wrap onto a new line instead of squashing.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>30.1 One line on the parent</h2>
+  <p>Here is the whole idea. You have a container with some children. You write <b>one declaration on the container</b>:</p>
+  <pre class="code">.row { display: flex; }</pre>
+  <p>Immediately the children stop stacking downwards and line up side by side. The container is now a <b>flex container</b>; its direct children are <b>flex items</b>. You did not touch the children at all.</p>
+  <pre class="code" data-run data-title="The same HTML, with and without display: flex" data-h="250">&lt;style&gt;
+  .row div { background: #FFF1E0; border: 1px solid #E07B1E;
+             padding: 14px; border-radius: 8px; }
+  .flex { display: flex; gap: 10px; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;Without flex&lt;/b&gt; &mdash; blocks stack downwards:&lt;/p&gt;
+&lt;div class="row"&gt;&lt;div&gt;One&lt;/div&gt;&lt;div&gt;Two&lt;/div&gt;&lt;div&gt;Three&lt;/div&gt;&lt;/div&gt;
+
+&lt;p&gt;&lt;b&gt;With display: flex&lt;/b&gt; &mdash; the same three divs:&lt;/p&gt;
+&lt;div class="row flex"&gt;&lt;div&gt;One&lt;/div&gt;&lt;div&gt;Two&lt;/div&gt;&lt;div&gt;Three&lt;/div&gt;&lt;/div&gt;</pre>
+  <div class="callout warn"><b>The number one mistake.</b> <code>display: flex</code> goes on the <b>parent container</b>, never on the children and never on <code>body</code> by accident. If you put it on each child, nothing lines up. Ask yourself: <i>which element contains the things I want arranged?</i> That one gets the declaration.</div>
+  <p>Flexbox is <b>one-dimensional</b>: it arranges items along a single line, either a row or a column. When you need rows <i>and</i> columns together, that is Grid (<a href="book.html?ch=31">Chapter 31</a>).</p>
+</section>
+
+<section id="s2">
+  <h2>30.2 The one idea: two axes</h2>
+  <p>Everything else in this chapter follows from this. A flex container has two directions:</p>
+  <ul>
+    <li>The <b>main axis</b> &mdash; the direction the items flow in.</li>
+    <li>The <b>cross axis</b> &mdash; at right angles to it.</li>
+  </ul>
+  <p>And the key point: <b>which one is horizontal depends on <code>flex-direction</code>.</b></p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 230" role="img" aria-label="Main and cross axis for flex-direction row and column">
+      <rect x="16" y="30" width="330" height="150" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <text x="181" y="22" class="t c b mono">flex-direction: row  (the default)</text>
+      <rect x="44" y="78" width="70" height="54" rx="8" class="box saf"/><text x="79" y="110" class="t c b">1</text>
+      <rect x="124" y="78" width="70" height="54" rx="8" class="box saf"/><text x="159" y="110" class="t c b">2</text>
+      <rect x="204" y="78" width="70" height="54" rx="8" class="box saf"/><text x="239" y="110" class="t c b">3</text>
+      <path d="M44 160 L300 160" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="172" y="176" class="t c b" fill="#E07B1E">MAIN axis &#8594; justify-content</text>
+      <path d="M30 78 L30 146" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="26" y="58" class="t b" fill="#138808" style="font-size:10px">CROSS</text>
+      <text x="26" y="70" class="t b" fill="#138808" style="font-size:10px">align-items</text>
+      <rect x="374" y="30" width="330" height="150" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <text x="539" y="22" class="t c b mono">flex-direction: column</text>
+      <rect x="470" y="46" width="130" height="34" rx="8" class="box blu"/><text x="535" y="68" class="t c b">1</text>
+      <rect x="470" y="86" width="130" height="34" rx="8" class="box blu"/><text x="535" y="108" class="t c b">2</text>
+      <rect x="470" y="126" width="130" height="34" rx="8" class="box blu"/><text x="535" y="148" class="t c b">3</text>
+      <path d="M452 46 L452 166" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="420" y="110" class="t b" fill="#E07B1E" style="font-size:10px">MAIN</text>
+      <text x="420" y="122" class="t b" fill="#E07B1E" style="font-size:10px">justify-</text>
+      <text x="420" y="134" class="t b" fill="#E07B1E" style="font-size:10px">content</text>
+      <path d="M470 176 L616 176" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="543" y="192" class="t c b" fill="#138808">CROSS axis &#8594; align-items</text>
+      <text x="360" y="218" class="t c s">justify-content ALWAYS follows the main axis; align-items ALWAYS follows the cross axis. The axes swap, the properties do not.</text>
+    </svg>
+    <figcaption><b>Figure 30.1</b> In a row the main axis is horizontal. In a column it is vertical. Learn this and the two alignment properties stop being confusing.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> Think of a train. <code>justify-content</code> decides how the carriages are spread along the <b>track</b> &mdash; bunched at the front, evenly spaced, pushed to the ends. <code>align-items</code> decides how they sit <b>across</b> the track &mdash; top, middle, bottom. Turn the track from horizontal to vertical and the two jobs stay the same; only the direction changed.</div>
+</section>
+
+<section id="s3">
+  <h2>30.3 flex-direction</h2>
+  <p>Controls whether items are arranged in a row or a column.</p>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Items flow</th></tr></thead>
+    <tbody>
+      <tr><td><code>row</code></td><td>Left to right. <b>The default</b> &mdash; you get it without writing anything.</td></tr>
+      <tr><td><code>column</code></td><td>Top to bottom</td></tr>
+      <tr><td><code>row-reverse</code></td><td>Right to left</td></tr>
+      <tr><td><code>column-reverse</code></td><td>Bottom to top</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Reversing is visual only.</b> <code>row-reverse</code> changes the painted order, not the order in the HTML. Keyboard users still tab through the items in the original order, which can be genuinely confusing. If the order matters, change the HTML.</div>
+</section>
+
+<section id="s4">
+  <h2>30.4 justify-content &mdash; spacing along the main axis</h2>
+  <p>Once the items are on their line, <code>justify-content</code> decides how the leftover space is distributed.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="The six justify-content values illustrated">
+      <g>
+        <text x="10" y="22" class="t mono b" style="font-size:11.5px">flex-start (default)</text>
+        <rect x="10" y="28" width="600" height="30" rx="6" fill="#F1F5F9"/>
+        <rect x="14" y="31" width="52" height="24" rx="4" class="box saf"/><rect x="70" y="31" width="52" height="24" rx="4" class="box saf"/><rect x="126" y="31" width="52" height="24" rx="4" class="box saf"/>
+      </g>
+      <g>
+        <text x="10" y="82" class="t mono b" style="font-size:11.5px">center</text>
+        <rect x="10" y="88" width="600" height="30" rx="6" fill="#F1F5F9"/>
+        <rect x="226" y="91" width="52" height="24" rx="4" class="box saf"/><rect x="282" y="91" width="52" height="24" rx="4" class="box saf"/><rect x="338" y="91" width="52" height="24" rx="4" class="box saf"/>
+      </g>
+      <g>
+        <text x="10" y="142" class="t mono b" style="font-size:11.5px">flex-end</text>
+        <rect x="10" y="148" width="600" height="30" rx="6" fill="#F1F5F9"/>
+        <rect x="438" y="151" width="52" height="24" rx="4" class="box saf"/><rect x="494" y="151" width="52" height="24" rx="4" class="box saf"/><rect x="550" y="151" width="52" height="24" rx="4" class="box saf"/>
+      </g>
+      <g>
+        <text x="10" y="202" class="t mono b" style="font-size:11.5px">space-between &mdash; first at the start, last at the end, gaps equal</text>
+        <rect x="10" y="208" width="600" height="30" rx="6" fill="#F1F5F9"/>
+        <rect x="14" y="211" width="52" height="24" rx="4" class="box grn"/><rect x="282" y="211" width="52" height="24" rx="4" class="box grn"/><rect x="554" y="211" width="52" height="24" rx="4" class="box grn"/>
+      </g>
+      <g>
+        <text x="10" y="262" class="t mono b" style="font-size:11.5px">space-around / space-evenly &mdash; space outside the items too</text>
+        <rect x="10" y="268" width="600" height="30" rx="6" fill="#F1F5F9"/>
+        <rect x="58" y="271" width="52" height="24" rx="4" class="box blu"/><rect x="282" y="271" width="52" height="24" rx="4" class="box blu"/><rect x="506" y="271" width="52" height="24" rx="4" class="box blu"/>
+      </g>
+    </svg>
+    <figcaption><b>Figure 30.2</b> Six ways to spend the leftover space. <code>space-between</code> is the one that makes a navigation bar with the logo left and the menu right.</figcaption>
+  </figure>
+  <p>Remember that <b><code>justify-content</code> always follows the main axis.</b> With <code>flex-direction: column</code>, the main axis is vertical, so <code>justify-content: center</code> now centres the items <b>vertically</b>. Nothing changed about the property; the axis turned.</p>
+</section>
+
+<section id="s5">
+  <h2>30.5 align-items &mdash; alignment along the cross axis</h2>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>In a row, this means</th></tr></thead>
+    <tbody>
+      <tr><td><code>stretch</code></td><td>Items fill the container's height. <b>The default</b>, and the reason cards in a row come out equally tall for free.</td></tr>
+      <tr><td><code>flex-start</code></td><td>Aligned to the top</td></tr>
+      <tr><td><code>center</code></td><td>Vertically centred</td></tr>
+      <tr><td><code>flex-end</code></td><td>Aligned to the bottom</td></tr>
+      <tr><td><code>baseline</code></td><td>Their first lines of text line up, whatever the box heights</td></tr>
+    </tbody>
+  </table>
+  <h3>Centring, at last</h3>
+  <p>Centring something in the middle of a box used to need real hacks. Now it is two lines:</p>
+  <pre class="code" data-run data-title="Perfectly centred, horizontally and vertically" data-h="200">&lt;style&gt;
+  .hero {
+    display: flex;
+    justify-content: center;   /* centre along the main axis: horizontally */
+    align-items: center;       /* centre along the cross axis: vertically   */
+    height: 150px;
+    background: linear-gradient(135deg, #FF9933, #138808);
+    border-radius: 12px;
+  }
+  .hero div { background: #fff; padding: 14px 22px; border-radius: 8px;
+              font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;div class="hero"&gt;&lt;div&gt;Dead centre&lt;/div&gt;&lt;/div&gt;</pre>
+  <p>Those two declarations, on the parent, are worth memorising. They are the answer to "how do I centre a div", which is the most asked question in the history of CSS.</p>
+</section>
+
+<section id="s6">
+  <h2>30.6 gap &mdash; space between items</h2>
+  <p><code>gap</code> puts space <b>between</b> flex items:</p>
+  <pre class="code">.row { display: flex; gap: 16px; }</pre>
+  <p>Before <code>gap</code> existed, people used <code>margin-right</code> on each item and then wrote an extra rule to remove it from the last one, because otherwise there was a stray gap at the end. <b><code>gap</code> adds space only between items, never at the ends</b>, so that problem disappears. Use it.</p>
+  <p>You can give two values: <code>gap: 12px 20px</code> means 12px between rows and 20px between columns.</p>
+  <div class="tryit" data-el=".t-flex" data-rule=".container">
+    <div class="tryit-head">The flexbox playground &mdash; every control changes the container, not the items</div>
+    <div class="tryit-stage"><div class="frame" style="padding:0"><div class="t-flex" style="display:flex;height:150px;background:#F1F5F9;border-radius:8px;padding:8px"><div style="background:#E07B1E;color:#fff;padding:12px 16px;border-radius:6px;font-weight:700">1</div><div style="background:#138808;color:#fff;padding:22px 16px;border-radius:6px;font-weight:700">2</div><div style="background:#4F46E5;color:#fff;padding:12px 16px;border-radius:6px;font-weight:700">3</div></div></div></div>
+    <div class="tryit-ctl">
+      <label>flex-direction <select data-prop="flex-direction"><option selected>row</option><option>column</option><option>row-reverse</option><option>column-reverse</option></select></label>
+      <label>justify-content <select data-prop="justify-content"><option selected>flex-start</option><option>center</option><option>flex-end</option><option>space-between</option><option>space-around</option><option>space-evenly</option></select></label>
+      <label>align-items <select data-prop="align-items"><option selected>stretch</option><option>flex-start</option><option>center</option><option>flex-end</option><option>baseline</option></select></label>
+      <label>gap <input type="range" min="0" max="40" value="8" data-prop="gap" data-unit="px"></label>
+      <label>flex-wrap <select data-prop="flex-wrap"><option selected>nowrap</option><option>wrap</option></select></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+  <p>Spend five minutes here. Set <code>flex-direction</code> to <code>column</code> and then move <code>justify-content</code>: watch it start controlling vertical position. That single observation is worth more than a page of explanation.</p>
+</section>
+
+<section id="s7">
+  <h2>30.7 Wrapping, and how items share space</h2>
+  <h3>flex-wrap</h3>
+  <p>By default flex items <b>never wrap</b>. When the container gets narrower they shrink, and keep shrinking, until the text inside is one letter wide and the layout looks broken on a phone.</p>
+  <p><code>flex-wrap: wrap</code> lets them move onto a new line instead:</p>
+  <pre class="code" data-run data-title="Drag the preview narrow: these cards wrap instead of squashing" data-h="250">&lt;style&gt;
+  .row { display: flex; flex-wrap: wrap; gap: 12px; }
+  .row div {
+    flex: 1 1 180px;              /* grow, shrink, but never below 180px */
+    background: #fff; border: 1px solid #E3E9F0; border-radius: 10px;
+    padding: 14px;
+  }
+&lt;/style&gt;
+&lt;div class="row"&gt;
+  &lt;div&gt;&lt;b&gt;CSE326&lt;/b&gt;&lt;br&gt;Internet Programming&lt;/div&gt;
+  &lt;div&gt;&lt;b&gt;CSE305&lt;/b&gt;&lt;br&gt;Database Systems&lt;/div&gt;
+  &lt;div&gt;&lt;b&gt;CSE201&lt;/b&gt;&lt;br&gt;Data Structures&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <h3>The flex shorthand on items</h3>
+  <p>Everything so far went on the container. <code>flex</code> is the one property you put on the <b>items</b>, and it takes three values:</p>
+  <pre class="code">flex: 1 1 180px;
+/*    | |  |
+      | |  flex-basis:  the starting size
+      | flex-shrink: may it get smaller? (1 = yes)
+      flex-grow:   may it get bigger?  (1 = yes)   */</pre>
+  <table class="tbl">
+    <thead><tr><th>Written</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>flex: 1</code></td><td>Share the space equally with the other <code>flex: 1</code> items. The one you will use most.</td></tr>
+      <tr><td><code>flex: 2</code></td><td>Take twice as much space as a <code>flex: 1</code> item</td></tr>
+      <tr><td><code>flex: 0 0 200px</code></td><td>Exactly 200px, never grow, never shrink &mdash; a fixed sidebar</td></tr>
+      <tr><td><code>flex: 1 1 180px</code></td><td>Start at 180px, then grow or shrink as room allows</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="A sidebar that stays put and a main area that takes the rest" data-h="200">&lt;style&gt;
+  .layout { display: flex; gap: 14px; }
+  .side { flex: 0 0 140px; background: #FFF1E0; padding: 14px; border-radius: 10px; }
+  .main { flex: 1;          background: #fff; padding: 14px; border-radius: 10px;
+          border: 1px solid #E3E9F0; }
+&lt;/style&gt;
+&lt;div class="layout"&gt;
+  &lt;div class="side"&gt;Sidebar&lt;br&gt;&lt;small&gt;always 140px&lt;/small&gt;&lt;/div&gt;
+  &lt;div class="main"&gt;Main content&lt;br&gt;&lt;small&gt;takes whatever is left&lt;/small&gt;&lt;/div&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="s8">
+  <h2>30.8 Build it: the navigation bar and the course row</h2>
+  <p>Two patterns you will use in every project you ever build.</p>
+  <pre class="code" data-run data-title="Project, step 9: a real nav bar and a wrapping card row" data-h="340" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; background: #F1F5F9;
+         color: #3C4A60; }
+
+  /* --- the navigation bar: logo left, links right --- */
+  .nav {
+    display: flex;
+    justify-content: space-between;   /* push the two groups apart */
+    align-items: center;              /* line them up vertically   */
+    gap: 16px;
+    background: #0B2545; color: #fff; padding: 12px 20px;
+  }
+  .nav .links { display: flex; gap: 18px; }   /* a flex container inside a flex item */
+  .nav a { color: #fff; text-decoration: none; }
+
+  /* --- the course row: three cards that wrap on a phone --- */
+  .row { display: flex; flex-wrap: wrap; gap: 14px; padding: 20px; }
+  .card {
+    flex: 1 1 200px;                  /* grow, shrink, never below 200px */
+    background: #fff; border-radius: 12px; padding: 16px;
+    box-shadow: 0 2px 8px rgba(16,32,64,.08);
+  }
+  .card h3 { margin: 0 0 6px; color: #0B2545; font-size: 16px; }
+  .card p  { margin: 0; font-size: 14px; }
+&lt;/style&gt;
+&lt;div class="nav"&gt;
+  &lt;b&gt;Asha Kumar&lt;/b&gt;
+  &lt;span class="links"&gt;&lt;a href="#"&gt;Courses&lt;/a&gt;&lt;a href="#"&gt;Skills&lt;/a&gt;&lt;a href="#"&gt;Contact&lt;/a&gt;&lt;/span&gt;
+&lt;/div&gt;
+&lt;div class="row"&gt;
+  &lt;div class="card"&gt;&lt;h3&gt;CSE326&lt;/h3&gt;&lt;p&gt;Internet Programming&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;h3&gt;CSE305&lt;/h3&gt;&lt;p&gt;Database Systems&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;h3&gt;CSE201&lt;/h3&gt;&lt;p&gt;Data Structures&lt;/p&gt;&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Drag the preview narrow. The cards wrap, the nav stays put, and you wrote no media query at all. Notice too that a flex <i>item</i> can itself be a flex <i>container</i> &mdash; that is how the links group works.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Where do you put <code>display: flex</code>?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. On each child</li><li>B. On the parent container</li><li>C. On the body</li><li>D. In a media query</li></ul>
+    <p><b>Answer: B.</b> The children then become flex items automatically; you do not style them to make it work.</p></div></details>
+  <details class="q"><summary>Which property spaces items along the MAIN axis?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. align-items</li><li>B. justify-content</li><li>C. flex-wrap</li><li>D. gap</li></ul>
+    <p><b>Answer: B.</b> <code>align-items</code> works along the cross axis.</p></div></details>
+  <details class="q"><summary>With <code>flex-direction: column</code>, <code>justify-content</code> now controls:<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Horizontal position</li><li>B. Vertical position</li><li>C. Nothing</li><li>D. The order of items</li></ul>
+    <p><b>Answer: B.</b> <code>justify-content</code> always follows the <b>main</b> axis, and in a column the main axis is vertical.</p></div></details>
+  <details class="q"><summary>Which centres content both horizontally and vertically?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. text-align: center only</li><li>B. display: flex with justify-content: center and align-items: center</li><li>C. margin: auto only</li><li>D. float: center</li></ul>
+    <p><b>Answer: B.</b> Two lines on the parent, and they replaced years of genuine hacks. (<code>float: center</code> does not exist.)</p></div></details>
+  <details class="q"><summary>Why prefer <code>gap</code> over margins between flex items?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is newer</li><li>B. gap adds space only BETWEEN items, not at the ends</li><li>C. Margins do not work</li><li>D. gap is faster</li></ul>
+    <p><b>Answer: B.</b> There is no leftover edge space to cancel out with an extra rule for the last child.</p></div></details>
+  <details class="q"><summary>Cards squash instead of moving to a new line on a phone. What is missing?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. flex: 1</li><li>B. flex-wrap: wrap</li><li>C. gap</li><li>D. align-items</li></ul>
+    <p><b>Answer: B.</b> Without <code>wrap</code>, flex items shrink indefinitely on one line. Pair it with <code>flex: 1 1 200px</code> so each card has a sensible minimum.</p></div></details>
+  <details class="q"><summary>What is the default <code>flex-direction</code>, and what is the default <code>align-items</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>row</code></b> and <b><code>stretch</code></b>. That is why three cards in a flex row come out equally tall without you asking &mdash; they stretch to the height of the tallest.</p></div></details>
+  <details class="q"><summary>Which <code>justify-content</code> value puts the first item at the left edge, the last at the right, and equal gaps between?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>space-between</code></b>. It is the standard way to build a navigation bar with a logo on the left and links on the right.</p></div></details>
+  <details class="q"><summary>What does <code>flex: 1</code> on an item mean?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>"Grow to share the available space equally with the other flex:&nbsp;1 items."</b> Give one item <code>flex: 2</code> and it takes twice the share. <code>flex: 0 0 140px</code> means a fixed 140px that neither grows nor shrinks.</p></div></details>
+  <details class="q"><summary>Flexbox is for one dimension. What is Grid for?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Rows AND columns together</b> &mdash; a two-dimensional layout (<a href="book.html?ch=31">Chapter 31</a>). Flex for a line, Grid for a grid.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>display: flex</code> goes on the <b>parent</b>. Its direct children become flex items.</li>
+    <li>The <b>main axis</b> is the direction items flow; the <b>cross axis</b> is at right angles. <code>flex-direction</code> decides which is which.</li>
+    <li><code>justify-content</code> spaces along the main axis; <code>align-items</code> aligns along the cross axis. They swap meaning when the direction changes.</li>
+    <li><code>justify-content: center</code> + <code>align-items: center</code> = perfectly centred.</li>
+    <li><code>gap</code> spaces items without a trailing gap. <code>flex-wrap: wrap</code> stops them squashing on a phone.</li>
+    <li>On items, <code>flex: 1</code> shares space, <code>flex: 0 0 140px</code> is fixed, <code>flex: 1 1 200px</code> is a card that wraps.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Goes on</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>display: flex;</code></td><td>Container</td><td>Children line up</td></tr>
+      <tr><td><code>flex-direction: column;</code></td><td>Container</td><td>Stack instead of row</td></tr>
+      <tr><td><code>justify-content: space-between;</code></td><td>Container</td><td>Push to the two ends</td></tr>
+      <tr><td><code>align-items: center;</code></td><td>Container</td><td>Centre on the cross axis</td></tr>
+      <tr><td><code>gap: 16px;</code></td><td>Container</td><td>Space between items only</td></tr>
+      <tr><td><code>flex-wrap: wrap;</code></td><td>Container</td><td>Move onto a new line</td></tr>
+      <tr><td><code>flex: 1;</code></td><td>Item</td><td>Share the leftover space</td></tr>
+      <tr><td><code>flex: 0 0 140px;</code></td><td>Item</td><td>Fixed width, never flexes</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://css-tricks.com/snippets/css/a-guide-to-flexbox/" target="_blank" rel="noopener noreferrer">CSS-Tricks &mdash; A Complete Guide to Flexbox<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The one-page diagram every professional keeps open. Print it.</span></li>
+    <li><a href="https://flexboxfroggy.com/" target="_blank" rel="noopener noreferrer">Flexbox Froggy<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">24 tiny puzzles. Finish them and Flexbox stops being frightening.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_flexible_box_layout/Basic_concepts_of_flexbox" target="_blank" rel="noopener noreferrer">MDN &mdash; Basic concepts of Flexbox<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The axis vocabulary, spelled out slowly.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

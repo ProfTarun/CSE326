@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 19 &middot; Tables and Data Representation</p>
   <h1>Tables and Data Representation</h1>
   <p class="lead">Marks sheets, timetables, price lists, results: whenever data has rows and columns whose intersection means something, it belongs in a table. This chapter covers the complete anatomy of an HTML table, the two attributes that merge cells, the attributes that make a table readable by screen readers, and the one thing tables must never be used for.</p>
-  <p class="meta">About 17 minutes &middot; Course outcome CO2</p>
+  <p class="meta">About 28 minutes &middot; Course outcome CO2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Elements nest, and rows contain cells &mdash; <a href="book.html?ch=3">Chapter 3</a> (nesting).</li>
+      <li>Tables are for data, never for layout &mdash; <a href="book.html?ch=12">Chapter 12</a> (layout mistakes).</li>
+      <li><code>scope</code> and a caption are what make a table readable aloud.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,8 +26,14 @@
 
 <section id="s1">
   <h2>19.1 When a table is the right element</h2>
-  <p>A table is for <b>tabular data</b>: information that is naturally organised in rows and columns where each cell's meaning comes from its row header and its column header. A marks sheet (student &times; subject), a timetable (day &times; period), a comparison of products (product &times; feature). If you can put a header on every column and every row and the intersections make sense, it is a table. If the "table" is just a way of putting things side by side, it is layout, and layout is CSS's job (see 19.6).</p>
+  <div class="plain">Use a table when the information genuinely has rows and columns and the position of a value tells you what it means &mdash; a timetable, a marks sheet, a price list. If you only want things side by side, that is layout, and layout is CSS.</div>
+  <p>A table is for <b><span class="jw" data-def="Information that naturally has rows and columns, where where a value sits is part of what it means.">tabular</span> data</b>: information that is naturally organised in rows and columns where each cell's meaning comes from its row header and its column header. A marks sheet (student &times; subject), a timetable (day &times; period), a comparison of products (product &times; feature). If you can put a header on every column and every row and the intersections make sense, it is a table. If the "table" is just a way of putting things side by side, it is layout, and layout is CSS's job (see 19.6).</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: where does <code>&lt;caption&gt;</code> go?</summary>
+    <p>Immediately inside <code>&lt;table&gt;</code>, as its very first child &mdash; before thead. It is the table's title, and it is the first thing a screen reader announces.</p>
+  </details>
 
 <section id="s2">
   <h2>19.2 The anatomy of a table</h2>
@@ -68,6 +82,8 @@
 
 <section id="s3">
   <h2>19.3 Merging cells: colspan and rowspan</h2>
+  <div class="callout analogy"><b>colspan and rowspan are knocking down a wall between rooms.</b> If you knock the wall between two rooms you now have one bigger room &mdash; and the floor plan must stop showing two. That is why the row under a <code>rowspan="2"</code> cell has one cell <i>fewer</i>: the space is already taken by the cell above.</div>
+  <div class="plain">Merging cells is just saying &ldquo;this one cell is as wide as three&rdquo; or &ldquo;as tall as two&rdquo;. The catch is that the rows must still add up, so when a cell swallows its neighbours you must delete the cells it swallowed.</div>
   <p>Two attributes on <code>td</code> or <code>th</code> make a cell occupy more than one grid position. <b><code>colspan="2"</code> makes a cell stretch across two columns</b> (sideways). <b><code>rowspan="2"</code> makes a cell span two rows</b> (downwards). The values count grid cells, not pixels.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="A grid showing a colspan cell spanning two columns and a rowspan cell spanning two rows">
@@ -113,6 +129,11 @@
 &lt;/table&gt;</pre>
   <p>Count the second body row: three cells, because the <code>rowspan="2"</code> header from the row above still fills the Time column. The footer row has one cell with <code>colspan="4"</code>, covering all four columns. A category label shared by two consecutive data rows is exactly the rowspan case.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: what does <code>scope="col"</code> tell a screen reader?</summary>
+    <p>That this header cell names a whole <i>column</i>, so every value below it can be announced with that heading. Without scope, a reader hearing &ldquo;72&rdquo; has no idea which subject it belongs to.</p>
+  </details>
 
 <section id="s4">
   <h2>19.4 Making tables readable by screen readers</h2>

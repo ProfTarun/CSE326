@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 9 &middot; SVG Graphics</p>
   <h1>SVG Graphics</h1>
   <p class="lead">SVG lets you draw with code: circles, rectangles, lines, curves and text that stay perfectly sharp at any size. This chapter explains why vector graphics differ from photographs, how the SVG coordinate system works, every basic shape and its attributes, how <code>fill</code> and <code>stroke</code> paint them, and enough of the <code>path</code> language to read and write simple drawings. Every diagram in this book is an SVG.</p>
-  <p class="meta">About 22 minutes &middot; Course outcome CO1</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Attributes configure an element &mdash; <a href="book.html?ch=5">Chapter 5</a> (attributes).</li>
+      <li>An <code>&lt;img&gt;</code> loads a picture file; SVG instead <i>describes</i> the picture in the page itself &mdash; <a href="book.html?ch=8">Chapter 8</a> (images).</li>
+      <li>You need no drawing software: every shape here is typed by hand.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,7 +26,9 @@
 
 <section id="s1">
   <h2>9.1 Raster versus vector</h2>
-  <p>A JPG or PNG is a <b>raster</b> image: a grid of coloured pixels. Enlarge it and the browser has to invent pixels that were never there, so it goes blurry or blocky. An <b>SVG (Scalable Vector Graphics)</b> file stores <b>drawing instructions</b> instead: "a circle of radius 40 centred at (70, 70), filled orange". The browser re-draws those instructions at whatever size is needed, so the result is <b>sharp at any zoom level or screen size</b>. That is why SVG is the right format for logos, icons, diagrams and illustrations, and why a company logo should be SVG rather than JPG. Photographs, with millions of subtly different pixels, stay raster.</p>
+  <div class="callout analogy"><b>Raster is a photograph, vector is a knitting pattern.</b> Enlarge a photograph and you see the grain. Hand a knitting pattern to someone with thicker wool and they knit the same jumper, bigger and just as neat. SVG is the pattern.</div>
+  <div class="plain">A photograph is a grid of coloured dots, so blowing it up makes the dots bigger and the picture blurry. An SVG is a set of instructions &mdash; &ldquo;draw a circle here, this big&rdquo; &mdash; so the browser simply redraws it at whatever size you ask for, and it is always sharp.</div>
+  <p>A JPG or PNG is a <b><span class="jw" data-def="A picture stored as a grid of coloured dots. Enlarging it just makes the dots bigger.">raster</span></b> image: a grid of coloured pixels. Enlarge it and the browser has to invent pixels that were never there, so it goes blurry or blocky. An <b>SVG (Scalable <span class="jw" data-def="A picture stored as instructions for drawing shapes, so it can be redrawn at any size without ever going blurry.">Vector</span> Graphics)</b> file stores <b>drawing instructions</b> instead: "a circle of radius 40 centred at (70, 70), filled orange". The browser re-draws those instructions at whatever size is needed, so the result is <b>sharp at any zoom level or screen size</b>. That is why SVG is the right format for logos, icons, diagrams and illustrations, and why a company logo should be SVG rather than JPG. Photographs, with millions of subtly different pixels, stay raster.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 210" role="img" aria-label="A raster circle becomes blocky when enlarged; a vector circle stays smooth">
       <text x="150" y="26" class="t c b">RASTER (JPG, PNG): pixels</text>
@@ -43,6 +53,7 @@
 
 <section id="s2">
   <h2>9.2 The canvas: svg, width, height and viewBox</h2>
+  <div class="plain">The <code>viewBox</code> is the graph paper you draw on. <code>width</code> is how big that sheet of graph paper is printed. Change the printing size and the drawing scales with it; the numbers you typed never change.</div>
   <p>The <code>&lt;svg&gt;</code> element creates the drawing area. <code>width</code> and <code>height</code> set the <b>rendered size</b> on the page. <code>viewBox</code> sets the <b>internal coordinate system</b>, the grid the drawing instructions are measured on: <code>viewBox="min-x min-y width height"</code>. So <code>viewBox="0 0 100 100"</code> says "my drawing is described on a 100 &times; 100 grid starting at the top-left"; the browser then maps that grid onto whatever rendered size you gave.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="The SVG coordinate system: origin at top-left, x increases to the right, y increases downward">
@@ -118,6 +129,11 @@
 &lt;/svg&gt;</pre>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: you drew a <code>&lt;line&gt;</code> and nothing appeared. Why?</summary>
+    <p>A line has no inside, so <code>fill</code> cannot help it, and the default <code>stroke</code> is none. Give it a <span class="jw" data-def="The outline of a shape. The fill is the colour inside; the stroke is the line around the edge.">stroke</span> colour and it appears.</p>
+  </details>
+
 <section id="s4">
   <h2>9.4 Painting: fill and stroke</h2>
   <p>Two attributes control almost all appearance. <b><code>fill</code> is the colour inside a shape; <code>stroke</code> is the colour of its outline.</b> Both accept any CSS colour: names, hex codes, <code>rgb()</code>. <code>fill="none"</code> makes a shape hollow, which is how open shapes like polylines and curves are normally drawn.</p>
@@ -173,6 +189,11 @@
   &lt;path d="M250 100 Q300 10 350 100" fill="none" stroke="#0B2545" stroke-width="3"/&gt;
 &lt;/svg&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: in SVG, is the origin (0,0) at the bottom-left like graph paper in maths?</summary>
+    <p>No. It is at the <b>top-left</b>, and y increases <i>downward</i>. This trips up everybody who remembers school graphs, and it is examined.</p>
+  </details>
 
 <section id="s6">
   <h2>9.6 Text, groups and accessibility</h2>

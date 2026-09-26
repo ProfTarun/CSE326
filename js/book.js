@@ -369,6 +369,11 @@ function enhanceChapter() {
     h2.appendChild(b);
   });
 
+  // tap-to-explain jargon words, and the live CSS sliders
+  wireWords(root);
+  wireTryIt(root);
+  wireFigures(root);
+
   // "Chapter 8" in the prose becomes a link to chapter 8
   linkChapterMentions(root);
 
@@ -386,6 +391,215 @@ function enhanceChapter() {
     w.className = "tbl-wrap";
     t.parentNode.insertBefore(w, t);
     w.appendChild(t);
+  });
+}
+
+/* Any <span class="jw" data-def="..."> is a word a first-year reader may
+   not know. Tapping it opens a one-line plain-English meaning underneath,
+   so the prose can stay short without leaving anyone behind. */
+/* Diagrams are drawn in a 600-720 unit viewBox. On a phone the text column
+   is ~270px wide, which shrinks 11px label text to about 4px - unreadable.
+   So on narrow screens we let the figure break out of the column and scroll
+   sideways at a legible minimum width, and on every screen we offer a
+   full-screen view. */
+function wireFigures(root) {
+  root.querySelectorAll("figure.fig").forEach(function (fig) {
+    var svg = fig.querySelector("svg");
+    if (!svg || fig.querySelector(".fig-scroll")) return;
+
+    var scroll = document.createElement("div");
+    scroll.className = "fig-scroll";
+    svg.parentNode.insertBefore(scroll, svg);
+    scroll.appendChild(svg);
+
+    var label = (svg.getAttribute("aria-label") || "diagram").slice(0, 80);
+    var btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "fig-zoom";
+    btn.innerHTML = '<span aria-hidden="true">&#9974;</span> Enlarge';
+    btn.setAttribute("aria-label", "Enlarge diagram: " + label);
+    fig.insertBefore(btn, fig.firstChild);
+    btn.addEventListener("click", function () { openFigure(svg, fig, label); });
+
+    // only advertise sideways scrolling when it is actually needed
+    var mark = function () {
+      fig.classList.toggle("is-scrollable",
+        scroll.scrollWidth - scroll.clientWidth > 4);
+    };
+    mark();
+    window.addEventListener("resize", mark);
+    if (window.ResizeObserver) new ResizeObserver(mark).observe(scroll);
+  });
+}
+
+function openFigure(svg, fig, label) {
+  var cap = fig.querySelector("figcaption");
+  var box = document.createElement("div");
+  box.className = "fig-lightbox";
+  box.setAttribute("role", "dialog");
+  box.setAttribute("aria-modal", "true");
+  box.setAttribute("aria-label", "Enlarged diagram: " + label);
+  box.innerHTML =
+    '<div class="fig-lb-bar">' +
+      '<span class="fig-lb-hint">Pinch or use the buttons to zoom. ' +
+      'Drag to move.</span>' +
+      '<button class="fig-lb-btn" data-z="out" aria-label="Zoom out">&minus;</button>' +
+      '<button class="fig-lb-btn" data-z="in" aria-label="Zoom in">+</button>' +
+      '<button class="fig-lb-btn" data-z="fit">Fit</button>' +
+      '<button class="fig-lb-btn close" data-z="close" aria-label="Close">' +
+      '&times;</button>' +
+    '</div><div class="fig-lb-stage"></div>';
+
+  var stage = box.querySelector(".fig-lb-stage");
+  var copy = svg.cloneNode(true);
+  copy.removeAttribute("style");
+  stage.appendChild(copy);
+  if (cap) {
+    var c = document.createElement("p");
+    c.className = "fig-lb-cap";
+    c.innerHTML = cap.innerHTML;
+    stage.appendChild(c);
+  }
+
+  var z = 1;
+  var apply = function () {
+    copy.style.width = Math.round(z * 100) + "%";
+    copy.style.maxWidth = "none";
+  };
+  box.addEventListener("click", function (e) {
+    var act = e.target.closest("[data-z]");
+    if (!act) { if (e.target === box) close(); return; }
+    var a = act.dataset.z;
+    if (a === "close") return close();
+    if (a === "in") z = Math.min(4, z * 1.35);
+    if (a === "out") z = Math.max(0.5, z / 1.35);
+    if (a === "fit") z = 1;
+    apply();
+  });
+
+  var prev = document.activeElement;
+  function close() {
+    document.removeEventListener("keydown", onKey);
+    box.remove();
+    document.body.style.overflow = "";
+    if (prev && prev.focus) prev.focus();
+  }
+  function onKey(e) {
+    if (e.key === "Escape") close();
+    if (e.key === "+" || e.key === "=") { z = Math.min(4, z * 1.35); apply(); }
+    if (e.key === "-") { z = Math.max(0.5, z / 1.35); apply(); }
+  }
+  document.addEventListener("keydown", onKey);
+  document.body.style.overflow = "hidden";
+  document.body.appendChild(box);
+
+  /* Open at a size where the labels are actually readable. Fitting the
+     diagram to a phone screen would render 11px label text at ~6px, which
+     is the problem this view exists to solve, so on a narrow screen we
+     open zoomed in and let the stage scroll. "Fit" returns to full width. */
+  var avail = Math.max(stage.clientWidth - 32, 1);
+  z = Math.max(1, 860 / avail);
+  apply();
+  box.querySelector(".close").focus();
+}
+
+function wireWords(root) {
+  var words = root.querySelectorAll(".jw[data-def]");
+  if (!words.length) return;
+
+  words.forEach(function (w) {
+    w.setAttribute("role", "button");
+    w.setAttribute("tabindex", "0");
+    w.setAttribute("aria-label", w.textContent + " - tap for the meaning");
+    function toggle() {
+      var next = w.nextElementSibling;
+      var wasOpen = next && next.classList.contains("jw-pop");
+      root.querySelectorAll(".jw-pop").forEach(function (p) { p.remove(); });
+      root.querySelectorAll(".jw.on").forEach(function (x) {
+        x.classList.remove("on");
+      });
+      if (wasOpen) return;
+      var pop = document.createElement("span");
+      pop.className = "jw-pop";
+      pop.setAttribute("data-tts", "skip");
+      pop.innerHTML = "<b>" + esc(w.textContent) + ":</b> " + esc(w.dataset.def);
+      w.parentNode.insertBefore(pop, w.nextSibling);
+      w.classList.add("on");
+    }
+    w.onclick = toggle;
+    w.onkeydown = function (e) {
+      if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggle(); }
+    };
+  });
+
+  // one quiet note per chapter, so the dotted words are discoverable
+  var first = words[0].closest("p, li, div");
+  var host = first && first.parentNode;
+  if (host && !root.querySelector(".wordnote")) {
+    var n = document.createElement("p");
+    n.className = "wordnote";
+    n.setAttribute("data-tts", "skip");
+    n.innerHTML = "Words with a <span class=\"jw\" style=\"cursor:default\">" +
+      "dotted underline</span> are the ones this course has not explained " +
+      "yet. Tap any of them for a one-line meaning; nothing on the page " +
+      "moves away while you read it.";
+    host.insertBefore(n, first);
+  }
+}
+
+/* A <div class="tryit"> is a live CSS control panel: every control carries
+   data-prop (and optionally data-unit), and changing one restyles the
+   sample element AND rewrites the CSS shown underneath, with the line you
+   just touched highlighted. Seeing the rule and the result change together
+   is the fastest way to learn what a property actually does. */
+function wireTryIt(root) {
+  root.querySelectorAll(".tryit").forEach(function (box) {
+    var sel = box.dataset.el || ".t-box";
+    var els = box.querySelectorAll(sel);
+    var ctrls = Array.prototype.slice.call(box.querySelectorAll("[data-prop]"));
+    var code = box.querySelector(".tryit-css");
+    var rule = box.dataset.rule || sel;
+    if (!els.length || !ctrls.length) return;
+
+    function valueOf(c) { return c.value + (c.dataset.unit || ""); }
+
+    function apply(changed) {
+      ctrls.forEach(function (c) {
+        var v = valueOf(c);
+        els.forEach(function (el) { el.style.setProperty(c.dataset.prop, v); });
+        var out = c.parentNode.querySelector(".tv");
+        if (out) out.textContent = v;
+      });
+      if (!code) return;
+      code.innerHTML = '<span class="sel">' + esc(rule) + "</span> {\n" +
+        ctrls.map(function (c) {
+          var line = "  " + c.dataset.prop + ": " + valueOf(c) + ";";
+          return c === changed ? '<span class="hl">' + esc(line) + "</span>"
+                               : esc(line);
+        }).join("\n") + "\n}";
+    }
+
+    ctrls.forEach(function (c) {
+      c.dataset.init = c.value;
+      if (!c.parentNode.querySelector(".tv")) {
+        var s = document.createElement("span");
+        s.className = "tv";
+        c.parentNode.appendChild(s);
+      }
+      c.addEventListener("input", function () { apply(c); });
+      c.addEventListener("change", function () { apply(c); });
+    });
+
+    var head = box.querySelector(".tryit-head");
+    if (head && !head.querySelector(".tryit-reset")) {
+      head.insertAdjacentHTML("beforeend", '<span class="sp"></span>' +
+        '<button class="tryit-reset" type="button">Reset</button>');
+      head.querySelector(".tryit-reset").onclick = function () {
+        ctrls.forEach(function (c) { c.value = c.dataset.init; });
+        apply(null);
+      };
+    }
+    apply(null);
   });
 }
 
@@ -575,7 +789,8 @@ var TTS = (function () {
 
   function ownText(el) {
     var c = el.cloneNode(true);
-    c.querySelectorAll("ul,ol,pre,svg,[data-tts=skip],.ex,script,style,table")
+    c.querySelectorAll("ul,ol,pre,svg,[data-tts=skip],.ex,.tryit,.jw-pop," +
+                     "script,style,table")
       .forEach(function (x) { x.parentNode.removeChild(x); });
     if (el.tagName === "TR") {
       return Array.prototype.map.call(el.querySelectorAll("th,td"),

@@ -1,0 +1,5 @@
+# local staging mirror for the manual GitHub web upload; not part of the site
+_upload/
+
+# generated upload bundles
+*.zip

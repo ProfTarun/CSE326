@@ -1,0 +1,298 @@
+<article class="chapter" data-ch="33">
+<style>
+/* demos for this chapter only - every selector is scoped to .d33 */
+.d33 { font-size: 15px; }
+.d33 .req33::after { content: " *"; color: #C42B2B; font-weight: 800; }
+.d33 .ext33::after { content: " \2197"; color: #E07B1E; }
+.d33 .tick33::before { content: "\2713 "; color: #138808; font-weight: 800; }
+.d33 .drop33::first-letter { font-size: 2.6em; float: left; line-height: 0.85;
+  padding: 2px 8px 0 0; color: #E07B1E; font-weight: 800; }
+.d33 .quote33 { position: relative; padding: 4px 0 4px 34px; font-style: italic; }
+.d33 .quote33::before { content: "\201C"; position: absolute; left: 0; top: -10px;
+  font-size: 48px; color: #F0C79A; font-family: Georgia, serif; }
+.d33 ul.m33 { list-style: none; padding-left: 22px; margin: 0; }
+.d33 ul.m33 li { margin: 3px 0; }
+.d33 ul.m33 li::before { content: "\25B8"; color: #E07B1E; font-weight: 800;
+  display: inline-block; width: 18px; margin-left: -18px; }
+.d33 input.p33 { padding: 8px 10px; border: 2px solid #CBD5E1; border-radius: 8px;
+  font-family: inherit; font-size: 14px; width: 230px; }
+.d33 input.p33::placeholder { color: #B45309; font-style: italic; }
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 33 &middot; Pseudo-elements</p>
+  <h1>Pseudo-elements</h1>
+  <p class="lead">A pseudo-class styles an element in a <i>state</i>. A pseudo-element styles a <i>part</i> of it &mdash; the first letter, the placeholder text, the bullet &mdash; or invents a small piece of content that was never in your HTML at all. Two colons instead of one, and one property that everybody forgets.</p>
+  <p class="meta">About 20 minutes &middot; Course outcome CO3 &middot; Builds on Chapter 32</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A pseudo-<b>class</b> uses one colon and styles a state: <code>a:hover</code> (<a href="book.html?ch=32">Chapter 32</a>).</li>
+      <li><code>position: relative</code> on a parent anchors an <code>absolute</code> child (<a href="book.html?ch=29">Chapter 29</a>).</li>
+      <li>Decoration belongs in CSS; meaning belongs in HTML (<a href="book.html?ch=12">Chapter 12</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what the two colons mean and how a pseudo-element differs from a pseudo-class.</li>
+      <li>Use <code>::before</code> and <code>::after</code>, and never forget <code>content</code>.</li>
+      <li>Add an asterisk, an icon or a decorative quote mark without touching the HTML.</li>
+      <li>Style a drop cap, a placeholder, a list marker and the user's selection.</li>
+      <li>Say what should <i>never</i> go in generated content.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>33.1 Two colons: a part, not a state</h2>
+  <p>The syntax is the same shape as a pseudo-class, with <b>two colons</b>:</p>
+  <pre class="code">p::first-line { font-weight: 700; }
+/* |  |
+   |  the pseudo-element: a PART of the paragraph
+   the element                                    */</pre>
+  <table class="tbl">
+    <thead><tr><th></th><th>Pseudo-class</th><th>Pseudo-element</th></tr></thead>
+    <tbody>
+      <tr><td>Colons</td><td><b>One</b> &mdash; <code>:hover</code></td><td><b>Two</b> &mdash; <code>::before</code></td></tr>
+      <tr><td>Styles</td><td>The whole element, in a state</td><td>A part of it, or invented content</td></tr>
+      <tr><td>Examples</td><td><code>:hover</code>, <code>:focus</code>, <code>:first-child</code>, <code>:checked</code></td><td><code>::before</code>, <code>::after</code>, <code>::first-letter</code>, <code>::placeholder</code>, <code>::marker</code>, <code>::selection</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p><b>One colon = a state</b> (hovered, focused, checked). <b>Two colons = a part</b> (the first letter, the bullet, an added piece). Say it once and you will not mix them up again.</p>
+  </div>
+  <p>You may still see <code>:before</code> with one colon in older code. It works, because browsers keep supporting the old spelling, but write two.</p>
+</section>
+
+<section id="s2">
+  <h2>33.2 ::before and ::after &mdash; and the rule everyone forgets</h2>
+  <p>These two create a little box <b>inside</b> the element, before or after its real content. They are the most used pseudo-elements by a distance.</p>
+  <p>And here is the rule: <b><code>::before</code> and <code>::after</code> do nothing at all unless you give them a <code>content</code> property.</b> Even an empty one, <code>content: "";</code>, is enough. Miss it and there is no error, no warning and no pseudo-element.</p>
+  <pre class="code">/* does nothing at all */
+.tag::before { color: red; }
+
+/* works */
+.tag::before { content: "New"; color: red; }
+
+/* also works - an empty box you can size and colour */
+.tag::before { content: ""; display: inline-block; width: 8px; height: 8px;
+               background: #138808; border-radius: 50%; }</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 160" role="img" aria-label="Where before and after content sits inside an element">
+      <rect x="60" y="40" width="500" height="70" rx="10" class="box"/>
+      <text x="310" y="30" class="t c b mono">&lt;p class="note"&gt; ... &lt;/p&gt;</text>
+      <rect x="76" y="56" width="104" height="38" rx="7" class="box saf"/>
+      <text x="128" y="72" class="t c b mono" style="font-size:11px">::before</text>
+      <text x="128" y="88" class="t c s">added by CSS</text>
+      <rect x="192" y="56" width="236" height="38" rx="7" class="box gry"/>
+      <text x="310" y="80" class="t c b">your real HTML content</text>
+      <rect x="440" y="56" width="104" height="38" rx="7" class="box saf"/>
+      <text x="492" y="72" class="t c b mono" style="font-size:11px">::after</text>
+      <text x="492" y="88" class="t c s">added by CSS</text>
+      <text x="310" y="132" class="t c s">Both live INSIDE the element, so they inherit its colour and font</text>
+      <text x="310" y="150" class="t c s">and are inline boxes by default.</text>
+    </svg>
+    <figcaption><b>Figure 33.1</b> <code>::before</code> and <code>::after</code> are the first and last children of the element, created by CSS.</figcaption>
+  </figure>
+  <h3>What can go in content?</h3>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Produces</th></tr></thead>
+    <tbody>
+      <tr><td><code>content: "New";</code></td><td>That literal text</td></tr>
+      <tr><td><code>content: "";</code></td><td>An empty box &mdash; for shapes, dots and dividers</td></tr>
+      <tr><td><code>content: " \2713";</code></td><td>A character by its code &mdash; here a tick</td></tr>
+      <tr><td><code>content: attr(data-label);</code></td><td>The value of that attribute on the element</td></tr>
+      <tr><td><code>content: url(icon.svg);</code></td><td>An image</td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live &mdash; every mark below was added by CSS; none of it is in the HTML</p>
+    <div class="d33">
+      <p class="req33">Email address</p>
+      <p class="tick33">Assignment submitted</p>
+      <p><a href="#s2" class="ext33">Opens in a new tab</a></p>
+      <ul class="m33"><li>HTML</li><li>CSS</li><li>JavaScript</li></ul>
+      <p class="quote33">Learning by building makes CSS easier to remember.</p>
+    </div>
+  </div>
+  <pre class="code" data-run data-title="The required-field asterisk, done properly" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; }
+  label { display: block; margin-top: 10px; font-weight: 700; }
+  .required::after {
+    content: " *";
+    color: #C42B2B;
+  }
+  input { padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px; }
+&lt;/style&gt;
+&lt;label class="required" for="n"&gt;Full name&lt;/label&gt;
+&lt;input id="n"&gt;
+&lt;label for="p"&gt;Phone (optional)&lt;/label&gt;
+&lt;input id="p"&gt;</pre>
+  <h3>A shape with content: ""</h3>
+  <p>An empty <code>content</code> plus a width, a height and a background gives you a drawable box &mdash; a dot, a bar, a gradient underline &mdash; with no extra HTML.</p>
+  <pre class="code" data-run data-title="A decorative underline that is not a border" data-h="220">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; }
+  h2 { position: relative; display: inline-block; padding-bottom: 10px;
+       color: #0B2545; }
+  h2::after {
+    content: "";                     /* required, even though it is empty */
+    position: absolute;
+    left: 0; bottom: 0;
+    width: 60px; height: 4px;
+    background: linear-gradient(to right, #FF9933, #138808);
+    border-radius: 2px;
+  }
+&lt;/style&gt;
+&lt;h2&gt;Skills&lt;/h2&gt;
+&lt;p&gt;The short coloured bar under the heading is a pseudo-element.&lt;/p&gt;</pre>
+  <div class="callout warn"><b>Two things that catch people out.</b> (1) <code>::before</code> and <code>::after</code> are <b>inline</b> boxes by default, so <code>width</code> and <code>height</code> are ignored until you add <code>display: inline-block</code> or <code>position: absolute</code>. (2) They do not work on <b>replaced</b> elements &mdash; <code>&lt;img&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;br&gt;</code> &mdash; because those have no inside to put content in. Wrap the image in a <code>&lt;span&gt;</code> and style that instead.</div>
+</section>
+
+<section id="s3">
+  <h2>33.3 The other pseudo-elements</h2>
+  <table class="tbl">
+    <thead><tr><th>Pseudo-element</th><th>Styles</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>::first-letter</code></td><td>The first letter of a block</td><td>A drop cap at the start of an article</td></tr>
+      <tr><td><code>::first-line</code></td><td>The first line, however long it turns out to be</td><td>A bolder opening line</td></tr>
+      <tr><td><code>::placeholder</code></td><td>The grey hint text in an empty input</td><td>Matching the placeholder to your design</td></tr>
+      <tr><td><code>::marker</code></td><td>The bullet or number of a list item</td><td>Coloured bullets without removing the list semantics</td></tr>
+      <tr><td><code>::selection</code></td><td>Text the user has highlighted</td><td>Brand-coloured selection</td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live &mdash; a drop cap, and a placeholder styled to match. Try selecting some text on this page too.</p>
+    <div class="d33">
+      <p class="drop33" style="width:100%">Cascading Style Sheets began as a way to separate a document's appearance from its structure, and this opening letter is styled with a single <code>::first-letter</code> rule rather than an extra element.</p>
+      <input class="p33" type="text" placeholder="styled placeholder text">
+    </div>
+  </div>
+  <pre class="code" data-run data-title="Four pseudo-elements at once" data-h="280">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; line-height: 1.7; }
+  .article::first-letter {
+    font-size: 3em; float: left; line-height: 0.8;
+    padding: 4px 10px 0 0; color: #E07B1E; font-weight: 800;
+  }
+  .article::first-line { font-weight: 600; color: #0B2545; }
+  ::selection { background: #FF9933; color: #fff; }
+  input::placeholder { color: #B45309; font-style: italic; }
+  li::marker { color: #138808; font-weight: 800; }
+  input { padding: 8px; border: 1px solid #CBD5E1; border-radius: 6px; }
+&lt;/style&gt;
+&lt;p class="article"&gt;Style sheets let one file control the appearance of a whole
+site, which is why the separation of structure from presentation became the
+standard way to build for the web.&lt;/p&gt;
+&lt;ul&gt;&lt;li&gt;Coloured markers&lt;/li&gt;&lt;li&gt;Still a real list&lt;/li&gt;&lt;/ul&gt;
+&lt;input placeholder="Try selecting this page's text"&gt;</pre>
+  <p><code>::marker</code> deserves a mention for accessibility. The old way to get custom bullets was <code>list-style: none</code> plus a <code>::before</code>, which in some screen readers stops the list being announced as a list. <code>::marker</code> colours the real bullet and keeps the list a list.</p>
+</section>
+
+<section id="s4">
+  <h2>33.4 What must never go in generated content</h2>
+  <p>Content created by CSS is, by design, <b>decoration</b>. Different screen readers treat it inconsistently, a user cannot always select or copy it, and it vanishes entirely if the stylesheet fails to load.</p>
+  <ul>
+    <li><b>Fine:</b> a decorative quote mark, an arrow after an external link, a coloured dot, a required asterisk that repeats what <code>required</code> already says.</li>
+    <li><b>Not fine:</b> a heading, a price, an error message, a button label, or anything a reader would miss if it disappeared.</li>
+  </ul>
+  <p>The test is simple: <b>turn the CSS off. Is anything important gone?</b> If yes, that content belongs in the HTML.</p>
+  <h3>Build it: badges and icons with no extra markup</h3>
+  <pre class="code" data-run data-title="Project, step 12: decorating the card, cleanly" data-h="330" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #F1F5F9; padding: 20px;
+         color: #3C4A60; }
+
+  .card {
+    position: relative;
+    background: #fff; border-radius: 12px; padding: 16px 18px;
+    margin-bottom: 14px; box-shadow: 0 2px 8px rgba(16,32,64,.08);
+  }
+  /* a corner ribbon, entirely from CSS */
+  .card.featured::before {
+    content: "Featured";
+    position: absolute; top: -10px; right: 14px;
+    background: #E07B1E; color: #fff;
+    padding: 3px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+  /* a tick in front of completed courses */
+  .card.done h3::before {
+    content: "\2713 ";
+    color: #138808;
+  }
+  /* an arrow after any link that opens elsewhere */
+  .card a::after { content: " \2197"; color: #E07B1E; }
+
+  h3 { margin: 0 0 4px; color: #0B2545; font-size: 16px; }
+  p  { margin: 0; font-size: 14px; }
+&lt;/style&gt;
+&lt;div class="card featured"&gt;
+  &lt;h3&gt;CSE326 Internet Programming&lt;/h3&gt;
+  &lt;p&gt;In progress. &lt;a href="#"&gt;Course page&lt;/a&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;div class="card done"&gt;
+  &lt;h3&gt;CSE305 Database Systems&lt;/h3&gt;
+  &lt;p&gt;Completed last semester.&lt;/p&gt;
+&lt;/div&gt;</pre>
+  <p>The word "Featured", the tick and the arrow are all CSS. If the stylesheet vanished, the courses and their descriptions would all still be there &mdash; which is exactly the test in the paragraph above.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>How many colons does a pseudo-ELEMENT use?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. One</li><li>B. Two</li><li>C. Three</li><li>D. None</li></ul>
+    <p><b>Answer: B.</b> <code>::before</code> and <code>::after</code> are parts; <code>:hover</code> and <code>:focus</code> are states.</p></div></details>
+  <details class="q"><summary><code>p::before</code> does nothing. What is missing?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A colour</li><li>B. The content property</li><li>C. A width</li><li>D. display:block</li></ul>
+    <p><b>Answer: B.</b> <code>::before</code> and <code>::after</code> require <code>content</code>, even if it is empty quotes.</p></div></details>
+  <details class="q"><summary>Which pseudo-element inserts content before the content of an element?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>::before</code></b> &mdash; and it sits <i>inside</i> the element, as its first child, so it inherits the element's colour and font.</p></div></details>
+  <details class="q"><summary>You want an empty coloured bar under a heading. What does <code>content</code> need to be?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>content: "";</code></b> &mdash; empty, but present. Then give the pseudo-element a width, a height and a background, plus <code>display: inline-block</code> or <code>position: absolute</code> so the size is honoured.</p></div></details>
+  <details class="q"><summary>Why do <code>width</code> and <code>height</code> often appear to be ignored on a <code>::before</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because it is an inline box by default</b>, and inline boxes ignore width and height (<a href="book.html?ch=29">Chapter 29</a>). Add <code>display: inline-block</code>, <code>display: block</code>, or position it absolutely.</p></div></details>
+  <details class="q"><summary>Which pseudo-element styles the grey hint text inside an empty input?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>::placeholder</code></b>. Remember it is only a hint &mdash; it never replaces a real <code>&lt;label&gt;</code> (<a href="book.html?ch=15">Chapter 15</a>).</p></div></details>
+  <details class="q"><summary>Which pseudo-element colours the bullet of a list item without removing the list?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>::marker</code></b>. The older trick of <code>list-style: none</code> plus <code>::before</code> can stop some screen readers announcing the list as a list.</p></div></details>
+  <details class="q"><summary>Why should an error message never be written in a <code>content</code> property?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because generated content is decoration.</b> Screen readers treat it inconsistently, it cannot always be selected or copied, and it disappears completely if the stylesheet fails to load. Anything a reader would miss belongs in the HTML.</p></div></details>
+  <details class="q"><summary>Why does <code>img::after</code> never work?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because <code>&lt;img&gt;</code> is a replaced element</b> &mdash; its content comes from a file, so there is no inside for CSS to add anything to. The same is true of <code>&lt;input&gt;</code> and <code>&lt;br&gt;</code>. Wrap the image in a <code>&lt;span&gt;</code> and use <code>span::after</code>.</p></div></details>
+  <details class="q"><summary>What does <code>content: attr(data-label);</code> put on the page?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>The value of that element's <code>data-label</code> attribute.</b> It is how a tooltip or a small caption can reuse text that is already written in the HTML, rather than duplicating it in the CSS.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Two colons mark a pseudo-element: a <b>part</b> of an element, or content CSS invents. One colon is a state.</li>
+    <li><code>::before</code> and <code>::after</code> need <b><code>content</code></b>, even if it is <code>""</code>. They sit inside the element and are inline by default.</li>
+    <li><code>content</code> can hold text, an empty string, a character code, <code>attr()</code> or an image.</li>
+    <li><code>::first-letter</code>, <code>::first-line</code>, <code>::placeholder</code>, <code>::marker</code>, <code>::selection</code> style real parts of an element.</li>
+    <li>Generated content is decoration. If turning the CSS off would lose something important, it belongs in the HTML.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Rule</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>.req::after { content: " *"; }</code></td><td>A red asterisk after a label</td></tr>
+      <tr><td><code>a::after { content: " \2197"; }</code></td><td>An arrow after a link</td></tr>
+      <tr><td><code>h2::after { content: ""; height: 4px; }</code></td><td>A decorative bar (needs a display or position)</td></tr>
+      <tr><td><code>p::first-letter { font-size: 3em; }</code></td><td>A drop cap</td></tr>
+      <tr><td><code>input::placeholder { color: ...; }</code></td><td>Style the hint text</td></tr>
+      <tr><td><code>li::marker { color: green; }</code></td><td>Colour the bullets</td></tr>
+      <tr><td><code>::selection { background: ...; }</code></td><td>Style highlighted text</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-elements" target="_blank" rel="noopener noreferrer">MDN &mdash; Pseudo-elements<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every pseudo-element, with the one- vs two-colon history explained.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/::before" target="_blank" rel="noopener noreferrer">MDN &mdash; ::before<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The content property&rsquo;s many forms, including attr() and counters.</span></li>
+    <li><a href="https://web.dev/learn/css/pseudo-elements" target="_blank" rel="noopener noreferrer">web.dev &mdash; Pseudo-elements<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Good worked examples of decorative ::before tricks.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 1 &middot; Introduction to Internet and Web Technologies</p>
   <h1>Introduction to Internet and Web Technologies</h1>
   <p class="lead">Before you write a single tag you should be able to explain, in plain words, what happens when someone opens a web page. This chapter gives you that story: what the Internet is, how the World Wide Web is different from it, what a browser and a server each do, and where HTML, CSS and JavaScript fit.</p>
-  <p class="meta">About 23 minutes &middot; Course outcome CO1 &middot; Read this before Chapter 2</p>
+  <p class="meta">About 33 minutes &middot; Course outcome CO1 &middot; Read this before Chapter 2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Nothing at all. This is the first chapter, and it assumes you have never built a web page.</li>
+      <li>If you have ever opened a website on a phone, you already have the only experience this chapter needs.</li>
+      <li>Words in <b>orange dotted underline</b> can be tapped for a one-line meaning. Try it whenever a word feels slippery.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,8 +26,9 @@
 
 <section id="s1">
   <h2>1.1 The Internet is the road system</h2>
-  <p>Think about the last thing you did online: a WhatsApp message, a YouTube video, a bank transfer, a Google search. Every one of those travelled over the same thing, and that thing is <b>the Internet</b>: a worldwide <b>network of networks</b> that connects billions of devices. Your phone talks to your home router, the router talks to your Internet service provider, the provider talks to bigger networks, and somewhere on the far side a server answers. No single company owns it and no single computer <i>is</i> it.</p>
-  <p>The most useful picture is a road system. Roads do not care what vehicle uses them: a bus, a courier van and a car can all share the same highway. In the same way the Internet does not care what kind of data it carries. Messages, videos, emails and web pages are all chopped into small <b>packets</b>, each packet is labelled with the address it is going to, and the routers along the way (the junctions) pass it on until it arrives. The rules the devices use to address and deliver those packets are called <b>protocols</b>, and the pair that hold the Internet together are <b>TCP/IP</b>: IP gives every device an address and moves packets between addresses, and TCP makes sure they all arrive and are put back in order.</p>
+  <div class="plain">The Internet is the wiring. It is cables, radio links and machines that pass little bundles of data along until they reach the right address. It does not know or care whether the bundle is part of a photo, a song or a web page.</div>
+  <p>Think about the last thing you did online: a WhatsApp message, a YouTube video, a bank transfer, a Google search. Every one of those travelled over the same thing, and that thing is <b>the Internet</b>: a worldwide <b>network of networks</b> that connects billions of devices. Your phone talks to your home <span class="jw" data-def="A junction box that reads the address on a packet and passes it towards the right neighbour.">router</span>, the router talks to your Internet service provider, the provider talks to bigger networks, and somewhere on the far side a <span class="jw" data-def="A computer whose job is to wait for requests and answer them. It is ordinary hardware doing a particular job, not a special kind of machine.">server</span> answers. No single company owns it and no single computer <i>is</i> it.</p>
+  <p>The most useful picture is a road system. Roads do not care what vehicle uses them: a bus, a courier van and a car can all share the same highway. In the same way the Internet does not care what kind of data it carries. Messages, videos, emails and web pages are all chopped into small <b><span class="jw" data-def="Data chopped into small numbered pieces, each labelled with where it is going, so it can travel separately and be reassembled at the other end.">packets</span></b>, each packet is labelled with the address it is going to, and the routers along the way (the junctions) pass it on until it arrives. The rules the devices use to address and deliver those packets are called <b><span class="jw" data-def="An agreed set of rules two machines both follow, so they understand each other. Like agreeing to say 'hello' before you start talking.">protocols</span></b>, and the pair that hold the Internet together are <b>TCP/IP</b>: IP gives every device an address and moves packets between addresses, and TCP makes sure they all arrive and are put back in order.</p>
   <figure class="fig">
     <svg viewBox="0 0 720 260" role="img" aria-label="Devices connected through routers forming a network of networks">
       <g class="edge"><path d="M120 70 L230 130"/><path d="M120 190 L230 130"/><path d="M230 130 L360 130"/><path d="M360 130 L490 70"/><path d="M360 130 L490 190"/><path d="M490 70 L600 70"/><path d="M490 190 L600 190"/><path d="M490 70 L490 190" class="dash"/></g>
@@ -44,6 +53,7 @@
 
 <section id="s2">
   <h2>1.2 The Web is one service that runs on the Internet</h2>
+  <div class="callout analogy"><b>The Internet is the road, the Web is one kind of traffic.</b> Roads carry buses, ambulances and bicycles. The Internet carries web pages, WhatsApp messages, video calls and game data. The <b>Web</b> is just one of those &mdash; the one made of pages joined by links. So every website is on the Internet, but not everything on the Internet is a website.</div>
   <p>Now the distinction that examiners love, because so many people get it wrong. The <b>World Wide Web</b> (the Web, WWW) is <b>not</b> the Internet. The Web is <b>one of many services</b> that run <i>on top of</i> the Internet. It consists of web pages and websites, written in HTML, connected by hyperlinks, and delivered by the HTTP protocol. Email (SMTP/IMAP), online games, video streaming, WhatsApp, cloud backups and voice calls all use the Internet too, but they are <b>not part of the Web</b>: they use their own protocols, not HTTP, and they are not made of web pages.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 250" role="img" aria-label="Layer diagram: the Internet at the bottom, services including the Web on top">
@@ -99,8 +109,14 @@
   </figure>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: is WhatsApp part of the World Wide Web?</summary>
+    <p>No. It travels <i>over</i> the Internet, but it is not made of HTML pages joined by links and delivered by HTTP, so it is not the Web. This exact distinction is a favourite exam question.</p>
+  </details>
+
 <section id="s3">
   <h2>1.3 Who asks and who answers: browsers, servers and HTTP</h2>
+  <div class="plain">Your browser asks a question and a server answers it. That is the whole relationship. The browser says &ldquo;please send me this page&rdquo;, the server sends back some text, and the browser draws that text on your screen.</div>
   <p>Everything on the Web is a conversation between two programs. The <b>web browser</b> (Chrome, Edge, Firefox, Safari) is the application that <b>requests and displays web pages for a user</b>. The <b>web server</b> is a program running on a computer somewhere else that <b>stores the pages, runs logic and responds to requests</b>. In this arrangement the browser is called the <b>client</b>, because it asks, and the other side is the <b>server</b>, because it serves. Chapter 2 walks through this exchange step by step; here you only need the vocabulary.</p>
   <p>The language the two programs speak is <b>HTTP, the HyperText Transfer Protocol</b>. HTTP is not cabling and not a programming language: it is the set of rules for how a request is worded and how a response is worded, so that any browser can talk to any server. <b>HTTPS</b> is HTTP with one addition: the data is <b>encrypted using TLS</b> while it travels, so nobody on the road between you and the server can read or alter it. That is why login pages, banking and this university portal all use <code>https://</code>.</p>
   <figure class="fig narrow">
@@ -182,6 +198,11 @@
 &lt;/html&gt;</pre>
   <p>Press <b>Run</b>. The browser reads the text from the outside in: the document type, then the <code>&lt;html&gt;</code> root, then a <code>&lt;head&gt;</code> of information <i>about</i> the page and a <code>&lt;body&gt;</code> of visible content. Inside the body an article holds a heading and a paragraph. Nothing here says "make the heading large and bold"; the browser applies a plain default look, and CSS (Unit 3) would change it. Chapters 3 and 4 explain every line.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: which of HTML, CSS and JavaScript decides what the text <i>means</i>?</summary>
+    <p>HTML. It says &ldquo;this is a heading&rdquo;, &ldquo;this is a paragraph&rdquo;. CSS decides what it looks like and JavaScript decides what it does when you click.</p>
+  </details>
 
 <section id="s6">
   <h2>1.6 Who decides the rules? Standards bodies</h2>

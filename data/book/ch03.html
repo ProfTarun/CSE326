@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 3 &middot; HTML5 Fundamentals</p>
   <h1>HTML5 Fundamentals</h1>
   <p class="lead">HTML has a tiny grammar: tags, elements, attributes, nesting, comments and a handful of special characters. Learn that grammar precisely and every later chapter becomes vocabulary. This chapter also explains what is new in HTML5, why browsers forgive mistakes (and why that is dangerous), and how to check your work with a validator.</p>
-  <p class="meta">About 22 minutes &middot; Course outcome CO1 &middot; Read before Chapter 4</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO1 &middot; Read before Chapter 4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>HTML is one of the three languages, and its job is <b>structure and meaning</b> &mdash; <a href="book.html?ch=1">Chapter 1</a> (the three languages).</li>
+      <li>A page arrives at the browser as plain text; HTML is the marks inside that text.</li>
+      <li>You need no software beyond Notepad and a browser to try everything here.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>3.1 What HTML is (and is not)</h2>
+  <div class="plain">HTML does not <i>do</i> anything. It labels. You take ordinary text and put little labels around parts of it to say &ldquo;this bit is a heading&rdquo; or &ldquo;this bit is a paragraph&rdquo;. That is the whole idea.</div>
   <p><b>HTML stands for HyperText Markup Language.</b> A markup language is a way of annotating text: you take the words of a page and wrap them in labels that say what each part <i>is</i>: this is a heading, this is a paragraph, this is a link, this is an image. The browser reads those labels and knows how to treat each piece. <i>HyperText</i> means text that contains links to other text, which is the idea the whole Web is built on.</p>
   <p>HTML is <b>not a programming language</b>. It has no variables, no loops, no if-statements and no way to compute anything. It describes structure and meaning; computing is JavaScript's job, appearance is CSS's job (Chapter 1). When someone says they "code in HTML" they mean they write markup.</p>
   <pre class="code" data-run data-title="Markup: labels around words" data-h="150">&lt;h1&gt;Welcome to My Website&lt;/h1&gt;
@@ -36,6 +45,7 @@
 
 <section id="s2">
   <h2>3.2 Tags, elements and content</h2>
+  <div class="callout analogy"><b>Tags are like highlighter pens with names.</b> Imagine a printed page. You highlight the title in yellow and write &ldquo;TITLE&rdquo; in the margin, then highlight a paragraph in green and write &ldquo;PARAGRAPH&rdquo;. You have not changed a word of the text &mdash; you have only labelled what each part <i>is</i>. That is exactly what a tag does.</div>
   <p>A <b>tag</b> is a label written between angle brackets: <code>&lt;p&gt;</code>. It has an opening angle bracket, a <b>tag name</b> and a closing angle bracket. An <b>opening tag</b> like <code>&lt;p&gt;</code> says "a paragraph starts here"; a <b>closing tag</b> is the same name with a forward slash, <code>&lt;/p&gt;</code>, and says "the paragraph ends here". Everything between them is the <b>content</b>.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 210" role="img" aria-label="Anatomy of an element: opening tag with attribute, content, closing tag">
@@ -59,11 +69,12 @@
     <figcaption><b>Figure 3.1</b> Tag versus element. A tag is only the marker; the element is the marker, its content and the closing marker together, plus any attributes on the opening tag.</figcaption>
   </figure>
   <p>The sandwich analogy from the lectures is worth keeping: the two tags are the slices of bread, the content is the filling, and the <b>element</b> is the whole sandwich. So <code>&lt;p&gt;</code> on its own is a tag; <code>&lt;p&gt;Hello World&lt;/p&gt;</code> is an element. Examiners test this distinction directly.</p>
-  <p>Elements are the building blocks of the page. Some hold text (<code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>), some hold other elements (<code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;ul&gt;</code>), and a few hold nothing at all, which brings us to void elements.</p>
+  <p>Elements are the building blocks of the page. Some hold text (<code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>), some hold other elements (<code>&lt;section&gt;</code>, <code>&lt;div&gt;</code>, <code>&lt;ul&gt;</code>), and a few hold nothing at all, which brings us to <span class="jw" data-def="An element with nothing inside it, so it has no closing tag. A line break is the obvious example: there is no 'inside' of a line break.">void</span> elements.</p>
 </section>
 
 <section id="s3">
   <h2>3.3 Paired elements and void elements</h2>
+  <div class="plain">Most labels come in pairs, one to open and one to close. A few have nothing to wrap, so they come alone &mdash; a line break has no inside, so there is nothing to close.</div>
   <p>Most elements are <b>paired</b> (also called <i>container</i> elements): they enclose content between an opening and a closing tag: <code>&lt;p&gt;Hello&lt;/p&gt;</code>, <code>&lt;h1&gt;Welcome to CSE326&lt;/h1&gt;</code>, <code>&lt;section&gt;...&lt;/section&gt;</code>, <code>&lt;div&gt;...&lt;/div&gt;</code>, <code>&lt;video&gt;...&lt;/video&gt;</code>, <code>&lt;textarea&gt;&lt;/textarea&gt;</code>.</p>
   <p>A few elements cannot have content, so they have <b>no closing tag</b>. These are <b>void elements</b> (also called <i>empty</i> or <i>unpaired</i> elements). They insert a standalone thing into the page:</p>
   <table class="tbl">
@@ -82,6 +93,11 @@
   <p>Two consequences follow. First, writing <code>&lt;/br&gt;</code> or <code>&lt;/img&gt;</code> is <b>invalid</b>: there is nothing to close. Second, because they are unpaired, void elements cannot wrap anything: you cannot put text "inside" a <code>&lt;br&gt;</code>. The memory rule from the lecture is the right one: <b>can it contain content? Yes, paired; no, void.</b> Note that <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;span&gt;</code> and <code>&lt;div&gt;</code> are <i>not</i> void; they always need a closing tag.</p>
   <div class="callout"><b>Self-closing slash.</b> You will see <code>&lt;br /&gt;</code> and <code>&lt;img ... /&gt;</code> in older code and in SVG. In HTML5 the slash on a void element is allowed but does nothing; <code>&lt;br&gt;</code> is the standard form. Inside inline SVG (Chapter 9) the slash is required, because SVG is XML.</div>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: why is <code>&lt;p&gt;&lt;b&gt;hello&lt;/p&gt;&lt;/b&gt;</code> wrong?</summary>
+    <p>Because the labels cross over. Whatever you open last must be closed first, like closing boxes that sit inside one another. The correct form is <code>&lt;p&gt;&lt;b&gt;hello&lt;/b&gt;&lt;/p&gt;</code>.</p>
+  </details>
 
 <section id="s4">
   <h2>3.4 Nesting: elements inside elements</h2>
@@ -108,7 +124,7 @@
     </svg>
     <figcaption><b>Figure 3.2</b> Nesting makes a tree. The <code>p</code> element is the parent; the text and the <code>strong</code> element are its children. This snippet contains <b>two elements</b>: the paragraph and the strong element inside it.</figcaption>
   </figure>
-  <p>The one rule of nesting: <b>whatever opens last must close first</b>, exactly like brackets in mathematics. A child must be closed before its parent is closed (the lecture calls this FILO: first in, last out).</p>
+  <p>The one rule of <span class="jw" data-def="Putting one element inside another, like boxes inside boxes. The inner box must be closed before the outer one.">nesting</span>: <b>whatever opens last must close first</b>, exactly like brackets in mathematics. A child must be closed before its parent is closed (the lecture calls this FILO: first in, last out).</p>
   <div class="fix">
     <div class="w"><b>&#10007; Overlapping tags</b><pre>&lt;p&gt;&lt;b&gt;text&lt;/p&gt;&lt;/b&gt;</pre>The bold element opened last but the paragraph closes first. The browser has to guess what you meant.</div>
     <div class="r"><b>&#10003; Properly nested</b><pre>&lt;p&gt;&lt;b&gt;text&lt;/b&gt;&lt;/p&gt;</pre>Last opened, first closed. Indent children by two spaces so the structure is visible at a glance.</div>
@@ -162,6 +178,11 @@
   <pre class="code" data-run data-title="Entities in action" data-h="120">&lt;p&gt;Use the &amp;lt;p&amp;gt; tag for paragraphs. Fees: &amp;#8377;1200 &amp;amp; taxes. &amp;copy; 2026&lt;/p&gt;</pre>
   <p>With <code>&lt;meta charset="UTF-8"&gt;</code> in the head (Chapter 4) you can type &copy; and &#8377; directly in your editor and they will display correctly; entities are still needed for <code>&lt;</code>, <code>&gt;</code> and <code>&amp;</code>, because those are syntax.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: your page looks right in the browser. Does that mean the HTML is correct?</summary>
+    <p>No. Browsers quietly repair broken HTML, so a page can look perfect and still be full of mistakes. That is why you run it through the <span class="jw" data-def="A free tool that reads your HTML and lists every mistake. The browser hides your mistakes; the validator shows them.">validator</span>, which does not forgive anything.</p>
+  </details>
 
 <section id="s8">
   <h2>3.8 Browsers forgive, validators do not</h2>

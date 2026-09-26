@@ -1,0 +1,302 @@
+<article class="chapter" data-ch="26">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 26 &middot; Typography</p>
+  <h1>Typography</h1>
+  <p class="lead">Typography is the choice and arrangement of the letters themselves: which typeface, how big, how heavy, how far apart the lines sit. Get it right and a page feels calm and professional before anyone reads a word. This chapter covers the six properties that do ninety per cent of the work, and why <code>font-family</code> is a list rather than a single name.</p>
+  <p class="meta">About 21 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>rem</code> is measured against the root font size, 16px by default (<a href="book.html?ch=25">Chapter 25</a>).</li>
+      <li>Font properties are <b>inherited</b>: set them on <code>body</code> and the page follows (<a href="book.html?ch=23">Chapter 23</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a <code>font-family</code> stack and explain why it has several names in it.</li>
+      <li>Name the five generic families and when each is used.</li>
+      <li>Set size, weight and style, and know that 400 is normal and 700 is bold.</li>
+      <li>Set <code>line-height</code> correctly &mdash; and say why it has no unit.</li>
+      <li>Load a web font from Google Fonts and keep a fallback.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>26.1 font-family: a list, not a name</h2>
+  <p><code>font-family</code> specifies the <span class="jw" data-def="A designed set of letters, digits and symbols that share one look - Arial, Georgia, Roboto.">typeface</span> used to display text. The surprise for beginners is that you give it a <b>list</b>:</p>
+  <pre class="code">body {
+  font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+}</pre>
+  <p>Why a list? Because the font has to exist <b>on the reader's computer</b>, not on yours. Your machine may have a font that a phone in another country has never heard of. So you give the browser a preference order:</p>
+  <ol>
+    <li>Try <code>Segoe UI</code>. Present on Windows &mdash; use it.</li>
+    <li>Not there? Try <code>Roboto</code>. Present on Android.</li>
+    <li>Still nothing? <code>Helvetica</code>, then <code>Arial</code>.</li>
+    <li>If none of them exist, fall back to <code>sans-serif</code> &mdash; whatever plain font this device has.</li>
+  </ol>
+  <p>This list is called a <b>font stack</b>. Two rules for writing one:</p>
+  <ul>
+    <li><b>Quote any name containing a space</b>: <code>"Segoe UI"</code>, <code>"Times New Roman"</code>. Single-word names need no quotes.</li>
+    <li><b>Always end with a generic family.</b> It is the last line of defence and it never fails.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> A font stack is like telling a friend which shop to buy from: "the bakery on Mall Road, or if it is shut the one near the station, or failing that any bakery." You do not know what is open in their town, so you give an order of preference and a safe fallback.</div>
+  <h3>The five generic families</h3>
+  <figure class="fig">
+    <svg viewBox="0 0 720 170" role="img" aria-label="The five generic font families with samples">
+      <rect x="10" y="20" width="136" height="126" rx="12" class="box saf"/>
+      <text x="78" y="56" class="t c" style="font-family:Georgia,serif;font-size:26px;font-weight:700" fill="#0B2545">Aa</text>
+      <text x="78" y="80" class="t c b mono" style="font-size:11px">serif</text>
+      <text x="78" y="102" class="t c s">small strokes on</text><text x="78" y="116" class="t c s">the letter ends</text>
+      <text x="78" y="136" class="t c s">books, formal</text>
+      <rect x="152" y="20" width="136" height="126" rx="12" class="box grn"/>
+      <text x="220" y="56" class="t c" style="font-family:Arial,Helvetica,sans-serif;font-size:26px;font-weight:700" fill="#0B2545">Aa</text>
+      <text x="220" y="80" class="t c b mono" style="font-size:11px">sans-serif</text>
+      <text x="220" y="102" class="t c s">no strokes,</text><text x="220" y="116" class="t c s">clean ends</text>
+      <text x="220" y="136" class="t c s">screens, the default choice</text>
+      <rect x="294" y="20" width="136" height="126" rx="12" class="box blu"/>
+      <text x="362" y="56" class="t c mono" style="font-size:26px;font-weight:700" fill="#0B2545">Aa</text>
+      <text x="362" y="80" class="t c b mono" style="font-size:11px">monospace</text>
+      <text x="362" y="102" class="t c s">every letter the</text><text x="362" y="116" class="t c s">same width</text>
+      <text x="362" y="136" class="t c s">code, tables of numbers</text>
+      <rect x="436" y="20" width="136" height="126" rx="12" class="box gry"/>
+      <text x="504" y="56" class="t c" style="font-family:cursive;font-size:26px;font-weight:700" fill="#0B2545">Aa</text>
+      <text x="504" y="80" class="t c b mono" style="font-size:11px">cursive</text>
+      <text x="504" y="102" class="t c s">handwriting-like</text>
+      <text x="504" y="136" class="t c s">rare, decorative only</text>
+      <rect x="578" y="20" width="132" height="126" rx="12" class="box gry"/>
+      <text x="644" y="56" class="t c" style="font-family:fantasy;font-size:26px;font-weight:700" fill="#0B2545">Aa</text>
+      <text x="644" y="80" class="t c b mono" style="font-size:11px">fantasy</text>
+      <text x="644" y="102" class="t c s">decorative display</text>
+      <text x="644" y="136" class="t c s">avoid for body text</text>
+    </svg>
+    <figcaption><b>Figure 26.1</b> The five generic families. One of them should end every font stack you write.</figcaption>
+  </figure>
+  <p>A practical shortcut: <code>font-family: system-ui, sans-serif;</code> asks for the device's own interface font &mdash; Segoe UI on Windows, San Francisco on a Mac or iPhone, Roboto on Android. The page then looks native everywhere, loads nothing extra, and is one line long.</p>
+  <pre class="code" data-run data-title="The same sentence in four stacks" data-h="220">&lt;style&gt;
+  p { font-size: 18px; margin: 6px 0; }
+  .s { font-family: Georgia, "Times New Roman", serif; }
+  .n { font-family: system-ui, Arial, sans-serif; }
+  .m { font-family: "Cascadia Code", Consolas, monospace; }
+  .x { font-family: "A Font Nobody Has", cursive; }
+&lt;/style&gt;
+&lt;p class="s"&gt;Serif: the quick brown fox jumps over the lazy dog.&lt;/p&gt;
+&lt;p class="n"&gt;Sans-serif: the quick brown fox jumps over the lazy dog.&lt;/p&gt;
+&lt;p class="m"&gt;Monospace: the quick brown fox jumps over the lazy dog.&lt;/p&gt;
+&lt;p class="x"&gt;Missing font: the browser fell back to cursive.&lt;/p&gt;</pre>
+</section>
+
+<section id="s2">
+  <h2>26.2 Size, weight and style</h2>
+  <h3>font-size</h3>
+  <p>Controls how big the letters are. Use <code>rem</code> so the reader's own setting is respected (<a href="book.html?ch=25">Chapter 25</a>).</p>
+  <pre class="code">body { font-size: 1rem; }      /* 16px */
+h1   { font-size: 2rem; }      /* 32px */
+small{ font-size: 0.875rem; }  /* 14px */</pre>
+  <h3>font-weight</h3>
+  <p>Controls the thickness &mdash; how bold the letters are. You can write keywords or numbers:</p>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>100</code> &ndash; <code>300</code></td><td>Light</td></tr>
+      <tr><td><code>400</code> or <code>normal</code></td><td>Normal body text &mdash; the default</td></tr>
+      <tr><td><code>500</code>, <code>600</code></td><td>Medium, semi-bold</td></tr>
+      <tr><td><code>700</code> or <code>bold</code></td><td>Bold &mdash; what <code>&lt;b&gt;</code> and <code>&lt;strong&gt;</code> use</td></tr>
+      <tr><td><code>800</code>, <code>900</code></td><td>Extra bold, black</td></tr>
+    </tbody>
+  </table>
+  <p>A font only shows the weights it actually contains. Ask for 900 from a font that has only normal and bold and the browser gives you the closest it has, or fakes it.</p>
+  <h3>font-style</h3>
+  <p>Controls whether text is upright or slanted: <code>normal</code>, <code>italic</code>, or <code>oblique</code>. <code>italic</code> uses the font's own designed italic letters; <code>oblique</code> simply slants the upright ones. Prefer <code>italic</code>.</p>
+  <div class="callout warn"><b>Style with CSS, mean it with HTML.</b> <code>font-weight: 700</code> only makes letters thick. If the text is genuinely important, mark it as <code>&lt;strong&gt;</code> in the HTML so screen readers know (<a href="book.html?ch=6">Chapter 6</a>). CSS changes appearance; HTML carries meaning.</div>
+</section>
+
+<section id="s3">
+  <h2>26.3 line-height: the most under-used property in CSS</h2>
+  <p><code>line-height</code> controls the vertical space between lines of text. It is the single biggest lever you have on readability, and beginners almost never touch it.</p>
+  <p>Write it as a plain number with <b>no unit</b>:</p>
+  <pre class="code">body { line-height: 1.7; }   /* 1.7 times the font size */</pre>
+  <p>A unitless value means "this many times the element's own font size", and it is recalculated for every element that inherits it. Write <code>line-height: 27px</code> instead and every heading inherits 27px too &mdash; which is far too tight for a 32px heading, and the lines overlap. This is a real bug that a unitless value prevents.</p>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Looks</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>1</code></td><td>Cramped, lines nearly touching</td><td>Nothing, usually</td></tr>
+      <tr><td><code>1.2</code></td><td>Tight</td><td>Large headings</td></tr>
+      <tr><td><code>1.5</code> &ndash; <code>1.8</code></td><td>Comfortable</td><td>Body text. WCAG suggests at least 1.5</td></tr>
+      <tr><td><code>2.5</code></td><td>Loose &mdash; lines feel unrelated</td><td>Nothing, usually</td></tr>
+    </tbody>
+  </table>
+  <p>Change the sliders below and read each version. The difference between 1.1 and 1.7 is not decoration; it is whether people finish your paragraph.</p>
+  <div class="tryit" data-el=".t-type" data-rule="body">
+    <div class="tryit-head">Typography, live &mdash; find the settings you would actually read</div>
+    <div class="tryit-stage"><div class="frame"><div class="t-type" style="color:#3C4A60">Typography is the craft of arranging letters so that they are easy and pleasant to read. Change the sliders and notice how much difference the line height alone makes to whether you want to keep reading this sentence to its end.</div></div></div>
+    <div class="tryit-ctl">
+      <label>font-family <select data-prop="font-family"><option value="system-ui, sans-serif">system-ui, sans-serif</option><option value="Georgia, serif">Georgia, serif</option><option value="&quot;Times New Roman&quot;, serif">Times New Roman, serif</option><option value="Verdana, sans-serif">Verdana, sans-serif</option><option value="Consolas, monospace">Consolas, monospace</option></select></label>
+      <label>font-size <input type="range" min="12" max="28" value="16" data-prop="font-size" data-unit="px"></label>
+      <label>font-weight <select data-prop="font-weight"><option>300</option><option selected>400</option><option>600</option><option>700</option><option>900</option></select></label>
+      <label>line-height <input type="range" min="1" max="2.4" step="0.05" value="1.7" data-prop="line-height"></label>
+      <label>letter-spacing <input type="range" min="-0.03" max="0.25" step="0.01" value="0" data-prop="letter-spacing" data-unit="em"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+</section>
+
+<section id="s4">
+  <h2>26.4 Spacing between letters and words</h2>
+  <ul>
+    <li><code>letter-spacing</code> adds space between every letter. A small positive value (<code>0.05em</code>) suits small capitals and short headings. Never use it on body text &mdash; it slows reading down.</li>
+    <li><code>word-spacing</code> adds space between words. Rarely needed.</li>
+  </ul>
+  <pre class="code" data-run data-title="A spaced-out label" data-h="150">&lt;style&gt;
+  .eyebrow {
+    font-size: 0.75rem;
+    font-weight: 800;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: #B45309;
+  }
+&lt;/style&gt;
+&lt;p class="eyebrow"&gt;Unit 3 &middot; Chapter 26&lt;/p&gt;
+&lt;h2 style="margin-top:4px"&gt;Typography&lt;/h2&gt;</pre>
+  <p>That little uppercase label above a heading is one of the most reusable patterns in web design, and it is four declarations long.</p>
+</section>
+
+<section id="s5">
+  <h2>26.5 The font shorthand</h2>
+  <p>You can write several font properties in one declaration. The order is fixed, and <b>size and family are compulsory</b>:</p>
+  <pre class="code">/* style  weight  size / line-height  family */
+font: italic 700 1.25rem/1.6 Georgia, serif;
+
+/* the long way, which is what most people write */
+font-style: italic;
+font-weight: 700;
+font-size: 1.25rem;
+line-height: 1.6;
+font-family: Georgia, serif;</pre>
+  <p>The shorthand is compact but unforgiving: anything you leave out is silently reset to its default. The long form is clearer, and clearer wins.</p>
+</section>
+
+<section id="s6">
+  <h2>26.6 Web fonts</h2>
+  <p>If you want a typeface that is <i>not</i> on the reader's device, the browser must download it. The easiest route is a free service such as Google Fonts, which gives you a <code>&lt;link&gt;</code> to paste into your <code>&lt;head&gt;</code>:</p>
+  <pre class="code">&lt;!-- in the head of the HTML --&gt;
+&lt;link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;700&amp;display=swap"
+      rel="stylesheet"&gt;
+
+/* then in the CSS */
+body { font-family: "Poppins", system-ui, sans-serif; }</pre>
+  <p>Notice that the fallback stack is still there. If the download is slow or blocked, the page must stay readable.</p>
+  <p>Three rules of thumb:</p>
+  <ul>
+    <li><b>Two families at most</b> &mdash; one for headings, one for text. Three looks like a ransom note.</li>
+    <li><b>Only the weights you use.</b> Each weight is a separate file to download.</li>
+    <li><b>Keep <code>display=swap</code></b>, so text appears in the fallback font immediately instead of the reader staring at a blank space.</li>
+  </ul>
+  <p>The underlying mechanism is the <code>@font-face</code> rule, which names a font and gives the browser a file to fetch. Services generate it for you; you rarely write it by hand.</p>
+</section>
+
+<section id="s7">
+  <h2>26.7 Making text comfortable to read</h2>
+  <p>Four settings do most of the work. None of them is a matter of taste:</p>
+  <table class="tbl">
+    <thead><tr><th>Setting</th><th>Aim for</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Body size</td><td><code>1rem</code> (16px) or a little more</td><td>Smaller is a struggle on a phone</td></tr>
+      <tr><td>Line height</td><td><code>1.5</code> to <code>1.8</code></td><td>The eye needs a clear path back to the next line</td></tr>
+      <tr><td>Line length</td><td><code>max-width: 65ch</code></td><td>Very long lines make readers lose their place</td></tr>
+      <tr><td>Contrast</td><td>At least 4.5:1</td><td>WCAG Level AA (<a href="book.html?ch=20">Chapter 20</a>)</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Project, step 5: type that is a pleasure to read" data-h="290" data-tall>&lt;style&gt;
+  body {
+    font-family: system-ui, "Segoe UI", Roboto, Arial, sans-serif;
+    font-size: 1rem;
+    line-height: 1.7;
+    color: #3C4A60;
+    max-width: 65ch;          /* about 65 characters per line */
+    margin: 0 auto;
+    padding: 1.5rem;
+    background: #FBFCFE;
+  }
+  h1 {
+    font-family: Georgia, "Times New Roman", serif;
+    font-size: 2rem;
+    line-height: 1.2;
+    color: #0B2545;
+    margin-bottom: 0.25rem;
+  }
+  .eyebrow {
+    font-size: 0.75rem; font-weight: 800; letter-spacing: 0.14em;
+    text-transform: uppercase; color: #B45309; margin: 0;
+  }
+  .lead { font-size: 1.15rem; }
+&lt;/style&gt;
+&lt;p class="eyebrow"&gt;Student profile&lt;/p&gt;
+&lt;h1&gt;Asha Kumar&lt;/h1&gt;
+&lt;p class="lead"&gt;B.Tech Computer Science, first year.&lt;/p&gt;
+&lt;p&gt;A serif heading over a sans-serif body is a classic pairing: the two are
+different enough to separate clearly, and neither is shouting.&lt;/p&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which property specifies the typeface used to display text?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. font-style</li><li>B. font-family</li><li>C. typeface</li><li>D. text-font</li></ul>
+    <p><b>Answer: B.</b> <code>font-style</code> chooses italic or normal; <code>typeface</code> and <code>text-font</code> do not exist.</p></div></details>
+  <details class="q"><summary>Why does <code>font-family</code> usually list several names?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because the font has to exist on the reader's device.</b> The browser tries each name in order and uses the first one it has, ending with a generic family such as <code>sans-serif</code> that never fails. The list is called a font stack.</p></div></details>
+  <details class="q"><summary>Which of these is NOT a generic font family?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. serif</li><li>B. sans-serif</li><li>C. monospace</li><li>D. bold</li></ul>
+    <p><b>Answer: D.</b> <code>bold</code> is a <code>font-weight</code> value. The five generic families are serif, sans-serif, monospace, cursive and fantasy.</p></div></details>
+  <details class="q"><summary>Which property controls the thickness or boldness of text, and what numeric value is normal?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>font-weight</code></b>, where <b>400</b> is normal and <b>700</b> is bold. The scale runs from 100 (light) to 900 (black).</p></div></details>
+  <details class="q"><summary>Which property controls whether text appears normal, italic or oblique?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>font-style</code></b>. <code>italic</code> uses the font's designed italic letters; <code>oblique</code> just slants the upright ones.</p></div></details>
+  <details class="q"><summary>Which property controls the vertical space between lines of text?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>line-height</code></b>. Around 1.5 to 1.8 is comfortable for body text; 1 is cramped.</p></div></details>
+  <details class="q"><summary>Why is <code>line-height: 1.6</code> better than <code>line-height: 26px</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>A unitless value is recalculated for each element from its own font size.</b> A fixed <code>26px</code> is inherited as 26px by a 32px heading as well, so the heading's lines end up too close together, or even overlapping.</p></div></details>
+  <details class="q"><summary>A font name contains a space, such as Times New Roman. How is it written in <code>font-family</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>In quotes:</b> <code>font-family: "Times New Roman", Georgia, serif;</code>. Single-word names need no quotes.</p></div></details>
+  <details class="q"><summary>You load a Google Font. Why keep <code>system-ui, sans-serif</code> after it in the stack?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>So the page stays readable if the download is slow, blocked or fails.</b> The fallback is used until (or instead of) the web font arriving.</p></div></details>
+  <details class="q"><summary>Which declaration keeps a line of text at a comfortable reading length?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>max-width: 65ch;</code></b> &mdash; the <code>ch</code> unit is the width of the digit "0" in the current font, so 65ch is roughly 65 characters. Long lines make readers lose their place on the way back.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>font-family</code> takes a <b>stack</b>: preferred names first, a generic family last. Quote names with spaces.</li>
+    <li>Generic families: serif, sans-serif, monospace, cursive, fantasy. <code>system-ui</code> borrows the device's own font.</li>
+    <li><code>font-size</code> in <code>rem</code>; <code>font-weight</code> 400 normal, 700 bold; <code>font-style: italic</code>.</li>
+    <li><code>line-height</code> unitless, 1.5&ndash;1.8 for body text. A unitless value scales per element; a px value does not.</li>
+    <li><code>letter-spacing</code> suits small uppercase labels, never body text.</li>
+    <li>Web fonts come from a <code>&lt;link&gt;</code> plus a font stack that still has a fallback. Two families and few weights.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>font-family: Georgia, serif;</code></td><td>Typeface, with a fallback</td></tr>
+      <tr><td><code>font-size: 1.25rem;</code></td><td>20px at the default root size</td></tr>
+      <tr><td><code>font-weight: 700;</code></td><td>Bold</td></tr>
+      <tr><td><code>font-style: italic;</code></td><td>Slanted, designed italics</td></tr>
+      <tr><td><code>line-height: 1.7;</code></td><td>Comfortable line spacing</td></tr>
+      <tr><td><code>letter-spacing: 0.14em;</code></td><td>Spaced-out label text</td></tr>
+      <tr><td><code>font: 700 1rem/1.6 Arial, sans-serif;</code></td><td>All of it in one line</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/font" target="_blank" rel="noopener noreferrer">MDN &mdash; font shorthand<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The required order of the font shorthand, which trips everyone up once.</span></li>
+    <li><a href="https://fonts.google.com/" target="_blank" rel="noopener noreferrer">Google Fonts<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Free webfonts with a copy-paste &lt;link&gt; tag. Pick two, never five.</span></li>
+    <li><a href="https://www.modularscale.com/" target="_blank" rel="noopener noreferrer">Modular Scale<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Generates a matching set of heading sizes from one base size and one ratio.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

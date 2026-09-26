@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 12 &middot; HTML Best Practices</p>
   <h1>HTML Best Practices</h1>
   <p class="lead">Everything in Unit 1 works even when it is written badly, because browsers forgive. Best practices are the habits that make HTML work <i>everywhere</i>: on other browsers, on phones, in screen readers, in search engines, and for the next person who has to edit it. This chapter collects them, explains the reason behind each, and walks through a code review of a typical first-year page.</p>
-  <p class="meta">About 13 minutes &middot; Course outcome CO1 &middot; Closes Unit 1</p>
+  <p class="meta">About 20 minutes &middot; Course outcome CO1 &middot; Closes Unit 1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Everything from Chapters 3 to 11. This chapter is the tidy-up.</li>
+      <li>HTML is structure, CSS is appearance, JavaScript is behaviour &mdash; <a href="book.html?ch=1">Chapter 1</a> (the three languages).</li>
+      <li>A validator lists the mistakes a browser hides &mdash; <a href="book.html?ch=3">Chapter 3</a> (validating).</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -15,6 +23,11 @@
     </ul>
   </div>
 </header>
+
+  <details class="qc">
+    <summary>Quick check: why quote every attribute value, even when it seems to work without?</summary>
+    <p>Because the moment a value contains a space it silently splits into two attributes. <code>class=my box</code> becomes a class of &ldquo;my&rdquo; and a stray attribute &ldquo;box&rdquo;, and your styling half-works for no visible reason.</p>
+  </details>
 
 <section id="s1">
   <h2>12.1 Write it in the standard style</h2>
@@ -37,7 +50,9 @@
 
 <section id="s2">
   <h2>12.2 Separate structure, presentation and behaviour</h2>
-  <p>Chapter 1 introduced separation of concerns; here is how it looks in files. HTML holds the content, one external stylesheet holds all the CSS, and one or more script files hold the JavaScript.</p>
+  <div class="callout analogy"><b>Separation of concerns is not mixing the wiring with the paint.</b> In a building the wiring, the walls and the paint are separate jobs. You can repaint without rewiring. Put your CSS inside every tag and you have painted the wires: changing the colour scheme now means touching every room.</div>
+  <div class="plain">Keep the three languages in three places. Content in the HTML file, all appearance in one stylesheet, all behaviour in a script file. Then changing how the site looks means editing one file, not two hundred.</div>
+  <p>Chapter 1 introduced separation of concerns; here is how it looks in files. HTML holds the content, one <span class="jw" data-def="Kept in its own separate file and linked to, rather than written inside the HTML page.">external</span> stylesheet holds all the CSS, and one or more script files hold the JavaScript.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 200" role="img" aria-label="index.html links to style.css and app.js">
       <rect x="220" y="20" width="180" height="60" rx="12" class="box saf"/><text x="310" y="46" class="t c b mono">index.html</text><text x="310" y="66" class="t c s">structure and content</text>
@@ -57,6 +72,7 @@
 
 <section id="s3">
   <h2>12.3 Use the correct element</h2>
+  <div class="plain">Pick the element that matches what the thing <i>is</i>. A link goes somewhere, so it is an <code>&lt;a&gt;</code>. A button does something, so it is a <code>&lt;button&gt;</code>. A heading is an <code>&lt;h2&gt;</code>, never a div made to look large.</div>
   <p>The single most valuable habit: <b>choose an element for what the content is, not for how you want it to look</b>.</p>
   <ul>
     <li>Going somewhere? <code>&lt;a href&gt;</code>. Performing an action? <code>&lt;button&gt;</code>.</li>
@@ -90,6 +106,11 @@
     </tbody>
   </table>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: what are the last three things to do before you publish?</summary>
+    <p>Validate the HTML, open it on a phone (or DevTools device mode), and check that your relative paths and file names are lowercase and correct &mdash; servers are case-sensitive even though your laptop is not.</p>
+  </details>
 
 <section id="s6">
   <h2>12.6 Before you publish</h2>

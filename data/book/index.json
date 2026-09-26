@@ -9,6 +9,15 @@
       "id": "u2",
       "title": "Unit 2 · Semantic HTML and Forms",
       "desc": "Pages with meaning: semantic layout, accessibility, forms and every input type, validation, tables, the WCAG standards and content that adapts to any screen."
+    },
+    {
+      "id": "u3",
+      "title": "Unit 3 · Cascading Style Sheets",
+      "desc": "Making a page look the way you want: colours, fonts, spacing, layout with Flexbox and Grid, states, variables, responsive design and motion. Written for someone who has never styled anything before."
+    },
+    {
+      "id": "ap",
+      "title": "Appendix &middot; Reference shelf"
     }
   ],
   "chapters": [
@@ -17,7 +26,7 @@
       "id": "ch01",
       "unit": "u1",
       "file": "ch01.html",
-      "minutes": 23,
+      "minutes": 33,
       "title": "Introduction to Internet and Web Technologies",
       "keywords": [
         "internet",
@@ -37,7 +46,7 @@
       "id": "ch02",
       "unit": "u1",
       "file": "ch02.html",
-      "minutes": 19,
+      "minutes": 27,
       "title": "Client-Server Architecture",
       "keywords": [
         "client",
@@ -64,7 +73,7 @@
       "id": "ch03",
       "unit": "u1",
       "file": "ch03.html",
-      "minutes": 22,
+      "minutes": 34,
       "title": "HTML5 Fundamentals",
       "keywords": [
         "markup",
@@ -86,7 +95,7 @@
       "id": "ch04",
       "unit": "u1",
       "file": "ch04.html",
-      "minutes": 19,
+      "minutes": 30,
       "title": "HTML Document Structure",
       "keywords": [
         "doctype",
@@ -109,7 +118,7 @@
       "id": "ch05",
       "unit": "u1",
       "file": "ch05.html",
-      "minutes": 15,
+      "minutes": 24,
       "title": "HTML Elements and Attributes",
       "keywords": [
         "attribute",
@@ -133,7 +142,7 @@
       "id": "ch06",
       "unit": "u1",
       "file": "ch06.html",
-      "minutes": 22,
+      "minutes": 35,
       "title": "Text Formatting",
       "keywords": [
         "heading",
@@ -170,7 +179,7 @@
       "id": "ch07",
       "unit": "u1",
       "file": "ch07.html",
-      "minutes": 13,
+      "minutes": 25,
       "title": "Lists",
       "keywords": [
         "ul",
@@ -191,7 +200,7 @@
       "id": "ch08",
       "unit": "u1",
       "file": "ch08.html",
-      "minutes": 23,
+      "minutes": 35,
       "title": "Hyperlinks and Images",
       "keywords": [
         "a",
@@ -222,7 +231,7 @@
       "id": "ch09",
       "unit": "u1",
       "file": "ch09.html",
-      "minutes": 22,
+      "minutes": 35,
       "title": "SVG Graphics",
       "keywords": [
         "svg",
@@ -253,7 +262,7 @@
       "id": "ch10",
       "unit": "u1",
       "file": "ch10.html",
-      "minutes": 17,
+      "minutes": 29,
       "title": "Multimedia Elements: Audio, Video and Iframes",
       "keywords": [
         "audio",
@@ -281,7 +290,7 @@
       "id": "ch11",
       "unit": "u1",
       "file": "ch11.html",
-      "minutes": 15,
+      "minutes": 22,
       "title": "SEO Fundamentals",
       "keywords": [
         "seo",
@@ -307,7 +316,7 @@
       "id": "ch12",
       "unit": "u1",
       "file": "ch12.html",
-      "minutes": 13,
+      "minutes": 20,
       "title": "HTML Best Practices",
       "keywords": [
         "lowercase",
@@ -332,7 +341,7 @@
       "id": "ch13",
       "unit": "u2",
       "file": "ch13.html",
-      "minutes": 18,
+      "minutes": 32,
       "title": "Semantic HTML Elements",
       "keywords": [
         "semantic",
@@ -359,7 +368,7 @@
       "id": "ch14",
       "unit": "u2",
       "file": "ch14.html",
-      "minutes": 12,
+      "minutes": 19,
       "title": "Page Structure and Layout",
       "keywords": [
         "page structure",
@@ -380,7 +389,7 @@
       "id": "ch15",
       "unit": "u2",
       "file": "ch15.html",
-      "minutes": 18,
+      "minutes": 27,
       "title": "Accessibility Fundamentals",
       "keywords": [
         "accessibility",
@@ -406,7 +415,7 @@
       "id": "ch16",
       "unit": "u2",
       "file": "ch16.html",
-      "minutes": 19,
+      "minutes": 32,
       "title": "Forms and Form Controls",
       "keywords": [
         "form",
@@ -444,7 +453,7 @@
       "id": "ch17",
       "unit": "u2",
       "file": "ch17.html",
-      "minutes": 16,
+      "minutes": 30,
       "title": "Input Types and Attributes",
       "keywords": [
         "input type",
@@ -487,7 +496,7 @@
       "id": "ch18",
       "unit": "u2",
       "file": "ch18.html",
-      "minutes": 14,
+      "minutes": 21,
       "title": "Form Validation Basics",
       "keywords": [
         "validation",
@@ -513,7 +522,7 @@
       "id": "ch19",
       "unit": "u2",
       "file": "ch19.html",
-      "minutes": 17,
+      "minutes": 28,
       "title": "Tables and Data Representation",
       "keywords": [
         "table",
@@ -540,7 +549,7 @@
       "id": "ch20",
       "unit": "u2",
       "file": "ch20.html",
-      "minutes": 13,
+      "minutes": 19,
       "title": "Accessibility Standards",
       "keywords": [
         "wcag",
@@ -570,7 +579,7 @@
       "id": "ch21",
       "unit": "u2",
       "file": "ch21.html",
-      "minutes": 13,
+      "minutes": 19,
       "title": "Responsive Content Structuring",
       "keywords": [
         "responsive",
@@ -586,6 +595,428 @@
         "fixed widths",
         "media query",
         "max-width 100%"
+      ]
+    },
+    {
+      "n": 22,
+      "id": "ch22",
+      "unit": "u3",
+      "file": "ch22.html",
+      "minutes": 32,
+      "title": "Introduction to CSS",
+      "keywords": [
+        "css",
+        "stylesheet",
+        "style",
+        "rule",
+        "selector",
+        "declaration",
+        "property",
+        "value",
+        "inline",
+        "internal",
+        "external",
+        "link",
+        "cascading"
+      ]
+    },
+    {
+      "n": 23,
+      "id": "ch23",
+      "unit": "u3",
+      "file": "ch23.html",
+      "minutes": 34,
+      "title": "CSS Selectors and Specificity",
+      "keywords": [
+        "selector",
+        "element selector",
+        "class",
+        "id",
+        "universal",
+        "grouping",
+        "descendant",
+        "child combinator",
+        "specificity",
+        "cascade",
+        "inheritance",
+        "important"
+      ]
+    },
+    {
+      "n": 24,
+      "id": "ch24",
+      "unit": "u3",
+      "file": "ch24.html",
+      "minutes": 26,
+      "title": "Colours and Backgrounds",
+      "keywords": [
+        "color",
+        "hex",
+        "rgb",
+        "rgba",
+        "hsl",
+        "named colours",
+        "opacity",
+        "background-color",
+        "background-image",
+        "background-size",
+        "gradient",
+        "contrast"
+      ]
+    },
+    {
+      "n": 25,
+      "id": "ch25",
+      "unit": "u3",
+      "file": "ch25.html",
+      "minutes": 23,
+      "title": "Units and Measurements",
+      "keywords": [
+        "px",
+        "percent",
+        "em",
+        "rem",
+        "vw",
+        "vh",
+        "absolute unit",
+        "relative unit",
+        "root font size",
+        "ch",
+        "auto",
+        "calc"
+      ]
+    },
+    {
+      "n": 26,
+      "id": "ch26",
+      "unit": "u3",
+      "file": "ch26.html",
+      "minutes": 21,
+      "title": "Typography",
+      "keywords": [
+        "font-family",
+        "font stack",
+        "fallback",
+        "serif",
+        "sans-serif",
+        "monospace",
+        "font-size",
+        "font-weight",
+        "font-style",
+        "line-height",
+        "letter-spacing",
+        "web fonts",
+        "Google Fonts"
+      ]
+    },
+    {
+      "n": 27,
+      "id": "ch27",
+      "unit": "u3",
+      "file": "ch27.html",
+      "minutes": 23,
+      "title": "Text Styling",
+      "keywords": [
+        "text-align",
+        "text-decoration",
+        "text-transform",
+        "text-shadow",
+        "text-indent",
+        "white-space",
+        "overflow-wrap",
+        "word-spacing",
+        "justify"
+      ]
+    },
+    {
+      "n": 28,
+      "id": "ch28",
+      "unit": "u3",
+      "file": "ch28.html",
+      "minutes": 29,
+      "title": "The Box Model",
+      "keywords": [
+        "content",
+        "padding",
+        "border",
+        "margin",
+        "box-sizing",
+        "border-box",
+        "border-radius",
+        "box-shadow",
+        "shorthand",
+        "margin collapse",
+        "centring",
+        "outline"
+      ]
+    },
+    {
+      "n": 29,
+      "id": "ch29",
+      "unit": "u3",
+      "file": "ch29.html",
+      "minutes": 24,
+      "title": "Positioning Techniques",
+      "keywords": [
+        "normal flow",
+        "display",
+        "block",
+        "inline",
+        "inline-block",
+        "none",
+        "position",
+        "static",
+        "relative",
+        "absolute",
+        "fixed",
+        "sticky",
+        "top",
+        "left",
+        "z-index",
+        "containing block"
+      ]
+    },
+    {
+      "n": 30,
+      "id": "ch30",
+      "unit": "u3",
+      "file": "ch30.html",
+      "minutes": 22,
+      "title": "Flexbox Layout",
+      "keywords": [
+        "display flex",
+        "flex container",
+        "flex item",
+        "main axis",
+        "cross axis",
+        "flex-direction",
+        "justify-content",
+        "align-items",
+        "gap",
+        "flex-wrap",
+        "flex-grow",
+        "flex-shrink",
+        "flex-basis",
+        "order"
+      ]
+    },
+    {
+      "n": 31,
+      "id": "ch31",
+      "unit": "u3",
+      "file": "ch31.html",
+      "minutes": 24,
+      "title": "CSS Grid Layout",
+      "keywords": [
+        "display grid",
+        "grid-template-columns",
+        "grid-template-rows",
+        "fr",
+        "gap",
+        "repeat",
+        "minmax",
+        "auto-fit",
+        "auto-fill",
+        "grid-column",
+        "grid-row",
+        "span",
+        "grid-template-areas"
+      ]
+    },
+    {
+      "n": 32,
+      "id": "ch32",
+      "unit": "u3",
+      "file": "ch32.html",
+      "minutes": 23,
+      "title": "Pseudo-classes",
+      "keywords": [
+        "hover",
+        "focus",
+        "focus-visible",
+        "active",
+        "visited",
+        "first-child",
+        "last-child",
+        "nth-child",
+        "only-child",
+        "checked",
+        "disabled",
+        "required",
+        "valid",
+        "invalid",
+        "not",
+        "root",
+        "state"
+      ]
+    },
+    {
+      "n": 33,
+      "id": "ch33",
+      "unit": "u3",
+      "file": "ch33.html",
+      "minutes": 20,
+      "title": "Pseudo-elements",
+      "keywords": [
+        "before",
+        "after",
+        "content",
+        "first-line",
+        "first-letter",
+        "placeholder",
+        "marker",
+        "selection",
+        "two colons",
+        "decorative content"
+      ]
+    },
+    {
+      "n": 34,
+      "id": "ch34",
+      "unit": "u3",
+      "file": "ch34.html",
+      "minutes": 15,
+      "title": "Attribute Selectors",
+      "keywords": [
+        "attribute selector",
+        "square brackets",
+        "exact match",
+        "starts with",
+        "ends with",
+        "contains",
+        "caret equals",
+        "dollar equals",
+        "star equals",
+        "tilde equals",
+        "case-insensitive"
+      ]
+    },
+    {
+      "n": 35,
+      "id": "ch35",
+      "unit": "u3",
+      "file": "ch35.html",
+      "minutes": 22,
+      "title": "Form Styling",
+      "keywords": [
+        "input styling",
+        "focus ring",
+        "label",
+        "placeholder",
+        "valid",
+        "invalid",
+        "custom checkbox",
+        "select",
+        "button",
+        "accessible forms",
+        "box-sizing on inputs",
+        "appearance"
+      ]
+    },
+    {
+      "n": 36,
+      "id": "ch36",
+      "unit": "u3",
+      "file": "ch36.html",
+      "minutes": 22,
+      "title": "CSS Variables",
+      "keywords": [
+        "custom property",
+        "double dash",
+        "var",
+        "root",
+        "fallback value",
+        "scope",
+        "theming",
+        "dark mode",
+        "design tokens"
+      ]
+    },
+    {
+      "n": 37,
+      "id": "ch37",
+      "unit": "u3",
+      "file": "ch37.html",
+      "minutes": 21,
+      "title": "Responsive Web Design",
+      "keywords": [
+        "viewport meta",
+        "media query",
+        "breakpoint",
+        "mobile-first",
+        "min-width",
+        "max-width",
+        "fluid layout",
+        "responsive images",
+        "clamp",
+        "testing"
+      ]
+    },
+    {
+      "n": 38,
+      "id": "ch38",
+      "unit": "u3",
+      "file": "ch38.html",
+      "minutes": 21,
+      "title": "CSS Transitions",
+      "keywords": [
+        "transition",
+        "transition-property",
+        "duration",
+        "timing-function",
+        "ease",
+        "delay",
+        "transform",
+        "translate",
+        "scale",
+        "rotate",
+        "hover",
+        "prefers-reduced-motion"
+      ]
+    },
+    {
+      "n": 39,
+      "id": "ch39",
+      "unit": "u3",
+      "file": "ch39.html",
+      "minutes": 24,
+      "title": "CSS Animations",
+      "keywords": [
+        "keyframes",
+        "animation",
+        "animation-name",
+        "duration",
+        "iteration-count",
+        "infinite",
+        "direction",
+        "alternate",
+        "fill-mode",
+        "delay",
+        "loader",
+        "prefers-reduced-motion"
+      ]
+    },
+    {
+      "n": 40,
+      "id": "refs",
+      "unit": "ap",
+      "file": "ch40.html",
+      "minutes": 12,
+      "title": "The Reference Shelf",
+      "keywords": [
+        "reference",
+        "MDN",
+        "W3Schools",
+        "web.dev",
+        "CSS-Tricks",
+        "validator",
+        "DevTools",
+        "Flexbox Froggy",
+        "Grid Garden",
+        "CSS Diner",
+        "further reading",
+        "bookmarks",
+        "stuck"
       ]
     }
   ]

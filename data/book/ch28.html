@@ -1,0 +1,404 @@
+<article class="chapter" data-ch="28">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 28 &middot; The Box Model</p>
+  <h1>The Box Model</h1>
+  <p class="lead">Every single thing on a web page is a rectangle, even when it does not look like one. Once you can see those rectangles and their four layers, layout stops being guesswork. This is the most important chapter in Unit 3 &mdash; and it contains the one line of CSS that professionals put at the top of every stylesheet they write.</p>
+  <p class="meta">About 29 minutes &middot; Course outcome CO3 &middot; Everything after this depends on it</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><b>Block</b> elements take a whole line; <b>inline</b> elements sit in the flow of text (<a href="book.html?ch=5">Chapter 5</a>).</li>
+      <li><code>px</code> is fixed, <code>%</code> is a share of the parent, <code>em</code> follows the font size (<a href="book.html?ch=25">Chapter 25</a>).</li>
+      <li>Box properties such as <code>padding</code> and <code>border</code> are <b>not</b> inherited (<a href="book.html?ch=23">Chapter 23</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name the four layers of a box in order and say which one takes the background colour.</li>
+      <li>Read <code>padding: 5px 10px 15px 20px</code> and say which side gets which value.</li>
+      <li>Work out how wide an element really is, and fix it with <code>box-sizing: border-box</code>.</li>
+      <li>Round corners, add a shadow, and centre a fixed-width box.</li>
+      <li>Explain why two stacked paragraphs have one gap between them, not two.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>28.1 Everything is a box</h2>
+  <p>A heading is a box. A paragraph is a box. A link inside that paragraph is a small box sitting in the line. An image is a box. The page itself is a box. The browser lays out a page by working out the size and position of thousands of rectangles.</p>
+  <p>Open any website, press <kbd>F12</kbd> and hover over the elements: the browser draws each box for you in colours. Those colours are the four layers of the box model.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="The box model: content, padding, border and margin as four nested layers">
+      <rect x="40" y="26" width="540" height="248" fill="#FDECC8" stroke="#E8B54A" stroke-dasharray="5 4"/>
+      <text x="52" y="44" class="t b" fill="#8A5A00" style="font-size:12px">MARGIN &mdash; space OUTSIDE, always transparent</text>
+      <rect x="110" y="66" width="400" height="172" fill="#0B2545"/>
+      <text x="122" y="84" class="t b w" style="font-size:12px">BORDER &mdash; the visible edge</text>
+      <rect x="150" y="100" width="320" height="108" fill="#CDE9D2"/>
+      <text x="162" y="118" class="t b" fill="#0B6205" style="font-size:12px">PADDING &mdash; space INSIDE the border</text>
+      <rect x="196" y="130" width="228" height="62" fill="#fff" stroke="#94A3B8"/>
+      <text x="310" y="158" class="t c b" style="font-size:13px">CONTENT</text>
+      <text x="310" y="176" class="t c s">your text or image lives here</text>
+      <path d="M40 286 L110 286" class="edge saf" marker-end="url(#arr-saf)"/><text x="75" y="298" class="t c s" fill="#8A5A00">margin</text>
+      <path d="M110 286 L150 286" class="edge" marker-end="url(#arr)"/><text x="130" y="298" class="t c s">border</text>
+      <path d="M150 286 L196 286" class="edge grn" marker-end="url(#arr-grn)"/><text x="173" y="298" class="t c s" fill="#0B6205">padding</text>
+      <path d="M196 286 L424 286" class="edge" marker-end="url(#arr)"/><text x="310" y="298" class="t c s">content</text>
+      <text x="580" y="262" class="t s" style="text-anchor:end" fill="#8A5A00">background colour fills the content AND the padding, not the margin</text>
+    </svg>
+    <figcaption><b>Figure 28.1</b> The four layers, from the inside out: content, padding, border, margin. Learn this picture and half of CSS layout becomes obvious.</figcaption>
+  </figure>
+  <dl>
+    <dt><b>Content</b></dt>
+    <dd>The text, image or child elements. Its size is set by <code>width</code> and <code>height</code>, or by the content itself.</dd>
+    <dt><b>Padding</b> &mdash; space <i>inside</i> the border</dt>
+    <dd>Breathing room between the content and the edge. <b>Padding takes the element's background colour.</b></dd>
+    <dt><b>Border</b> &mdash; the edge itself</dt>
+    <dd>A line drawn round the padding. It has a width, a style and a colour.</dd>
+    <dt><b>Margin</b> &mdash; space <i>outside</i> the border</dt>
+    <dd>Distance from other elements. <b>Margin is always transparent</b> &mdash; you can never colour it.</dd>
+  </dl>
+  <div class="callout analogy"><b>Picture this.</b> A framed photograph on a wall. The photo is the <b>content</b>. The white mount around it is the <b>padding</b> &mdash; inside the frame, and the same paper colour. The wooden frame is the <b>border</b>. The empty wall between this frame and the next one is the <b>margin</b> &mdash; you cannot paint it as part of the picture, because it belongs to the wall.</div>
+  <div class="plain">
+    <p>Padding pushes the <b>edge away from the content</b>. Margin pushes <b>other elements away from the edge</b>. If the background colour spreads into the space you added, it was padding.</p>
+  </div>
+  <pre class="code" data-run data-title="Padding is coloured, margin is not" data-h="230">&lt;style&gt;
+  .wrap { background: #E3E9F0; }
+  .pad  { background: #FFF1E0; border: 3px solid #E07B1E; padding: 26px; }
+  .mar  { background: #E9F7E7; border: 3px solid #138808; margin: 26px; }
+&lt;/style&gt;
+&lt;div class="wrap"&gt;
+  &lt;div class="pad"&gt;26px of PADDING: the cream background fills it.&lt;/div&gt;
+  &lt;div class="mar"&gt;26px of MARGIN: the grey page shows through instead.&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <div class="tryit" data-el=".t-box" data-rule=".box">
+    <div class="tryit-head">The box model, live &mdash; drag each layer and watch it grow</div>
+    <div class="tryit-stage"><div class="frame" style="background:#E3E9F0"><div class="t-box" style="background:#FFF1E0;border-style:solid;border-color:#E07B1E;color:#0B2545;font-weight:700;text-align:center">Content</div></div></div>
+    <div class="tryit-ctl">
+      <label>padding <input type="range" min="0" max="50" value="16" data-prop="padding" data-unit="px"></label>
+      <label>border-width <input type="range" min="0" max="16" value="3" data-prop="border-width" data-unit="px"></label>
+      <label>margin <input type="range" min="0" max="50" value="10" data-prop="margin" data-unit="px"></label>
+      <label>border-radius <input type="range" min="0" max="40" value="8" data-prop="border-radius" data-unit="px"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>28.2 Borders</h2>
+  <p>Any element can have a border. The <code>border</code> shorthand takes three things, in any order:</p>
+  <pre class="code">border: 2px solid #E07B1E;
+/*      |   |     |
+        |   |     colour
+        |   style  &lt;-- COMPULSORY
+        width                        */</pre>
+  <p><b>The style must be given.</b> Write <code>border: 2px #E07B1E</code> and nothing appears at all, because the default style is <code>none</code>. That silent failure catches everyone once.</p>
+  <table class="tbl">
+    <thead><tr><th>Style</th><th>Looks like</th></tr></thead>
+    <tbody>
+      <tr><td><code>solid</code></td><td>An unbroken line &mdash; what you want almost always</td></tr>
+      <tr><td><code>dashed</code> / <code>dotted</code></td><td>Dashes / dots</td></tr>
+      <tr><td><code>double</code></td><td>Two parallel lines</td></tr>
+      <tr><td><code>none</code></td><td>No border. The default.</td></tr>
+    </tbody>
+  </table>
+  <p>You can also style one side at a time, which is how that fashionable coloured stripe down the left of a card is made:</p>
+  <pre class="code" data-run data-title="A border on one side only" data-h="170">&lt;style&gt;
+  .quote {
+    border-left: 5px solid #E07B1E;
+    background: #FFF8F0;
+    padding: 12px 16px;
+  }
+&lt;/style&gt;
+&lt;div class="quote"&gt;A single coloured edge is often all a card needs.&lt;/div&gt;</pre>
+  <h3>border-radius</h3>
+  <p><code>border-radius</code> rounds the corners. A small value (<code>8px</code>) softens a card; a very large one (<code>999px</code>) makes a pill; <code>50%</code> on a square makes a circle.</p>
+  <pre class="code" data-run data-title="Rounded, pill and circle" data-h="180">&lt;style&gt;
+  div { background: #138808; color: #fff; padding: 14px; margin-bottom: 10px;
+        display: inline-block; font-weight: 700; }
+  .r { border-radius: 10px; }
+  .p { border-radius: 999px; }
+  .c { border-radius: 50%; width: 76px; height: 76px; text-align: center; }
+&lt;/style&gt;
+&lt;div class="r"&gt;Rounded card&lt;/div&gt;
+&lt;div class="p"&gt;Pill button&lt;/div&gt;
+&lt;div class="c"&gt;Circle&lt;/div&gt;</pre>
+  <h3>box-shadow</h3>
+  <p>Like <code>text-shadow</code> (<a href="book.html?ch=27">Chapter 27</a>), but for the whole box: <code>x-offset y-offset blur spread colour</code>.</p>
+  <pre class="code" data-run data-title="A shadow that suggests the card is lifted" data-h="190">&lt;style&gt;
+  div { background: #fff; padding: 16px; border-radius: 12px; margin: 14px 0; }
+  .a { box-shadow: 0 2px 6px rgba(16,32,64,.12); }
+  .b { box-shadow: 0 10px 28px rgba(16,32,64,.22); }
+&lt;/style&gt;
+&lt;div class="a"&gt;A small shadow: resting on the page.&lt;/div&gt;
+&lt;div class="b"&gt;A bigger, softer shadow: floating above it.&lt;/div&gt;</pre>
+  <p>Shadows read as height. A small, soft, almost-transparent shadow looks professional; a hard black one looks like 2005.</p>
+  <div class="callout"><b>Border or outline?</b> <code>outline</code> draws a line too, but <b>outside the border and without taking up any space</b>, so adding one never shifts the layout. That is exactly why it is the browser's default focus indicator (<a href="book.html?ch=35">Chapter 35</a>). Use <code>border</code> for design, <code>outline</code> for focus.</div>
+</section>
+
+<section id="s3">
+  <h2>28.3 Shorthand: one, two, three or four values</h2>
+  <p><code>padding</code>, <code>margin</code>, <code>border-width</code> and <code>border-radius</code> all accept up to four values, and the number you give changes the meaning. This is examined constantly.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 235" role="img" aria-label="How one, two, three and four shorthand values are distributed">
+      <g>
+        <rect x="26" y="34" width="110" height="66" rx="8" class="box saf"/>
+        <text x="81" y="26" class="t c b mono" style="font-size:12px">padding: 10px</text>
+        <text x="81" y="60" class="t c s">10 all round</text>
+        <text x="81" y="80" class="t c s">one value =</text><text x="81" y="94" class="t c s">every side</text>
+      </g>
+      <g>
+        <rect x="166" y="34" width="110" height="66" rx="8" class="box grn"/>
+        <text x="221" y="26" class="t c b mono" style="font-size:12px">padding: 10px 20px</text>
+        <text x="221" y="60" class="t c s">10 top &amp; bottom</text>
+        <text x="221" y="78" class="t c s">20 left &amp; right</text>
+        <text x="221" y="94" class="t c s">two = vertical, horizontal</text>
+      </g>
+      <g>
+        <rect x="306" y="34" width="120" height="66" rx="8" class="box blu"/>
+        <text x="366" y="26" class="t c b mono" style="font-size:11.5px">padding: 10px 20px 30px</text>
+        <text x="366" y="58" class="t c s">10 top</text>
+        <text x="366" y="74" class="t c s">20 left &amp; right</text>
+        <text x="366" y="90" class="t c s">30 bottom</text>
+      </g>
+      <g>
+        <rect x="456" y="34" width="138" height="66" rx="8" class="box"/>
+        <text x="525" y="26" class="t c b mono" style="font-size:11px">padding: 5px 10px 15px 20px</text>
+        <text x="525" y="58" class="t c s">clockwise from the top:</text>
+        <text x="525" y="76" class="t c s b">top, right, bottom, left</text>
+        <text x="525" y="92" class="t c s">5, 10, 15, 20</text>
+      </g>
+      <circle cx="310" cy="172" r="46" fill="none" stroke="#0B2545" stroke-width="2"/>
+      <path d="M310 118 A 54 54 0 0 1 364 172" class="edge saf" marker-end="url(#arr-saf)" fill="none"/>
+      <text x="310" y="136" class="t c b" style="font-size:12px">TOP</text>
+      <text x="366" y="176" class="t b" style="font-size:12px">RIGHT</text>
+      <text x="310" y="214" class="t c b" style="font-size:12px">BOTTOM</text>
+      <text x="216" y="176" class="t b" style="font-size:12px">LEFT</text>
+      <text x="480" y="160" class="t s">Four values always run</text>
+      <text x="480" y="176" class="t s b">clockwise from the top,</text>
+      <text x="480" y="192" class="t s">like a clock face.</text>
+      <text x="120" y="176" class="t s" style="text-anchor:end">Remember the word</text>
+      <text x="120" y="194" class="t s b" style="text-anchor:end">TRouBLe:</text>
+      <text x="120" y="210" class="t s" style="text-anchor:end">Top Right Bottom Left</text>
+    </svg>
+    <figcaption><b>Figure 28.2</b> One value is all sides; two are vertical then horizontal; four run clockwise from the top. The mnemonic is <b>TR</b>ou<b>BL</b>e.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Written</th><th>Top</th><th>Right</th><th>Bottom</th><th>Left</th></tr></thead>
+    <tbody>
+      <tr><td><code>padding: 10px</code></td><td>10</td><td>10</td><td>10</td><td>10</td></tr>
+      <tr><td><code>padding: 10px 20px</code></td><td>10</td><td>20</td><td>10</td><td>20</td></tr>
+      <tr><td><code>padding: 10px 20px 30px</code></td><td>10</td><td>20</td><td>30</td><td>20</td></tr>
+      <tr><td><code>padding: 5px 10px 15px 20px</code></td><td>5</td><td>10</td><td>15</td><td>20</td></tr>
+    </tbody>
+  </table>
+  <p>You can also name one side: <code>padding-top</code>, <code>margin-left</code>, <code>border-bottom-width</code>. Use the shorthand when you are setting several sides and a single property when you are setting one.</p>
+  <details class="qc"><summary>Quick check: in <code>padding: 5px 10px 15px 20px</code>, which side gets 15px? And in <code>padding: 10px 20px</code>, what does 20px apply to?</summary><div class="a">
+    <p><b>15px is the bottom</b> &mdash; clockwise from the top gives top, right, bottom, left. And in the two-value form, <b>20px is left and right</b>, because two values mean vertical then horizontal.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>28.4 The width problem, and the one-line fix</h2>
+  <p>Here is the trap that costs beginners hours. You give a box a width of 200px and some padding. How wide is it on screen?</p>
+  <pre class="code">.box {
+  width: 200px;
+  padding: 20px;
+  border: 5px solid navy;
+}</pre>
+  <p>By default, <b><code>width</code> sets the width of the content only.</b> Padding and border are then added <i>outside</i> that. So the real width is:</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 160" role="img" aria-label="Width 200 plus padding 20 twice plus border 5 twice equals 250">
+      <g class="mono" style="font-size:15px;font-weight:700" fill="#0B2545">
+        <text x="20" y="40">5</text><text x="40" y="40">+</text>
+        <text x="62" y="40">20</text><text x="92" y="40">+</text>
+        <text x="116" y="40">200</text><text x="162" y="40">+</text>
+        <text x="186" y="40">20</text><text x="216" y="40">+</text>
+        <text x="240" y="40">5</text>
+        <text x="266" y="40">=</text>
+        <text x="292" y="40" fill="#C42B2B">250px</text>
+      </g>
+      <text x="26" y="58" class="t c s">border</text><text x="72" y="58" class="t c s">padding</text>
+      <text x="134" y="58" class="t c s">width</text><text x="196" y="58" class="t c s">padding</text><text x="246" y="58" class="t c s">border</text>
+      <rect x="20" y="78" width="270" height="48" fill="#0B2545"/>
+      <rect x="30" y="86" width="250" height="32" fill="#CDE9D2"/>
+      <rect x="60" y="94" width="190" height="16" fill="#fff"/>
+      <text x="155" y="138" class="t c s">you asked for 200, you got 250</text>
+      <text x="155" y="152" class="t c s">two of these overflow a 480px column</text>
+      <rect x="330" y="72" width="270" height="60" rx="10" class="box grn"/>
+      <text x="465" y="94" class="t c b">the fix, one line:</text>
+      <text x="465" y="116" class="t c b mono" style="font-size:13px">box-sizing: border-box;</text>
+      <text x="465" y="52" class="t c s">now width means the WHOLE box,</text>
+      <text x="465" y="36" class="t c s">padding and border included &mdash; 200 is 200</text>
+    </svg>
+    <figcaption><b>Figure 28.3</b> The default is <code>content-box</code>: padding and border are added on top of the width you asked for.</figcaption>
+  </figure>
+  <p><code>box-sizing: border-box</code> changes the meaning of <code>width</code> so that it <b>includes the padding and the border</b>. Ask for 200px and you get 200px on screen, with the padding taken out of the inside.</p>
+  <pre class="code" data-run data-title="The same declarations, with and without border-box" data-h="250">&lt;style&gt;
+  .ruler { width: 250px; border-top: 3px solid #C42B2B; margin-bottom: 4px; }
+  .a, .b { width: 200px; padding: 20px; border: 5px solid #0B2545;
+           background: #FFF1E0; margin-bottom: 14px; }
+  .b { box-sizing: border-box; }
+&lt;/style&gt;
+&lt;div class="ruler"&gt;&lt;/div&gt;
+&lt;div class="a"&gt;No box-sizing: I am really 250px wide.&lt;/div&gt;
+&lt;div class="b"&gt;box-sizing: border-box: I am exactly 200px.&lt;/div&gt;
+&lt;p style="font-size:14px;color:#6B7A90"&gt;The red line above is 250px, for comparison.&lt;/p&gt;</pre>
+  <p>This is why nearly every professional stylesheet opens with:</p>
+  <pre class="code">* {
+  box-sizing: border-box;
+}</pre>
+  <p>One rule, applied to everything, and an entire category of sizing bug disappears. Put it at the top of every stylesheet you write from now on.</p>
+</section>
+
+<section id="s5">
+  <h2>28.5 Margins: collapsing, and centring</h2>
+  <h3>Vertical margins collapse</h3>
+  <p>Two paragraphs, each with <code>margin: 20px 0</code>. How much space is between them &mdash; 40px or 20px?</p>
+  <p><b>20px.</b> When two vertical margins meet, they do not add up; the larger one wins and the smaller disappears inside it. This is called <b>margin collapse</b>, and it applies only to top and bottom margins, never to left and right.</p>
+  <p>It sounds like a bug and is actually a kindness: without it, the gap between two paragraphs would be double the gap you asked for. When you truly need the space to add up, use <code>padding</code> instead, or put the elements in a flex or grid container with a <code>gap</code> (Chapters 30 and 31), where margins do not collapse.</p>
+  <h3>margin: 0 auto centres a box</h3>
+  <p>To centre a block element horizontally you need two things: a <b>width</b> smaller than the parent, and <code>margin-left</code> and <code>margin-right</code> set to <code>auto</code>. <code>auto</code> means "share the leftover space", and with both sides asking, it is split evenly.</p>
+  <pre class="code" data-run data-title="The classic centred container" data-h="190">&lt;style&gt;
+  .page {
+    max-width: 320px;      /* a width, so there is space left over */
+    margin: 0 auto;        /* 0 top and bottom, auto left and right */
+    background: #FFF1E0;
+    border: 2px solid #E07B1E;
+    padding: 14px;
+  }
+&lt;/style&gt;
+&lt;div class="page"&gt;Centred, whatever the window width. Resize the preview and watch.&lt;/div&gt;</pre>
+  <div class="callout warn"><b>Why <code>margin: 0 auto</code> sometimes does nothing.</b> Three usual reasons: (1) the element has no width, so it already fills the line and there is nothing left over to share; (2) it is an <b>inline</b> element such as a <code>&lt;span&gt;</code>, which ignores width &mdash; give it <code>display: block</code> first (<a href="book.html?ch=29">Chapter 29</a>); (3) you are trying to centre <i>vertically</i>, which <code>auto</code> margins do not do &mdash; use Flexbox for that (<a href="book.html?ch=30">Chapter 30</a>).</div>
+  <p>A negative margin is legal and pulls an element towards its neighbour. It is occasionally useful and frequently confusing; avoid it until you are comfortable.</p>
+</section>
+
+<section id="s6">
+  <h2>28.6 Width, height and their sensible cousins</h2>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Means</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>width</code>, <code>height</code></td><td>An exact size</td><td>Avatars, icons, fixed panels</td></tr>
+      <tr><td><code>max-width</code></td><td>"Never wider than this, but shrink if you must"</td><td><code>max-width: 65rem</code> on a page wrapper &mdash; the single most useful responsive declaration</td></tr>
+      <tr><td><code>min-width</code></td><td>"Never narrower than this"</td><td>Stopping a button collapsing round short text</td></tr>
+      <tr><td><code>min-height</code></td><td>"At least this tall, taller if the content needs it"</td><td>Hero panels, cards of even height</td></tr>
+      <tr><td><code>height: auto</code></td><td>"As tall as the content" &mdash; the default</td><td>Nearly always leave it alone</td></tr>
+    </tbody>
+  </table>
+  <p>Prefer <code>max-width</code> to <code>width</code> for anything that must survive a phone. <code>width: 800px</code> forces a sideways scrollbar on a 375px screen; <code>max-width: 800px</code> simply becomes 375px wide when that is all the room there is.</p>
+  <p>Fixing a <code>height</code> is riskier still: if the text grows, or the reader enlarges their font, the content spills out of the box. Let height come from the content and use <code>min-height</code> when you need a floor.</p>
+</section>
+
+<section id="s7">
+  <h2>28.7 Build it: a real card</h2>
+  <p>Everything in this chapter, in the shape you will use a hundred times.</p>
+  <pre class="code" data-run data-title="Project, step 7: the course card, properly boxed" data-h="340" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }               /* the one-line fix, first */
+
+  body {
+    font-family: system-ui, sans-serif; color: #3C4A60; line-height: 1.6;
+    background: #F1F5F9; margin: 0; padding: 20px;
+  }
+  .page { max-width: 460px; margin: 0 auto; }  /* centred, never too wide */
+
+  .card {
+    background: #fff;
+    border: 1px solid #E3E9F0;
+    border-left: 5px solid #E07B1E;            /* one coloured edge */
+    border-radius: 12px;
+    padding: 16px 20px;                        /* inside: content breathes */
+    margin-bottom: 16px;                       /* outside: cards separate */
+    box-shadow: 0 2px 8px rgba(16,32,64,.08);
+  }
+  .card h3 { margin: 0 0 4px; color: #0B2545; }
+  .card p  { margin: 0; }
+
+  .tag {
+    display: inline-block;
+    background: #E9F7E7; color: #0B6205;
+    padding: 3px 12px;                          /* two values: 3 top/bottom, 12 sides */
+    border-radius: 999px;                       /* a pill */
+    font-size: 13px; font-weight: 700;
+  }
+&lt;/style&gt;
+&lt;div class="page"&gt;
+  &lt;div class="card"&gt;
+    &lt;h3&gt;CSE326 Internet Programming &lt;span class="tag"&gt;Featured&lt;/span&gt;&lt;/h3&gt;
+    &lt;p&gt;In progress &mdash; Unit 3, Cascading Style Sheets.&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="card"&gt;
+    &lt;h3&gt;CSE305 Database Systems&lt;/h3&gt;
+    &lt;p&gt;Completed last semester.&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Read the CSS and name each piece: the reset, the centred wrapper with a maximum width, padding inside the cards, margin between them, a one-sided border, a rounded pill, and a soft shadow. That is the whole box model doing ordinary work.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which is the space INSIDE the border?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. margin</li><li>B. padding</li><li>C. border-box</li><li>D. outline</li></ul>
+    <p><b>Answer: B.</b> Padding takes the background colour; margin is always transparent.</p></div></details>
+  <details class="q"><summary><code>width: 200px</code>, <code>padding: 20px</code>, <code>border: 5px</code>, no box-sizing. How wide is the element?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 200px</li><li>B. 225px</li><li>C. 250px</li><li>D. 245px</li></ul>
+    <p><b>Answer: C.</b> 200 + 20 + 20 + 5 + 5 = 250. With <code>box-sizing: border-box</code> it would be exactly 200.</p></div></details>
+  <details class="q"><summary>What does <code>box-sizing: border-box</code> do?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Adds a border</li><li>B. Makes width include padding and border</li><li>C. Removes the margin</li><li>D. Centres the element</li></ul>
+    <p><b>Answer: B.</b> One line that removes an entire category of sizing bug, which is why it is usually applied to <code>*</code> at the top of a stylesheet.</p></div></details>
+  <details class="q"><summary>In <code>padding: 10px 20px</code>, what does 20px apply to?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Top and bottom</li><li>B. Left and right</li><li>C. All sides</li><li>D. Right only</li></ul>
+    <p><b>Answer: B.</b> Two values mean top/bottom first, then left/right.</p></div></details>
+  <details class="q"><summary><code>padding: 5px 10px 15px 20px</code> applies 15px to which side?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Top</li><li>B. Right</li><li>C. Bottom</li><li>D. Left</li></ul>
+    <p><b>Answer: C.</b> Clockwise from the top: top, right, bottom, left. Remember <b>TR</b>ou<b>BL</b>e.</p></div></details>
+  <details class="q"><summary>How do you centre a fixed-width block horizontally?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. text-align: center</li><li>B. margin: 0 auto with a width set</li><li>C. float: center</li><li>D. align: middle</li></ul>
+    <p><b>Answer: B.</b> <code>auto</code> splits the leftover space evenly on both sides, so there must be leftover space: the element needs a width narrower than its parent. <code>text-align: center</code> centres the content <i>inside</i> the box, not the box itself.</p></div></details>
+  <details class="q"><summary>Which part of the box takes the background colour?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>The content and the padding</b>, out to the border. The margin is always transparent and shows whatever is behind the element.</p></div></details>
+  <details class="q"><summary><code>border: 2px #E07B1E;</code> shows nothing. Why?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>The style is missing.</b> <code>border-style</code> defaults to <code>none</code>, so a border with a width and a colour but no style is not drawn. Write <code>border: 2px solid #E07B1E;</code>.</p></div></details>
+  <details class="q"><summary>Two stacked paragraphs each have <code>margin: 20px 0</code>. How big is the gap between them?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>20px, not 40px.</b> Vertical margins <b>collapse</b>: when two meet, the larger wins rather than the two adding up. It applies only to top and bottom margins, and does not happen inside a flex or grid container.</p></div></details>
+  <details class="q"><summary>Which declaration makes a square element a circle?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>border-radius: 50%;</code></b> on an element with equal width and height. A large pixel value such as <code>999px</code> turns a wide box into a pill instead.</p></div></details>
+  <details class="q"><summary>Why prefer <code>max-width: 800px</code> to <code>width: 800px</code> on a page wrapper?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because <code>max-width</code> allows the element to shrink.</b> On a 375px phone, <code>width: 800px</code> forces a horizontal scrollbar; <code>max-width: 800px</code> simply becomes 375px wide. It is the single most useful responsive declaration.</p></div></details>
+  <details class="q"><summary>What is the difference between <code>border</code> and <code>outline</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>A border is part of the box and takes up space</b>, so adding one can shift the layout. <b>An outline is drawn outside the border and takes no space</b>, so it never moves anything &mdash; which is why browsers use it to show keyboard focus.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Four layers from the inside out: <b>content, padding, border, margin</b>. Padding takes the background colour; margin is always transparent.</li>
+    <li>Shorthand: one value = all sides; two = vertical then horizontal; four = clockwise from the top (<b>TR</b>ou<b>BL</b>e).</li>
+    <li>By default <code>width</code> sizes the content only, so 200 + 20 + 20 + 5 + 5 = 250px. <code>box-sizing: border-box</code> makes <code>width</code> mean the whole box. Apply it to <code>*</code>.</li>
+    <li><code>border</code> needs a <b>style</b> or nothing is drawn. <code>border-radius: 50%</code> makes a circle; <code>999px</code> makes a pill.</li>
+    <li>Vertical margins collapse: the larger wins, they do not add.</li>
+    <li><code>margin: 0 auto</code> centres a block that has a width. <code>max-width</code> beats <code>width</code> for anything responsive.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>* { box-sizing: border-box; }</code></td><td>Width includes padding and border. Write it first.</td></tr>
+      <tr><td><code>padding: 16px 20px;</code></td><td>16 top/bottom, 20 left/right, inside the border</td></tr>
+      <tr><td><code>margin: 0 auto;</code></td><td>Centre a block with a width</td></tr>
+      <tr><td><code>border: 2px solid #E07B1E;</code></td><td>Width, style (required), colour</td></tr>
+      <tr><td><code>border-left: 5px solid ...;</code></td><td>One side only</td></tr>
+      <tr><td><code>border-radius: 12px;</code></td><td>Rounded corners</td></tr>
+      <tr><td><code>box-shadow: 0 2px 8px rgba(0,0,0,.1);</code></td><td>A soft lift</td></tr>
+      <tr><td><code>max-width: 65rem;</code></td><td>Never wider, free to shrink</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://web.dev/learn/css/box-model" target="_blank" rel="noopener noreferrer">web.dev &mdash; The box model<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The single best illustrated explanation of the box model on the web.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/box-sizing" target="_blank" rel="noopener noreferrer">MDN &mdash; box-sizing<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly what border-box changes, in the spec&rsquo;s own words.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/margin_collapsing" target="_blank" rel="noopener noreferrer">MDN &mdash; Mastering margin collapsing<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Read this the first time two margins surprise you.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

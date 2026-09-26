@@ -1,0 +1,336 @@
+<article class="chapter" data-ch="32">
+<style>
+/* demos for this chapter only - every selector is scoped to .d32 */
+.d32 { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; }
+.d32 a.btn32 { background: #0B2545; color: #fff; padding: 9px 16px;
+  border-radius: 8px; text-decoration: none; font-weight: 700; font-size: 14px; }
+.d32 a.btn32:hover { background: #E07B1E; }
+.d32 a.btn32:active { background: #C42B2B; }
+.d32 input.in32 { padding: 8px 10px; border: 2px solid #CBD5E1; border-radius: 8px;
+  font-family: inherit; font-size: 14px; }
+.d32 input.in32:focus { outline: 3px solid #FF9933; outline-offset: 2px;
+  border-color: #E07B1E; }
+.d32 input.bad32:focus { outline: none; }
+.d32 ul.list32 { list-style: none; padding: 0; margin: 0; width: 100%; }
+.d32 ul.list32 li { padding: 8px 12px; border-radius: 6px; }
+.d32 ul.list32 li:nth-child(odd) { background: #F1F5F9; }
+.d32 ul.list32 li:first-child { font-weight: 800; color: #0B2545; }
+.d32 ul.list32 li:last-child { border-bottom: 3px solid #E07B1E; }
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 32 &middot; Pseudo-classes</p>
+  <h1>Pseudo-classes</h1>
+  <p class="lead">So far every rule has styled an element because of what it <i>is</i>. A pseudo-class styles it because of what is <i>happening</i> to it, or where it <i>sits</i> among its brothers and sisters: the button the mouse is over, the field the keyboard is in, the first row of a table, every second list item. One extra colon unlocks all of it.</p>
+  <p class="meta">About 23 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A <b>selector</b> points at elements; a pseudo-class is added to one (<a href="book.html?ch=23">Chapter 23</a>).</li>
+      <li><b>Siblings</b> are elements with the same parent (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li>Keyboard users move through a page with <kbd>Tab</kbd> and must be able to see where they are (<a href="book.html?ch=15">Chapter 15</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Style the four link states in the right order.</li>
+      <li>Give every interactive element a visible focus style, and say why that is not optional.</li>
+      <li>Stripe a table or list with <code>:nth-child</code>, and read a formula like <code>2n+1</code>.</li>
+      <li>Style form fields by their state: checked, disabled, required, invalid.</li>
+      <li>Use <code>:not()</code> and <code>:root</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>32.1 A state is not an element</h2>
+  <p>A <b>pseudo-class</b> is written with <b>one colon</b> after a selector:</p>
+  <pre class="code">a:hover { color: orange; }
+/* |  |
+   |  the pseudo-class: "while the mouse is over it"
+   the element: every link                            */</pre>
+  <p>Read it as a sentence: <i>"a link, while hovered, is orange."</i> The word "pseudo" means "false" &mdash; there is no <code>hover</code> class written anywhere in your HTML. The browser adds and removes it invisibly as things happen.</p>
+  <div class="callout analogy"><b>Picture this.</b> A door is still the same door whether it is open, closed or locked. A pseudo-class styles the door <i>in a particular state</i>, without you having to write three different doors in the HTML.</div>
+  <p>Pseudo-classes fall into three families, and it helps to know which one you are reaching for:</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 206" role="img" aria-label="Three families of pseudo-class: interaction, position and form state">
+      <rect x="12" y="24" width="222" height="146" rx="12" class="box saf"/>
+      <text x="123" y="50" class="t c b">INTERACTION</text>
+      <text x="123" y="70" class="t c s">what the user is doing</text>
+      <text x="123" y="98" class="t c mono b" style="font-size:12px">:hover  :focus</text>
+      <text x="123" y="118" class="t c mono b" style="font-size:12px">:active  :visited</text>
+      <text x="123" y="146" class="t c s">changes moment to moment</text>
+      <rect x="246" y="24" width="222" height="146" rx="12" class="box grn"/>
+      <text x="357" y="50" class="t c b">POSITION</text>
+      <text x="357" y="70" class="t c s">where it sits among siblings</text>
+      <text x="357" y="98" class="t c mono b" style="font-size:12px">:first-child</text>
+      <text x="357" y="118" class="t c mono b" style="font-size:12px">:nth-child(2n)</text>
+      <text x="357" y="146" class="t c s">fixed by the HTML order</text>
+      <rect x="480" y="24" width="228" height="146" rx="12" class="box blu"/>
+      <text x="594" y="50" class="t c b">FORM STATE</text>
+      <text x="594" y="70" class="t c s">the condition of a control</text>
+      <text x="594" y="98" class="t c mono b" style="font-size:12px">:checked  :disabled</text>
+      <text x="594" y="118" class="t c mono b" style="font-size:12px">:required  :invalid</text>
+      <text x="594" y="146" class="t c s">follows what the user typed</text>
+      <text x="360" y="196" class="t c s">All three use <tspan class="mono b">one</tspan> colon. Two colons would make it a pseudo-<tspan class="b">element</tspan> (Chapter 33).</text>
+    </svg>
+    <figcaption><b>Figure 32.1</b> Three families, one colon each. Deciding which family you need usually tells you the name to reach for.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Family</th><th>Depends on</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td><b>Interaction</b></td><td>What the user is doing right now</td><td><code>:hover</code>, <code>:focus</code>, <code>:active</code>, <code>:visited</code></td></tr>
+      <tr><td><b>Position</b></td><td>Where the element sits among its siblings</td><td><code>:first-child</code>, <code>:last-child</code>, <code>:nth-child()</code></td></tr>
+      <tr><td><b>Form state</b></td><td>The condition of a form control</td><td><code>:checked</code>, <code>:disabled</code>, <code>:required</code>, <code>:invalid</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s2">
+  <h2>32.2 Link and interaction states</h2>
+  <table class="tbl">
+    <thead><tr><th>Pseudo-class</th><th>Applies when</th></tr></thead>
+    <tbody>
+      <tr><td><code>:link</code></td><td>The link has not been visited yet</td></tr>
+      <tr><td><code>:visited</code></td><td>The user has already opened that page</td></tr>
+      <tr><td><code>:hover</code></td><td>The mouse pointer is over the element</td></tr>
+      <tr><td><code>:active</code></td><td>The moment it is being pressed</td></tr>
+      <tr><td><code>:focus</code></td><td>It has keyboard focus &mdash; the user tabbed to it or clicked into it</td></tr>
+    </tbody>
+  </table>
+  <p><b><code>:hover</code> works on every element</b>, not only on links. A card can lift on hover, a table row can highlight, an image can brighten.</p>
+  <div class="demo">
+    <p class="dlab">Live &mdash; hover the button, then press and hold it</p>
+    <div class="d32">
+      <a class="btn32" href="#s2">Hover me</a>
+      <span class="mut" style="font-size:13.5px">dark &rarr; orange on hover &rarr; red while pressed</span>
+    </div>
+  </div>
+  <h3>Write them in the right order</h3>
+  <p>The four link states have to be written in a fixed order, because they have the same specificity and a later rule beats an earlier one (<a href="book.html?ch=23">Chapter 23</a>). Write <code>:hover</code> before <code>:link</code> and hover will never show.</p>
+  <pre class="code">a:link    { color: #1D4ED8; }
+a:visited { color: #6D28D9; }
+a:hover   { color: #E07B1E; }
+a:active  { color: #C42B2B; }</pre>
+  <p>The memory aid is <b>LoVe HAte</b>: <b>L</b>ink, <b>V</b>isited, <b>H</b>over, <b>A</b>ctive.</p>
+  <div class="callout warn"><b>Hover does not exist on a phone.</b> There is no mouse pointer, so a touch user may never see your hover effect, and a "hover to reveal" menu can be impossible to open. Treat hover as a <b>bonus</b>, never as the only way to reach something.</div>
+</section>
+
+<section id="s3">
+  <h2>32.3 :focus &mdash; the one you must not remove</h2>
+  <p>When a keyboard user presses <kbd>Tab</kbd>, focus moves from one interactive element to the next. The browser draws a ring round whatever has focus so the user can see where they are. That ring is the <code>:focus</code> style.</p>
+  <p>Many beginners find the ring ugly and write this:</p>
+  <pre class="code">/* NEVER do this on its own */
+:focus { outline: none; }</pre>
+  <p>The page now looks tidier and has become unusable for anyone who does not use a mouse. They press Tab and nothing visible changes; they are navigating blind. <b>Keyboard users cannot otherwise see where they are.</b> It is a genuine accessibility failure, and your syllabus explicitly names focus styles.</p>
+  <p>If the default ring does not suit your design, <b>replace it</b>:</p>
+  <pre class="code">input:focus {
+  outline: 3px solid #FF9933;   /* your own, clearly visible ring */
+  outline-offset: 2px;
+  border-color: #E07B1E;
+}</pre>
+  <div class="demo">
+    <p class="dlab">Live &mdash; click in the first box, then press Tab to move to the second</p>
+    <div class="d32">
+      <input class="in32" type="text" placeholder="good: a clear focus ring">
+      <input class="in32 bad32" type="text" placeholder="bad: outline removed">
+    </div>
+  </div>
+  <p>Tab between those two fields. The first tells you exactly where you are; on the second you are lost. That is the whole argument.</p>
+  <p>Modern CSS adds <code>:focus-visible</code>, which applies the ring only when the browser judges it useful &mdash; for keyboard users, but not for a mouse click. It gives you the tidy look without abandoning anybody:</p>
+  <pre class="code">button:focus-visible { outline: 3px solid #FF9933; outline-offset: 2px; }</pre>
+  <p>Remember from <a href="book.html?ch=28">Chapter 28</a> that <code>outline</code> takes no space, so a focus ring never shifts your layout.</p>
+</section>
+
+<section id="s4">
+  <h2>32.4 Position: :first-child, :last-child and :nth-child()</h2>
+  <p>These pick elements by their position among their siblings &mdash; no extra classes in the HTML needed.</p>
+  <table class="tbl">
+    <thead><tr><th>Selector</th><th>Selects</th></tr></thead>
+    <tbody>
+      <tr><td><code>li:first-child</code></td><td>The list item that is the first child of its parent</td></tr>
+      <tr><td><code>li:last-child</code></td><td>The last one</td></tr>
+      <tr><td><code>li:nth-child(3)</code></td><td>The third one</td></tr>
+      <tr><td><code>li:nth-child(odd)</code></td><td>The 1st, 3rd, 5th &hellip;</td></tr>
+      <tr><td><code>li:nth-child(even)</code></td><td>The 2nd, 4th, 6th &hellip;</td></tr>
+      <tr><td><code>li:nth-child(2n)</code></td><td>Every second one &mdash; the same as <code>even</code></td></tr>
+      <tr><td><code>li:nth-child(2n+1)</code></td><td>Every second one starting at the first &mdash; the same as <code>odd</code></td></tr>
+      <tr><td><code>li:nth-child(3n)</code></td><td>Every third one</td></tr>
+      <tr><td><code>li:only-child</code></td><td>Only when it is the sole child</td></tr>
+    </tbody>
+  </table>
+  <h3>Reading an nth-child formula</h3>
+  <p>In <code>an + b</code>, the browser tries <code>n = 0, 1, 2, 3</code> and so on, and keeps whichever positions come out:</p>
+  <ul>
+    <li><code>2n</code> &rarr; 0, 2, 4, 6&hellip; (position 0 does not exist, so: 2nd, 4th, 6th)</li>
+    <li><code>2n+1</code> &rarr; 1, 3, 5, 7&hellip;</li>
+    <li><code>3n+2</code> &rarr; 2, 5, 8, 11&hellip;</li>
+  </ul>
+  <div class="demo">
+    <p class="dlab">Live &mdash; odd rows shaded, first row bold, last row underlined, no extra classes anywhere</p>
+    <div class="d32">
+      <ul class="list32">
+        <li>Course</li><li>CSE326 Internet Programming</li><li>CSE305 Database Systems</li>
+        <li>CSE201 Data Structures</li><li>MTH101 Engineering Maths</li>
+      </ul>
+    </div>
+  </div>
+  <pre class="code" data-run data-title="Zebra striping a table with one rule" data-h="250">&lt;style&gt;
+  table { border-collapse: collapse; width: 100%; font-family: system-ui, sans-serif; }
+  th, td { padding: 8px 12px; text-align: left; }
+  thead th { background: #0B2545; color: #fff; }
+  tbody tr:nth-child(even) { background: #F1F5F9; }
+  tbody tr:hover           { background: #FFF1E0; }
+&lt;/style&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;Course&lt;/th&gt;&lt;th&gt;Status&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;td&gt;CSE326&lt;/td&gt;&lt;td&gt;In progress&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;CSE305&lt;/td&gt;&lt;td&gt;Completed&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;CSE201&lt;/td&gt;&lt;td&gt;Completed&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;td&gt;MTH101&lt;/td&gt;&lt;td&gt;Completed&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+&lt;/table&gt;</pre>
+  <div class="callout warn"><b>:first-child versus :first-of-type.</b> <code>p:first-child</code> means "a paragraph that is the first child of its parent" &mdash; if a heading comes first, it matches nothing. <code>p:first-of-type</code> means "the first paragraph among its siblings", whatever came before it. When a <code>:first-child</code> rule mysteriously fails, this is usually why.</div>
+</section>
+
+<section id="s5">
+  <h2>32.5 Form states</h2>
+  <p>Forms have their own states, and styling them gives instant feedback for free &mdash; no JavaScript involved.</p>
+  <table class="tbl">
+    <thead><tr><th>Pseudo-class</th><th>Applies when</th></tr></thead>
+    <tbody>
+      <tr><td><code>:checked</code></td><td>A checkbox or radio is ticked</td></tr>
+      <tr><td><code>:disabled</code> / <code>:enabled</code></td><td>The control is greyed out / usable</td></tr>
+      <tr><td><code>:required</code> / <code>:optional</code></td><td>The field carries the <code>required</code> attribute or not</td></tr>
+      <tr><td><code>:valid</code> / <code>:invalid</code></td><td>The value satisfies the field's rules or not (<a href="book.html?ch=18">Chapter 18</a>)</td></tr>
+      <tr><td><code>:placeholder-shown</code></td><td>The field is still empty, so its placeholder is visible</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="A form that reacts as you type - no JavaScript" data-h="270">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; }
+  label { display: block; margin: 10px 0 4px; font-weight: 700; font-size: 14px; }
+  input { padding: 8px 10px; border: 2px solid #CBD5E1; border-radius: 8px;
+          font-size: 14px; width: 240px; }
+  input:focus   { outline: 3px solid #FF9933; outline-offset: 2px; }
+  input:required { border-left: 5px solid #E07B1E; }
+  input:valid    { border-color: #138808; }
+  input:invalid:not(:placeholder-shown) { border-color: #C42B2B;
+                                          background: #FDF0F0; }
+&lt;/style&gt;
+&lt;label for="e"&gt;Email (required)&lt;/label&gt;
+&lt;input id="e" type="email" required placeholder="you@example.edu"&gt;
+&lt;p style="font-size:14px;color:#6B7A90"&gt;Type a few letters, then finish the address properly.&lt;/p&gt;</pre>
+  <p>Read that <code>:invalid:not(:placeholder-shown)</code> rule: <i>"invalid, but not while it is still empty"</i>. Without the <code>:not()</code> part, an untouched required field is red before the user has typed a single character, which feels like being told off for nothing.</p>
+</section>
+
+<section id="s6">
+  <h2>32.6 :not() and :root</h2>
+  <p><b><code>:not(...)</code></b> excludes things. It takes a selector and matches everything that does <i>not</i> match it:</p>
+  <pre class="code">button:not(.ghost)      { background: #0B2545; }   /* every button except .ghost */
+li:not(:last-child)     { border-bottom: 1px solid #eee; }  /* a divider between, not after */</pre>
+  <p>That second line is a lovely little trick: it draws a separator under every item except the last, so there is no stray line at the bottom of the list.</p>
+  <p><b><code>:root</code></b> matches the root element &mdash; the <code>&lt;html&gt;</code> element. It behaves almost like writing <code>html</code>, but has slightly higher specificity, and it is the conventional home for CSS variables (<a href="book.html?ch=36">Chapter 36</a>).</p>
+  <pre class="code">:root {
+  --brand: #E07B1E;
+}</pre>
+</section>
+
+<section id="s7">
+  <h2>32.7 Specificity note</h2>
+  <p>From <a href="book.html?ch=23">Chapter 23</a>: a pseudo-class counts in the <b>class</b> column. So <code>a:hover</code> scores (0,&nbsp;1,&nbsp;1) &mdash; one pseudo-class, one element.</p>
+  <p>That explains the most common hover bug. If <code>nav a { color: white; }</code> (0,&nbsp;0,&nbsp;2) is beaten by <code>#menu a { color: navy; }</code> (1,&nbsp;0,&nbsp;1), then your <code>nav a:hover</code> (0,&nbsp;1,&nbsp;2) still loses to the id rule, and nothing happens on hover. The fix is to raise your hover rule's specificity, not to reach for <code>!important</code>.</p>
+  <h3>Build it: buttons and links that respond</h3>
+  <pre class="code" data-run data-title="Project, step 11: interactive states" data-h="330" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; background: #F1F5F9; padding: 20px;
+         color: #3C4A60; }
+
+  .card {
+    background: #fff; border-radius: 12px; padding: 16px; margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(16,32,64,.08);
+    border-left: 5px solid #E3E9F0;
+  }
+  .card:hover      { border-left-color: #E07B1E; background: #FFFCF8; }
+  .card:first-child{ border-left-color: #138808; }   /* the featured one */
+
+  .btn {
+    display: inline-block; text-decoration: none; font-weight: 700;
+    background: #0B2545; color: #fff; padding: 9px 18px; border-radius: 999px;
+  }
+  .btn:hover         { background: #E07B1E; }
+  .btn:active        { background: #C42B2B; }
+  .btn:focus-visible { outline: 3px solid #FF9933; outline-offset: 3px; }
+&lt;/style&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE326 Internet Programming&lt;/b&gt; &mdash; featured&lt;/div&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE305 Database Systems&lt;/b&gt;&lt;/div&gt;
+&lt;div class="card"&gt;&lt;b&gt;CSE201 Data Structures&lt;/b&gt;&lt;/div&gt;
+&lt;p&gt;&lt;a class="btn" href="#"&gt;Continue Learning&lt;/a&gt;&lt;/p&gt;
+&lt;p style="font-size:14px;color:#6B7A90"&gt;Hover the cards and the button, then press Tab.&lt;/p&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>How many colons does a pseudo-CLASS use?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>One</b>, as in <code>:hover</code> and <code>:focus</code>. Two colons mark a pseudo-<b>element</b> such as <code>::before</code> (<a href="book.html?ch=33">Chapter 33</a>). States get one colon; parts get two.</p></div></details>
+  <details class="q"><summary>Which pseudo-class selects an element when the mouse is over it, and can it be used on elements other than links?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>:hover</code></b>, and <b>yes</b> &mdash; it works on any element, so cards, rows and images can all react.</p></div></details>
+  <details class="q"><summary>Why must you keep a visible <code>:focus</code> style?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It looks better</li><li>B. Keyboard users cannot otherwise see where they are</li><li>C. It is required by CSS</li><li>D. It improves SEO</li></ul>
+    <p><b>Answer: B.</b> Removing outlines with nothing to replace them is a real accessibility failure &mdash; and your syllabus names focus styles explicitly. If the default ring is ugly, replace it with your own.</p></div></details>
+  <details class="q"><summary>Which selects every second list item?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. li:second</li><li>B. li:nth-child(2n)</li><li>C. li:even</li><li>D. li[2]</li></ul>
+    <p><b>Answer: B.</b> <code>nth-child</code> accepts <code>odd</code>, <code>even</code> or a formula such as <code>2n+1</code>. There is no <code>:even</code> or <code>:second</code>.</p></div></details>
+  <details class="q"><summary>In which order must the four link states be written?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>:link</code>, <code>:visited</code>, <code>:hover</code>, <code>:active</code></b> &mdash; remember <b>LoVe HAte</b>. They have equal specificity, so a later rule beats an earlier one; write <code>:hover</code> too early and it never shows.</p></div></details>
+  <details class="q"><summary><code>p:first-child</code> is not matching the first paragraph. Why might that be?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because something else is the first child</b> &mdash; a heading, for instance. <code>p:first-child</code> means "a p that is the first child of its parent". What you probably want is <code>p:first-of-type</code>, which means "the first p among its siblings".</p></div></details>
+  <details class="q"><summary>Which pseudo-class styles a checkbox that is ticked?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>:checked</code></b>. Its relatives are <code>:disabled</code>, <code>:required</code>, <code>:valid</code> and <code>:invalid</code>.</p></div></details>
+  <details class="q"><summary>Why write <code>input:invalid:not(:placeholder-shown)</code> instead of just <code>input:invalid</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>So the field is not marked as wrong before the user has typed anything.</b> An empty required field is technically invalid from the moment the page loads; the <code>:not(:placeholder-shown)</code> part waits until there is something in it.</p></div></details>
+  <details class="q"><summary>What does <code>li:not(:last-child)</code> select?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Every list item except the final one.</b> It is the neat way to put a divider <i>between</i> items with no stray line under the last one.</p></div></details>
+  <details class="q"><summary>Your <code>nav a:hover</code> rule does nothing. What should you check first?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Specificity.</b> A pseudo-class counts as a class, so <code>nav a:hover</code> scores (0,1,2) and still loses to an id rule such as <code>#menu a</code> (1,0,1). Count the winning rule in DevTools and match it &mdash; do not reach for <code>!important</code> (<a href="book.html?ch=23">Chapter 23</a>).</p></div></details>
+  <details class="q"><summary>Which pseudo-class matches the <code>&lt;html&gt;</code> element and is the usual home for CSS variables?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>:root</code></b>. Declaring custom properties there makes them available to every rule on the page (<a href="book.html?ch=36">Chapter 36</a>).</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A pseudo-class uses <b>one colon</b> and styles an element in a state or a position: <code>a:hover</code>.</li>
+    <li>Link states in order &mdash; <b>LoVe HAte</b>: <code>:link</code>, <code>:visited</code>, <code>:hover</code>, <code>:active</code>. <code>:hover</code> works on any element, and does not exist on touch screens.</li>
+    <li>Never remove <code>:focus</code> without replacing it. Keyboard users need to see where they are. <code>:focus-visible</code> gives the tidy version.</li>
+    <li><code>:first-child</code>, <code>:last-child</code>, <code>:nth-child(odd/even/2n+1)</code> select by position. <code>:first-of-type</code> counts only elements of that type.</li>
+    <li>Form states: <code>:checked</code>, <code>:disabled</code>, <code>:required</code>, <code>:valid</code>, <code>:invalid</code>, <code>:placeholder-shown</code>.</li>
+    <li><code>:not()</code> excludes; <code>:root</code> is the html element and holds variables. A pseudo-class counts as a class for specificity.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Selector</th><th>Selects</th></tr></thead>
+    <tbody>
+      <tr><td><code>a:hover</code></td><td>A link under the mouse</td></tr>
+      <tr><td><code>input:focus</code></td><td>The field with keyboard focus</td></tr>
+      <tr><td><code>button:focus-visible</code></td><td>Focused, when a ring is useful</td></tr>
+      <tr><td><code>tr:nth-child(even)</code></td><td>Every second row &mdash; zebra striping</td></tr>
+      <tr><td><code>li:first-child</code></td><td>The first item</td></tr>
+      <tr><td><code>li:not(:last-child)</code></td><td>Everything but the last</td></tr>
+      <tr><td><code>input:checked</code></td><td>A ticked box or radio</td></tr>
+      <tr><td><code>input:invalid</code></td><td>A value that fails its rules</td></tr>
+      <tr><td><code>:root</code></td><td>The html element; home of variables</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/Pseudo-classes" target="_blank" rel="noopener noreferrer">MDN &mdash; Pseudo-classes<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full list. Far longer than this chapter; skim it once for ideas.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/:nth-child" target="_blank" rel="noopener noreferrer">MDN &mdash; :nth-child()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Includes a live tester for An+B formulas, which is the fastest way to learn them.</span></li>
+    <li><a href="https://web.dev/learn/css/pseudo-classes" target="_blank" rel="noopener noreferrer">web.dev &mdash; Pseudo-classes<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Groups them by purpose, the way this chapter did.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

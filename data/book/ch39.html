@@ -1,0 +1,399 @@
+<article class="chapter" data-ch="39">
+<style>
+/* demos for this chapter only - every selector is scoped to .d39 */
+.d39 { display: flex; flex-wrap: wrap; gap: 20px; align-items: center; }
+@keyframes d39spin { to { transform: rotate(360deg); } }
+@keyframes d39pulse { 0%, 100% { transform: scale(1); } 50% { transform: scale(1.14); } }
+@keyframes d39slide { from { transform: translateX(0); } to { transform: translateX(150px); } }
+@keyframes d39fade { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: none; } }
+@keyframes d39dots { 0%, 80%, 100% { opacity: .25; } 40% { opacity: 1; } }
+.d39 .spinner39 { width: 34px; height: 34px; border-radius: 50%;
+  border: 4px solid #E3E9F0; border-top-color: #E07B1E;
+  animation: d39spin 0.9s linear infinite; }
+.d39 .pulse39 { background: #138808; color: #fff; padding: 9px 16px;
+  border-radius: 999px; font-weight: 700; font-size: 13px;
+  animation: d39pulse 1.6s ease-in-out infinite; }
+.d39 .slide39 { width: 34px; height: 34px; border-radius: 8px; background: #4F46E5;
+  animation: d39slide 2s ease-in-out infinite alternate; }
+.d39 .fade39 { background: #FFF1E0; border: 1px solid #E07B1E; padding: 10px 14px;
+  border-radius: 8px; font-size: 14px; animation: d39fade .8s ease-out; }
+.d39 .dots39 span { display: inline-block; width: 9px; height: 9px; border-radius: 50%;
+  background: #0B2545; margin-right: 4px; animation: d39dots 1.4s ease-in-out infinite; }
+.d39 .dots39 span:nth-child(2) { animation-delay: .2s; }
+.d39 .dots39 span:nth-child(3) { animation-delay: .4s; }
+@media (prefers-reduced-motion: reduce) {
+  .d39 * { animation: none !important; }
+}
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 39 &middot; CSS Animations</p>
+  <h1>CSS Animations</h1>
+  <p class="lead">A transition needs something to happen: a hover, a click, a class being added. An animation runs on its own, can have as many steps as you like, and can repeat for ever. This is how a loading spinner spins and a notification badge pulses &mdash; and it is the last chapter of Unit 3.</p>
+  <p class="meta">About 24 minutes &middot; Course outcome CO3 &middot; The final chapter</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A <b>transition</b> smooths a change between two states (<a href="book.html?ch=38">Chapter 38</a>).</li>
+      <li><code>transform</code> and <code>opacity</code> are the smoothest properties to animate (<a href="book.html?ch=38">Chapter 38</a>).</li>
+      <li><code>prefers-reduced-motion</code> is how a reader asks for less movement (<a href="book.html?ch=38">Chapter 38</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a <code>@keyframes</code> rule and apply it with <code>animation</code>.</li>
+      <li>Control repetition, direction and what happens before and after.</li>
+      <li>Say exactly when to use an animation and when a transition is the better tool.</li>
+      <li>Build a spinner, a pulse and a fade-in.</li>
+      <li>Keep motion accessible.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>39.1 Two halves: define, then apply</h2>
+  <p>An animation always comes in two pieces, and they are written separately.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 190" role="img" aria-label="Keyframes define the steps; the animation property applies them">
+      <rect x="20" y="20" width="270" height="130" rx="12" class="box saf"/>
+      <text x="155" y="44" class="t c b">1 &middot; DEFINE the steps</text>
+      <text x="155" y="66" class="t c b mono" style="font-size:12px">@keyframes grow {</text>
+      <text x="155" y="84" class="t c mono" style="font-size:11.5px">from { transform: scale(1); }</text>
+      <text x="155" y="102" class="t c mono" style="font-size:11.5px">to   { transform: scale(1.3); }</text>
+      <text x="155" y="120" class="t c b mono" style="font-size:12px">}</text>
+      <text x="155" y="140" class="t c s">a named recipe &mdash; nothing moves yet</text>
+      <path d="M296 85 L326 85" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="332" y="20" width="268" height="130" rx="12" class="box grn"/>
+      <text x="466" y="44" class="t c b">2 &middot; APPLY it</text>
+      <text x="466" y="68" class="t c b mono" style="font-size:12px">.badge {</text>
+      <text x="466" y="88" class="t c mono" style="font-size:11.5px">animation: grow 1.5s ease-in-out</text>
+      <text x="466" y="106" class="t c mono" style="font-size:11.5px">infinite alternate;</text>
+      <text x="466" y="124" class="t c b mono" style="font-size:12px">}</text>
+      <text x="466" y="142" class="t c s">now it runs</text>
+      <text x="310" y="178" class="t c s">@keyframes alone does nothing. The animation property alone has nothing to run.</text>
+    </svg>
+    <figcaption><b>Figure 39.1</b> <code>@keyframes</code> writes the recipe; <code>animation</code> cooks it. You always need both.</figcaption>
+  </figure>
+  <pre class="code">/* 1. define the steps, and give them a name */
+@keyframes grow {
+  from { transform: scale(1); }
+  to   { transform: scale(1.3); }
+}
+
+/* 2. apply that name to an element */
+.badge {
+  animation: grow 1.5s ease-in-out infinite alternate;
+}</pre>
+  <p>The name (<code>grow</code>) is yours to choose. It is the only link between the two halves, so a typo in either place means nothing happens &mdash; silently, as ever.</p>
+</section>
+
+<section id="s2">
+  <h2>39.2 Writing @keyframes</h2>
+  <p>Inside the braces you list the <b>stages</b> of the animation. Two ways to write them:</p>
+  <pre class="code">/* two steps: from and to */
+@keyframes fade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* any number of steps, as percentages of the total time */
+@keyframes pulse {
+  0%   { transform: scale(1); }
+  50%  { transform: scale(1.14); }
+  100% { transform: scale(1); }
+}</pre>
+  <p><code>from</code> is simply <code>0%</code> and <code>to</code> is <code>100%</code>. Percentages are of the <i>duration</i>, not of any distance: in a two-second animation, <code>50%</code> happens one second in.</p>
+  <p>The browser fills in every frame between the stages you wrote. You describe the milestones; it does the work.</p>
+  <p>You can group stages that share a value, which keeps things short:</p>
+  <pre class="code">@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50%      { opacity: 0.2; }
+}</pre>
+</section>
+
+<section id="s3">
+  <h2>39.3 The animation properties</h2>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Values</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>animation-name</code></td><td>The <code>@keyframes</code> name</td><td>Which recipe to run</td></tr>
+      <tr><td><code>animation-duration</code></td><td><code>1.5s</code>, <code>800ms</code></td><td>How long one run takes. <b>Required</b> &mdash; the default is 0.</td></tr>
+      <tr><td><code>animation-timing-function</code></td><td><code>ease</code>, <code>linear</code>, <code>ease-in-out</code></td><td>The speed curve, as in <a href="book.html?ch=38">Chapter 38</a></td></tr>
+      <tr><td><code>animation-delay</code></td><td><code>0.3s</code></td><td>Wait before the first run</td></tr>
+      <tr><td><code>animation-iteration-count</code></td><td><code>1</code>, <code>3</code>, <code>infinite</code></td><td>How many times. Default is 1.</td></tr>
+      <tr><td><code>animation-direction</code></td><td><code>normal</code>, <code>reverse</code>, <code>alternate</code></td><td><code>alternate</code> plays forwards, then backwards, so it returns smoothly</td></tr>
+      <tr><td><code>animation-fill-mode</code></td><td><code>none</code>, <code>forwards</code>, <code>backwards</code>, <code>both</code></td><td><code>forwards</code> keeps the final frame instead of snapping back</td></tr>
+      <tr><td><code>animation-play-state</code></td><td><code>running</code>, <code>paused</code></td><td>Pause it &mdash; often on <code>:hover</code></td></tr>
+    </tbody>
+  </table>
+  <p>The shorthand takes them in a readable order, and you can leave out anything you do not need:</p>
+  <pre class="code">animation: pulse 1.6s ease-in-out infinite alternate;
+/*         |     |    |           |        |
+           |     |    |           |        direction
+           |     |    |           iteration-count
+           |     |    timing-function
+           |     duration
+           name                                        */</pre>
+  <div class="callout warn"><b>Two gotchas.</b> (1) With no <code>animation-duration</code> nothing runs, however correct your keyframes. (2) Without <code>animation-fill-mode: forwards</code>, an animation that runs once <b>snaps back</b> to the original styles the instant it finishes &mdash; which looks like a bug and is the commonest surprise with one-shot animations.</div>
+</section>
+
+<section id="s4">
+  <h2>39.4 The four animations you will actually build</h2>
+  <div class="demo">
+    <p class="dlab">Live &mdash; all five running right now, entirely in CSS</p>
+    <div class="d39">
+      <div class="spinner39"></div>
+      <div class="pulse39">3 new</div>
+      <div class="slide39"></div>
+      <div class="fade39">I faded in when this chapter loaded</div>
+      <div class="dots39"><span></span><span></span><span></span></div>
+    </div>
+  </div>
+  <h3>A loading spinner</h3>
+  <p>A circle with one coloured edge, rotated for ever. It is four declarations and no image file.</p>
+  <pre class="code" data-run data-title="A spinner" data-h="190">&lt;style&gt;
+  body { display: grid; place-items: center; height: 140px; }
+  .spinner {
+    width: 44px; height: 44px;
+    border: 5px solid #E3E9F0;
+    border-top-color: #E07B1E;     /* one edge coloured, so you see it turn */
+    border-radius: 50%;
+    animation: spin 0.9s linear infinite;
+  }
+  @keyframes spin { to { transform: rotate(360deg); } }
+&lt;/style&gt;
+&lt;div class="spinner"&gt;&lt;/div&gt;</pre>
+  <p>Note two choices. <code>linear</code>, because a spinner that speeds up and slows down looks broken. And only a <code>to</code> stage &mdash; when you leave out <code>from</code>, the browser uses the element's current style as the starting point.</p>
+  <h3>A pulse, to draw the eye</h3>
+  <pre class="code" data-run data-title="A pulsing notification badge" data-h="180">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 24px; }
+  .badge {
+    display: inline-block; background: #C42B2B; color: #fff;
+    padding: 6px 14px; border-radius: 999px; font-weight: 700;
+    animation: pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50%      { transform: scale(1.15); }
+  }
+&lt;/style&gt;
+&lt;span class="badge"&gt;3 new messages&lt;/span&gt;</pre>
+  <h3>A fade-in for content arriving</h3>
+  <pre class="code" data-run data-title="Cards that fade in one after another" data-h="280">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; background: #F1F5F9; padding: 18px; }
+  .card {
+    background: #fff; border-radius: 10px; padding: 14px 16px;
+    margin-bottom: 10px; box-shadow: 0 2px 6px rgba(16,32,64,.08);
+    opacity: 0;                                   /* start invisible   */
+    animation: fadeUp .5s ease-out forwards;      /* forwards: STAY visible */
+  }
+  .card:nth-child(2) { animation-delay: .15s; }
+  .card:nth-child(3) { animation-delay: .30s; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+&lt;/style&gt;
+&lt;div class="card"&gt;CSE326 Internet Programming&lt;/div&gt;
+&lt;div class="card"&gt;CSE305 Database Systems&lt;/div&gt;
+&lt;div class="card"&gt;CSE201 Data Structures&lt;/div&gt;</pre>
+  <p>Three things worth noticing there. <code>forwards</code> keeps the final frame, so the cards stay visible. Different <code>animation-delay</code> values on each card produce the staggered arrival. And <code>:nth-child</code> from <a href="book.html?ch=32">Chapter 32</a> applies the delays without extra classes.</p>
+  <h3>Typing dots</h3>
+  <p>Three dots, the same animation on each, staggered by a delay &mdash; the pattern is identical to the fade above.</p>
+</section>
+
+<section id="s5">
+  <h2>39.5 Animation or transition?</h2>
+  <table class="tbl">
+    <thead><tr><th></th><th>Transition</th><th>Animation</th></tr></thead>
+    <tbody>
+      <tr><td>Starts</td><td>Only when something changes (hover, focus, a class)</td><td>By itself, as soon as the element exists</td></tr>
+      <tr><td>Steps</td><td>Two: the from and the to</td><td>As many as you like</td></tr>
+      <tr><td>Repeats</td><td>No</td><td>Yes &mdash; any number, or <code>infinite</code></td></tr>
+      <tr><td>Written as</td><td>One property</td><td><code>@keyframes</code> plus the <code>animation</code> property</td></tr>
+      <tr><td>Best for</td><td>Hovers, buttons, panels opening</td><td>Spinners, pulses, entrances, anything with several stages</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>If the movement is a <b>reaction</b> to the user, use a transition. If it should happen <b>on its own</b>, or has more than two steps, or repeats, use an animation. When either would work, the transition is simpler &mdash; choose it.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>39.6 Using motion responsibly</h2>
+  <p>Animation is the easiest thing in CSS to overdo, and the fastest way to make a page feel amateur. Four rules:</p>
+  <ol>
+    <li><b>Give it a job.</b> Motion should show a relationship, draw attention to something that changed, or say "wait". Motion for its own sake is noise.</li>
+    <li><b>Never animate body text.</b> Text that moves cannot be read, and for a dyslexic reader it can be impossible.</li>
+    <li><b>Beware infinite loops.</b> Anything repeating for ever competes for attention permanently. A spinner earns it, because it means "still working". A bouncing arrow does not.</li>
+    <li><b>Honour <code>prefers-reduced-motion</code>.</b> WCAG 2.2 also requires that any animation running for more than five seconds can be paused.</li>
+  </ol>
+  <pre class="code">@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}</pre>
+  <p>Put that at the end of every stylesheet. It is five lines and it is the difference between a site someone can use and one that makes them feel ill.</p>
+  <p>And a reminder from <a href="book.html?ch=38">Chapter 38</a>: animate <code>transform</code> and <code>opacity</code> wherever you can. Animating <code>width</code>, <code>height</code>, <code>top</code> or <code>margin</code> forces the browser to re-calculate the layout on every single frame, and on a modest phone that stutters visibly.</p>
+</section>
+
+<section id="s7">
+  <h2>39.7 Build it: the finished profile page</h2>
+  <p>This is the whole of Unit 3 in one file &mdash; variables, the box model, Grid, Flexbox, pseudo-classes, pseudo-elements, a transition and an animation, and a media query for readers who want less motion.</p>
+  <pre class="code" data-run data-title="Project, final step: everything you have learned" data-h="440" data-tall>&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+&lt;meta charset="UTF-8"&gt;
+&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+&lt;title&gt;Asha Kumar | Student Profile&lt;/title&gt;
+&lt;style&gt;
+  :root {
+    --brand: #E07B1E; --ink: #0B2545; --body: #3C4A60;
+    --surface: #fff; --bg: #F1F5F9; --line: #E3E9F0; --radius: 12px;
+  }
+  * { box-sizing: border-box; }
+  img { max-width: 100%; height: auto; }
+
+  body { font-family: system-ui, sans-serif; background: var(--bg);
+         color: var(--body); line-height: 1.7; margin: 0; padding: 18px; }
+  .page { max-width: 900px; margin: 0 auto; }
+
+  h1 { font-size: clamp(1.6rem, 5vw, 2.4rem); color: var(--ink); margin: 0; }
+  .eyebrow { font-size: .72rem; font-weight: 800; letter-spacing: .15em;
+             text-transform: uppercase; color: var(--brand); margin: 0; }
+
+  .grid { display: grid; gap: 14px;
+          grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); }
+
+  .card {
+    background: var(--surface); border: 1px solid var(--line);
+    border-left: 5px solid var(--line); border-radius: var(--radius);
+    padding: 16px 18px; position: relative;
+    opacity: 0; animation: fadeUp .5s ease-out forwards;
+    transition: transform .22s ease, box-shadow .22s ease,
+                border-left-color .22s ease;
+  }
+  .card:nth-child(2) { animation-delay: .1s; }
+  .card:nth-child(3) { animation-delay: .2s; }
+  .card:hover { transform: translateY(-4px); border-left-color: var(--brand);
+                box-shadow: 0 12px 24px rgba(16,32,64,.15); }
+  .card h3 { margin: 0 0 4px; color: var(--ink); font-size: 1rem; }
+  .card p  { margin: 0; font-size: .88rem; }
+
+  .card.featured { --line: var(--brand); background: #FFF8F0; }
+  .card.featured::before {
+    content: "Featured"; position: absolute; top: -10px; right: 14px;
+    background: var(--brand); color: #fff; font-size: 11px; font-weight: 700;
+    padding: 2px 10px; border-radius: 999px;
+  }
+
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+  .tags span { background: #E9F7E7; color: #0B6205; padding: 4px 12px;
+               border-radius: 999px; font-size: .8rem; font-weight: 700; }
+
+  .btn { display: inline-block; text-decoration: none; font-weight: 700;
+         background: var(--ink); color: #fff; padding: 11px 22px;
+         border-radius: 999px; margin-top: 16px;
+         transition: background-color .2s ease, transform .12s ease; }
+  .btn:hover { background: var(--brand); }
+  .btn:active { transform: scale(.96); }
+  .btn:focus-visible { outline: 3px solid #FF9933; outline-offset: 3px; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(14px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    *, *::before, *::after {
+      animation-duration: .01ms !important; animation-iteration-count: 1 !important;
+      transition-duration: .01ms !important;
+    }
+    .card { opacity: 1; }
+  }
+&lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+&lt;div class="page"&gt;
+  &lt;p class="eyebrow"&gt;Student profile&lt;/p&gt;
+  &lt;h1&gt;Asha Kumar&lt;/h1&gt;
+  &lt;p&gt;B.Tech Computer Science, first year.&lt;/p&gt;
+
+  &lt;div class="grid"&gt;
+    &lt;div class="card featured"&gt;&lt;h3&gt;CSE326&lt;/h3&gt;&lt;p&gt;Internet Programming &mdash; in progress.&lt;/p&gt;&lt;/div&gt;
+    &lt;div class="card"&gt;&lt;h3&gt;CSE305&lt;/h3&gt;&lt;p&gt;Database Systems &mdash; completed.&lt;/p&gt;&lt;/div&gt;
+    &lt;div class="card"&gt;&lt;h3&gt;CSE201&lt;/h3&gt;&lt;p&gt;Data Structures &mdash; completed.&lt;/p&gt;&lt;/div&gt;
+  &lt;/div&gt;
+
+  &lt;div class="tags"&gt;&lt;span&gt;HTML&lt;/span&gt;&lt;span&gt;CSS&lt;/span&gt;&lt;span&gt;JavaScript&lt;/span&gt;&lt;span&gt;React&lt;/span&gt;&lt;/div&gt;
+  &lt;a class="btn" href="#"&gt;Continue Learning&lt;/a&gt;
+&lt;/div&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Read that stylesheet top to bottom and name each technique as you pass it. If you can do that, Unit 3 is yours &mdash; and the page in front of you is the task from your lecture slides, finished.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which pair defines an animation?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. @media and animate</li><li>B. @keyframes and animation</li><li>C. @motion and move</li><li>D. transition and transform</li></ul>
+    <p><b>Answer: B.</b> <code>@keyframes</code> defines the steps; the <code>animation</code> property applies them to an element. Neither does anything alone.</p></div></details>
+  <details class="q"><summary>What do <code>from</code> and <code>to</code> mean inside <code>@keyframes</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>from</code> is <code>0%</code> and <code>to</code> is <code>100%</code></b> of the animation's duration. Percentages let you add as many intermediate stages as you like.</p></div></details>
+  <details class="q"><summary>Which value makes an animation repeat for ever?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>animation-iteration-count: infinite;</code></b>, or <code>infinite</code> inside the <code>animation</code> shorthand. The default is 1.</p></div></details>
+  <details class="q"><summary>An animation runs once and then snaps back to the original style. What is missing?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>animation-fill-mode: forwards;</code></b> &mdash; it keeps the final keyframe after the animation ends. Without it, the element reverts the moment the last frame is drawn.</p></div></details>
+  <details class="q"><summary>What does <code>animation-direction: alternate</code> do?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Plays the animation forwards, then backwards, then forwards again.</b> It is what makes a pulse or a slide return smoothly instead of jumping back to the start.</p></div></details>
+  <details class="q"><summary>Which timing function suits a loading spinner, and why?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>linear</code></b> &mdash; a constant speed. With <code>ease</code> the spinner would speed up and slow down on every turn, which reads as broken rather than busy.</p></div></details>
+  <details class="q"><summary>When should you use a transition rather than an animation?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>When the movement is a reaction to the user</b> &mdash; a hover, a focus, a class being toggled &mdash; and there are only two states. Use an animation when it must run on its own, has more than two steps, or repeats.</p></div></details>
+  <details class="q"><summary>Why animate <code>transform</code> rather than <code>top</code> or <code>width</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because <code>transform</code> and <code>opacity</code> can be handled by the graphics card and do not affect the layout.</b> Animating <code>top</code>, <code>width</code>, <code>height</code> or <code>margin</code> forces the browser to re-calculate positions every frame, which stutters on a modest phone.</p></div></details>
+  <details class="q"><summary>Your keyframes look right but nothing moves. Name two likely causes.<span class="lvl">L3</span></summary><div class="a">
+    <p><b>(1) No <code>animation-duration</code></b> &mdash; it defaults to 0, so the animation finishes instantly. <b>(2) The name does not match</b> between the <code>@keyframes</code> rule and the <code>animation</code> property. Both fail silently.</p></div></details>
+  <details class="q"><summary>Give two rules for using animation responsibly.<span class="lvl">L2</span></summary><div class="a">
+    <p>Any two of: give every animation a job; never animate body text; be sparing with infinite loops; honour <code>prefers-reduced-motion</code>; allow anything running over five seconds to be paused (WCAG 2.2).</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Two halves: <code>@keyframes name { ... }</code> defines the steps, <code>animation: name duration ...</code> applies them. The name links them.</li>
+    <li>Steps are <code>from</code>/<code>to</code> or percentages of the duration; group stages with commas.</li>
+    <li><code>animation: name duration timing-function iteration-count direction;</code>. Duration is required; <code>infinite</code> repeats; <code>alternate</code> plays back and forth; <code>forwards</code> keeps the last frame.</li>
+    <li>Transition = a reaction with two states. Animation = self-starting, multi-step or repeating.</li>
+    <li>Animate <code>transform</code> and <code>opacity</code>. Stagger several elements with <code>animation-delay</code> and <code>:nth-child</code>.</li>
+    <li>Always add the <code>prefers-reduced-motion</code> block.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>@keyframes spin { to { transform: rotate(360deg); } }</code></td><td>Define one full turn</td></tr>
+      <tr><td><code>animation: spin .9s linear infinite;</code></td><td>A loading spinner</td></tr>
+      <tr><td><code>animation: pulse 1.6s ease-in-out infinite;</code></td><td>A badge that breathes</td></tr>
+      <tr><td><code>animation: fadeUp .5s ease-out forwards;</code></td><td>Fade in and stay</td></tr>
+      <tr><td><code>animation-delay: .15s;</code></td><td>Stagger a group</td></tr>
+      <tr><td><code>animation-play-state: paused;</code></td><td>Stop it, often on hover</td></tr>
+      <tr><td><code>@media (prefers-reduced-motion: reduce)</code></td><td>Switch motion off for those who asked</td></tr>
+    </tbody>
+  </table>
+  <div class="callout why"><b>That is Unit 3.</b> You started with a page that looked like a photocopy and finished with one that is laid out, themed, responsive, accessible and alive. Every piece of it was one small idea at a time: a rule has a selector and declarations, everything is a box, layout is Flexbox or Grid, states use a colon, values can be named, and motion is a transition or an animation. Go back through the Playground examples and change them &mdash; that is where it becomes yours.</div>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/@keyframes" target="_blank" rel="noopener noreferrer">MDN &mdash; @keyframes<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Percentage keyframes, from/to, and the rules about missing properties.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/animation" target="_blank" rel="noopener noreferrer">MDN &mdash; animation shorthand<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">All eight animation sub-properties in the order the shorthand expects.</span></li>
+    <li><a href="https://www.w3.org/WAI/WCAG22/Understanding/animation-from-interactions" target="_blank" rel="noopener noreferrer">W3C &mdash; Animation from interactions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Why prefers-reduced-motion is an accessibility requirement, not a nicety.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

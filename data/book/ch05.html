@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 5 &middot; HTML Elements and Attributes</p>
   <h1>HTML Elements and Attributes</h1>
   <p class="lead">Elements say what something <i>is</i>; attributes say the details. This chapter catalogues the attributes every element accepts, the ones that belong to particular elements, the special rules for boolean attributes and unique ids, and the block-versus-inline distinction that decides what may be nested inside what.</p>
-  <p class="meta">About 15 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <p class="meta">About 24 minutes &middot; Course outcome CO1 &middot; Builds on Chapter 3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>An element is opening tag + content + closing tag &mdash; <a href="book.html?ch=3">Chapter 3</a> (tags and elements).</li>
+      <li>The head is invisible metadata, the body is everything visible &mdash; <a href="book.html?ch=4">Chapter 4</a> (document structure).</li>
+      <li>Attributes go inside the <i>opening</i> tag only, never the closing one.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,7 +26,8 @@
 
 <section id="s1">
   <h2>5.1 Elements express meaning; attributes configure them</h2>
-  <p>An element tells the browser what a piece of content is: a link, an image, a paragraph. An attribute tells it the specifics: <i>where</i> the link goes, <i>which</i> image file, <i>which</i> language. The summary you should be able to recite: <b>elements express meaning; attributes configure them</b>. They are not interchangeable, and attributes never appear on closing tags.</p>
+  <div class="plain">The element name says <i>what the thing is</i>. The attributes say <i>which one</i> and <i>how</i>. &ldquo;An image&rdquo; is the element; &ldquo;this particular file, described as a photo of the library&rdquo; is the attributes.</div>
+  <p>An element tells the browser what a piece of content is: a link, an image, a paragraph. An <span class="jw" data-def="A setting written inside the opening tag as name=&quot;value&quot;, which configures that one element.">attribute</span> tells it the specifics: <i>where</i> the link goes, <i>which</i> image file, <i>which</i> language. The summary you should be able to recite: <b>elements express meaning; attributes configure them</b>. They are not interchangeable, and attributes never appear on closing tags.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 200" role="img" aria-label="An img element with four attributes annotated">
       <g class="mono" style="font-size:20px;font-weight:700">
@@ -40,6 +49,7 @@
 
 <section id="s2">
   <h2>5.2 Global attributes: valid on almost every element</h2>
+  <div class="callout analogy"><b>id is your registration number; class is your course.</b> Your registration number belongs to you alone &mdash; that is <code>id</code>, and no two students may share one. Your course is shared by hundreds of students, and you can be on more than one &mdash; that is <code>class</code>. This is why you style with classes and pick out single things with ids.</div>
   <p>A small set of attributes can be applied to virtually any element. Learn these seven.</p>
   <table class="tbl">
     <thead><tr><th>Attribute</th><th>Purpose</th><th>Example</th></tr></thead>
@@ -66,7 +76,7 @@
   <h3>class: reusable, and multiple</h3>
   <p>A class groups elements that share a role or a look. Many elements can carry the same class, and one element can carry several: <code>class="card featured"</code> is two classes. CSS (Unit 3) selects classes with a dot (<code>.card</code>), ids with a hash (<code>#about</code>).</p>
   <h3>style: inline CSS</h3>
-  <p><code>style="..."</code> lets you write CSS directly on one element. It works, but it mixes presentation into structure, cannot be reused and overrides your stylesheet, so in real projects you keep CSS in an external file linked from the head (Chapter 12). You will still see inline styles in quick demos, including some in this book.</p>
+  <p><code>style="..."</code> lets you write CSS directly on one element. It works, but it mixes presentation into structure, cannot be reused and overrides your stylesheet, so in real projects you keep CSS in an external file linked from the head (Chapter 12). You will still see <span class="jw" data-def="Sits inside a line of text without starting a new line, the way a bold word sits inside a sentence.">inline</span> styles in quick demos, including some in this book.</p>
 </section>
 
 <section id="s3">
@@ -92,7 +102,7 @@
 
 <section id="s4">
   <h2>5.4 Boolean attributes: presence is everything</h2>
-  <p>Some attributes are switches rather than settings: <code>required</code>, <code>disabled</code>, <code>checked</code>, <code>selected</code>, <code>readonly</code>, <code>multiple</code>, <code>hidden</code>, <code>autofocus</code>, <code>controls</code>, <code>autoplay</code>, <code>muted</code>, <code>loop</code>, <code>reversed</code>. These are <b>boolean attributes</b>, and the rule is simple but surprising: <b>the browser only checks whether the attribute is present</b>. Its value is ignored.</p>
+  <p>Some attributes are switches rather than settings: <code>required</code>, <code>disabled</code>, <code>checked</code>, <code>selected</code>, <code>readonly</code>, <code>multiple</code>, <code>hidden</code>, <code>autofocus</code>, <code>controls</code>, <code>autoplay</code>, <code>muted</code>, <code>loop</code>, <code>reversed</code>. These are <b><span class="jw" data-def="An on/off setting that counts as ON simply by being present. Writing it equal to &quot;false&quot; does not switch it off; you have to delete it.">boolean</span> attributes</b>, and the rule is simple but surprising: <b>the browser only checks whether the attribute is present</b>. Its value is ignored.</p>
   <pre class="code">&lt;input required&gt;           &#8592; required
 &lt;input required="required"&gt; &#8592; also required
 &lt;input required="false"&gt;    &#8592; STILL required: the attribute is present
@@ -100,8 +110,14 @@
   <p>So <code>&lt;video controls="false"&gt;</code> <b>shows the controls anyway</b>. To switch a boolean attribute off you remove it entirely. This catches people who come from programming languages where <code>false</code> means off.</p>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: why is <code>&lt;p&gt;text &lt;div&gt;more&lt;/div&gt;&lt;/p&gt;</code> a problem?</summary>
+    <p>A <code>div</code> is a block element and a <code>p</code> may only contain inline content, so the browser silently closes the paragraph before the div. Your page ends up with a structure you did not write.</p>
+  </details>
+
 <section id="s5">
   <h2>5.5 Block-level and inline elements</h2>
+  <div class="plain">Block elements take a whole line to themselves and stack downwards, like paragraphs in a letter. Inline elements sit inside a line of text without breaking it, like a bold word in the middle of a sentence.</div>
   <p>Every element has a default way of flowing on the page. <b>Block-level</b> elements start on a new line and stretch across the full available width, stacking like bricks: <code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code>&ndash;<code>&lt;h6&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;ol&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;form&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;blockquote&gt;</code>, <code>&lt;pre&gt;</code>, <code>&lt;hr&gt;</code>. <b>Inline</b> elements flow within a line of text and take only the width of their content: <code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;i&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;abbr&gt;</code>, <code>&lt;label&gt;</code>, <code>&lt;input&gt;</code>, <code>&lt;br&gt;</code>.</p>
   <figure class="fig narrow">
     <svg viewBox="0 0 620 230" role="img" aria-label="Block elements stack as full-width boxes; inline elements flow inside a line of text">
@@ -140,6 +156,11 @@
 &lt;p class="b"&gt;A paragraph too. But &lt;span class="wide"&gt;this span&lt;/span&gt; ignores width,
 while &lt;span class="fixed"&gt;this inline-block span&lt;/span&gt; respects it.&lt;/p&gt;</pre>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: when should you reach for a <code>div</code>?</summary>
+    <p>Only when no element with real meaning fits. If the thing is a navigation menu use <code>nav</code>; if it is the main content use <code>main</code>. <code>div</code> is the box you use when there is genuinely nothing to say about what the content <i>is</i>.</p>
+  </details>
 
 <section id="s6">
   <h2>5.6 The generic containers: div and span</h2>

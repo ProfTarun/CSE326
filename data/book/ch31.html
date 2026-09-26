@@ -1,0 +1,352 @@
+<article class="chapter" data-ch="31">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 31 &middot; CSS Grid Layout</p>
+  <h1>CSS Grid Layout</h1>
+  <p class="lead">Flexbox arranges things along a line. Grid arranges them in <b>rows and columns at the same time</b> &mdash; a real two-dimensional layout, drawn on the page like a plan. It is the tool for page structure: a header, a sidebar, a main area and a footer, described in a few lines that read almost like a picture.</p>
+  <p class="meta">About 24 minutes &middot; Course outcome CO3 &middot; Builds on Chapter 30</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>display: flex</code> goes on the parent; its children become items (<a href="book.html?ch=30">Chapter 30</a>).</li>
+      <li><code>gap</code> puts space between items and not at the ends (<a href="book.html?ch=30">Chapter 30</a>).</li>
+      <li><code>%</code> is a share of the parent; <code>px</code> is fixed (<a href="book.html?ch=25">Chapter 25</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say when to reach for Grid and when for Flexbox.</li>
+      <li>Define columns and rows, and explain what <code>fr</code> means.</li>
+      <li>Use <code>repeat()</code>, <code>minmax()</code> and <code>auto-fit</code> to build a responsive grid with no media query.</li>
+      <li>Make one item span several columns or rows.</li>
+      <li>Lay out a whole page with named areas.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>31.1 One dimension or two</h2>
+  <p>Both Flexbox and Grid are switched on with one declaration on the parent, and both arrange children. The difference is how many directions you are controlling at once.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 200" role="img" aria-label="Flexbox arranges along one line, Grid arranges rows and columns together">
+      <rect x="20" y="30" width="310" height="152" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <text x="175" y="22" class="t c b">FLEXBOX &mdash; one dimension</text>
+      <rect x="40" y="56" width="80" height="46" rx="7" class="box saf"/>
+      <rect x="128" y="56" width="80" height="46" rx="7" class="box saf"/>
+      <rect x="216" y="56" width="80" height="46" rx="7" class="box saf"/>
+      <path d="M40 116 L296 116" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="175" y="140" class="t c s">items flow along ONE line</text>
+      <text x="175" y="158" class="t c s">they wrap when they run out of room,</text>
+      <text x="175" y="172" class="t c s">but each line is worked out separately</text>
+      <rect x="390" y="30" width="310" height="152" rx="12" fill="#fff" stroke="#E3E9F0"/>
+      <text x="545" y="22" class="t c b">GRID &mdash; two dimensions</text>
+      <g>
+        <rect x="412" y="52" width="86" height="40" rx="6" class="box grn"/>
+        <rect x="506" y="52" width="86" height="40" rx="6" class="box grn"/>
+        <rect x="600" y="52" width="86" height="40" rx="6" class="box grn"/>
+        <rect x="412" y="100" width="86" height="40" rx="6" class="box grn"/>
+        <rect x="506" y="100" width="86" height="40" rx="6" class="box grn"/>
+        <rect x="600" y="100" width="86" height="40" rx="6" class="box grn"/>
+      </g>
+      <path d="M412 150 L686 150" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M400 52 L400 140" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="545" y="160" class="t c s">rows AND columns are defined together,</text>
+      <text x="545" y="174" class="t c s">so things line up in both directions</text>
+    </svg>
+    <figcaption><b>Figure 31.1</b> Flex for a line of things. Grid for a plan with rows and columns.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Laying out a navigation bar, a row of tags or a card's inner parts? <b>Flexbox.</b> Laying out the page itself, or a gallery where everything must line up in both directions? <b>Grid.</b> They work happily together: a grid cell often contains a flex container.</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>31.2 Columns, and the fr unit</h2>
+  <p>Two declarations get you a grid:</p>
+  <pre class="code">.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr;   /* three equal columns */
+}</pre>
+  <p><code>grid-template-columns</code> <b>defines the number and size of the columns</b>. You write one value per column, so three values means three columns.</p>
+  <h3>What is fr?</h3>
+  <p><code>fr</code> is a unit that exists only in Grid. It means <b>one share of the leftover space</b>. The browser measures what space remains after any fixed sizes and gaps, then divides it into shares.</p>
+  <table class="tbl">
+    <thead><tr><th>Written</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>1fr 1fr</code></td><td>Two equal columns, half each</td></tr>
+      <tr><td><code>2fr 1fr</code></td><td>Three shares in total: the first column gets two of them, the second gets one</td></tr>
+      <tr><td><code>200px 1fr</code></td><td>A fixed 200px sidebar, and the rest for the main area</td></tr>
+      <tr><td><code>1fr 1fr 1fr</code></td><td>Three equal columns</td></tr>
+    </tbody>
+  </table>
+  <p>Why not use percentages? Because <code>33.33% &times; 3</code> plus a gap adds up to more than 100% and overflows. <code>fr</code> shares out what is <i>actually left</i> after the gaps, so it always fits.</p>
+  <pre class="code" data-run data-title="fr in action" data-h="260">&lt;style&gt;
+  .grid { display: grid; gap: 10px; margin-bottom: 14px; }
+  .g1 { grid-template-columns: 1fr 1fr 1fr; }
+  .g2 { grid-template-columns: 2fr 1fr; }
+  .g3 { grid-template-columns: 180px 1fr; }
+  .grid div { background: #FFF1E0; border: 1px solid #E07B1E;
+              padding: 12px; border-radius: 8px; text-align: center; }
+&lt;/style&gt;
+&lt;div class="grid g1"&gt;&lt;div&gt;1fr&lt;/div&gt;&lt;div&gt;1fr&lt;/div&gt;&lt;div&gt;1fr&lt;/div&gt;&lt;/div&gt;
+&lt;div class="grid g2"&gt;&lt;div&gt;2fr&lt;/div&gt;&lt;div&gt;1fr&lt;/div&gt;&lt;/div&gt;
+&lt;div class="grid g3"&gt;&lt;div&gt;180px&lt;/div&gt;&lt;div&gt;1fr&lt;/div&gt;&lt;/div&gt;</pre>
+  <h3>Rows</h3>
+  <p><code>grid-template-rows</code> does the same for row heights. You often leave it out: rows are created automatically as items need them, and their height comes from the content, which is usually what you want.</p>
+  <pre class="code">.grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-rows: 80px auto;   /* a fixed first row, then as tall as needed */
+  gap: 12px;
+}</pre>
+</section>
+
+<section id="s3">
+  <h2>31.3 repeat(), minmax() and the responsive grid</h2>
+  <h3>repeat()</h3>
+  <p>Writing <code>1fr 1fr 1fr 1fr 1fr 1fr</code> is tedious. <code>repeat()</code> says it once:</p>
+  <pre class="code">grid-template-columns: repeat(6, 1fr);      /* six equal columns   */
+grid-template-columns: repeat(3, 200px);    /* three 200px columns */</pre>
+  <h3>minmax()</h3>
+  <p><code>minmax(min, max)</code> gives a column a floor and a ceiling: <code>minmax(200px, 1fr)</code> means "at least 200px wide, but take a share of the leftover space if there is any".</p>
+  <h3>auto-fit: a responsive gallery in one line</h3>
+  <p>Now put them together. This is the single most useful line in modern CSS layout:</p>
+  <pre class="code">grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));</pre>
+  <p>Read it as an instruction to the browser: <i>"Fit as many columns as you can. Each one must be at least 200px. Share any leftover space equally between them."</i></p>
+  <p>The result: three columns on a laptop, two on a tablet, one on a phone &mdash; <b>and you wrote no media query at all</b>. The browser recalculates as the window changes.</p>
+  <pre class="code" data-run data-title="Drag the preview edge and watch the columns rearrange" data-h="280">&lt;style&gt;
+  .gallery {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 12px;
+  }
+  .gallery div {
+    background: #fff; border: 1px solid #E3E9F0; border-radius: 10px;
+    padding: 16px; text-align: center; font-weight: 700; color: #0B2545;
+  }
+&lt;/style&gt;
+&lt;div class="gallery"&gt;
+  &lt;div&gt;HTML&lt;/div&gt;&lt;div&gt;CSS&lt;/div&gt;&lt;div&gt;JavaScript&lt;/div&gt;
+  &lt;div&gt;React&lt;/div&gt;&lt;div&gt;Git&lt;/div&gt;&lt;div&gt;SQL&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p><code>auto-fill</code> is the close relative of <code>auto-fit</code>. The difference only shows when there are too few items to fill a row: <code>auto-fit</code> stretches the items you have to fill the width, while <code>auto-fill</code> keeps the empty columns reserved. <code>auto-fit</code> is usually what you want.</p>
+  <div class="tryit" data-el=".t-grid" data-rule=".grid">
+    <div class="tryit-head">The grid playground &mdash; change the template and watch the boxes rearrange</div>
+    <div class="tryit-stage"><div class="frame" style="padding:0"><div class="t-grid" style="display:grid;background:#F1F5F9;border-radius:8px;padding:8px"><div style="background:#E07B1E;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">1</div><div style="background:#138808;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">2</div><div style="background:#4F46E5;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">3</div><div style="background:#C42B2B;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">4</div><div style="background:#0B2545;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">5</div><div style="background:#B45309;color:#fff;padding:14px;border-radius:6px;font-weight:700;text-align:center">6</div></div></div></div>
+    <div class="tryit-ctl">
+      <label>grid-template-columns <select data-prop="grid-template-columns"><option>1fr</option><option>1fr 1fr</option><option selected>1fr 1fr 1fr</option><option>2fr 1fr</option><option>120px 1fr</option><option>repeat(auto-fit, minmax(90px, 1fr))</option></select></label>
+      <label>gap <input type="range" min="0" max="30" value="8" data-prop="gap" data-unit="px"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+</section>
+
+<section id="s4">
+  <h2>31.4 Making an item span more than one cell</h2>
+  <p>By default each item drops into the next free cell. <code>grid-column</code> and <code>grid-row</code> let one item take more room.</p>
+  <p>The easiest form uses the keyword <code>span</code>:</p>
+  <pre class="code">.wide { grid-column: span 2; }   /* take two columns */
+.tall { grid-row: span 2; }      /* take two rows    */</pre>
+  <p>The longer form names the grid <b>lines</b>. In a three-column grid there are four vertical lines, numbered 1 to 4 from the left. <code>grid-column: 1 / 3</code> means "start at line 1, end at line 3", which covers the first two columns. <code>grid-column: 1 / -1</code> is a handy shortcut meaning "from the first line to the last" &mdash; the full width, whatever the column count.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Grid lines numbered, with an item spanning two columns">
+      <g stroke="#94A3B8" stroke-dasharray="4 3">
+        <path d="M60 40 L60 180"/><path d="M230 40 L230 180"/><path d="M400 40 L400 180"/><path d="M570 40 L570 180"/>
+      </g>
+      <g class="t c b" fill="#4F46E5" style="font-size:12px">
+        <text x="60" y="32">1</text><text x="230" y="32">2</text><text x="400" y="32">3</text><text x="570" y="32">4</text>
+      </g>
+      <rect x="66" y="48" width="328" height="54" rx="8" class="box saf"/>
+      <text x="230" y="72" class="t c b">grid-column: 1 / 3</text>
+      <text x="230" y="90" class="t c s">(or: span 2)</text>
+      <rect x="406" y="48" width="158" height="54" rx="8" class="box gry"/><text x="485" y="80" class="t c b">item</text>
+      <rect x="66" y="112" width="158" height="54" rx="8" class="box gry"/><text x="145" y="144" class="t c b">item</text>
+      <rect x="236" y="112" width="158" height="54" rx="8" class="box gry"/><text x="315" y="144" class="t c b">item</text>
+      <rect x="406" y="112" width="158" height="54" rx="8" class="box gry"/><text x="485" y="144" class="t c b">item</text>
+      <text x="310" y="200" class="t c s">Three columns have four lines. grid-column: 1 / -1 always means "all the way across".</text>
+    </svg>
+    <figcaption><b>Figure 31.2</b> Grid lines are numbered from 1, and there is always one more line than there are columns.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="A featured card that takes the full width" data-h="270">&lt;style&gt;
+  .grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 12px; }
+  .grid div { background: #fff; border: 1px solid #E3E9F0; border-radius: 10px;
+              padding: 14px; text-align: center; }
+  .feature { grid-column: 1 / -1;          /* the whole width */
+             background: #FFF8F0 !important; border-color: #E07B1E !important;
+             font-weight: 700; }
+  .tall { grid-row: span 2; }
+&lt;/style&gt;
+&lt;div class="grid"&gt;
+  &lt;div class="feature"&gt;Featured course &mdash; spans every column&lt;/div&gt;
+  &lt;div class="tall"&gt;Tall&lt;br&gt;(two rows)&lt;/div&gt;
+  &lt;div&gt;CSE305&lt;/div&gt;&lt;div&gt;CSE201&lt;/div&gt;
+  &lt;div&gt;MTH101&lt;/div&gt;&lt;div&gt;PHY104&lt;/div&gt;
+&lt;/div&gt;</pre>
+</section>
+
+<section id="s5">
+  <h2>31.5 Named areas: a layout you can read</h2>
+  <p>This is the feature that makes Grid a joy. You draw the layout as text, then say which element goes in which named area.</p>
+  <pre class="code" data-run data-title="A whole page layout, drawn in CSS" data-h="330" data-tall>&lt;style&gt;
+  .page {
+    display: grid;
+    grid-template-columns: 180px 1fr;
+    grid-template-areas:
+      "head head"
+      "side main"
+      "foot foot";
+    gap: 10px;
+    min-height: 260px;
+  }
+  .page &gt; * { padding: 12px; border-radius: 8px; color: #fff; font-weight: 700; }
+  .head { grid-area: head; background: #0B2545; }
+  .side { grid-area: side; background: #E07B1E; }
+  .main { grid-area: main; background: #138808; }
+  .foot { grid-area: foot; background: #6B7A90; }
+&lt;/style&gt;
+&lt;div class="page"&gt;
+  &lt;div class="head"&gt;header&lt;/div&gt;
+  &lt;div class="side"&gt;sidebar&lt;/div&gt;
+  &lt;div class="main"&gt;main content&lt;/div&gt;
+  &lt;div class="foot"&gt;footer&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Look at the <code>grid-template-areas</code> block. It <i>is</i> the layout: three rows, two columns, with <code>head</code> and <code>foot</code> stretching across both. A repeated name means "this area continues here". You can read the page shape without running it.</p>
+  <p>And rearranging for a phone is three lines &mdash; the HTML never changes:</p>
+  <pre class="code">@media (max-width: 600px) {
+  .page {
+    grid-template-columns: 1fr;       /* one column */
+    grid-template-areas: "head" "main" "side" "foot";
+  }
+}</pre>
+  <p>Notice that on a phone the main content has been moved <i>above</i> the sidebar, purely in CSS. <a href="book.html?ch=37">Chapter 37</a> covers media queries properly.</p>
+</section>
+
+<section id="s6">
+  <h2>31.6 Aligning inside a grid</h2>
+  <p>Grid uses the same alignment vocabulary as Flexbox, with one addition: because there are two axes, there are two sets of properties.</p>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Aligns</th><th>Along</th></tr></thead>
+    <tbody>
+      <tr><td><code>justify-items</code></td><td>Each item inside its own cell</td><td>The row direction (left/right)</td></tr>
+      <tr><td><code>align-items</code></td><td>Each item inside its own cell</td><td>The column direction (up/down)</td></tr>
+      <tr><td><code>justify-content</code></td><td>The whole grid inside the container</td><td>Left/right, when the grid is narrower than the box</td></tr>
+      <tr><td><code>align-content</code></td><td>The whole grid inside the container</td><td>Up/down</td></tr>
+      <tr><td><code>place-items: center</code></td><td>Shorthand for <code>align-items</code> + <code>justify-items</code></td><td>Both &mdash; dead centre in every cell</td></tr>
+    </tbody>
+  </table>
+  <p><code>display: grid; place-items: center;</code> is the shortest way to centre one thing inside a box &mdash; two declarations instead of Flexbox's three.</p>
+</section>
+
+<section id="s7">
+  <h2>31.7 Build it: the profile page skeleton</h2>
+  <pre class="code" data-run data-title="Project, step 10: Grid for the page, Flex inside the cards" data-h="360" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 16px;
+         background: #F1F5F9; color: #3C4A60; }
+
+  /* --- the page: Grid --- */
+  .page {
+    display: grid;
+    grid-template-columns: 200px 1fr;
+    grid-template-areas: "profile courses" "profile skills";
+    gap: 14px;
+    align-items: start;
+  }
+  .profile { grid-area: profile; }
+  .courses { grid-area: courses; }
+  .skills  { grid-area: skills;  }
+
+  .panel { background: #fff; border-radius: 12px; padding: 16px;
+           box-shadow: 0 2px 8px rgba(16,32,64,.08); }
+  h2 { margin: 0 0 10px; font-size: 16px; color: #0B2545; }
+
+  /* --- the course cards: Grid again, responsive with no media query --- */
+  .cards {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 10px;
+  }
+  .cards div { background: #FFF8F0; border: 1px solid #F0C79A;
+               border-radius: 8px; padding: 10px; font-size: 14px; }
+
+  /* --- the skill tags: Flexbox, because they are one line of things --- */
+  .tags { display: flex; flex-wrap: wrap; gap: 8px; }
+  .tags span { background: #E9F7E7; color: #0B6205; padding: 4px 12px;
+               border-radius: 999px; font-size: 13px; font-weight: 700; }
+&lt;/style&gt;
+&lt;div class="page"&gt;
+  &lt;div class="panel profile"&gt;&lt;h2&gt;Asha Kumar&lt;/h2&gt;&lt;p style="margin:0;font-size:14px"&gt;B.Tech CSE, first year.&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="panel courses"&gt;&lt;h2&gt;Courses&lt;/h2&gt;
+    &lt;div class="cards"&gt;&lt;div&gt;CSE326&lt;/div&gt;&lt;div&gt;CSE305&lt;/div&gt;&lt;div&gt;CSE201&lt;/div&gt;&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="panel skills"&gt;&lt;h2&gt;Skills&lt;/h2&gt;
+    &lt;div class="tags"&gt;&lt;span&gt;HTML&lt;/span&gt;&lt;span&gt;CSS&lt;/span&gt;&lt;span&gt;JavaScript&lt;/span&gt;&lt;span&gt;React&lt;/span&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>That page uses Grid twice and Flexbox once, each for the job it suits: Grid for the page plan and the card gallery, Flexbox for the single line of tags. That is exactly how professional stylesheets are written.</p>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>What does the <code>fr</code> unit mean in Grid?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Fixed rem</li><li>B. One share of the leftover space</li><li>C. Frame</li><li>D. Fraction of the viewport</li></ul>
+    <p><b>Answer: B.</b> <code>1fr 1fr</code> splits the space evenly; <code>2fr 1fr</code> gives the first column twice as much.</p></div></details>
+  <details class="q"><summary>What does <code>repeat(auto-fit, minmax(200px, 1fr))</code> achieve?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Exactly 200px columns</li><li>B. As many columns as fit, each at least 200px, sharing the space</li><li>C. 200 columns</li><li>D. A single flexible column</li></ul>
+    <p><b>Answer: B.</b> A responsive grid with <b>no media query at all</b> &mdash; three columns on a laptop, one on a phone.</p></div></details>
+  <details class="q"><summary>Flexbox is for one dimension. Grid is for:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. One dimension too</li><li>B. Rows AND columns together</li><li>C. Only tables</li><li>D. Only images</li></ul>
+    <p><b>Answer: B.</b> Flex for a line; Grid for a two-dimensional layout. They are often used together.</p></div></details>
+  <details class="q"><summary>Which property defines the number and size of the grid's columns?<span class="lvl">L1</span></summary><div class="a">
+    <p><b><code>grid-template-columns</code></b>. One value per column, so <code>1fr 1fr 1fr</code> creates three equal columns. <code>grid-template-rows</code> does the same for row heights.</p></div></details>
+  <details class="q"><summary>Where does <code>display: grid</code> go?<span class="lvl">L1</span></summary><div class="a">
+    <p><b>On the parent container</b>, exactly like <code>display: flex</code>. Its direct children become grid items automatically.</p></div></details>
+  <details class="q"><summary>Why use <code>1fr 1fr 1fr</code> rather than <code>33.33% 33.33% 33.33%</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because percentages do not account for the gap.</b> Three 33.33% columns plus two gaps add up to more than the container and overflow. <code>fr</code> divides the space that is actually left after the gaps, so it always fits.</p></div></details>
+  <details class="q"><summary>Which declaration makes a grid item stretch across two columns?<span class="lvl">L2</span></summary><div class="a">
+    <p><b><code>grid-column: span 2;</code></b>, or the line form <code>grid-column: 1 / 3</code>. <code>grid-column: 1 / -1</code> means all the way across, whatever the column count.</p></div></details>
+  <details class="q"><summary>What does <code>minmax(200px, 1fr)</code> mean?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>"Never narrower than 200px, but take a share of the leftover space when there is any."</b> It is what stops a responsive grid squeezing its columns into unusable slivers.</p></div></details>
+  <details class="q"><summary>What does <code>grid-template-areas</code> let you do?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Name regions of the grid and draw the layout as text</b>, then place each element with <code>grid-area</code>. Rearranging the page for a phone then means rewriting a few lines of CSS, with no change to the HTML.</p></div></details>
+  <details class="q"><summary>You need a navigation bar with a logo on the left and links on the right. Grid or Flexbox?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Flexbox</b> &mdash; it is a single line of items, so <code>display: flex; justify-content: space-between;</code> is the natural fit. Save Grid for layouts where things must line up in two directions.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>display: grid</code> on the parent. Flex is one-dimensional; Grid is rows and columns together.</li>
+    <li><code>grid-template-columns</code> takes one value per column. <code>fr</code> = one share of the leftover space, and unlike <code>%</code> it allows for the gap.</li>
+    <li><code>repeat(3, 1fr)</code> saves typing; <code>minmax(200px, 1fr)</code> sets a floor; <code>repeat(auto-fit, minmax(200px, 1fr))</code> is a responsive gallery with no media query.</li>
+    <li><code>grid-column: span 2</code> or <code>1 / -1</code> makes an item wider; <code>grid-row: span 2</code> makes it taller.</li>
+    <li><code>grid-template-areas</code> draws the layout as text; <code>grid-area</code> places each element in it.</li>
+    <li><code>place-items: center</code> centres every item in its cell.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Declaration</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>display: grid;</code></td><td>Make the container a grid</td></tr>
+      <tr><td><code>grid-template-columns: 1fr 1fr 1fr;</code></td><td>Three equal columns</td></tr>
+      <tr><td><code>grid-template-columns: 200px 1fr;</code></td><td>Fixed sidebar plus flexible main</td></tr>
+      <tr><td><code>repeat(auto-fit, minmax(200px, 1fr))</code></td><td>As many columns as fit, min 200px</td></tr>
+      <tr><td><code>gap: 14px;</code></td><td>Space between rows and columns</td></tr>
+      <tr><td><code>grid-column: span 2;</code></td><td>Item takes two columns</td></tr>
+      <tr><td><code>grid-column: 1 / -1;</code></td><td>Item takes the full width</td></tr>
+      <tr><td><code>grid-template-areas: "head head";</code></td><td>Name the regions and draw the plan</td></tr>
+      <tr><td><code>place-items: center;</code></td><td>Centre items in their cells</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://css-tricks.com/complete-guide-css-grid-layout/" target="_blank" rel="noopener noreferrer">CSS-Tricks &mdash; A Complete Guide to Grid<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The Grid companion to the Flexbox guide. Equally worth printing.</span></li>
+    <li><a href="https://cssgridgarden.com/" target="_blank" rel="noopener noreferrer">Grid Garden<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">28 puzzles for Grid, by the author of Flexbox Froggy.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_grid_layout/Realizing_common_layouts_using_grids" target="_blank" rel="noopener noreferrer">MDN &mdash; Common layouts using grids<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Four real page layouts built step by step. Copy them into your project.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

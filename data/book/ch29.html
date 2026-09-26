@@ -1,0 +1,346 @@
+<article class="chapter" data-ch="29">
+<header class="ch-head">
+  <p class="eyebrow">Unit 3 &middot; Chapter 29 &middot; Positioning Techniques</p>
+  <h1>Positioning Techniques</h1>
+  <p class="lead">So far every box has gone exactly where the browser put it. This chapter is about taking control: nudging an element, pinning a badge to the corner of a card, keeping a header visible while the page scrolls, and deciding what sits on top when two things overlap.</p>
+  <p class="meta">About 24 minutes &middot; Course outcome CO3</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Every element is a box with content, padding, border and margin (<a href="book.html?ch=28">Chapter 28</a>).</li>
+      <li><b>Block</b> elements take a whole line; <b>inline</b> elements sit inside a line of text (<a href="book.html?ch=5">Chapter 5</a>).</li>
+      <li>The <b>parent</b> is the element yours sits inside; an <b>ancestor</b> is any element further out (<a href="book.html?ch=3">Chapter 3</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Describe normal flow, and change it with <code>display</code>.</li>
+      <li>Use all five values of <code>position</code> and say what each one is measured against.</li>
+      <li>Explain why an absolutely positioned box sometimes flies to the wrong corner.</li>
+      <li>Make a sticky header, and know the one declaration people forget.</li>
+      <li>Control what overlaps what with <code>z-index</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>29.1 Normal flow: what happens when you do nothing</h2>
+  <p>With no positioning at all, the browser lays out a page in <b>normal flow</b>, which is a very simple rule:</p>
+  <ul>
+    <li><b>Block</b> elements stack downwards, each on its own line, each as wide as its parent allows.</li>
+    <li><b>Inline</b> elements sit side by side within a line, wrapping to the next line when they run out of room, exactly like words in a sentence.</li>
+  </ul>
+  <p>Normal flow is not a limitation to escape from. It is what makes a page reflow sensibly on a phone. Most good layouts stay in normal flow and use Flexbox or Grid (Chapters 30 and 31); positioning is for the few things that genuinely need to sit somewhere specific.</p>
+  <h3>display: changing what kind of box an element is</h3>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Effect</th><th>Use for</th></tr></thead>
+    <tbody>
+      <tr><td><code>block</code></td><td>Own line, full width, accepts width and height</td><td>Making a link fill a menu row</td></tr>
+      <tr><td><code>inline</code></td><td>Sits in the line; <b>ignores width and height</b></td><td>Words inside a sentence</td></tr>
+      <tr><td><code>inline-block</code></td><td>Sits in the line <i>and</i> accepts width, height and vertical padding</td><td>Buttons, tags, nav items</td></tr>
+      <tr><td><code>none</code></td><td>Removed completely &mdash; no box, no space</td><td>Hiding a mobile menu</td></tr>
+      <tr><td><code>flex</code>, <code>grid</code></td><td>Turns the element into a layout container</td><td>Chapters 30 and 31</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="The same span, three display values" data-h="230">&lt;style&gt;
+  span { background: #FFF1E0; border: 2px solid #E07B1E; padding: 10px;
+         width: 180px; }
+  .b  { display: block; }
+  .ib { display: inline-block; }
+&lt;/style&gt;
+&lt;p&gt;inline: &lt;span&gt;width is ignored&lt;/span&gt; and padding overlaps the lines.&lt;/p&gt;
+&lt;p&gt;inline-block: &lt;span class="ib"&gt;width works&lt;/span&gt; and it still sits in the line.&lt;/p&gt;
+&lt;p&gt;block: &lt;span class="b"&gt;own line, width works&lt;/span&gt;&lt;/p&gt;</pre>
+  <div class="callout warn"><b><code>display: none</code> versus <code>visibility: hidden</code>.</b> <code>display: none</code> removes the element entirely: no box, no space, and screen readers do not announce it. <code>visibility: hidden</code> makes it invisible but <b>keeps its space</b>, leaving a hole. For hiding a menu use <code>display: none</code>; for hiding something whose space must be reserved use <code>visibility</code>.</div>
+</section>
+
+<section id="s2">
+  <h2>29.2 position: the five values</h2>
+  <p><code>position</code> decides how an element is placed in the document. It works together with the four <b>offset</b> properties &mdash; <code>top</code>, <code>right</code>, <code>bottom</code>, <code>left</code> &mdash; which say how far to move it, and from which edge.</p>
+  <p>The one thing to hold on to: <b>each value measures its offsets against something different.</b> That is the whole chapter.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 235" role="img" aria-label="The five position values and what each is measured against">
+      <rect x="10" y="20" width="136" height="160" rx="12" class="box gry"/>
+      <text x="78" y="46" class="t c b mono">static</text>
+      <text x="78" y="68" class="t c s b">the default</text>
+      <text x="78" y="94" class="t c s">stays in normal flow</text>
+      <text x="78" y="116" class="t c s b" fill="#C42B2B">top/left do</text>
+      <text x="78" y="132" class="t c s b" fill="#C42B2B">NOTHING</text>
+      <rect x="152" y="20" width="136" height="160" rx="12" class="box saf"/>
+      <text x="220" y="46" class="t c b mono">relative</text>
+      <text x="220" y="68" class="t c s b">measured from</text>
+      <text x="220" y="84" class="t c s b">where it WAS</text>
+      <text x="220" y="110" class="t c s">moves visually,</text>
+      <text x="220" y="126" class="t c s">but its original</text>
+      <text x="220" y="142" class="t c s">space is KEPT</text>
+      <text x="220" y="166" class="t c s">also: makes an anchor</text>
+      <rect x="294" y="20" width="136" height="160" rx="12" class="box blu"/>
+      <text x="362" y="46" class="t c b mono">absolute</text>
+      <text x="362" y="68" class="t c s b">measured from the</text>
+      <text x="362" y="84" class="t c s b">nearest POSITIONED</text>
+      <text x="362" y="100" class="t c s b">ancestor</text>
+      <text x="362" y="126" class="t c s">taken OUT of flow:</text>
+      <text x="362" y="142" class="t c s">its space closes up</text>
+      <rect x="436" y="20" width="136" height="160" rx="12" class="box grn"/>
+      <text x="504" y="46" class="t c b mono">fixed</text>
+      <text x="504" y="68" class="t c s b">measured from the</text>
+      <text x="504" y="84" class="t c s b">VIEWPORT</text>
+      <text x="504" y="110" class="t c s">stays put while</text>
+      <text x="504" y="126" class="t c s">the page scrolls</text>
+      <text x="504" y="150" class="t c s">out of flow</text>
+      <rect x="578" y="20" width="132" height="160" rx="12" class="box"/>
+      <text x="644" y="46" class="t c b mono">sticky</text>
+      <text x="644" y="68" class="t c s b">relative, until you</text>
+      <text x="644" y="84" class="t c s b">scroll past it &mdash;</text>
+      <text x="644" y="100" class="t c s b">then fixed</text>
+      <text x="644" y="126" class="t c s">needs an offset</text>
+      <text x="644" y="142" class="t c s">such as top: 0</text>
+      <text x="360" y="212" class="t c s">Only these five values exist. There is no position: center and no position: none.</text>
+    </svg>
+    <figcaption><b>Figure 29.1</b> Five values, five different rulers. Naming the ruler is how you debug positioning.</figcaption>
+  </figure>
+  <h3>static &mdash; the default</h3>
+  <p>Every element starts as <code>position: static</code>: it sits in normal flow, and <code>top</code>, <code>left</code>, <code>right</code> and <code>bottom</code> are ignored completely. If you set an offset and nothing moves, this is almost always why.</p>
+  <h3>relative &mdash; nudge it, but keep its seat</h3>
+  <p><code>position: relative</code> moves the element <b>from where it would have been</b>. Crucially, <b>its original space is preserved</b>: the gap it left behind stays empty and nothing else moves up.</p>
+  <pre class="code" data-run data-title="relative: the box moves, the gap remains" data-h="200">&lt;style&gt;
+  div { background: #E3E9F0; padding: 10px; margin-bottom: 8px; }
+  .moved { position: relative; top: 14px; left: 34px;
+           background: #FFF1E0; border: 2px solid #E07B1E; }
+&lt;/style&gt;
+&lt;div&gt;First box&lt;/div&gt;
+&lt;div class="moved"&gt;I moved 14px down and 34px right&lt;/div&gt;
+&lt;div&gt;Third box &mdash; notice I did NOT move up into the gap&lt;/div&gt;</pre>
+  <p><code>relative</code> has a second, quieter job that matters more than the nudging: it turns an element into an <b>anchor</b> for absolutely positioned children. That is the next section.</p>
+  <h3>absolute &mdash; take it out of the flow</h3>
+  <p><code>position: absolute</code> lifts the element out of normal flow altogether. Its old space closes up as if it had never existed, and it is then placed using its offsets &mdash; measured from <b>the nearest ancestor that is itself positioned</b>.</p>
+  <p>"Positioned" means having a <code>position</code> of anything other than <code>static</code>. If no ancestor qualifies, the browser falls back to the page itself, and your element flies off to the corner of the document.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 215" role="img" aria-label="Absolute positioning with and without a positioned parent">
+      <rect x="20" y="24" width="270" height="150" rx="10" fill="#fff" stroke="#C42B2B" stroke-width="2"/>
+      <text x="155" y="16" class="t c b" fill="#C42B2B">parent is static (the default)</text>
+      <rect x="40" y="48" width="230" height="110" rx="8" fill="#F1F5F9" stroke="#CBD5E1" stroke-dasharray="4 3"/>
+      <text x="155" y="112" class="t c s">.card (no position set)</text>
+      <rect x="22" y="26" width="52" height="24" rx="5" fill="#C42B2B"/>
+      <text x="48" y="42" class="t c w" style="font-size:10px;font-weight:700">badge</text>
+      <text x="155" y="192" class="t c s">the badge measured from the PAGE</text>
+      <text x="155" y="206" class="t c s">and landed in the page's corner</text>
+      <rect x="330" y="24" width="270" height="150" rx="10" fill="#fff" stroke="#138808" stroke-width="2"/>
+      <text x="465" y="16" class="t c b" fill="#138808">parent has position: relative</text>
+      <rect x="350" y="48" width="230" height="110" rx="8" fill="#E9F7E7" stroke="#138808" stroke-dasharray="4 3"/>
+      <text x="465" y="112" class="t c s">.card { position: relative }</text>
+      <rect x="528" y="50" width="50" height="24" rx="5" fill="#138808"/>
+      <text x="553" y="66" class="t c w" style="font-size:10px;font-weight:700">badge</text>
+      <text x="465" y="192" class="t c s">the badge measured from the CARD</text>
+      <text x="465" y="206" class="t c s">and landed in the card's corner</text>
+    </svg>
+    <figcaption><b>Figure 29.2</b> The classic bug and its cure. An absolutely positioned child needs a positioned parent, or it measures from the page.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="A badge pinned to the corner of a card" data-h="210">&lt;style&gt;
+  .card {
+    position: relative;               /* THE important line: make an anchor */
+    background: #fff; border: 1px solid #E3E9F0; border-radius: 12px;
+    padding: 18px; margin-top: 14px;
+  }
+  .badge {
+    position: absolute;
+    top: -10px; right: -8px;          /* measured from the card's corner */
+    background: #C42B2B; color: #fff;
+    padding: 3px 12px; border-radius: 999px;
+    font-size: 12px; font-weight: 700;
+  }
+&lt;/style&gt;
+&lt;div class="card"&gt;
+  &lt;span class="badge"&gt;New&lt;/span&gt;
+  &lt;b&gt;CSE326 Internet Programming&lt;/b&gt;
+  &lt;p style="margin:6px 0 0"&gt;Delete the position: relative line and watch the badge run away.&lt;/p&gt;
+&lt;/div&gt;</pre>
+  <div class="plain">
+    <p>The pattern is always the same two lines: <b><code>position: relative</code> on the parent</b>, <b><code>position: absolute</code> on the child</b>. Remember it as a pair and corner badges, tooltips and overlays all become easy.</p>
+  </div>
+  <h3>fixed &mdash; pinned to the window</h3>
+  <p><code>position: fixed</code> measures against the <b>viewport</b> &mdash; the visible window &mdash; so the element <b>stays put while the page scrolls</b>. Use it for a back-to-top button, a cookie bar, or a chat bubble in the corner.</p>
+  <pre class="code" data-run data-title="A button that stays in the corner while you scroll" data-h="250">&lt;style&gt;
+  .up {
+    position: fixed; bottom: 16px; right: 16px;
+    background: #0B2545; color: #fff; padding: 10px 16px;
+    border-radius: 999px; font-weight: 700;
+  }
+  p { margin: 0 0 20px; }
+&lt;/style&gt;
+&lt;p&gt;Scroll this preview down.&lt;/p&gt;
+&lt;p&gt;Keep scrolling.&lt;/p&gt;&lt;p&gt;More text.&lt;/p&gt;&lt;p&gt;And more.&lt;/p&gt;
+&lt;p&gt;And more again.&lt;/p&gt;&lt;p&gt;Nearly there.&lt;/p&gt;&lt;p&gt;The end.&lt;/p&gt;
+&lt;div class="up"&gt;Back to top&lt;/div&gt;</pre>
+  <h3>sticky &mdash; relative, then fixed</h3>
+  <p><code>position: sticky</code> behaves like <code>relative</code> while the element is in view, and switches to behaving like <code>fixed</code> the moment you scroll past the offset you gave it. It is how a table heading or a section title stays visible.</p>
+  <p><b>Sticky needs an offset.</b> Without a <code>top</code>, <code>bottom</code>, <code>left</code> or <code>right</code> value there is nothing to stick to, and the element silently behaves as if it were static. That is the single most common "sticky is not working" cause. (The second most common is a parent with <code>overflow: hidden</code>.)</p>
+  <pre class="code" data-run data-title="A sticky heading" data-h="250">&lt;style&gt;
+  h3 {
+    position: sticky;
+    top: 0;                        /* WITHOUT this line, nothing sticks */
+    background: #FF9933; color: #fff;
+    margin: 0; padding: 10px 14px;
+  }
+  p { margin: 0 0 18px; padding: 0 14px; }
+&lt;/style&gt;
+&lt;h3&gt;Courses&lt;/h3&gt;
+&lt;p&gt;Scroll the preview: this heading stays at the top.&lt;/p&gt;
+&lt;p&gt;More content.&lt;/p&gt;&lt;p&gt;More content.&lt;/p&gt;&lt;p&gt;More content.&lt;/p&gt;
+&lt;p&gt;More content.&lt;/p&gt;&lt;p&gt;More content.&lt;/p&gt;&lt;p&gt;The end.&lt;/p&gt;</pre>
+  <div class="tryit" data-el=".t-pos" data-rule=".box">
+    <div class="tryit-head">The dashed frame has <code>position: relative</code> &mdash; try each value</div>
+    <div class="tryit-stage"><div class="frame" style="position:relative;height:150px;background:#F1F5F9"><div style="background:#E3E9F0;padding:8px;border-radius:6px;font-size:13px">a box in normal flow</div><div class="t-pos" style="background:#E07B1E;color:#fff;padding:10px 14px;border-radius:8px;font-weight:700;display:inline-block">move me</div><div style="background:#E3E9F0;padding:8px;border-radius:6px;font-size:13px;margin-top:6px">another box</div></div></div>
+    <div class="tryit-ctl">
+      <label>position <select data-prop="position"><option selected>static</option><option>relative</option><option>absolute</option></select></label>
+      <label>top <input type="range" min="0" max="110" value="0" data-prop="top" data-unit="px"></label>
+      <label>left <input type="range" min="0" max="230" value="0" data-prop="left" data-unit="px"></label>
+    </div>
+    <pre class="tryit-css"></pre>
+  </div>
+  <p>Start on <code>static</code> and move the sliders: nothing happens. Switch to <code>relative</code>: the box moves but its space stays. Switch to <code>absolute</code>: the space closes up and the box measures from the dashed frame.</p>
+</section>
+
+<section id="s3">
+  <h2>29.3 z-index: who is on top</h2>
+  <p>When two elements overlap, the one written later in the HTML is painted on top. <code>z-index</code> overrides that: a higher number sits above a lower one.</p>
+  <pre class="code" data-run data-title="Three overlapping cards" data-h="200">&lt;style&gt;
+  .stack { position: relative; height: 130px; }
+  .c { position: absolute; width: 130px; height: 84px; border-radius: 10px;
+       padding: 10px; color: #fff; font-weight: 700; }
+  .c1 { background: #C42B2B; left: 0;   top: 0;  z-index: 1; }
+  .c2 { background: #E07B1E; left: 44px; top: 18px; z-index: 3; }
+  .c3 { background: #138808; left: 88px; top: 36px; z-index: 2; }
+&lt;/style&gt;
+&lt;div class="stack"&gt;
+  &lt;div class="c c1"&gt;z-index 1&lt;/div&gt;
+  &lt;div class="c c2"&gt;z-index 3&lt;/div&gt;
+  &lt;div class="c c3"&gt;z-index 2&lt;/div&gt;
+&lt;/div&gt;</pre>
+  <p>Two rules save a lot of frustration:</p>
+  <ul>
+    <li><b><code>z-index</code> only works on positioned elements.</b> On a <code>static</code> element it does nothing at all.</li>
+    <li><b>Keep the numbers small and meaningful.</b> 1, 10, 100 is plenty. Writing <code>z-index: 99999</code> is a sign that something else is wrong, and it starts the same arms race as <code>!important</code>.</li>
+  </ul>
+</section>
+
+<section id="s4">
+  <h2>29.4 Choosing a technique</h2>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Decision guide for positioning">
+      <rect x="200" y="10" width="220" height="34" rx="17" class="box saf"/><text x="310" y="32" class="t c b">where must this element go?</text>
+      <path d="M310 44 L310 58" class="edge"/>
+      <path d="M90 58 L530 58" class="edge"/>
+      <path d="M90 58 L90 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M237 58 L237 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M384 58 L384 74" class="edge" marker-end="url(#arr)"/>
+      <path d="M530 58 L530 74" class="edge" marker-end="url(#arr)"/>
+      <rect x="18" y="78" width="144" height="74" rx="10" class="box grn"/>
+      <text x="90" y="100" class="t c b">in a row or grid</text><text x="90" y="122" class="t c s b">Flexbox or Grid</text><text x="90" y="140" class="t c s">not positioning</text>
+      <rect x="165" y="78" width="144" height="74" rx="10" class="box saf"/>
+      <text x="237" y="100" class="t c b">nudged slightly</text><text x="237" y="122" class="t c s b mono">relative</text><text x="237" y="140" class="t c s">keeps its space</text>
+      <rect x="312" y="78" width="144" height="74" rx="10" class="box blu"/>
+      <text x="384" y="96" class="t c b">on top of its parent</text><text x="384" y="118" class="t c s b mono">parent: relative</text><text x="384" y="134" class="t c s b mono">child: absolute</text>
+      <rect x="459" y="78" width="144" height="74" rx="10" class="box"/>
+      <text x="531" y="96" class="t c b">visible while scrolling</text><text x="531" y="118" class="t c s b mono">sticky (+ top)</text><text x="531" y="136" class="t c s b mono">or fixed</text>
+      <text x="310" y="180" class="t c s">Reach for positioning last. Most layouts belong in normal flow, Flexbox or Grid.</text>
+    </svg>
+    <figcaption><b>Figure 29.3</b> Positioning is a precision tool, not a layout system.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Project, step 8: sticky header and a corner badge" data-h="330" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; color: #3C4A60;
+         background: #F1F5F9; }
+
+  header {
+    position: sticky; top: 0;           /* sticky NEEDS the offset */
+    background: #0B2545; color: #fff;
+    padding: 12px 18px; z-index: 10;
+  }
+  main { padding: 18px; }
+
+  .card {
+    position: relative;                  /* the anchor for the badge */
+    background: #fff; border-radius: 12px; padding: 18px;
+    margin-bottom: 16px; box-shadow: 0 2px 8px rgba(16,32,64,.08);
+  }
+  .badge {
+    position: absolute; top: -9px; right: 12px;
+    background: #E07B1E; color: #fff;
+    padding: 3px 12px; border-radius: 999px; font-size: 12px; font-weight: 700;
+  }
+&lt;/style&gt;
+&lt;header&gt;&lt;b&gt;Asha Kumar&lt;/b&gt; &mdash; Student Profile&lt;/header&gt;
+&lt;main&gt;
+  &lt;div class="card"&gt;&lt;span class="badge"&gt;Featured&lt;/span&gt;
+    &lt;b&gt;CSE326 Internet Programming&lt;/b&gt;&lt;p&gt;Scroll: the header stays.&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;b&gt;CSE305 Database Systems&lt;/b&gt;&lt;p&gt;Completed.&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;b&gt;CSE201 Data Structures&lt;/b&gt;&lt;p&gt;Completed.&lt;/p&gt;&lt;/div&gt;
+  &lt;div class="card"&gt;&lt;b&gt;MTH101 Engineering Maths&lt;/b&gt;&lt;p&gt;Completed.&lt;/p&gt;&lt;/div&gt;
+&lt;/main&gt;</pre>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>What is the default position value?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. relative</li><li>B. static</li><li>C. absolute</li><li>D. normal</li></ul>
+    <p><b>Answer: B.</b> With <code>static</code>, the offsets <code>top</code>, <code>right</code>, <code>bottom</code> and <code>left</code> do nothing at all.</p></div></details>
+  <details class="q"><summary>An absolutely positioned box flies to the page corner instead of its parent's. Why?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. absolute always uses the page</li><li>B. No ancestor has a position other than static</li><li>C. It needs z-index</li><li>D. The parent needs display:block</li></ul>
+    <p><b>Answer: B.</b> <code>absolute</code> measures from the nearest <b>positioned</b> ancestor. Add <code>position: relative</code> to the parent.</p></div></details>
+  <details class="q"><summary>Which position keeps the element's original space in the flow?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. absolute</li><li>B. relative</li><li>C. fixed</li><li>D. none of them</li></ul>
+    <p><b>Answer: B.</b> <code>relative</code> shifts the element visually but its space is preserved, so nothing else moves. <code>absolute</code> and <code>fixed</code> are taken out of the flow and their space closes up.</p></div></details>
+  <details class="q"><summary>Which position is measured against the VIEWPORT?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. relative</li><li>B. absolute</li><li>C. fixed</li><li>D. static</li></ul>
+    <p><b>Answer: C.</b> <code>fixed</code> stays put while the page scrolls, which is why it suits back-to-top buttons and cookie bars.</p></div></details>
+  <details class="q"><summary><code>position: sticky</code> silently does nothing. What is missing?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A z-index</li><li>B. A top/bottom/left/right offset</li><li>C. A width</li><li>D. display:block</li></ul>
+    <p><b>Answer: B.</b> Without an offset such as <code>top: 0</code> it behaves like static. The other frequent cause is an ancestor with <code>overflow: hidden</code>.</p></div></details>
+  <details class="q"><summary>Which two declarations pin a badge to the corner of a card?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>position: relative</code> on the card and <code>position: absolute</code> on the badge</b>, plus offsets such as <code>top</code> and <code>right</code> on the badge. Remember them as a pair.</p></div></details>
+  <details class="q"><summary>Which display value lets an element sit in a line of text AND accept a width?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. block</li><li>B. inline</li><li>C. inline-block</li><li>D. none</li></ul>
+    <p><b>Answer: C.</b> <code>inline</code> ignores width and height; <code>block</code> takes a whole line; <code>inline-block</code> gives you both behaviours, which is why buttons and tags use it.</p></div></details>
+  <details class="q"><summary>What is the difference between <code>display: none</code> and <code>visibility: hidden</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>display: none</code> removes the element completely</b> &mdash; no box, no space, not announced by screen readers. <b><code>visibility: hidden</code> hides it but keeps its space</b>, leaving a gap where it was.</p></div></details>
+  <details class="q"><summary><code>z-index: 5</code> has no effect on an element. What is the likeliest reason?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>The element is still <code>position: static</code>.</b> <code>z-index</code> only applies to positioned elements (relative, absolute, fixed or sticky), or to flex and grid items.</p></div></details>
+  <details class="q"><summary>Which technique would you use to lay out three cards in a row?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Flexbox or Grid</b> (Chapters 30 and 31), not positioning. Absolute positioning takes elements out of the flow, so the container collapses and nothing reflows on a phone. Positioning is for badges, overlays and sticky bars.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Normal flow: blocks stack down, inlines sit in a line. <code>display</code> changes which kind a box is: block, inline, inline-block, none.</li>
+    <li><code>static</code> is the default and ignores offsets.</li>
+    <li><code>relative</code> moves from where the element was and <b>keeps its space</b>; it also makes an anchor for absolute children.</li>
+    <li><code>absolute</code> leaves the flow and measures from the nearest <b>positioned</b> ancestor &mdash; or the page if there is none.</li>
+    <li><code>fixed</code> measures from the viewport and stays during scrolling. <code>sticky</code> is relative then fixed, and <b>needs an offset</b>.</li>
+    <li><code>z-index</code> decides overlap, and only works on positioned elements. Keep the numbers small.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th>Measured from</th><th>Keeps its space?</th></tr></thead>
+    <tbody>
+      <tr><td><code>static</code></td><td>Nothing &mdash; offsets ignored</td><td>Yes</td></tr>
+      <tr><td><code>relative</code></td><td>Where it would have been</td><td>Yes</td></tr>
+      <tr><td><code>absolute</code></td><td>Nearest positioned ancestor</td><td>No</td></tr>
+      <tr><td><code>fixed</code></td><td>The viewport</td><td>No</td></tr>
+      <tr><td><code>sticky</code></td><td>Its scroll container, past the offset</td><td>Yes, until it sticks</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/position" target="_blank" rel="noopener noreferrer">MDN &mdash; position<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The five values with a live example of each.</span></li>
+    <li><a href="https://web.dev/learn/css/z-index" target="_blank" rel="noopener noreferrer">web.dev &mdash; z-index and stacking contexts<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Why z-index sometimes does nothing. The clearest treatment anywhere.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/CSS/CSS_positioned_layout/Understanding_z-index/Stacking_context" target="_blank" rel="noopener noreferrer">MDN &mdash; Stacking context<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The formal rules, for when the web.dev article leaves you wanting more.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 2 &middot; Chapter 21 &middot; Responsive Content Structuring</p>
   <h1>Responsive Content Structuring</h1>
   <p class="lead">More than half of the Web is read on phones. A responsive page is one whose content adapts to any screen, from a 360-pixel handset to a wide monitor, without a separate mobile site. Most of the adapting is done by CSS in Unit 3, but it only works if the HTML is structured for it. This chapter covers the HTML half: the viewport tag, mobile-first thinking, source order, flexible media and the mistakes that make a page impossible to fit on a small screen.</p>
-  <p class="meta">About 13 minutes &middot; Course outcome CO2 &middot; Closes Unit 2</p>
+  <p class="meta">About 19 minutes &middot; Course outcome CO2 &middot; Closes Unit 2</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The viewport meta tag lives in the head &mdash; <a href="book.html?ch=4">Chapter 4</a> (the head).</li>
+      <li>Logical source order comes from getting the structure right &mdash; <a href="book.html?ch=14">Chapter 14</a> (page structure).</li>
+      <li>The CSS half of this story is Unit 3; here we get the HTML ready for it.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,8 @@
 
 <section id="s1">
   <h2>21.1 What "responsive" means</h2>
+  <div class="callout analogy"><b>Responsive is water, not a set of bottles.</b> You do not make a separate bottle for every shelf. You pour water in and it takes the shape of whatever container it is given. One document, many shapes.</div>
+  <div class="plain">Responsive means one page that rearranges itself to suit whatever screen it lands on, instead of building a separate mobile site. The same HTML, reflowed.</div>
   <p>A responsive page has one HTML document that <b>responds</b> to the device it is shown on: text reflows, columns stack, images shrink, menus collapse. The alternative, a fixed 980-pixel desktop layout, forces phone users to pinch and scroll sideways, and search engines rank it lower (Chapter 11). Responsiveness is achieved by three things working together: <b>HTML that provides a clean, logical structure; CSS media queries that rearrange it for each screen width; and media that can scale.</b></p>
   <figure class="fig">
     <svg viewBox="0 0 720 200" role="img" aria-label="The same page on a phone, a tablet and a desktop, with the layout adapting">
@@ -35,8 +45,14 @@
   </figure>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: a site arrives on your phone as a tiny full-width desktop page. What is missing?</summary>
+    <p>The <span class="jw" data-def="The part of the page you can actually see on the screen right now, not counting what you must scroll to reach.">viewport</span> meta tag: <code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code>. Without it the phone assumes a desktop width and zooms out.</p>
+  </details>
+
 <section id="s2">
   <h2>21.2 The viewport meta tag</h2>
+  <div class="plain">Without one line in the head, a phone pretends to be a wide desktop screen and then shrinks the whole page to fit &mdash; which is why some sites arrive as unreadably tiny text you have to pinch. The viewport tag tells the phone to be honest about its width.</div>
   <p>Mobile browsers were built when the Web was made of desktop pages, so by default they <b>pretend to be a wide desktop screen</b> (about 980 pixels), lay the page out at that width and then shrink the whole thing to fit the phone. The result is a miniature desktop page with unreadable text. The viewport meta tag tells the browser to stop pretending:</p>
   <pre class="code">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</pre>
   <ul>
@@ -101,6 +117,11 @@
 &lt;/div&gt;</pre>
   <p>Notice what the HTML did not have to change: nothing. That is the payoff of structuring content first.</p>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: why does <code>width="800"</code> on a container break a phone layout?</summary>
+    <p>Because the phone is about 390 pixels wide, so an 800-pixel box cannot fit and the whole page has to scroll sideways. Use fluid widths or a max-width instead.</p>
+  </details>
 
 <section id="s6">
   <h2>21.6 HTML habits that fight responsiveness</h2>

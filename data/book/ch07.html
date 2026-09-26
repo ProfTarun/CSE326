@@ -3,7 +3,15 @@
   <p class="eyebrow">Unit 1 &middot; Chapter 7 &middot; Lists</p>
   <h1>Lists</h1>
   <p class="lead">Menus, steps, features, requirements, glossaries: a surprising amount of every page is a list. HTML has three list types, each with a precise meaning, and a strict rule about what may sit inside them. This chapter covers all three, the attributes that control numbering, how to nest lists correctly, and why a navigation menu should be a list even when its bullets are hidden.</p>
-  <p class="meta">About 13 minutes &middot; Course outcome CO1</p>
+  <p class="meta">About 25 minutes &middot; Course outcome CO1</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Elements nest: one sits inside another and closes first &mdash; <a href="book.html?ch=3">Chapter 3</a> (nesting).</li>
+      <li>Bullets, numbers and indentation are all appearance, and appearance is CSS's job.</li>
+      <li>A list is chosen by what the content <i>is</i>, not by how you want it drawn.</li>
+    </ul>
+  </div>
   <div class="objectives">
     <h2>By the end of this chapter you can</h2>
     <ul>
@@ -18,6 +26,7 @@
 
 <section id="s1">
   <h2>7.1 Three kinds of list</h2>
+  <div class="plain">Ask one question: does the order matter? Shopping items &mdash; no, use bullets. Steps in a recipe &mdash; yes, use numbers. Words with their meanings &mdash; neither, use a description list.</div>
   <figure class="fig">
     <svg viewBox="0 0 720 200" role="img" aria-label="Three list types side by side: unordered, ordered, description">
       <rect x="10" y="10" width="220" height="180" rx="12" class="box saf"/>
@@ -37,7 +46,7 @@
     <figcaption><b>Figure 7.1</b> The choice is about meaning, not looks: does order matter (ol), not matter (ul), or is each item a term with a description (dl)?</figcaption>
   </figure>
   <h3>Unordered list: <code>&lt;ul&gt;</code> + <code>&lt;li&gt;</code></h3>
-  <p>Use it for a set of related items whose <b>order carries no meaning</b>: a list of skills, the ingredients you need, the links in a menu. Each item is an <code>&lt;li&gt;</code> (list item). Browsers show bullets by default.</p>
+  <p>Use it for a set of related items whose <b>order carries no meaning</b>: a list of skills, the ingredients you need, the links in a menu. Each item is an <code>&lt;li&gt;</code> (list item). Browsers show <span class="jw" data-def="The dots drawn beside list items. They are decoration: CSS can change or remove them without changing what the list means.">bullets</span> by default.</p>
   <pre class="code" data-run data-title="Unordered list" data-h="120">&lt;ul&gt;
   &lt;li&gt;HTML5&lt;/li&gt;
   &lt;li&gt;CSS3&lt;/li&gt;
@@ -62,6 +71,7 @@
 
 <section id="s2">
   <h2>7.2 The one strict rule: what goes inside a list</h2>
+  <div class="callout analogy"><b>A list is an egg tray.</b> An egg tray holds eggs, and only eggs, in its own hollows. A <code>ul</code> holds <code>li</code> items, and only <code>li</code> items, directly inside it. If you want a picture or a paragraph in your list, it goes <i>inside</i> an <code>li</code>, the way you would put something in an egg hollow rather than balance it on the rim.</div>
   <p><b>Only <code>&lt;li&gt;</code> elements may sit directly inside a <code>&lt;ul&gt;</code> or <code>&lt;ol&gt;</code>.</b> Loose text, a <code>&lt;p&gt;</code>, a <code>&lt;div&gt;</code> or a link placed directly inside the list is invalid. Anything you want in the list goes <i>inside an <code>&lt;li&gt;</code></i>, and an <code>&lt;li&gt;</code> can hold anything: text, links, images, paragraphs, even another list.</p>
   <div class="fix">
     <div class="w"><b>&#10007; Loose content inside the list</b><pre>&lt;ul&gt;
@@ -116,6 +126,11 @@
   </div>
 </section>
 
+  <details class="qc">
+    <summary>Quick check: <code>&lt;ol reversed&gt;</code> &mdash; do the items change places on screen?</summary>
+    <p>No. Only the <i>numbers</i> count downwards, 3, 2, 1. The items stay in the order you wrote them. This catches almost everybody once.</p>
+  </details>
+
 <section id="s4">
   <h2>7.4 Controlling ordered lists: type, start and reversed</h2>
   <p>Ordered lists take three attributes. They change the <i>numbering</i>; they never change the order of the items in your markup.</p>
@@ -168,6 +183,11 @@
     <li>A ranking of the top five students: <b><code>ol</code></b> (the position is the information).</li>
   </ul>
 </section>
+
+  <details class="qc">
+    <summary>Quick check: why is a navigation menu marked up as a list?</summary>
+    <p>So a screen reader can announce &ldquo;list, six items&rdquo; and the user knows how big the menu is before hearing it. The bullets are removed with one line of CSS; the meaning is worth keeping.</p>
+  </details>
 
 <section id="s6">
   <h2>7.6 Lists as navigation, and why the bullets do not matter</h2>
