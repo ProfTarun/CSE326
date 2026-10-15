@@ -1,22 +1,13 @@
 {
  "tests": [
   {
-   "id": "demo-ca2",
-   "title": "CSE326 CA2 sample (demo)",
-   "course": "CSE326",
-   "assessment": "CA2 demo",
-   "date": "15 Oct 2026",
-   "students": 12,
-   "published": "2026-10-15T09:00:00Z"
-  },
-  {
    "id": "15-oct-2026-fbfb",
    "title": "15 Oct 2026",
    "course": "CSE326",
    "assessment": "CA2",
    "date": "15 Oct 2026",
    "students": 12,
-   "published": "2026-10-15T10:18:21.289Z"
+   "published": "2026-10-15T10:16:40.408Z"
   }
  ]
 }
