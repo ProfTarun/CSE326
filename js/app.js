@@ -175,6 +175,7 @@ var NAV = [
   ["test.html", "Mock test"],
   ["playground.html", "Playground"],
   ["tutor.html", "AI tutor"],
+  ["learning.html", "My learning"],
   ["progress.html", "My progress"]
 ];
 

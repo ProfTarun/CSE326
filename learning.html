@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>My learning report | CSE326</title>
+<link rel="stylesheet" href="css/theme.css?v=2026-10-15">
+<link rel="stylesheet" href="css/site.css?v=2026-10-15">
+<style>
+  .banner{background:linear-gradient(120deg,#FFF3E4 0%,#FFFFFF 48%,#E9F7E7 100%);
+    border:1px solid var(--line);border-radius:20px;padding:28px 30px;margin-bottom:20px;box-shadow:var(--shadow)}
+  .banner h1{font-size:27px;margin:8px 0 8px;letter-spacing:-.7px}
+  .banner p{margin:0;color:var(--ink-2);font-size:15px;line-height:1.7;max-width:64ch}
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form label{display:block;font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+  .form input,.form select{width:100%;box-sizing:border-box;font:inherit;font-size:16px;padding:11px 12px;
+    border:1px solid var(--line);border-radius:10px;background:#fff;color:var(--ink)}
+  .form input:focus,.form select:focus{outline:2px solid var(--saffron);border-color:var(--saffron)}
+  .form .full{grid-column:1/-1}
+  .code-in{letter-spacing:.18em;text-transform:uppercase;font-family:var(--mono)}
+  @media(max-width:640px){.form{grid-template-columns:1fr}}
+  .err{margin-top:12px;padding:10px 14px;border-radius:10px;background:var(--bad-bg);color:var(--bad);font-size:14px}
+  .hint{font-size:13px;color:var(--mut);margin-top:10px;line-height:1.6}
+  .who{display:flex;flex-wrap:wrap;justify-content:space-between;gap:10px;align-items:flex-end}
+  .who h2{margin:0;font-size:22px}
+  .who .sub{color:var(--mut);font-size:14px;margin-top:4px}
+  .kpis{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px}
+  .kpi{border:1px solid var(--line);border-radius:12px;padding:11px 13px;background:#fff}
+  .kpi b{display:block;font-size:21px;color:var(--navy)}
+  .kpi span{font-size:12.5px;color:var(--mut)}
+  .kpi.good b{color:var(--ok)} .kpi.mid b{color:var(--warn)} .kpi.low b{color:var(--bad)}
+  .adv li{margin:6px 0;line-height:1.6}
+  .bars{display:grid;gap:8px}
+  .bar{display:grid;grid-template-columns:minmax(110px,32%) 1fr 52px;gap:10px;align-items:center;font-size:13.5px}
+  .bt{position:relative;height:14px;background:#EEF2F7;border-radius:7px;overflow:hidden}
+  .bt i{position:absolute;left:0;top:0;bottom:0;border-radius:7px}
+  .bt i.good{background:var(--ok)} .bt i.mid{background:#E0A100} .bt i.low{background:var(--bad)}
+  .bt em{position:absolute;top:-2px;bottom:-2px;width:3px;background:var(--navy)}
+  .bv{text-align:right;font-weight:700}
+  .topic{border:1px solid var(--line);border-left:4px solid var(--saffron);border-radius:12px;padding:16px 18px;margin-top:14px;background:#fff}
+  .topic h3{margin:0 0 4px;font-size:17px}
+  .topic .lost{font-size:13px;color:var(--mut)}
+  .qs{margin:10px 0 0;padding:0;list-style:none}
+  .qs li{font-size:14px;line-height:1.55;padding:7px 0;border-top:1px dashed var(--line)}
+  .qs .ans{font-size:13px;color:var(--mut)}
+  .qs .ans b.bad{color:var(--bad)} .qs .ans b.ok{color:var(--ok)}
+  .book{margin-top:12px;display:grid;gap:10px}
+  .bk{display:flex;gap:12px;align-items:flex-start;background:var(--saffron-pale);border-radius:10px;padding:11px 13px}
+  .bk .n{flex:0 0 auto;width:34px;height:34px;border-radius:9px;background:var(--saffron);color:#fff;display:grid;place-items:center;font-weight:800}
+  .bk p{margin:3px 0 6px;font-size:13.5px;line-height:1.6;color:var(--ink-2)}
+  .bk a{font-weight:700;font-size:14px}
+  .rep{width:100%;border:1px solid var(--line);border-radius:12px;min-height:600px;background:#fff}
+  .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px}
+  .pill{display:inline-block;font-size:12.5px;font-weight:700;padding:4px 11px;border-radius:999px;background:var(--green-pale);color:var(--green-d)}
+  .pill.low{background:var(--bad-bg);color:var(--bad)} .pill.mid{background:var(--warn-bg);color:var(--warn)}
+  .lock{font-size:12.5px;color:var(--mut)}
+  @media print{.topbar,.mnav,.foot,#gate,.acts{display:none!important}.rep{min-height:0}}
+</style>
+</head>
+<body>
+<div class="wrap narrow" id="wrap">
+  <div class="banner">
+    <p class="eyebrow">Your test, explained</p>
+    <h1>My learning report</h1>
+    <p>After each test your teacher publishes a personal report for every student: your marks, where they
+      were lost, why each wrong answer was wrong, lessons with live simulations, and the chapters of this
+      textbook to read next. It is locked with your registration number and the code your teacher gives you
+      &mdash; only you can open it.</p>
+  </div>
+  <div class="card" id="gate">
+    <h2>Open your report</h2>
+    <div class="form">
+      <div class="full" id="testRow">
+        <label for="test">Test</label>
+        <select id="test"><option>Loading&hellip;</option></select>
+      </div>
+      <div>
+        <label for="reg">Registration number</label>
+        <input id="reg" inputmode="numeric" autocomplete="off" placeholder="e.g. 12318600">
+      </div>
+      <div>
+        <label for="code">Your code</label>
+        <input id="code" class="code-in" autocomplete="off" placeholder="XXXX-XXXX" maxlength="12">
+      </div>
+    </div>
+    <div class="acts">
+      <button class="btn saf" id="open" type="button">Open my report</button>
+    </div>
+    <div id="msg"></div>
+    <p class="hint">Lost your code? Ask your teacher. The code is checked in your own browser &mdash;
+      it is never sent anywhere.</p>
+  </div>
+  <div id="out"></div>
+</div>
+
+<script src="js/check.js?v=2026-10-15"></script>
+<script src="js/ai.js?v=2026-10-15"></script>
+<script src="js/app.js?v=2026-10-15"></script>
+<script src="js/learning.js?v=2026-10-15"></script>
+</body>
+</html>

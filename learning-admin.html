@@ -1,0 +1,103 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="robots" content="noindex">
+<title>Learning reports - teacher | CSE326</title>
+<link rel="stylesheet" href="css/theme.css?v=2026-10-15">
+<link rel="stylesheet" href="css/site.css?v=2026-10-15">
+<style>
+  .form{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  .form label{display:block;font-size:13px;font-weight:700;color:var(--ink-2);margin-bottom:6px}
+  .form input{width:100%;box-sizing:border-box;font:inherit;font-size:15px;padding:10px 12px;border:1px solid var(--line);
+    border-radius:10px;background:#fff;color:var(--ink)}
+  .form input:focus{outline:2px solid var(--saffron);border-color:var(--saffron)}
+  .form .full{grid-column:1/-1}
+  @media(max-width:640px){.form{grid-template-columns:1fr}}
+  .acts{display:flex;flex-wrap:wrap;gap:10px;margin-top:14px;align-items:center}
+  .msg{margin-top:12px;padding:10px 14px;border-radius:10px;font-size:14px;line-height:1.6}
+  .msg.bad{background:var(--bad-bg);color:var(--bad)} .msg.ok{background:var(--ok-bg);color:var(--ok)}
+  .msg.info{background:var(--warn-bg);color:var(--warn)}
+  .hint{font-size:13px;color:var(--mut);line-height:1.65}
+  .hint ol{margin:6px 0 0;padding-left:20px} .hint li{margin:3px 0}
+  .sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin-top:12px}
+  .sum div{border:1px solid var(--line);border-radius:10px;padding:10px 12px;background:#fff}
+  .sum b{display:block;font-size:17px;color:var(--navy)} .sum span{font-size:12.5px;color:var(--mut)}
+  .prog{height:10px;background:#EEF2F7;border-radius:6px;overflow:hidden;margin-top:12px;display:none}
+  .prog i{display:block;height:100%;width:0;background:linear-gradient(90deg,var(--saffron),var(--green))}
+  table.t{width:100%;border-collapse:collapse;font-size:14px;margin-top:8px}
+  table.t th,table.t td{border-bottom:1px solid var(--line);padding:8px 6px;text-align:left;vertical-align:top}
+  table.t th{font-size:12.5px;color:var(--mut);font-weight:700}
+  input[type=file]{font-size:14px}
+</style>
+</head>
+<body>
+<div class="wrap narrow">
+  <p class="eyebrow">Teacher</p>
+  <h1 style="margin:6px 0 16px">Learning reports &mdash; publish from the OMR app</h1>
+
+  <div class="card" id="login">
+    <h2>Sign in</h2>
+    <div class="form">
+      <div><label for="user">User name</label><input id="user" autocomplete="username"></div>
+      <div><label for="pass">Password</label><input id="pass" type="password" autocomplete="current-password"></div>
+    </div>
+    <div class="acts"><button class="btn saf" id="signin" type="button">Sign in</button></div>
+    <div id="loginMsg"></div>
+  </div>
+
+  <div id="panel" style="display:none">
+    <div class="card">
+      <h2>1 &nbsp;GitHub access</h2>
+      <p class="hint" style="margin-top:0">This site lives in the GitHub repository <b>ProfTarun/CSE326</b>. Publishing
+        writes the pack into it, so this page needs a GitHub access token that may change that repository's files.
+        It stays in this browser only.</p>
+      <div class="form">
+        <div class="full"><label for="tok">GitHub token</label><input id="tok" type="password" autocomplete="off"
+          placeholder="github_pat_…"></div>
+      </div>
+      <div class="acts">
+        <label class="hint"><input type="checkbox" id="remember"> Remember on this computer</label>
+        <button class="btn ghost sm" id="check" type="button">Check access</button>
+      </div>
+      <div id="tokMsg"></div>
+      <details class="hint" style="margin-top:10px"><summary><b>How to make the token (once)</b></summary>
+        <ol>
+          <li>Signed in to GitHub, open <a href="https://github.com/settings/personal-access-tokens/new" target="_blank"
+            rel="noopener">Settings &rarr; Developer settings &rarr; Fine-grained tokens &rarr; Generate new token</a>.</li>
+          <li>Name it <i>CSE326 learning reports</i>; pick an expiry (e.g. 1 year).</li>
+          <li>Repository access: <b>Only select repositories</b> &rarr; <b>CSE326</b>.</li>
+          <li>Permissions &rarr; Repository permissions &rarr; <b>Contents: Read and write</b>. Nothing else.</li>
+          <li>Generate, copy the token, paste it above, tick <i>Remember</i> and press <i>Check access</i>.</li>
+        </ol>
+      </details>
+    </div>
+
+    <div class="card">
+      <h2>2 &nbsp;Publish a pack</h2>
+      <p class="hint" style="margin-top:0">In the OMR Scan app: project &rarr; <i>Class analysis and student reports</i>
+        &rarr; <i>For the CSE326 website</i>. It shares a ZIP (put that here) and a list of student codes (keep that,
+        and give each student their code).</p>
+      <input type="file" id="zip" accept=".zip,application/zip">
+      <div id="zipInfo"></div>
+      <div class="acts"><button class="btn grn" id="publish" type="button" disabled>Publish to the site</button></div>
+      <div class="prog" id="prog"><i id="progBar"></i></div>
+      <div id="pubMsg"></div>
+    </div>
+
+    <div class="card">
+      <h2>3 &nbsp;Published tests</h2>
+      <div id="tests" class="hint">Loading&hellip;</div>
+    </div>
+
+    <p class="hint">Students open <a href="learning.html">learning.html</a> and type their registration number and code.
+      Each report is locked with that pair before it leaves the phone, so the files on GitHub cannot be read without the
+      code. This sign-in only hides the page; the token is what allows publishing.</p>
+  </div>
+</div>
+
+<script src="js/app.js?v=2026-10-15"></script>
+<script src="js/learning-admin.js?v=2026-10-15"></script>
+</body>
+</html>
