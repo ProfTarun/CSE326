@@ -168,6 +168,7 @@ var Progress = (function () {
 var NAV = [
   ["index.html", "Home"],
   ["book.html", "Textbook"],
+  ["notes.html", "Summary notes"],
   ["learn.html", "Lessons"],
   ["drills.html", "Command drills"],
   ["practicals.html", "Practicals"],

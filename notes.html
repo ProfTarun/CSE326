@@ -1,0 +1,1204 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Summary notes: Units 1 and 2 | CSE326 Internet Programming</title>
+<meta name="description" content="CSE326 Units 1 and 2 in one short revision booklet: the Internet and the Web, HTML5 structure, text, lists, links, images, SVG, multimedia, semantic HTML, accessibility, forms, tables and responsive content. Read online or download as a PDF.">
+<link rel="stylesheet" href="css/theme.css?v=2026-10-28">
+<link rel="stylesheet" href="css/site.css?v=2026-10-28">
+<style>
+  .nbanner{background:linear-gradient(120deg,#FFF3E4 0%,#FFFFFF 50%,#E9F7E7 100%);border:1px solid var(--line);
+    border-radius:20px;padding:26px 28px;margin-bottom:18px;box-shadow:var(--shadow)}
+  .nbanner h1{font-size:28px;margin:6px 0 8px;letter-spacing:-.6px}
+  .nbanner p{margin:0 0 6px;color:var(--ink-2);font-size:15px;line-height:1.7;max-width:70ch}
+  .nact{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px;align-items:center}
+  .nact .meta{font-size:12.5px;color:var(--mut);font-weight:600}
+  .picker{background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:16px;padding:18px 22px;
+    margin-bottom:18px;box-shadow:var(--shadow)}
+  .picker h2{font-size:18px;margin:0 0 4px}
+  .picker .sub{color:var(--mut);font-size:13.5px;margin:0 0 12px;line-height:1.6}
+  .pgroups{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+  @media(max-width:760px){.pgroups{grid-template-columns:1fr}}
+  .pgroup{border:1px solid var(--line);border-radius:12px;padding:10px 14px 12px;margin:0}
+  .pgroup legend{padding:0 6px;font-size:14px}
+  .ps{display:flex;gap:8px;align-items:flex-start;font-size:14px;padding:4px 0;cursor:pointer;line-height:1.45}
+  .ps input,.pgroup legend input,.popts input{width:17px;height:17px;accent-color:#E07B1E;flex:0 0 auto;margin-top:2px}
+  .popts{display:flex;gap:18px;flex-wrap:wrap;margin:14px 0 4px;font-size:14px}
+  .popts label{display:flex;gap:7px;align-items:center;cursor:pointer}
+  .pfoot{display:flex;gap:10px;flex-wrap:wrap;align-items:center;margin-top:12px}
+  .pfoot .hint{font-size:12.8px;color:var(--mut);line-height:1.55;flex:1 1 260px}
+  .ntoc{background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:16px;padding:14px 22px;
+    margin-bottom:18px;box-shadow:var(--shadow);columns:2;column-gap:28px}
+  @media(max-width:760px){.ntoc{columns:1}}
+  .ntoc .tu{font-size:11.5px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--saffron-d);
+    margin:6px 0 3px;break-after:avoid}
+  .ntoc a{display:block;font-size:14px;padding:3px 0;color:var(--ink);text-decoration:none;break-inside:avoid}
+  .ntoc a:hover{color:var(--saffron-d)}
+  .pcover{display:none}
+
+  .notes{font-size:15px;line-height:1.68;color:var(--ink);overflow-wrap:anywhere}
+  .notes table.t{overflow-wrap:normal}
+  .nunit{background:#0B2545;color:#fff;padding:12px 18px;border-radius:12px;margin:26px 0 14px}
+  .nunit b{display:block;font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:#FFD9A8}
+  .nunit span{font-size:19px;font-weight:800}
+  .nsec{background:rgba(255,255,255,.97);border:1px solid var(--line);border-radius:16px;padding:20px 26px 16px;
+    margin-bottom:18px;box-shadow:var(--shadow);scroll-margin-top:70px}
+  .notes h2{font-size:21px;color:#0B2545;margin:0 0 2px;border-bottom:2px solid #E07B1E;padding-bottom:5px}
+  .notes h2 .n{color:#E07B1E;margin-right:8px}
+  .notes .chref{font-size:12.5px;color:var(--mut);margin:4px 0 8px}
+  .notes h3{font-size:16.5px;color:#13386B;margin:18px 0 4px}
+  .notes p{margin:4px 0 9px}
+  .notes ul,.notes ol{margin:4px 0 10px;padding-left:22px}
+  .notes li{margin:2px 0}
+  .notes code{font-family:var(--mono);font-size:.88em;background:#EEF2F7;padding:1px 5px;border-radius:4px}
+  .notes pre.code{font-family:var(--mono);font-size:13px;line-height:1.5;background:#0F1B2D;color:#E6EDF7;
+    padding:11px 14px;border-radius:9px;margin:6px 0 11px;white-space:pre-wrap;overflow-wrap:anywhere}
+  .notes pre.code code{background:none;padding:0;color:inherit}
+  .notes .tw{overflow-x:auto}
+  .notes table.t{border-collapse:collapse;width:100%;margin:6px 0 12px;font-size:14px}
+  .notes table.t th{background:#E8EEF6;color:#0B2545;text-align:left}
+  .notes table.t th,.notes table.t td{border:1px solid #CFD8E3;padding:5px 8px;vertical-align:top}
+  .notes .box{border-radius:9px;padding:9px 14px;margin:8px 0 12px}
+  .notes .box.key{background:#EEF6FF;border-left:4px solid #2563EB}
+  .notes .box.trap{background:#FFF4E6;border-left:4px solid #E07B1E}
+  .notes .box.eg{background:#EEF8EE;border-left:4px solid #138808}
+  .notes .box>:first-child{margin-top:0}.notes .box>:last-child{margin-bottom:0}
+  .notes .check{margin:16px 0 4px;background:#FAFBFD;border:1px solid #DCE3EC;border-radius:11px;padding:11px 16px}
+  .notes .check h4{margin:0 0 6px;font-size:13px;color:#0B2545;text-transform:uppercase;letter-spacing:.06em}
+  .notes .mcq{margin:8px 0 10px}
+  .notes .mcq .s{font-weight:650}
+  .notes .mcq ol{list-style:lower-alpha;margin:3px 0 0;padding-left:26px}
+  .notes .ans h3{font-size:15px;margin:14px 0 4px}
+  .notes .key td:first-child{white-space:nowrap;font-weight:700}
+
+  @media print{
+    @page{size:A4;margin:13mm 13mm 15mm 13mm;
+      @bottom-center{content:"CSE326 Units 1 & 2 - summary notes  |  " counter(page);
+        font:8pt 'Segoe UI',sans-serif;color:#7A8699}}
+    .topbar,.mnav,.foot,.toast,.nbanner,.picker,.ntoc,.noprint{display:none!important}
+    .wrap{max-width:none;padding:0;margin:0}
+    .pcover{display:block;border-top:6px solid #E07B1E;padding-top:8mm;margin-bottom:6mm}
+    .pcover .e{font-weight:800;letter-spacing:.14em;text-transform:uppercase;color:#B45309;font-size:9pt}
+    .pcover h1{font-size:22pt;color:#0B2545;margin:2px 0 4px}
+    .pcover p{font-size:10pt;color:#3C4A60;margin:0 0 3px}
+    .pcover ul{font-size:9.5pt;margin:4px 0 0;padding-left:18px;columns:2}
+    .notes{font-size:9.3pt;line-height:1.45;color:#1C2A3D}
+    .nsec{background:none;border:0;box-shadow:none;border-radius:0;padding:0;margin:0 0 4mm}
+    .nunit{margin:0 0 4mm;padding:8px 12px;border-radius:6px;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .nunit:not(.first){break-before:page}
+    .nunit span{font-size:13pt}
+    .notes h2{font-size:14pt;margin-top:4mm;break-after:avoid}
+    .notes .chref a{color:inherit;text-decoration:none}
+    .notes h3{font-size:11pt;margin:10px 0 3px;break-after:avoid}
+    .notes pre.code{font-size:8.4pt;line-height:1.42;padding:7px 10px;break-inside:avoid;
+      -webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .notes code{font-size:8.8pt}
+    .notes table.t{font-size:8.7pt}
+    .notes table.t tr{break-inside:avoid}
+    .notes table.t thead{display:table-header-group}
+    .notes .box,.notes .check,.notes table.t th,.nunit{-webkit-print-color-adjust:exact;print-color-adjust:exact}
+    .notes .box{break-inside:avoid;padding:6px 10px}
+    .notes .mcq{break-inside:avoid;margin:5px 0}
+    .notes .mcq ol{columns:2;column-gap:16px}
+    .notes .check{padding:7px 11px}
+    .notes .check h4{font-size:9.4pt}
+    .answers{break-before:page}
+    .notes .key{font-size:8.2pt}
+    .off,.notes.noq .check,.notes.noans .answers{display:none!important}
+  }
+</style>
+</head>
+<body>
+
+<div class="wrap">
+  <div class="nbanner">
+    <p class="eyebrow">Revision &middot; Units 1 and 2</p>
+    <h1>Summary notes</h1>
+    <p>All of Unit 1 and Unit 2 in one short booklet, written from the textbook: how the Internet and the Web work,
+      HTML5 page structure, text and lists, links and images, SVG, multimedia, semantic HTML, accessibility, forms,
+      tables and responsive content. Each section ends with <b>Check yourself</b> questions; answers are at the end.</p>
+    <div class="nact">
+      <a class="btn saf" href="data/notes/CSE326_Units1-2_Summary.pdf" download="CSE326_Units1-2_Summary.pdf">&#11015; Download the PDF</a>
+      <a class="btn ghost" href="#picker">Make your own PDF</a>
+      <span class="meta">Full booklet &middot; 41 pages A4 &middot; 1.4 MB &middot; 59 practice questions</span>
+    </div>
+  </div>
+
+  <div class="picker" id="picker">
+    <h2>Make your own PDF</h2>
+    <p class="sub">Tick the parts you want, then press <b>Generate PDF</b>. Your browser's print window opens:
+      choose <b>Save as PDF</b> as the printer (on a phone: Print, then Save as PDF / Download).</p>
+    <div class="pgroups"><fieldset class="pgroup"><legend><label><input type="checkbox" class="pu" data-unit="1" checked> <b>Unit 1</b> &middot; Foundations: the Internet, the Web and HTML5</label></legend><label class="ps"><input type="checkbox" class="pc" value="S1" data-unit="1" checked> 1. Internet, Web, client-server, HTTP/HTTPS and URLs</label><label class="ps"><input type="checkbox" class="pc" value="S2" data-unit="1" checked> 2. HTML5 document structure, head vs body, meta tags, elements and attributes</label><label class="ps"><input type="checkbox" class="pc" value="S3" data-unit="1" checked> 3. Text formatting, headings and lists</label><label class="ps"><input type="checkbox" class="pc" value="S4" data-unit="1" checked> 4. Hyperlinks, images and link text (SEO)</label><label class="ps"><input type="checkbox" class="pc" value="S5" data-unit="1" checked> 5. SVG graphics</label><label class="ps"><input type="checkbox" class="pc" value="S6" data-unit="1" checked> 6. Multimedia: audio, video and iframes</label></fieldset><fieldset class="pgroup"><legend><label><input type="checkbox" class="pu" data-unit="2" checked> <b>Unit 2</b> &middot; Semantic structure, accessibility, forms and tables</label></legend><label class="ps"><input type="checkbox" class="pc" value="S7" data-unit="2" checked> 7. Semantic elements and page structure</label><label class="ps"><input type="checkbox" class="pc" value="S8" data-unit="2" checked> 8. Accessibility: POUR, WCAG, ARIA and keyboard access</label><label class="ps"><input type="checkbox" class="pc" value="S9" data-unit="2" checked> 9. Forms, input types and validation</label><label class="ps"><input type="checkbox" class="pc" value="S10" data-unit="2" checked> 10. Tables and data representation</label><label class="ps"><input type="checkbox" class="pc" value="S11" data-unit="2" checked> 11. Responsive content structuring</label></fieldset></div>
+    <div class="popts">
+      <label><input type="checkbox" id="pq" checked> Include the &ldquo;Check yourself&rdquo; questions</label>
+      <label><input type="checkbox" id="pa" checked> Include the answers</label>
+    </div>
+    <div class="pfoot">
+      <button class="btn grn" id="pgo" type="button" onclick="makeNotesPdf()">Generate PDF</button>
+      <button class="btn ghost sm" type="button" onclick="pickAll(true)">Select all</button>
+      <button class="btn ghost sm" type="button" onclick="pickAll(false)">Clear</button>
+      <span class="hint" id="pcount"></span>
+    </div>
+  </div>
+
+  <nav class="ntoc" aria-label="Contents"><div class="tu">Unit 1 &middot; Foundations: the Internet, the Web and HTML5</div><a href="#s1">1. Internet, Web, client-server, HTTP/HTTPS and URLs</a><a href="#s2">2. HTML5 document structure, head vs body, meta tags, elements and attributes</a><a href="#s3">3. Text formatting, headings and lists</a><a href="#s4">4. Hyperlinks, images and link text (SEO)</a><a href="#s5">5. SVG graphics</a><a href="#s6">6. Multimedia: audio, video and iframes</a><div class="tu">Unit 2 &middot; Semantic structure, accessibility, forms and tables</div><a href="#s7">7. Semantic elements and page structure</a><a href="#s8">8. Accessibility: POUR, WCAG, ARIA and keyboard access</a><a href="#s9">9. Forms, input types and validation</a><a href="#s10">10. Tables and data representation</a><a href="#s11">11. Responsive content structuring</a><a href="#answers">Answers to &ldquo;Check yourself&rdquo;</a></nav>
+
+  <div class="pcover" aria-hidden="true">
+    <div class="e">CSE326 Internet Programming</div>
+    <h1>Units 1 &amp; 2 &mdash; Summary notes</h1>
+    <p id="pcdate"></p>
+    <p><b>In this PDF:</b></p>
+    <ul id="pclist"></ul>
+  </div>
+
+  <article class="notes" id="notes">
+<div class="nunit" data-unit="1"><b>Unit 1</b><span>Foundations: the Internet, the Web and HTML5</span></div><section class="nsec" id="s1" data-sec="S1" data-unit="1"><h2><span class="n">1</span>Internet, Web, client-server, HTTP/HTTPS and URLs</h2><p class="chref">Textbook chapters <a href="book.html#ch01">1</a>, <a href="book.html#ch02">2</a></p><h3 id="s1-1">The Internet and the World Wide Web are not the same thing</h3>
+<p>The <b>Internet</b> is the wiring of the world: cables, radio links, routers and billions of connected devices, plus the rules (protocols) that move data between them. It is a <b>network of networks</b>: your phone joins the home router, the router joins an Internet service provider, and providers join bigger networks across the globe. No single company owns it and no single computer is it.</p>
+<ul>
+<li>Data travels in small <b>packets</b>, each labelled with its destination address; routers pass them on like road junctions.</li>
+<li><b>TCP/IP</b> holds it together: IP addresses and moves packets; TCP makes sure they all arrive in order.</li>
+</ul>
+<p>The <b>World Wide Web</b> (the Web, WWW) is <b>one service that runs on top of the Internet</b>: web pages written in HTML, joined by hyperlinks, fetched with HTTP and named by URLs. HTML, HTTP and URLs were invented together at CERN in 1989-91, long after the Internet began. Many other services share the same roads but are <b>not</b> the Web, because they use their own protocols and are not made of web pages.</p>
+<div class="tw"><table class="t">
+<tr><th>Activity</th><th>Uses the Internet?</th><th>Part of the Web?</th><th>Reason</th></tr>
+<tr><td>Reading a news site in a browser</td><td>Yes</td><td>Yes</td><td>HTML pages delivered by HTTP</td></tr>
+<tr><td>Sending email from a mail program</td><td>Yes</td><td>No</td><td>Uses mail protocols (SMTP, IMAP)</td></tr>
+<tr><td>Playing an online multiplayer game</td><td>Yes</td><td>No</td><td>Uses a game protocol, no web pages</td></tr>
+<tr><td>Using a video-streaming app, or a WhatsApp chat or call</td><td>Yes</td><td>No</td><td>Streaming and messaging protocols</td></tr>
+</table></div>
+<div class="box key">Internet = the infrastructure (devices + routers + cables + TCP/IP). Web = one service on it (HTML pages + links + HTTP). Every website is on the Internet, but not everything on the Internet is a website. Email, games and streaming prove the Web is only one of several Internet services.</div>
+<div class="box trap"><b>Trap:</b> Calling the Web the infrastructure and the Internet a service on it is backwards. Saying the two words mean one identical system is false: you can email or game without touching the Web. Saying "the Internet speaks only HTTP and the Web speaks only TCP/IP" swaps the protocols: HTTP belongs to the Web, TCP/IP to the Internet, and HTTP itself travels over the Internet's TCP/IP family of protocols. The Internet is also not one giant computer, not a website holding every page, and not a search engine (a search site like Google is itself one website on the Web). Email and games do not run on HTML either.</div>
+
+<h3 id="s1-2">Client and server: who asks, who answers</h3>
+<p>Every web visit is a conversation between two programs. This is the <b>client-server model</b>. The <b>client</b> asks; the <b>server</b> answers.</p>
+<div class="tw"><table class="t">
+<tr><th>Part</th><th>What it is</th><th>Its job</th><th>Not its job</th></tr>
+<tr><td>Client</td><td>The browser (Chrome, Edge, Firefox, Safari) or a phone app</td><td>Builds and sends the HTTP request; receives the reply; renders HTML into pixels on screen</td><td>Holding the site's database</td></tr>
+<tr><td>Server</td><td>A program on a computer in a data centre</td><td>Stores data, runs logic and responds to requests</td><td>Drawing pixels for the user; typing the URL (the user does that)</td></tr>
+<tr><td>DNS</td><td>Domain Name System, the phone book of the Internet</td><td>Turns a domain name into an IP address</td><td>Sending the page request or the page</td></tr>
+<tr><td>Database</td><td>Sits behind the server</td><td>Keeps records and answers only the server</td><td>Talking to the browser directly</td></tr>
+</table></div>
+<div class="box eg">Food-delivery app: your phone (client) shows menus and sends each tap as a request. The company server looks up the restaurant list in its database, works out the delivery time and replies with JSON. The phone never holds the whole database.</div>
+<p>What the server sends back is a <b>response</b>: a status code plus the content, usually <b>HTML for a page or JSON for data</b> (sometimes an image or PDF). It is text, not a picture of the page; the browser interprets and draws it.</p>
+<div class="box trap"><b>Trap:</b> The browser is the client even though it "shows" the page: roles depend on who asks. A server reply never contains your keystrokes, a copy of your browser's cache or history (both live on your own device), or a newly bought domain name (domains come from a registrar, not inside a page). Scrambling what the user types on the keyboard is not the server's job; HTTPS protects data while it travels between the two ends. Moving packets between networks is the routers' job, not the web server's.</div>
+
+<h3 id="s1-3">HTTP and HTTPS</h3>
+<p><b>HTTP</b> = HyperText Transfer Protocol. It is the <b>protocol used to exchange web requests and responses</b>: a fixed set of rules for how a request and a reply are worded, so any browser can talk to any server. In HTTP/1.1, the version shown here, the messages are plain text (newer HTTP/2 and HTTP/3 pack the same requests into binary frames):</p>
+<pre class="code">Browser sends:
+GET /timetable.html HTTP/1.1
+Host: www.citycollege.org
+
+Server replies:
+HTTP/1.1 200 OK
+Content-Type: text/html
+
+&lt;!DOCTYPE html&gt;&lt;html lang="en"&gt; ...</pre>
+<ul>
+<li><b>GET</b> asks for a resource; <b>POST</b> sends data (such as a form) in the body.</li>
+<li>Status codes by first digit: 2xx success (200 OK), 3xx redirect, 4xx client error (404 Not Found), 5xx server error.</li>
+</ul>
+<div class="tw"><table class="t">
+<tr><th>Feature</th><th>HTTP</th><th>HTTPS</th></tr>
+<tr><td>Full form</td><td>HyperText Transfer Protocol</td><td>HTTP Secure</td></tr>
+<tr><td>Data on the way</td><td>Readable text; anyone on the path (cafe Wi-Fi, ISP) can read or change it</td><td>Encrypted with TLS (Transport Layer Security); a certificate proves the server is genuine</td></tr>
+<tr><td>Default port</td><td>80</td><td>443</td></tr>
+<tr><td>Address bar</td><td>"Not secure" warning</td><td>Padlock or site-info icon (no warning)</td></tr>
+</table></div>
+<div class="box key">HTTPS = the same HTTP conversation in a sealed envelope: HTTP plus TLS encryption of the data in transit. Only the scheme and the default port (443) change; the path, the HTML or JSON content and the server code stay the same.</div>
+<div class="box trap"><b>Trap:</b> HTTP is a protocol. It is not the physical cables (that is infrastructure), not a language for querying databases (that is SQL), and not a markup language for building pages (that is HTML). HTTPS does not compress or shrink files, does not fit layouts to phone screens (that is responsive CSS), and does not add server-side scripting (PHP or Node.js code runs with or without it).</div>
+
+<h3 id="s1-4">The request-response cycle, step by step</h3>
+<ol>
+<li><b>Click</b>: the user clicks a link or types a URL.</li>
+<li>(DNS lookup: the browser turns the domain name into an IP address.)</li>
+<li><b>Request</b>: the browser (client) sends an HTTP request to that server.</li>
+<li><b>Server processes</b>: it reads a file, or runs code and queries its database.</li>
+<li><b>Response</b>: it sends back a status code and the content (HTML or JSON).</li>
+<li><b>Render</b>: the browser draws the page, requesting each CSS file, image and script the HTML mentions (unless already cached).</li>
+</ol>
+<div class="box key">Click, then request, then server processes, then response, then render. This order never changes.</div>
+<div class="box trap"><b>Trap:</b> Reject any order where the request comes before the user acts, the response comes before the request, or the server processes before anyone clicks.</div>
+
+<h3 id="s1-5">Reading a URL part by part</h3>
+<p>A <b>URL</b> (Uniform Resource Locator) is the address the browser requests. Read it like a postal address: how to deliver, which building, which room, plus a note.</p>
+<pre class="code">https://lib.citycollege.org/books/find.html?title=html&amp;year=2026
+|       |                  |               |
+|       |                  |               +-- query string (extra data)
+|       |                  +-- path (which file)
+|       +-- domain (which server)
++-- protocol (how to fetch)</pre>
+<div class="tw"><table class="t">
+<tr><th>Part</th><th>Example</th><th>Job</th><th>How to spot it</th></tr>
+<tr><td>Protocol (scheme)</td><td><code>https</code></td><td>How to fetch: http or https (also mailto, tel)</td><td>Before <code>://</code></td></tr>
+<tr><td>Domain (host)</td><td><code>lib.citycollege.org</code></td><td>Which server; DNS turns it into an IP address</td><td>After <code>://</code>, up to the first <code>/</code></td></tr>
+<tr><td>Path</td><td><code>/books/find.html</code></td><td>Which resource on that server, like a folder path</td><td>Starts with <code>/</code>, runs up to <code>?</code></td></tr>
+<tr><td>Query string</td><td><code>?title=html&amp;year=2026</code></td><td>Extra name=value parameters for the server, joined by <code>&amp;</code></td><td>Starts with <code>?</code>, runs up to <code>#</code> or the end</td></tr>
+<tr><td>Port (optional)</td><td><code>:8080</code> (not in this URL)</td><td>Which "door" on the server; defaults are 80 (HTTP) and 443 (HTTPS)</td><td>Right after the domain</td></tr>
+<tr><td>Fragment (optional)</td><td><code>#reviews</code> (not in this URL)</td><td>Jumps to the element with that id; never sent to the server</td><td>Starts with <code>#</code></td></tr>
+</table></div>
+<div class="box eg">Worked example: <code>https://results.techuni.ac.in/sem3</code><br>Protocol = <code>https</code>; domain = <code>results.techuni.ac.in</code> (the whole host name); path = <code>/sem3</code>; no query string.<br>Add <code>?roll=45</code> to the end and that new piece is the query string; the path stays <code>/sem3</code>.</div>
+<div class="box trap"><b>Trap:</b> The domain is the full host name, not just its last label. In <code>results.techuni.ac.in</code> the ending <code>in</code> is only the top-level domain (India's country code). <code>https://</code> with its colon and slashes marks the protocol; it is never the path. A path always begins with <code>/</code> and a query string always begins with <code>?</code>.</div>
+<p>An <b>absolute URL</b> has the protocol and domain and means the same thing anywhere; a <b>relative URL</b> such as <code>find.html</code> is completed by the browser from the current page's address.</p><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">1.1&nbsp; A student's laptop has no browser open. In one hour the student sends mail from a desktop mail program (SMTP/IMAP), plays an online multiplayer match and joins a WhatsApp call. Which conclusion is correct?</div><ol><li>The student used the Web, because any device with an IP address is on the Web</li><li>The student used the Internet but not the Web, since none of it fetched HTML pages over HTTP</li><li>The student used neither, because nothing can reach the Internet without a browser</li><li>The student used the Web, because SMTP and IMAP are the Web's own page protocols</li></ol></div><div class="mcq"><div class="s">1.2&nbsp; A student opens a recipe app and taps 'Paneer tikka'. Which task is done by the recipe company's web server?</div><ol><li>Keeping the phone's own browsing history up to date</li><li>Turning the app's domain name into an IP address</li><li>Looking up the recipe in its database and returning it as JSON</li><li>Routing the data packets through the ISP's routers</li></ol></div><div class="mcq"><div class="s">1.3&nbsp; A college moves its library site from http:// to https://. What actually changes for a visitor?</div><ol><li>The URL path changes, for example /home becomes /secure/home</li><li>The server must start sending JSON instead of HTML pages</li><li>The page's HTML must be rewritten in a new markup language</li><li>The browser uses port 443 and data in transit is TLS-encrypted</li></ol></div><div class="mcq"><div class="s">1.4&nbsp; Which of these is an example of HTTP itself at work?</div><ol><li>The text line GET /notice.html HTTP/1.1 sent from a browser to a server</li><li>The IP address 203.0.113.25 that a DNS lookup returns</li><li>The CSS rule p { color: navy; } that styles a paragraph</li><li>The Wi-Fi radio signal between a phone and its home router</li></ol></div><div class="mcq"><div class="s">1.5&nbsp; On an e-book site: (P) the server finds Chapter 5 and builds the HTML; (Q) the browser draws the chapter; (R) the browser sends a request for /chapter-5.html; (S) the server returns 200 OK with the HTML; (T) the reader taps 'Next chapter'. Which order is correct?</div><ol><li>R, T, P, S, Q</li><li>T, S, R, P, Q</li><li>T, R, P, S, Q</li><li>P, T, R, S, Q</li></ol></div><div class="mcq"><div class="s">1.6&nbsp; In http://events.citycollege.org/fest/2026/schedule.html?day=2&amp;hall=B, which label is correct?</div><ol><li>Query string: /fest/2026</li><li>Path: /fest/2026/schedule.html</li><li>Protocol: events</li><li>Domain: day=2</li></ol></div><div class="mcq"><div class="s">1.7&nbsp; For https://admissions.greenvalley.ac.in/apply?course=btech, a friend says the domain is just 'in' and the protocol is '/apply'. What is actually true?</div><ol><li>The domain is admissions.greenvalley.ac.in and the protocol is https</li><li>The domain is in and the protocol is https</li><li>The domain is /apply and the protocol is admissions</li><li>The domain is ?course=btech and the protocol is ac</li></ol></div></div></section><section class="nsec" id="s2" data-sec="S2" data-unit="1"><h2><span class="n">2</span>HTML5 document structure, head vs body, meta tags, elements and attributes</h2><p class="chref">Textbook chapters <a href="book.html#ch03">3</a>, <a href="book.html#ch04">4</a>, <a href="book.html#ch05">5</a>, <a href="book.html#ch11">11</a>, <a href="book.html#ch12">12</a></p><h3 id="s2-1">The skeleton, the doctype and the root element</h3>
+<p>Every HTML5 page starts with the same skeleton. Learn it once and reuse it in every file.</p>
+<pre class="code">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;
+  &lt;title&gt;Hostel Mess Menu&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;This Week's Menu&lt;/h1&gt;&lt;/body&gt;
+&lt;/html&gt;</pre>
+<ul>
+<li><b>Line 1, <code>&lt;!DOCTYPE html&gt;</code></b>, tells the browser to use the modern HTML5 parsing rules (standards mode). It is a <i>declaration</i>, not an element, and has no closing tag. Case does not matter: <code>&lt;!doctype html&gt;</code> works too. Leave it out and the browser drops into <b>quirks mode</b>, copying 1990s layout rules, so spacing and box sizes go subtly wrong.</li>
+<li><b><code>&lt;html&gt;</code> is the root element</b>: the single container that holds everything else. It has exactly two children, <code>&lt;head&gt;</code> first and then <code>&lt;body&gt;</code>. Head and body are siblings inside html, so neither is the root. The doctype sits above html but is not an element at all, so it cannot be the root either.</li>
+<li><b><code>lang="en"</code></b> on html declares the language the content is written in (<code>hi</code> = Hindi, <code>pa</code> = Punjabi). Screen readers use it to choose the right pronunciation; browsers use it to offer translation and to pick spell-check and hyphenation rules. It does not translate the page, restrict fonts or stop anyone typing other characters.</li>
+</ul>
+<div class="box trap"><b>Trap:</b> <code>&lt;!DOCTYPE HTML5&gt;</code>, <code>&lt;html5&gt;</code> and <code>&lt;meta doctype="html5"&gt;</code> do not exist. The HTML5 doctype carries no version number, just the word html. A doctype is never a meta tag and never an element.</div>
+
+<h3 id="s2-2">The browser reads the page as a tree</h3>
+<p>The browser does not keep your file as one long string, a flat list of separate tags, or a grid of rows and columns. It parses the markup into a nested tree of elements, called the <b>DOM</b> (Document Object Model). Every element is a node with one parent and possibly children; CSS and JavaScript work by walking this tree, and DevTools (F12, Elements panel) shows it.</p>
+<pre class="code">html
+ +-- head
+ |    +-- meta
+ |    +-- title
+ +-- body
+      +-- h1</pre>
+<p>Because it is a tree, nesting must be clean: <b>last opened, first closed</b>. <code>&lt;p&gt;&lt;em&gt;hi&lt;/em&gt;&lt;/p&gt;</code> is right; <code>&lt;p&gt;&lt;em&gt;hi&lt;/p&gt;&lt;/em&gt;</code> crosses over and forces the browser to guess.</p>
+
+<h3 id="s2-3">Head or body: one question decides</h3>
+<p>The <b>head</b> holds <i>metadata</i>, information about the page; nothing in it is drawn on the page. The <b>body</b> holds everything the reader sees or uses. Ask one question: is it drawn on screen? Yes means body; information about the page means head.</p>
+<div class="tw"><table class="t">
+<tr><th>Belongs in head (invisible)</th><th>Belongs in body (visible)</th></tr>
+<tr><td><code>&lt;title&gt;Exam Cell&lt;/title&gt;</code></td><td><code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code> headings</td></tr>
+<tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td><code>&lt;p&gt;</code> paragraphs</td></tr>
+<tr><td><code>&lt;meta name="viewport" ...&gt;</code></td><td><code>&lt;img&gt;</code> photos, <code>&lt;video&gt;</code></td></tr>
+<tr><td><code>&lt;meta name="description" ...&gt;</code></td><td><code>&lt;table&gt;</code>, <code>&lt;form&gt;</code>, lists</td></tr>
+<tr><td><code>&lt;link rel="stylesheet" href="site.css"&gt;</code>, <code>&lt;link rel="icon"&gt;</code></td><td><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;footer&gt;</code></td></tr>
+<tr><td><code>&lt;style&gt;</code> blocks</td><td><code>&lt;a&gt;</code> links, <code>&lt;button&gt;</code></td></tr>
+</table></div>
+<p><code>&lt;script&gt;</code> may go in either place: in the head with <code>defer</code> (so it waits until the page is parsed), or just before <code>&lt;/body&gt;</code>. It is never drawn, so it is the one common exception to the rule.</p>
+<div class="box trap"><b>Trap:</b> a heading, paragraph or image placed in the head is a mistake, however small. The browser quietly ends the head and pushes it into the body, and the page is invalid. Title, meta and a stylesheet link are all correct in the head. And <code>&lt;head&gt;</code> is not <code>&lt;header&gt;</code>: header is a visible banner inside the body.</div>
+
+<h3 id="s2-4">The three meta tags to know</h3>
+<p><code>&lt;meta&gt;</code> is a void element (no closing tag) that supplies one piece of metadata. Each of these three has exactly one job:</p>
+<div class="tw"><table class="t">
+<tr><th>Tag</th><th>Its one job</th><th>Where you notice it</th></tr>
+<tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td>Declares the character encoding: how the browser turns the file's bytes into characters</td><td>Rupee signs, accents and Hindi text display correctly instead of junk such as <code>â‚¹</code></td></tr>
+<tr><td><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</code></td><td>Lays the page out at the phone's real width, 100% zoom</td><td>Without it a phone shows a tiny, shrunken desktop page</td></tr>
+<tr><td><code>&lt;meta name="description" content="..."&gt;</code></td><td>A short summary of the page</td><td>Typically shown as the summary text under the clickable headline in search results</td></tr>
+</table></div>
+<ul>
+<li>charset is <b>not</b> about fonts (fonts are CSS <code>font-family</code>), not about phones (viewport) and not the search summary (description). Put it first in the head.</li>
+<li>The description is <b>not</b> shown in the browser tab (that is the title) or as a heading on the page (that is h1). It is not invisible either: people read it on the search results page, where a good one wins the click. Engines sometimes show other text from the page instead.</li>
+</ul>
+
+<h3 id="s2-5">The title element versus the h1 heading</h3>
+<div class="tw"><table class="t">
+<tr><th></th><th><code>&lt;title&gt;</code></th><th><code>&lt;h1&gt;</code></th></tr>
+<tr><td>Lives in</td><td>head</td><td>body</td></tr>
+<tr><td>Kind</td><td>Metadata</td><td>Visible page content</td></tr>
+<tr><td>Seen as</td><td>Browser tab text, bookmark name, clickable headline in search results</td><td>The large main heading on the page</td></tr>
+<tr><td>How many</td><td>One per document, never more</td><td>Normally one main heading</td></tr>
+</table></div>
+<div class="box eg">
+<pre class="code">&lt;head&gt;&lt;title&gt;Library Timings | Central Library&lt;/title&gt;&lt;/head&gt;
+&lt;body&gt;&lt;h1&gt;Library Timings&lt;/h1&gt;&lt;/body&gt;</pre>
+<p>The tab reads "Library Timings | Central Library"; the page shows the big heading "Library Timings". The title is never drawn on the page, so the two never render alike.</p></div>
+<div class="box trap"><b>Trap:</b> swapping the roles (calling h1 metadata and title the visible content) gets it backwards, and a document may not have several title elements.</div>
+
+<h3 id="s2-6">Elements versus attributes</h3>
+<div class="box key"><b>Elements express meaning; attributes configure them.</b> The element says what the thing is (an image, a link, a heading). Attributes add the details (which file, where to go, which language). The two are not interchangeable, and the reversed sentence (attributes give meaning, elements configure) is backwards.</div>
+<pre class="code">&lt;abbr title="Cascading Style Sheets"&gt;CSS&lt;/abbr&gt;</pre>
+<div class="tw"><table class="t">
+<tr><th>Part</th><th>Here</th><th>Rule</th></tr>
+<tr><td>Opening tag</td><td><code>&lt;abbr title="..."&gt;</code></td><td>Starts the element; the only place attributes may go</td></tr>
+<tr><td>Attribute</td><td><code>title="Cascading Style Sheets"</code></td><td>A <code>name="value"</code> pair, value usually in quotes (a boolean attribute such as <code>required</code> needs no value)</td></tr>
+<tr><td>Content</td><td><code>CSS</code></td><td>What sits between the tags</td></tr>
+<tr><td>Closing tag</td><td><code>&lt;/abbr&gt;</code></td><td>Ends the element; never carries attributes</td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> a pair such as <code>target="_blank"</code> or <code>alt="..."</code> written inside an opening tag is an attribute. It is not the content (that sits between the tags), not the closing tag, and not a CSS declaration. A CSS declaration looks like <code>color: red;</code> (property, colon, value) and belongs in a stylesheet.</div>
+<p><b>Global attributes</b> can be applied to almost any element: <code>id</code> (a unique name for one element), <code>class</code> (a reusable group name), <code>style</code>, <code>title</code> (tooltip), <code>lang</code>, <code>hidden</code> and <code>data-*</code>. Most other attributes belong to one family of elements:</p>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>Used on (main cases)</th><th>Means</th></tr>
+<tr><td><code>href</code></td><td><code>&lt;a&gt;</code>, <code>&lt;link&gt;</code>, <code>&lt;area&gt;</code>, <code>&lt;base&gt;</code></td><td>A destination or address to go to</td></tr>
+<tr><td><code>src</code></td><td><code>&lt;img&gt;</code>, <code>&lt;video&gt;</code>, <code>&lt;audio&gt;</code>, <code>&lt;source&gt;</code>, <code>&lt;script&gt;</code>, <code>&lt;iframe&gt;</code></td><td>A file to load and embed</td></tr>
+<tr><td><code>action</code></td><td><code>&lt;form&gt;</code></td><td>Where to submit the data</td></tr>
+<tr><td><code>alt</code></td><td><code>&lt;img&gt;</code>, <code>&lt;area&gt;</code>, <code>&lt;input type="image"&gt;</code></td><td>Text alternative for the picture</td></tr>
+</table></div>
+<p>So for an attribute that works on almost any element, choose a global one such as id; href, src and action are tied to links, embedded files and forms.</p>
+
+<h3 id="s2-7">Block-level and inline elements</h3>
+<p><b>Block-level</b> elements start on a new line and stretch across the full width, stacking like bricks. <b>Inline</b> elements flow inside a line of text and take only the width of their content, like one bold word in a sentence. CSS can change either, but these are the defaults.</p>
+<div class="tw"><table class="t">
+<tr><th>Block-level by default</th><th>Inline by default</th></tr>
+<tr><td><code>&lt;div&gt;</code>, <code>&lt;p&gt;</code>, <code>&lt;h1&gt;</code> to <code>&lt;h6&gt;</code>, <code>&lt;ul&gt;</code>, <code>&lt;li&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;table&gt;</code>, <code>&lt;form&gt;</code></td><td><code>&lt;span&gt;</code>, <code>&lt;a&gt;</code>, <code>&lt;strong&gt;</code>, <code>&lt;em&gt;</code>, <code>&lt;b&gt;</code>, <code>&lt;code&gt;</code>, <code>&lt;img&gt;</code>, <code>&lt;label&gt;</code></td></tr>
+</table></div>
+<p><code>&lt;div&gt;</code> and <code>&lt;span&gt;</code> carry no meaning: div is the generic block container and span the generic inline one, for a few words inside a line.</p>
+<pre class="code">&lt;p&gt;Last date: &lt;span class="due"&gt;31 March&lt;/span&gt; for fee payment.&lt;/p&gt;</pre>
+<p>The span lets CSS colour just the date without breaking the line. Usually inline goes inside block. The main exception is <code>&lt;a&gt;</code>, which in HTML5 may wrap block content such as a whole card. A <code>&lt;p&gt;</code>, however, can never contain a <code>&lt;div&gt;</code>, so the browser closes the paragraph early.</p>
+
+<h3 id="s2-8">Repairing a broken fragment</h3>
+<div class="box eg">
+<p>Broken:</p>
+<pre class="code">&lt;h2&gt;Canteen Menu&lt;h3&gt;
+&lt;img src="thali.jpg"&gt;
+&lt;a&gt;Order online&lt;/a&gt;</pre>
+<p>Fixed:</p>
+<pre class="code">&lt;h2&gt;Canteen Menu&lt;/h2&gt;
+&lt;img src="thali.jpg" alt="Veg thali with rice, dal and roti"&gt;
+&lt;a href="order.html"&gt;Order online&lt;/a&gt;</pre>
+<p>Three faults, three targeted fixes: (1) the heading was never closed and a second heading was opened instead, so write the closing tag that matches the opening name; (2) the image has no alt, so screen readers and search engines cannot tell what it shows; (3) the link has no href, so it goes nowhere.</p>
+</div>
+<div class="box trap"><b>Trap:</b> half-fixes look finished but are not. A closing tag must repeat the opening name exactly: <code>&lt;h2&gt;</code> closes with <code>&lt;/h2&gt;</code>, never <code>&lt;/h3&gt;</code>. An empty <code>href=""</code> only points back to the current page. Deleting the link text, the image's <code>src</code> or the heading loses content, and unrelated markup (a div for the heading, a title in the body, a bordered table) fixes nothing. Fix the real fault and keep the content.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">2.1&nbsp; A page renders with odd spacing in every browser. View Source shows that its very first line is &lt;html lang="en"&gt;. Which line should be added above it so the browser uses modern standards-mode rules?</div><ol><li>&lt;html version="5"&gt;</li><li>&lt;meta standard="html5"&gt;</li><li>&lt;!doctype html&gt;</li><li>&lt;head type="html5"&gt;</li></ol></div><div class="mcq"><div class="s">2.2&nbsp; A teammate's &lt;head&gt; section contains the four items below. Which one is in the wrong place and belongs in the &lt;body&gt;?</div><ol><li>&lt;meta name="author" content="Web Club"&gt;</li><li>&lt;table&gt; listing the campus bus timings</li><li>&lt;link rel="icon" href="logo.png"&gt;</li><li>&lt;style&gt;p { margin: 0; }&lt;/style&gt;</li></ol></div><div class="mcq"><div class="s">2.3&nbsp; On an online shop, the rupee sign and Hindi product names show up as junk such as â‚¹. Which head line is meant to prevent exactly this?</div><ol><li>&lt;meta charset="UTF-8"&gt;</li><li>&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</li><li>&lt;link rel="stylesheet" href="hindi-fonts.css"&gt;</li><li>&lt;meta name="keywords" content="rupee, hindi"&gt;</li></ol></div><div class="mcq"><div class="s">2.4&nbsp; A search for 'central library hours' lists a college site. Under its clickable headline sits the line 'Open 8 am to 10 pm, borrow up to five books.' Which part of the page's HTML most likely supplied that line?</div><ol><li>The &lt;h1&gt; inside the body</li><li>The &lt;title&gt; element in the head</li><li>The alt text of the site logo</li><li>The content of &lt;meta name="description"&gt;</li></ol></div><div class="mcq"><div class="s">2.5&nbsp; Look at &lt;img src="hostel.jpg" alt="Hostel block at night" width="300"&gt;. Which statement is correct?</div><ol><li>alt="Hostel block at night" is the element's content</li><li>width="300" is a CSS declaration inside the tag</li><li>src, alt and width are attributes of the img element</li><li>The three pairs belong on a closing &lt;/img&gt; tag</li></ol></div><div class="mcq"><div class="s">2.6&nbsp; Which of these elements, with no CSS applied, starts on a new line and stretches across the full width of its container?</div><ol><li>&lt;strong&gt;</li><li>&lt;section&gt;</li><li>&lt;a&gt;</li><li>&lt;code&gt;</li></ol></div><div class="mcq"><div class="s">2.7&nbsp; A lab-safety page contains &lt;h3&gt;Safety Rules&lt;h3&gt; followed by &lt;img src="goggles.png"&gt;. Which repaired version fixes both faults and keeps all the content?</div><ol><li>&lt;h3&gt;Safety Rules&lt;/h4&gt; &lt;img src="goggles.png" alt="Pair of clear safety goggles"&gt;</li><li>&lt;h3&gt;Safety Rules&lt;/h3&gt; &lt;img alt="Pair of clear safety goggles"&gt;</li><li>&lt;h3 alt="Pair of clear safety goggles"&gt;Safety Rules&lt;/h3&gt; &lt;img src="goggles.png"&gt;</li><li>&lt;h3&gt;Safety Rules&lt;/h3&gt; &lt;img src="goggles.png" alt="Pair of clear safety goggles"&gt;</li></ol></div></div></section><section class="nsec" id="s3" data-sec="S3" data-unit="1"><h2><span class="n">3</span>Text formatting, headings and lists</h2><p class="chref">Textbook chapters <a href="book.html#ch06">6</a>, <a href="book.html#ch07">7</a>, <a href="book.html#ch12">12</a></p><h3 id="s3-1">Headings build the outline, not the font size</h3>
+<p>HTML has six heading levels, <code>&lt;h1&gt;</code> (highest) to <code>&lt;h6&gt;</code> (lowest). They are the page's contents list: h1 the title, h2 the chapters, h3 the sections inside a chapter. Bigger text is only a side effect. Screen-reader users jump from heading to heading, and search engines read headings to learn what the page is about.</p>
+<ul>
+<li>Exactly one h1 per page, naming the page's main topic. Not one per paragraph, not "as many as look nice", and never none: headings are structure, not decoration. A second h1 is not a syntax error, but it blurs which topic is the main one.</li>
+<li>Do not skip levels. After h1 comes h2, then h3. Jumping from h1 straight to h4 leaves holes in the outline that screen-reader users and search engines both rely on.</li>
+<li>Never pick a level for its size. Want a smaller subheading under an h2? Use h3 and shrink it with CSS.</li>
+</ul>
+<pre class="code">&lt;h1&gt;City Public Library&lt;/h1&gt;
+&lt;h2&gt;Timings&lt;/h2&gt;
+&lt;h3&gt;Weekend hours&lt;/h3&gt;
+&lt;h2&gt;Membership&lt;/h2&gt;</pre>
+<div class="box trap"><b>Trap:</b> "Skipping to h4 is wrong because browsers will not display it." False. Browsers render all six levels, <code>&lt;h4&gt;</code> is fully valid in HTML5, and headings do not have to sit inside a single <code>&lt;section&gt;</code>. The real fault is the broken outline. Faking a heading with <code>&lt;p&gt;&lt;b&gt;</code> or <code>&lt;div class="h2"&gt;</code> throws the outline away completely.</div>
+
+<h3 id="s3-2">Meaning versus looks: strong/b and em/i</h3>
+<p>Logical (semantic) elements say what text means; physical (presentational) elements only say how it looks. Both families exist in HTML5 and look identical on screen, so choose by meaning: a screen reader can act on meaning, never on "make this bolder".</p>
+<div class="tw"><table class="t">
+<tr><th>Element</th><th>What it means</th><th>Typical use</th></tr>
+<tr><td><code>&lt;strong&gt;</code></td><td>Strong importance, seriousness or urgency</td><td>A safety warning, a deadline</td></tr>
+<tr><td><code>&lt;b&gt;</code></td><td>Bold ink to draw the eye, with no extra importance</td><td>A product name or keyword</td></tr>
+<tr><td><code>&lt;em&gt;</code></td><td>Stressed emphasis that changes how the sentence is spoken and what it means</td><td><code>I asked for &lt;em&gt;tea&lt;/em&gt;, not coffee.</code></td></tr>
+<tr><td><code>&lt;i&gt;</code></td><td>A different kind of text, with no stress</td><td>A species name, a technical term, a foreign phrase</td></tr>
+<tr><td><code>&lt;u&gt;</code></td><td>A non-textual annotation, such as marking a misspelling</td><td>Rarely; underlined text looks like a link</td></tr>
+<tr><td><code>&lt;small&gt;</code></td><td>Fine print and side comments</td><td>"Taxes extra", a copyright line</td></tr>
+</table></div>
+<pre class="code">&lt;p&gt;&lt;strong&gt;Warning:&lt;/strong&gt; unplug the iron after use.&lt;/p&gt;
+&lt;p&gt;Our new model is the &lt;b&gt;Nova X&lt;/b&gt;.&lt;/p&gt;
+&lt;p&gt;The tiger is &lt;i&gt;Panthera tigris&lt;/i&gt;.&lt;/p&gt;</pre>
+<div class="box key">strong = "say it with urgency"; b = "heavier ink". em = "stress this word"; i = "a different voice". Both strong and b are current HTML5 elements, and they do not mean the same thing.</div>
+<div class="box trap"><b>Trap:</b> Swapping the pair ("<code>&lt;b&gt;</code> means important, <code>&lt;strong&gt;</code> is just bold") or believing <code>&lt;strong&gt;</code> was removed from HTML5. For stressed emphasis, <code>&lt;i&gt;</code> is wrong (no stress), <code>&lt;u&gt;</code> is wrong (not emphasis at all) and <code>&lt;small&gt;</code> is wrong (fine print). Use <code>&lt;i&gt;</code> for "a different kind of text", never just to get italics.</div>
+
+<h3 id="s3-3">The rest of the formatting kit</h3>
+<div class="tw"><table class="t">
+<tr><th>Element</th><th>Job</th></tr>
+<tr><td><code>&lt;p&gt;</code> / <code>&lt;br&gt;</code> / <code>&lt;hr&gt;</code></td><td>A paragraph / a line break inside one block (address lines, poem lines) / a thematic break where the topic changes</td></tr>
+<tr><td><code>&lt;pre&gt;</code> / <code>&lt;mark&gt;</code></td><td>Keeps spaces and line breaks exactly as typed / highlights relevant text, like a marker pen</td></tr>
+<tr><td><code>&lt;del&gt;</code> / <code>&lt;ins&gt;</code></td><td>Removed text (struck through) / inserted text (underlined)</td></tr>
+<tr><td><code>&lt;sub&gt;</code> / <code>&lt;sup&gt;</code></td><td>Lowered text, the 2 in H2O / raised text, the 2 in x squared</td></tr>
+<tr><td><code>&lt;abbr title="..."&gt;</code></td><td>An abbreviation; the title attribute holds the full form</td></tr>
+<tr><td><code>&lt;q&gt;</code> / <code>&lt;blockquote&gt;</code></td><td>A short inline quote (the browser adds the quote marks) / a long quote as its own block</td></tr>
+<tr><td><code>&lt;cite&gt;</code></td><td>The title of a book, film or other work</td></tr>
+<tr><td><code>&lt;code&gt;</code> / <code>&lt;kbd&gt;</code> / <code>&lt;samp&gt;</code></td><td>Inline code / keys the user presses / output from a program</td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> Using <code>&lt;br&gt;&lt;br&gt;</code> to space two ideas apart. Two ideas are two <code>&lt;p&gt;</code> elements, and spacing is CSS's job. Look-only tags such as <code>&lt;font&gt;</code>, <code>&lt;center&gt;</code>, <code>&lt;big&gt;</code> and <code>&lt;strike&gt;</code> are obsolete: use CSS, or <code>&lt;del&gt;</code> for removed text.</div>
+
+<h3 id="s3-4">Three kinds of list: ask "does the order matter?"</h3>
+<div class="tw"><table class="t">
+<tr><th>The content</th><th>List type</th><th>Markup</th></tr>
+<tr><td>Items whose order carries no meaning: skills, things to pack, menu links</td><td>Unordered (bullets)</td><td><code>&lt;ul&gt;</code> + <code>&lt;li&gt;</code></td></tr>
+<tr><td>Sequence or rank matters: steps to follow, a recipe in cooking order, a top-five ranking</td><td>Ordered (numbers)</td><td><code>&lt;ol&gt;</code> + <code>&lt;li&gt;</code></td></tr>
+<tr><td>A term paired with its description: glossary, FAQ, "Name: value" details</td><td>Description list</td><td><code>&lt;dl&gt;</code> holding <code>&lt;dt&gt;</code> (term) and <code>&lt;dd&gt;</code> (description)</td></tr>
+</table></div>
+<pre class="code">&lt;dl&gt;
+  &lt;dt&gt;Browser&lt;/dt&gt;
+  &lt;dd&gt;A program that fetches and shows web pages.&lt;/dd&gt;
+  &lt;dt&gt;Server&lt;/dt&gt;
+  &lt;dd&gt;A computer that stores pages and sends them on request.&lt;/dd&gt;
+&lt;/dl&gt;</pre>
+<ul>
+<li>The browser numbers an ol by itself; never type "1." yourself.</li>
+<li>"The items are related" is no reason for ul: steps are related too, but their order is the information.</li>
+<li>Numbers are no reason for a table. Tables are for grids of data in rows and columns.</li>
+<li>A description list never uses li. Its children are dt and dd pairs.</li>
+</ul>
+<div class="box trap"><b>Trap:</b> Choosing <code>&lt;dl&gt;</code> "because each step has a description". Every step has words; that does not turn a sequence into term-and-definition pairs. A leaderboard of the top five scorers is an <code>&lt;ol&gt;</code> too: the position is the information.</div>
+
+<h3 id="s3-5">Numbering an ordered list: type, start, reversed</h3>
+<div class="tw"><table class="t">
+<tr><th>Attribute on ol</th><th>Markers produced</th></tr>
+<tr><td><code>type="1"</code> (the default)</td><td>1, 2, 3</td></tr>
+<tr><td><code>type="a"</code> / <code>type="A"</code></td><td>a, b, c / A, B, C</td></tr>
+<tr><td><code>type="i"</code></td><td>i, ii, iii (lowercase Roman)</td></tr>
+<tr><td><code>type="I"</code></td><td>I, II, III (uppercase Roman)</td></tr>
+<tr><td><code>start="4"</code></td><td>Counting begins at 4: 4, 5, 6 (with type="I": IV, V, VI)</td></tr>
+<tr><td><code>reversed</code></td><td>Numbers count down (3, 2, 1); the items stay in the order written</td></tr>
+</table></div>
+<p>Memory rule: the case you type is the case you get. Capital I gives capital Roman numerals; small i gives small ones. <code>&lt;li value="10"&gt;</code> sets one item's number, and later items continue from it. Bullet shapes on a ul are changed with CSS (list-style-type), not with type.</p>
+<pre class="code">&lt;ol type="I"&gt;
+  &lt;li&gt;Introduction&lt;/li&gt;
+  &lt;li&gt;Survey&lt;/li&gt;
+  &lt;li&gt;Findings&lt;/li&gt;
+&lt;/ol&gt;  &lt;!-- shows I. II. III. --&gt;</pre>
+
+<h3 id="s3-6">Nesting a list inside a list</h3>
+<p>Only li elements may sit directly inside a ul or ol. Loose text, a p, or a whole second list placed straight inside the list is invalid. An li, however, can hold anything, including a complete sub-list. So a sub-list goes inside the li it belongs to: after that item's text, before its closing tag.</p>
+<pre class="code">&lt;ul&gt;
+  &lt;li&gt;Fruits
+    &lt;ul&gt;
+      &lt;li&gt;Mango&lt;/li&gt;
+      &lt;li&gt;Guava&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/li&gt;
+  &lt;li&gt;Vegetables&lt;/li&gt;
+&lt;/ul&gt;</pre>
+<div class="tw"><table class="t">
+<tr><th>Broken pattern</th><th>Why it is invalid</th></tr>
+<tr><td><code>&lt;ul&gt;&lt;li&gt;Fruits&lt;/li&gt;&lt;ul&gt;&lt;li&gt;Mango&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;</code></td><td>The inner ul is a direct child of the outer ul, and the Fruits item closed before its sub-list</td></tr>
+<tr><td><code>&lt;ul&gt;&lt;ul&gt;&lt;li&gt;Mango&lt;/li&gt;&lt;/ul&gt;&lt;/ul&gt;</code></td><td>The same fault, with no parent item at all</td></tr>
+<tr><td><code>&lt;ul&gt;Fruits&lt;li&gt;Mango&lt;/li&gt;&lt;/ul&gt;</code></td><td>Loose text ("Fruits") directly inside a ul</td></tr>
+</table></div>
+<div class="box key">Egg-tray rule: a list holds only li "eggs". A paragraph, an image or a sub-list goes inside an egg, never loose in the tray.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">3.1&nbsp; A recipe page has three phrases: (1) the serious warning "Hot oil can cause severe burns", (2) the Italian cooking term "al dente", and (3) the sentence "Add the salt after the water boils", where the cook stresses the word after. Which elements suit phrases 1, 2 and 3, in that order?</div><ol><li>&lt;b&gt;, &lt;em&gt;, &lt;i&gt;</li><li>&lt;strong&gt;, &lt;i&gt;, &lt;em&gt;</li><li>&lt;em&gt;, &lt;strong&gt;, &lt;b&gt;</li><li>&lt;mark&gt;, &lt;u&gt;, &lt;small&gt;</li></ol></div><div class="mcq"><div class="s">3.2&nbsp; A robotics club page has its headings in this order: h1 "Robotics Club", h2 "Projects", h4 "Line-follower bot", h2 "Join us". Which single change gives the page a correct outline?</div><ol><li>Change the h4 to an h3</li><li>Turn "Join us" into a second h1 so it stands out</li><li>Change the h1 to an h2 so every heading starts at the same level</li><li>Leave it as it is, because any level is fine if the text size looks right</li></ol></div><div class="mcq"><div class="s">3.3&nbsp; A canteen website shows: (1) today's snacks, in no particular order; (2) how to order: take a token, pay at the counter, collect the food; (3) each dish name followed by a short description of what is in it. Which list elements match 1, 2 and 3?</div><ol><li>&lt;ol&gt;, &lt;ul&gt;, &lt;dl&gt;</li><li>&lt;ul&gt;, &lt;dl&gt;, &lt;ol&gt;</li><li>&lt;dl&gt;, &lt;ol&gt;, &lt;table&gt;</li><li>&lt;ul&gt;, &lt;ol&gt;, &lt;dl&gt;</li></ol></div><div class="mcq"><div class="s">3.4&nbsp; A course outline numbers its units with capital Roman numerals and shows the topics HTML and CSS as a sub-list under the first unit. Which markup is valid and produces those markers?</div><ol><li>&lt;ol type="I"&gt;&lt;li&gt;Unit one&lt;/li&gt;&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;/ul&gt;&lt;/ol&gt;</li><li>&lt;ol type="i"&gt;&lt;li&gt;Unit one&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;</li><li>&lt;ol type="I"&gt;&lt;li&gt;Unit one&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;</li><li>&lt;ol type="1"&gt;&lt;li&gt;Unit one&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;</li></ol></div></div></section><section class="nsec" id="s4" data-sec="S4" data-unit="1"><h2><span class="n">4</span>Hyperlinks, images and link text (SEO)</h2><p class="chref">Textbook chapters <a href="book.html#ch08">8</a>, <a href="book.html#ch11">11</a>, <a href="book.html#ch12">12</a></p><h3 id="s4-1">The anchor element and where href can point</h3>
+<p>A link is an <code>&lt;a&gt;</code> (anchor) element. Its href attribute (hypertext reference) holds the destination; the words between the tags are the clickable link text. No href, no link. Do not confuse it with <code>&lt;link&gt;</code>, which sits in the head and attaches resources such as a stylesheet or the tab icon; it never makes anything clickable.</p>
+<div class="tw"><table class="t">
+<tr><th>href value</th><th>Where it goes</th></tr>
+<tr><td><code>https://www.w3.org/</code></td><td>Absolute URL: another site (protocol and domain included)</td></tr>
+<tr><td><code>fees.html</code></td><td>A file in the same folder as the current page</td></tr>
+<tr><td><code>../index.html</code></td><td>Up one folder to the parent, then that file</td></tr>
+<tr><td><code>/index.html</code></td><td>Start from the root folder of the site</td></tr>
+<tr><td><code>#timetable</code></td><td>Fragment: the element with id="timetable" on this same page</td></tr>
+<tr><td><code>rules.html#late-fee</code></td><td>Another page, scrolled to its id="late-fee" element</td></tr>
+</table></div>
+<pre class="code">&lt;a href="#timetable"&gt;Jump to the timetable&lt;/a&gt;
+&lt;!-- ...a long page... --&gt;
+&lt;section id="timetable"&gt;
+  &lt;h2&gt;Timetable&lt;/h2&gt;
+&lt;/section&gt;</pre>
+<div class="box trap"><b>Trap:</b> Only the hash sign (#) means "on this page". Without it, <code>href="timetable"</code> asks for a file named timetable in the current folder, and <code>href="/timetable"</code> asks for one at the site root. A leading dot, as in <code>.timetable</code>, is CSS class-selector style; in an href it is just an odd file name, not a jump. A fragment link needs a matching id attribute; if none exists, the click silently fails and the page does not scroll.</div>
+
+<h3 id="s4-2">Email and phone links: mailto: and tel:</h3>
+<p>Two special schemes hand the click to another app on the visitor's device:</p>
+<ul>
+<li><code>mailto:</code> opens the visitor's email program with a new message to that address.</li>
+<li><code>tel:</code> lets a phone user dial the number with one tap. Include the country code (+91 for India).</li>
+<li><code>sms:</code> also exists, but it opens a text message rather than a call.</li>
+</ul>
+<pre class="code">&lt;a href="mailto:office@school.example"&gt;Email the office&lt;/a&gt;
+&lt;a href="tel:+911234567890"&gt;Call the office&lt;/a&gt;</pre>
+<div class="box trap"><b>Trap:</b> The schemes are spelled exactly mailto: and tel:. Look-alikes such as email:, mail:, send:, call:, phone: and dial: are not recognised, so the browser has no app to hand them to and the click does nothing useful.</div>
+
+<h3 id="s4-3">Opening a new tab safely: target and rel</h3>
+<ul>
+<li><code>target="_blank"</code> opens the link in a new tab (the default, <code>_self</code>, reuses the tab). Use it sparingly: the new tab has no Back history, so the visitor cannot press Back to return to your page.</li>
+<li><code>rel</code> states the relationship between this page and the linked one. Rule: whenever a new tab shows an outside or untrusted page, pair it with rel="noopener noreferrer".</li>
+<li>noopener: the new page cannot reach back through <code>window.opener</code> and control your tab (for example, quietly swapping it for a fake login page). noreferrer: the new site is not told which page the visitor came from.</li>
+</ul>
+<pre class="code">&lt;a href="https://shop.example.net" target="_blank"
+   rel="noopener noreferrer"&gt;Visit the partner shop (opens a new tab)&lt;/a&gt;</pre>
+<div class="box key">The HTML standard and today's browsers already treat target="_blank" as if noopener were written. Adding rel="noopener noreferrer" yourself is still the recommended habit: it protects visitors on older browsers, and noreferrer also hides which page the visitor came from. It is a safety measure; it does not make the link load faster.</div>
+<div class="box trap"><b>Trap:</b> rel="stylesheet" belongs on <code>&lt;link&gt;</code> for attaching CSS. The download attribute saves a file instead of opening it, which gives no protection. There is no referrer="none" attribute; the real one is called referrerpolicy.</div>
+
+<h3 id="s4-4">Link text that names the destination</h3>
+<p>Screen-reader users often call up a list of every link on the page; "click here, more, here, &raquo;" tells them nothing. Search engines also read link text as a label for the page it points to. So link text should say where the link goes or what it gets you, and make sense on its own.</p>
+<div class="tw"><table class="t">
+<tr><th>Weak</th><th>Strong</th></tr>
+<tr><td><code>&lt;a href="fees.html"&gt;Click here&lt;/a&gt;</code></td><td><code>&lt;a href="fees.html"&gt;See the hostel fee structure&lt;/a&gt;</code></td></tr>
+<tr><td>"Read more", "Link", "&raquo;"</td><td>"Download the 2026 academic calendar (PDF)"</td></tr>
+</table></div>
+<div class="box key">Descriptive link text and descriptive alt text help SEO and accessibility at the same time; the two checklists largely overlap. A title tooltip cannot rescue vague link text: touch-screen and keyboard users never see it.</div>
+
+<h3 id="s4-5">The image element: src and alt</h3>
+<p><code>&lt;img&gt;</code> is a void element (no closing tag). Treat two attributes as mandatory: src, the resource location (a relative path or a full URL), and alt, a meaningful text alternative. In short: src says where the file is, alt says what the image means.</p>
+<pre class="code">&lt;img src="images/lab.jpg"
+     alt="Students soldering circuits in the electronics lab"
+     width="600" height="400" loading="lazy"&gt;</pre>
+<p>alt does three jobs: a screen reader speaks it, the browser shows it in place of a picture that fails to load, and search engines use it to index the image. Other jobs belong to other attributes and elements:</p>
+<div class="tw"><table class="t">
+<tr><th>Need</th><th>Use</th></tr>
+<tr><td>A caption under a picture</td><td><code>&lt;figure&gt;</code> with <code>&lt;figcaption&gt;</code></td></tr>
+<tr><td>Reserve space so the page does not jump while loading</td><td>width and height</td></tr>
+<tr><td>Fetch only when the user scrolls near</td><td>loading="lazy"</td></tr>
+<tr><td>A hover tooltip / a CSS hook</td><td>title / class</td></tr>
+<tr><td>The file size</td><td>No attribute states it</td></tr>
+</table></div>
+<p>To make an image a link, put the img inside an a. Its alt then becomes the link text, so it should name the destination.</p>
+<div class="box trap"><b>Trap: no alt, and the file breaks.</b> Without alt the image has no text alternative. A sighted visitor sees a broken-image icon or just a gap, depending on the browser; a screen-reader user gets nothing useful, often just the file name read aloud. A title attribute, if one happens to exist, is at best a weak fallback, not a guaranteed replacement, and by default the browser does not write a description for you.</div>
+
+<h3 id="s4-6">Writing alt text for each kind of image</h3>
+<p>Imagine reading the page to a friend over the phone: whatever you would say in place of the picture is its alt text.</p>
+<div class="tw"><table class="t">
+<tr><th>Kind of image</th><th>alt should be</th><th>Example</th></tr>
+<tr><td>Informative (photo, chart)</td><td>The useful information it shows</td><td><code>alt="Bar chart: admissions rose from 800 to 1,200"</code></td></tr>
+<tr><td>Purely decorative (divider, flourish)</td><td>Empty but present, so screen readers skip it silently</td><td><code>&lt;img src="wave.png" alt=""&gt;</code></td></tr>
+<tr><td>Functional (an icon used as a button or link)</td><td>The action it performs, not its look</td><td><code>&lt;button&gt;&lt;img src="bin.svg" alt="Delete"&gt;&lt;/button&gt;</code></td></tr>
+<tr><td>A logo carrying the organisation's name</td><td>The organisation's name</td><td><code>alt="Green Valley College"</code></td></tr>
+</table></div>
+<p>So a printer icon on a print button gets alt="Print": that is what pressing it does.</p>
+<div class="box trap"><b>Trap:</b> For decoration, leaving alt out is not the same as alt="": a missing alt can make a screen reader read the file name. Filler such as alt="image" or alt="decorative picture" is noise that gets read aloud. For a functional icon the opposite holds: alt="" would leave the button with no name, and describing its colours, shape or file name does not say what the button does.</div>
+
+<h3 id="s4-7">Responsive images: srcset, sizes and picture</h3>
+<p>A phone on mobile data should not download the huge photo a desktop monitor needs.</p>
+<ul>
+<li><code>srcset</code> lists several image files, each with its real width (400w means 400 pixels wide). The browser picks the one that suits the screen's size and sharpness.</li>
+<li><code>sizes</code> tells the browser how wide the image will be displayed, which it needs to make that choice.</li>
+<li><code>src</code> remains the fallback for browsers that ignore srcset.</li>
+</ul>
+<pre class="code">&lt;img src="hall-800.jpg"
+     srcset="hall-400.jpg 400w, hall-800.jpg 800w, hall-1600.jpg 1600w"
+     sizes="(max-width: 600px) 100vw, 600px"
+     alt="Convocation hall on graduation day"&gt;</pre>
+<p><code>&lt;picture&gt;</code> goes further: several <code>&lt;source&gt;</code> elements, each with a condition (a media query or a file type), plus an <code>&lt;img&gt;</code> inside as the required fallback. The browser uses the first source that matches.</p>
+<div class="box trap"><b>Trap:</b> srcset is not the alt text (that is alt), not a CSS class (that is class), and it does not push the image to load last (delaying off-screen images is loading="lazy"). It is a list of candidate files.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">4.1&nbsp; A long FAQ page has &lt;section id="refunds"&gt; near the bottom. Which link at the top of the same page scrolls straight to that section?</div><ol><li>&lt;a href="refunds.html"&gt;Refunds&lt;/a&gt;</li><li>&lt;a id="refunds"&gt;Refunds&lt;/a&gt;</li><li>&lt;a href="#refunds"&gt;Refunds&lt;/a&gt;</li><li>&lt;a href="?refunds"&gt;Refunds&lt;/a&gt;</li></ol></div><div class="mcq"><div class="s">4.2&nbsp; A student's portfolio links to an outside online shop using target="_blank" rel="noopener noreferrer". What does the rel value protect against?</div><ol><li>The shop page loading more slowly than the portfolio</li><li>The shop tab taking control of the portfolio tab</li><li>Search engines listing the shop page in results</li><li>The browser saving the shop page as a download</li></ol></div><div class="mcq"><div class="s">4.3&nbsp; A hostel contact card needs one link that starts a phone call to the warden and one that opens a new email to the hostel office. Which pair of href values is correct?</div><ol><li>href="telephone:+911800123456" and href="mailto:office@hostel.example"</li><li>href="tel:+911800123456" and href="inbox:office@hostel.example"</li><li>href="sms:+911800123456" and href="mailto:office@hostel.example"</li><li>href="tel:+911800123456" and href="mailto:office@hostel.example"</li></ol></div><div class="mcq"><div class="s">4.4&nbsp; A sports page has three images: a photo of the captain lifting a trophy, a decorative wavy line between sections, and a magnifying-glass icon that is the only content of the search button. Which set of alt values is best?</div><ol><li>Photo: alt="Captain lifting the inter-college football trophy"; line: alt=""; icon: alt="Search"</li><li>Photo: alt="captain.jpg"; line: alt="wavy line"; icon: alt="magnifying glass"</li><li>Photo: alt="Captain lifting the inter-college football trophy"; line: no alt attribute at all; icon: alt="Magnifying glass icon"</li><li>Photo: alt="picture"; line: alt=""; icon: alt=""</li></ol></div><div class="mcq"><div class="s">4.5&nbsp; A news site wants phones to download a 500-pixel-wide version of a match photo and large monitors a 1500-pixel version, both from one &lt;img&gt;. Which attribute holds the list of those candidate files?</div><ol><li>sizes</li><li>srcset</li><li>loading</li><li>media</li></ol></div></div></section><section class="nsec" id="s5" data-sec="S5" data-unit="1"><h2><span class="n">5</span>SVG graphics</h2><p class="chref">Textbook chapter <a href="book.html#ch09">9</a></p><h3 id="s5-1">Raster versus vector: why a logo should be SVG</h3>
+<p>A JPG or PNG is a <b>raster</b> image: a grid of coloured pixels. Enlarge it and the browser has to invent pixels that were never stored, so edges turn blurry or blocky. An <b>SVG</b> (Scalable Vector Graphics) file stores drawing instructions instead, such as "circle, centre here, this radius, orange". The browser redraws those instructions at whatever size is needed, so the picture remains crisp however far you zoom and on any size of screen.</p>
+<p>Photo versus knitting pattern: enlarge a photo and you see grain; knit the pattern in thicker wool and you get the same design, bigger and just as neat. So logos, icons and diagrams are SVG; photographs stay JPG.</p>
+<div class="tw"><table class="t">
+<tr><th>Claim about SVG</th><th>Verdict</th></tr>
+<tr><td>Looks equally crisp on a phone, a laptop and a projector</td><td>True: the real reason to choose it for a logo</td></tr>
+<tr><td>Guaranteed to weigh less than the JPG version</td><td>False: simple shapes are tiny, but a very detailed drawing can outweigh a photo</td></tr>
+<tr><td>Can show colours that JPG cannot</td><td>False: both can show millions of colours; colour range is not the reason</td></tr>
+<tr><td>Protected from being saved or copied</td><td>False: it is plain text that anyone can save</td></tr>
+</table></div>
+<p>Use it as a file (<code>&lt;img src="badge.svg" alt="Robotics Club"&gt;</code>) or <b>inline</b> as an <code>&lt;svg&gt;</code> element that CSS and JavaScript can style. Inside inline SVG, end every shape with <code>/&gt;</code>; an unclosed shape swallows the shapes after it.</p>
+
+<h3 id="s5-2">The canvas: width, height and viewBox</h3>
+<ul>
+<li><code>width</code> and <code>height</code> set how big the drawing appears on the page.</li>
+<li><code>viewBox="min-x min-y width height"</code> defines the drawing's own grid of units (its coordinate system): the graph paper every shape is measured on. The browser then maps that grid onto the rendered size.</li>
+<li>The origin (0,0) is the <b>top-left</b> corner and y grows <b>downward</b>, unlike school graphs.</li>
+<li>Anything outside the viewBox is clipped: silently not drawn, no error.</li>
+<li><code>preserveAspectRatio</code> (default <code>xMidYMid meet</code>) decides how the grid is fitted and centred when the proportions differ.</li>
+</ul>
+<div class="box eg"><pre class="code">&lt;svg viewBox="0 0 200 100" width="400"&gt;
+  &lt;rect x="0" y="0" width="100" height="50"/&gt;
+&lt;/svg&gt;</pre>200 units are spread across 400 px, so 1 unit = 2 px and the 100-unit rectangle shows 200 px wide. The numbers inside never change; only the scale does.</div>
+<div class="box trap"><b>Trap:</b> viewBox holds no colours, no outline width and no timing; it only sets up the coordinate grid. Colours come from fill and stroke.</div>
+
+<h3 id="s5-3">The basic shapes and their attributes</h3>
+<p>Every shape has its own vocabulary. Ask first: is it measured from a corner, from a centre, or from two endpoints?</p>
+<div class="tw"><table class="t">
+<tr><th>Element</th><th>Positioned by</th><th>Size / shape</th><th>Remember</th></tr>
+<tr><td><code>&lt;rect&gt;</code></td><td>x, y = top-left corner</td><td>width, height; rx, ry round the corners</td><td>rx here is a corner radius, not a position</td></tr>
+<tr><td><code>&lt;circle&gt;</code></td><td>cx, cy = centre</td><td>r = radius</td><td>x and y mean nothing to a circle</td></tr>
+<tr><td><code>&lt;ellipse&gt;</code></td><td>cx, cy = centre</td><td>rx = horizontal radius, ry = vertical radius</td><td>rx equal to ry gives a perfect circle; it takes no r</td></tr>
+<tr><td><code>&lt;line&gt;</code></td><td>x1, y1 = start; x2, y2 = end</td><td>no area at all</td><td>needs a stroke to be seen</td></tr>
+<tr><td><code>&lt;polyline&gt;</code></td><td>points = list of x,y pairs</td><td>any number of points</td><td>stays open</td></tr>
+<tr><td><code>&lt;polygon&gt;</code></td><td>points = list of x,y pairs</td><td>any number of points (3 = triangle)</td><td>closes back to the first point</td></tr>
+<tr><td><code>&lt;text&gt;</code></td><td>x, y = start of the baseline</td><td>font-size</td><td>a label inside a drawing</td></tr>
+</table></div>
+<div class="box eg"><pre class="code">&lt;rect x="20" y="10" width="80" height="40" rx="8"/&gt;
+&lt;circle cx="150" cy="30" r="20"/&gt;
+&lt;ellipse cx="220" cy="30" rx="30" ry="15"/&gt;  &lt;!-- wide oval --&gt;
+&lt;ellipse cx="290" cy="30" rx="15" ry="30"/&gt;  &lt;!-- tall oval --&gt;
+&lt;ellipse cx="360" cy="30" rx="20" ry="20"/&gt;  &lt;!-- perfect circle --&gt;</pre>The rectangle's top-left corner sits at (20,10), so its bottom-right corner is at (100,50). The circle is placed by its centre with cx and cy, and sized by its radius r. The three ellipses show the rule: rx bigger = wide oval, ry bigger = tall oval, equal radii = a perfect circle.</div>
+<p>Wrong vocabulary is not an error message; the browser simply ignores attributes a shape does not understand. A circle written with x and y keeps its default centre (0,0), so only a quarter of it peeps out of the top-left corner. A rect given cx, cy and r has no width or height, so nothing appears. An ellipse ignores r; without rx and ry it has no size.</p>
+<div class="box trap"><b>Trap:</b> there is no <code>&lt;triangle&gt;</code>, <code>&lt;oval&gt;</code> or <code>&lt;arc&gt;</code> element. A triangle is a polygon with three points, an oval is an ellipse, an arc or curve is a path.</div>
+<div class="box key"><b>Why a line needs a stroke:</b> a <code>&lt;line&gt;</code> has no inside (no area), so fill has nothing to colour, and the default stroke is none. A line with no stroke therefore paints nothing. The markup is still perfectly valid (nothing rejects it), lines do not default to white, and the stroke never decides the length: the endpoints x1, y1, x2, y2 do.</div>
+<pre class="code">&lt;line x1="10" y1="80" x2="250" y2="80"/&gt;                 &lt;!-- invisible --&gt;
+&lt;line x1="10" y1="80" x2="250" y2="80" stroke="teal"/&gt;  &lt;!-- visible --&gt;</pre>
+<div class="box key"><b>polyline versus polygon:</b> both take the same points list and draw straight segments only (neither can curve; curves need a path), and neither is limited to three points. The single difference: polygon automatically joins the last point back to the first; polyline leaves the end open.</div>
+<pre class="code">&lt;polyline points="10,90 50,10 90,90" fill="none" stroke="red"/&gt;  &lt;!-- open ^ --&gt;
+&lt;polygon  points="10,90 50,10 90,90" fill="none" stroke="red"/&gt;  &lt;!-- closed triangle --&gt;</pre>
+<p>Give a polyline <code>fill="none"</code>: the default fill is black, which would colour the wedge between its points.</p>
+
+<h3 id="s5-4">Painting: fill and stroke</h3>
+<p>Memory hook: <b>fill</b> is paint poured inside; <b>stroke</b> is the pen line around the edge. So fill paints the interior and stroke paints the edge line, never the other way round. Neither sets size, transparency or rotation. Both take any CSS colour; <code>fill="none"</code> makes a shape hollow.</p>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>Controls</th><th>Default / example</th></tr>
+<tr><td>fill</td><td>Interior colour</td><td>default black; none = hollow</td></tr>
+<tr><td>stroke</td><td>Outline colour</td><td>default none (no outline)</td></tr>
+<tr><td>stroke-width</td><td>Outline thickness</td><td>stroke-width="4"</td></tr>
+<tr><td>stroke-dasharray</td><td>Dash pattern: dash length, then gap length, repeated</td><td>"12,4" = 12-unit dashes with 4-unit gaps</td></tr>
+<tr><td>stroke-linecap</td><td>Shape of a line's ends</td><td>butt (default, flat at the endpoint), round, square</td></tr>
+<tr><td>opacity</td><td>Transparency</td><td>0 (invisible) to 1 (solid)</td></tr>
+</table></div>
+<div class="box eg"><pre class="code">&lt;circle cx="60" cy="60" r="40"
+        fill="none" stroke="crimson"
+        stroke-width="3" stroke-dasharray="12,4"/&gt;</pre>A hollow ring whose outline is 12 units of colour, then 4 units of gap, repeated all the way round. The thickness (3) comes from stroke-width, not from the dash numbers.</div>
+<div class="box trap"><b>Trap:</b> two numbers in stroke-dasharray are perfectly legal; the value is a list. "10" alone gives 10 on, 10 off; "2,8" looks dotted. The numbers never set thickness and never set a dot radius.</div>
+
+<h3 id="s5-5">The path language: M, L, H, V, Q, Z</h3>
+<p><code>&lt;path&gt;</code> can draw anything. Its <code>d</code> attribute is a list of commands, each a letter followed by numbers.</p>
+<div class="tw"><table class="t">
+<tr><th>Command</th><th>Meaning</th></tr>
+<tr><td>M x y</td><td>Move the pen to (x, y) without drawing; this starts a new shape</td></tr>
+<tr><td>L x y</td><td>Straight line to (x, y)</td></tr>
+<tr><td>H x / V y</td><td>Horizontal line to x / vertical line to y</td></tr>
+<tr><td>Q cx cy x y</td><td>Curve to (x, y), bent toward the control point (cx, cy)</td></tr>
+<tr><td>Z</td><td>Close: a straight segment back to where the current shape began (the last M point)</td></tr>
+</table></div>
+<p>Uppercase letters are absolute: "go to this point on the grid". Lowercase letters are relative: each number is an offset from where the pen is now. Lowercase is valid, is used in a path's d attribute, and normally lands somewhere different from the uppercase version.</p>
+<div class="box eg"><pre class="code">&lt;path d="M10 90 L50 10 L90 90 Z"/&gt;    &lt;!-- absolute --&gt;
+&lt;path d="M10 90 l40 -80 l40 80 z"/&gt;   &lt;!-- relative: same triangle --&gt;</pre>From (10,90), <code>l40 -80</code> means 40 right and 80 up, landing on (50,10). Then <code>l40 80</code> lands on (90,90), and z seals the third side back to the M point (10,90).</div>
+<div class="box trap"><b>Trap:</b> Z has nothing to do with zooming, erasing the last command or layering. Z draws a straight segment back to where the current shape began (the last M point), sealing the outline. In a path with a single M, that is simply the starting point. Layering in SVG comes from source order: later elements paint over earlier ones.</div>
+
+<h3 id="s5-6">Text, groups and accessibility</h3>
+<ul>
+<li><code>&lt;text x="40" y="90"&gt;Lab 3&lt;/text&gt;</code> places a label; <code>&lt;g&gt;</code> groups shapes so they move or are styled together.</li>
+<li>Inline SVG has no alt attribute: give it <code>role="img"</code> plus <code>aria-label</code>, or <code>aria-hidden="true"</code> if purely decorative.</li>
+</ul><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">5.1&nbsp; A notification dot of radius 12 must have its middle exactly at the point (30, 45). Which tag draws it?</div><ol><li>&lt;circle x1="30" y1="45" r="12" /&gt;</li><li>&lt;rect x="30" y="45" width="12" height="12" /&gt;</li><li>&lt;circle cx="30" cy="45" r="12" /&gt;</li><li>&lt;circle cx="30" cy="45" radius="12" /&gt;</li></ol></div><div class="mcq"><div class="s">5.2&nbsp; A page divider must run from (10, 60) to (190, 60) and actually be visible. Which tag works?</div><ol><li>&lt;line x="10" y="60" width="180" stroke="gray" /&gt;</li><li>&lt;line x1="10" y1="60" x2="190" y2="60" fill="gray" /&gt;</li><li>&lt;line points="10,60 190,60" stroke="gray" /&gt;</li><li>&lt;line x1="10" y1="60" x2="190" y2="60" stroke="gray" /&gt;</li></ol></div><div class="mcq"><div class="s">5.3&nbsp; An icon is coded as &lt;svg viewBox="0 0 50 50" width="200" height="200"&gt; containing &lt;circle cx="25" cy="25" r="20" /&gt;. How wide does the circle appear on screen?</div><ol><li>40 px</li><li>160 px</li><li>200 px</li><li>20 px</li></ol></div><div class="mcq"><div class="s">5.4&nbsp; Two shapes both use points="10,10 60,10 60,60" with fill="none" and stroke="black": one is a &lt;polyline&gt;, the other a &lt;polygon&gt;. What do you see?</div><ol><li>The polyline shows two joined segments with an open end; the polygon adds a third side back to (10,10)</li><li>Both show exactly the same closed triangle</li><li>The polygon shows nothing, because a polygon needs at least four points</li><li>The polyline bends smoothly through the points while the polygon uses straight edges</li></ol></div><div class="mcq"><div class="s">5.5&nbsp; What does &lt;path d="M 20 20 h 40 v 40 z" fill="none" stroke="black" /&gt; draw?</div><ol><li>Nothing, because lowercase commands are not allowed in a path</li><li>A 40 by 40 square</li><li>A closed triangle with corners at (20,20), (60,20) and (60,60)</li><li>Two lines forming an open corner, with no side joining the last point to the first</li></ol></div><div class="mcq"><div class="s">5.6&nbsp; A sticker needs a hollow circle with an orange dashed outline made of 5-unit dashes and 3-unit gaps. Which attribute set achieves it?</div><ol><li>fill="orange" stroke="none" stroke-dasharray="5,3"</li><li>fill="none" stroke="orange" stroke-dasharray="5,3"</li><li>fill="none" stroke="orange" stroke-width="5,3"</li><li>fill="orange" stroke="orange" stroke-dasharray="3,5"</li></ol></div></div></section><section class="nsec" id="s6" data-sec="S6" data-unit="1"><h2><span class="n">6</span>Multimedia: audio, video and iframes</h2><p class="chref">Textbook chapter <a href="book.html#ch10">10</a></p><h3 id="s6-1">Native media in HTML5</h3>
+<p>Before HTML5, playing sound or film needed a plug-in such as Flash. Now the browser plays media itself and supplies the play button, volume and progress bar. <code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> follow one pattern:</p>
+<ul>
+<li>The element itself is <b>paired</b>: it always needs its closing tag.</li>
+<li>One or more <code>&lt;source&gt;</code> children (void) point at the media files.</li>
+<li>Optional <code>&lt;track&gt;</code> children (void) add captions.</li>
+<li>Text between the tags is shown only by a very old browser that does not understand <code>&lt;audio&gt;</code>/<code>&lt;video&gt;</code> at all. If no source format is playable, a modern browser shows an empty player instead, not the text. Audio and video have no alt attribute, and there is no <code>&lt;fallback&gt;</code> element.</li>
+</ul>
+<pre class="code">&lt;audio controls preload="none"&gt;
+  &lt;source src="anthem.mp3" type="audio/mpeg"&gt;
+  &lt;source src="anthem.ogg" type="audio/ogg"&gt;
+  Sorry, your browser cannot play this audio.
+&lt;/audio&gt;</pre>
+<p>For audio that carries information (a lecture, an announcement), also provide a transcript.</p>
+
+<h3 id="s6-2">The playback attributes</h3>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>What it does</th><th>Watch out</th></tr>
+<tr><td>controls</td><td>Shows the browser's own play/pause, seek and volume bar</td><td>Boolean: controls="false" still shows it; remove the attribute to hide it</td></tr>
+<tr><td>autoplay</td><td>Starts playing as soon as it can</td><td>Usually blocked when it would make sound; allowed when muted</td></tr>
+<tr><td>muted</td><td>Starts with the sound off</td><td>The partner that autoplay needs</td></tr>
+<tr><td>loop</td><td>Starts again from the beginning every time it reaches the end</td><td>No repeat or replay attribute exists</td></tr>
+<tr><td>poster</td><td>A still picture displayed in the player until the viewer presses play</td><td>video only</td></tr>
+<tr><td>preload</td><td>Hint of how much to fetch early: none, metadata or auto</td><td>A hint, not a command</td></tr>
+<tr><td>width, height</td><td>Displayed size in pixels</td><td>video only (audio has no size attributes)</td></tr>
+<tr><td>src</td><td>A single file instead of source children</td><td>Use source for several formats</td></tr>
+</table></div>
+<div class="box key"><b>controls</b> is the attribute that draws the native player. Without it the visitor sees no buttons and has no way to start playback (only a script could). autoplay starts playback, muted silences it, preload hints at downloading: none of them draws any buttons.</div>
+<div class="box eg"><pre class="code">&lt;video controls width="480" poster="fest-still.jpg"&gt;
+  &lt;source src="fest.mp4" type="video/mp4"&gt;
+  Your browser cannot play video.
+&lt;/video&gt;</pre>Until someone presses play, the box shows fest-still.jpg as a cover image. The poster does not start playback (that is autoplay), does not add subtitles (that is track), and does not name a downloaded file (that is the download attribute of a link).</div>
+<div class="box trap"><b>Trap:</b> repeating a clip is <code>loop</code>. "repeat" and "replay" are not HTML attributes, and autoplay only starts the clip once. A silent background clip is <code>&lt;video autoplay muted loop&gt;</code>: browsers block sound that starts on its own, so autoplay without muted usually fails.</div>
+
+<h3 id="s6-3">source and track</h3>
+<p>Browsers do not all decode the same formats. Several <code>&lt;source&gt;</code> children are a shortlist, not a playlist: the same film saved in different formats. The browser reads them top to bottom and plays the earliest one in the list that it is able to decode, ignoring the rest. The <code>type</code> attribute lets it skip an unplayable file without downloading it.</p>
+<pre class="code">&lt;video controls&gt;
+  &lt;source src="trailer.webm" type="video/webm"&gt;
+  &lt;source src="trailer.mp4"  type="video/mp4"&gt;
+&lt;/video&gt;</pre>
+<div class="box trap"><b>Trap:</b> the sources never play together or one after another, extra sources do not sharpen the picture, and there is no minimum count: one source (or a plain src) is valid. MP4 plus WebM simply covers essentially every browser.</div>
+<p><code>&lt;track&gt;</code> attaches timed text from a WebVTT (.vtt) file: <code>kind</code> (subtitles, captions, descriptions, chapters), <code>srclang</code>, <code>label</code> (the name in the player menu) and <code>default</code>. It is void and goes after the sources. Subtitles never come from <code>&lt;caption&gt;</code> (tables) or <code>&lt;source&gt;</code> (media files), and there is no subtitle element.</p>
+<pre class="code">&lt;track src="talk-en.vtt" kind="captions" srclang="en" label="English" default&gt;</pre>
+
+<h3 id="s6-4">iframe: a window into another page</h3>
+<p>An inline frame embeds a whole separate document, with its own URL, inside yours: a map, a video player, a payment form, a dashboard. What loads inside it is not part of your page's DOM.</p>
+<pre class="code">&lt;iframe src="https://maps.example.org/embed?q=library"
+        width="600" height="260"
+        title="Map showing the central library"
+        loading="lazy"&gt;&lt;/iframe&gt;</pre>
+<p>The width and height attributes take whole numbers of pixels only. For a full-width frame use CSS, for example the stylesheet rule <code>iframe { width: 100%; }</code>, not width="100%".</p>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>Purpose</th></tr>
+<tr><td>src</td><td>Address of the page to embed</td></tr>
+<tr><td>width, height</td><td>Displayed size in pixels (there are no rows/cols or x/y attributes)</td></tr>
+<tr><td>title</td><td>Names the frame for screen-reader users</td></tr>
+<tr><td>loading="lazy"</td><td>Waits until the frame is near the screen before loading it</td></tr>
+<tr><td>allow</td><td>Grants powers: fullscreen, camera, microphone, geolocation, autoplay</td></tr>
+<tr><td>sandbox</td><td>Removes powers; tokens such as allow-scripts or allow-forms give single ones back</td></tr>
+</table></div>
+<div class="box key"><b>Why every iframe needs a title:</b> a screen reader announces the title when the user reaches the frame, so they know what is inside ("Map showing the central library"). Without it they hear only "frame". Nothing is printed above the frame, the frame loads without it, and picture quality is unaffected.</div>
+
+<h3 id="s6-5">Embedding responsibly</h3>
+<p>Embedding is a trade. The other site's scripts run in your visitor's browser, so a third-party frame can drop cookies, follow your visitors from site to site, and make your page load more slowly. Habits that limit the damage:</p>
+<ul>
+<li>Embed only from trusted sources, and add <code>loading="lazy"</code> so off-screen frames cost nothing.</li>
+<li>Use <code>sandbox</code> to grant only what the widget needs. An empty sandbox blocks scripts, forms and pop-ups, so a widget that dies after you add it has lost its scripts: add <code>allow-scripts</code>.</li>
+<li>Use <code>allow</code> to switch on fullscreen or camera only where needed.</li>
+<li>A big site that shows a blank frame is refusing to be framed (an X-Frame-Options or Content-Security-Policy header). Nothing in your HTML overrides it; use the site's official embed address, such as a video site's /embed/ link.</li>
+</ul>
+<div class="box trap"><b>Trap:</b> an iframe leaves your own stylesheet working, leaves the browser's Back button working, and keeps your page as normal HTML. The genuine costs are privacy (cookies, tracking) and speed.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">6.1&nbsp; A course-intro clip must show a still photo of the lecturer until someone starts it, and visitors must get play and pause buttons. Which tag does this?</div><ol><li>&lt;video src="intro.mp4" autoplay thumbnail="lecturer.png"&gt;&lt;/video&gt;</li><li>&lt;video src="intro.mp4" poster="lecturer.png" preload="auto"&gt;&lt;/video&gt;</li><li>&lt;video src="intro.mp4" controls poster="lecturer.png"&gt;&lt;/video&gt;</li><li>&lt;video src="intro.mp4" controls track="lecturer.png"&gt;&lt;/video&gt;</li></ol></div><div class="mcq"><div class="s">6.2&nbsp; A gym's background clip has loop, then &lt;source src="gym.webm" type="video/webm"&gt; followed by &lt;source src="gym.mp4" type="video/mp4"&gt;. In a browser that can play both formats, what happens?</div><ol><li>It plays gym.webm and restarts it from the beginning each time it finishes</li><li>It plays gym.webm, then gym.mp4, then stops</li><li>It plays both files side by side at the same time</li><li>It always plays gym.mp4, because MP4 has priority over WebM</li></ol></div><div class="mcq"><div class="s">6.3&nbsp; A screen-reader user moving through a page reaches an embedded weather widget and hears only "frame". What is the right fix on the &lt;iframe&gt;?</div><ol><li>Add alt="Weather widget"</li><li>Type the words Weather widget between &lt;iframe&gt; and &lt;/iframe&gt;</li><li>Add loading="lazy"</li><li>Add title="Live weather for the campus"</li></ol></div></div></section><div class="nunit" data-unit="2"><b>Unit 2</b><span>Semantic structure, accessibility, forms and tables</span></div><section class="nsec" id="s7" data-sec="S7" data-unit="2"><h2><span class="n">7</span>Semantic elements and page structure</h2><p class="chref">Textbook chapters <a href="book.html#ch13">13</a>, <a href="book.html#ch14">14</a></p><h3 id="s7-1">What "semantic" means</h3>
+<p><b>Definition.</b> A semantic element is one whose name describes the meaning and purpose of its content. <code>&lt;nav&gt;</code> says "these are navigation links"; <code>&lt;footer&gt;</code> says "this is closing information". A non-semantic element such as <code>&lt;div&gt;</code> or <code>&lt;span&gt;</code> says nothing about its content: it is just a box.</p>
+<p>On screen, <code>&lt;div class="header"&gt;</code> and <code>&lt;header&gt;</code> look the same: both are plain block boxes. The difference is for machines:</p>
+<ul>
+<li><b>Screen readers</b> announce semantic regions as <b>landmarks</b>, so a blind user jumps with one key to the main content, menu or footer. On an all-div page they must hear the whole menu on every visit.</li>
+<li><b>Search engines</b> tell real content apart from repeated boilerplate.</li>
+<li><b>Developers</b> read the page structure from the tag names alone.</li>
+</ul>
+<pre class="code">&lt;!-- just boxes: no meaning --&gt;
+&lt;div class="menu"&gt;...&lt;/div&gt;
+&lt;div class="content"&gt;...&lt;/div&gt;
+
+&lt;!-- same look, now a map machines can read --&gt;
+&lt;nav&gt;...&lt;/nav&gt;
+&lt;main&gt;...&lt;/main&gt;</pre>
+<div class="box key">Semantic means <b>meaning, not looks</b>. The gain is machine-readable structure for screen readers and search engines.</div>
+<div class="box trap"><b>Trap:</b> Semantic elements do <b>not</b> add a special colour or style, do <b>not</b> render or load faster than a <code>&lt;div&gt;</code>, and do <b>not</b> make the file automatically smaller. Most of them (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>) may appear many times; the one-per-page rule applies only to <code>&lt;main&gt;</code>.</div>
+
+<h3 id="s7-2">The seven page-structure elements</h3>
+<div class="tw"><table class="t">
+<tr><th>Element</th><th>What it means</th><th>How many</th><th>Typical content</th></tr>
+<tr><td><code>&lt;header&gt;</code></td><td>Introductory content of the page or of a section or article</td><td>One for the page; more inside articles and sections</td><td>Logo, site title (the h1), tagline, often the main menu</td></tr>
+<tr><td><code>&lt;nav&gt;</code></td><td>A major group of navigation links</td><td>One per group</td><td>Main menu, breadcrumbs, page numbers, table of contents</td></tr>
+<tr><td><code>&lt;main&gt;</code></td><td>The dominant content unique to this page</td><td>One per page (never more than one visible)</td><td>The sections, articles and related asides</td></tr>
+<tr><td><code>&lt;section&gt;</code></td><td>A thematic group of content with its own heading</td><td>Many</td><td>"Our services", "Results", "FAQ"</td></tr>
+<tr><td><code>&lt;article&gt;</code></td><td>Self-contained content that could be distributed on its own</td><td>Many</td><td>News story, blog post, product card, user comment</td></tr>
+<tr><td><code>&lt;aside&gt;</code></td><td>Related but not essential; the page still makes sense without it</td><td>Many</td><td>Related-articles sidebar, pull quote, advert</td></tr>
+<tr><td><code>&lt;footer&gt;</code></td><td>Closing information for the page or a section or article</td><td>One for the page; more inside articles and sections</td><td>Copyright, contact details (in <code>&lt;address&gt;</code>), author info</td></tr>
+</table></div>
+<p><b>Rules for main:</b> A page should have one main element, and never more than one visible main (extra ones must carry the <code>hidden</code> attribute). It must not sit inside <code>&lt;article&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;header&gt;</code>, <code>&lt;footer&gt;</code>, <code>&lt;nav&gt;</code> or <code>&lt;section&gt;</code>, because it is the dominant content of the whole document. Site-wide repeats (logo, menu, copyright) stay outside it. By contrast, <code>&lt;section&gt;</code>, <code>&lt;article&gt;</code> and <code>&lt;div&gt;</code> may appear as often as the content needs.</p>
+<div class="box trap"><b>Trap:</b> <code>&lt;header&gt;</code> is not <code>&lt;head&gt;</code>. <code>&lt;head&gt;</code> holds invisible metadata (charset, title, CSS links); <code>&lt;header&gt;</code> is visible introductory content inside <code>&lt;body&gt;</code>. <code>&lt;title&gt;</code> is only the text on the browser tab, and HTML has no <code>&lt;top&gt;</code> element at all.</div>
+
+<h3 id="s7-3">nav: wrap the whole group once</h3>
+<p><code>&lt;nav&gt;</code> marks a navigation region, not a single link. Put one <code>&lt;nav&gt;</code> around the whole group, usually around a list of links. Main menus, breadcrumbs, pagination links and a table of contents are each a group of links, so each gets its own <code>&lt;nav&gt;</code>. When a page has two or more, give each an <code>aria-label</code> so a screen reader can tell them apart.</p>
+<pre class="code">&lt;nav aria-label="Breadcrumb"&gt;
+  &lt;ol&gt;
+    &lt;li&gt;&lt;a href="/"&gt;Home&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/shoes/"&gt;Shoes&lt;/a&gt;&lt;/li&gt;
+    &lt;li&gt;&lt;a href="/shoes/running/" aria-current="page"&gt;Running&lt;/a&gt;&lt;/li&gt;
+  &lt;/ol&gt;
+&lt;/nav&gt;</pre>
+<div class="box trap"><b>Trap:</b> One <code>&lt;nav&gt;</code> per link is wrong: nav marks the group, and a dozen tiny landmarks make the screen reader repeat "navigation". Also false: "nav may hold only images" (it holds lists, text, anything) and "nav cannot go inside header" (the main nav inside the page header is normal). <code>&lt;menu&gt;</code> is not navigation: in HTML it is a toolbar-style list of commands with no navigation landmark. A link group does not turn into an <code>&lt;aside&gt;</code> or a <code>&lt;header&gt;</code> because of where it sits.</div>
+
+<h3 id="s7-4">section, article, aside or div?</h3>
+<p>Ask these questions in order:</p>
+<ol>
+<li>Would the block still make sense on another website or in a news feed? <code>&lt;article&gt;</code>.</li>
+<li>Related to the main content but removable without loss? <code>&lt;aside&gt;</code>.</li>
+<li>A themed part of this page with its own heading? <code>&lt;section&gt;</code>.</li>
+<li>None of these; it exists only for CSS? <code>&lt;div&gt;</code>.</li>
+</ol>
+<div class="tw"><table class="t">
+<tr><th>Content</th><th>Element</th><th>Why</th></tr>
+<tr><td>A recipe that a food blog could republish whole</td><td><code>&lt;article&gt;</code></td><td>Stands alone</td></tr>
+<tr><td>The "Our menu" block of a cafe home page, with an h2</td><td><code>&lt;section&gt;</code></td><td>Themed part of this page</td></tr>
+<tr><td>A "You may also like" column beside a story</td><td><code>&lt;aside&gt;</code></td><td>Related, not essential</td></tr>
+<tr><td>A wrapper only so CSS can make two columns</td><td><code>&lt;div&gt;</code></td><td>No meaning to convey</td></tr>
+<tr><td>Copyright line and phone number at the bottom</td><td><code>&lt;footer&gt;</code></td><td>Closing information</td></tr>
+<tr><td>Breadcrumbs, main menu, page numbers</td><td><code>&lt;nav&gt;</code></td><td>Groups of navigation links</td></tr>
+</table></div>
+<p>A "related stories" sidebar is an <code>&lt;aside&gt;</code>: extra content next to the story. It is not the site's navigation (<code>&lt;nav&gt;</code>), not the closing information (<code>&lt;footer&gt;</code>) and not the introduction (<code>&lt;header&gt;</code>).</p>
+<div class="box key"><b>section vs article in one line:</b> <code>&lt;section&gt;</code> groups thematically related content of this page; <code>&lt;article&gt;</code> is complete enough to be distributed independently. They are not the same, and neither is limited to one per page. An article may contain sections, and a section may contain articles.</div>
+<p><b>Every section should have a heading.</b> The heading lets assistive technology summarise the section and lets users jump between sections by heading. The page renders and takes CSS perfectly well without one; the heading is for meaning, not display. If a block has no natural heading, it was probably never a section: use a <code>&lt;div&gt;</code>.</p>
+<p><b>div is still right</b> as a generic styling wrapper with no meaning of its own: a grid container, a card shell, a box for a background colour. It is the wrong choice for anything a semantic element already describes, such as a copyright notice (footer), the main menu (nav) or a blog post (article).</p>
+<div class="box trap"><b>Trap:</b> The two definitions are often swapped. It is <b>article</b> that is independently distributable and <b>section</b> that is a thematic group. A missing heading does not stop a section from rendering, does not block CSS and does not hide it from search engines; it only makes the section harder to navigate.</div>
+
+<h3 id="s7-5">Assembling the page skeleton</h3>
+<p>A page is a tree: <code>&lt;html&gt;</code> holds the invisible <code>&lt;head&gt;</code> and the visible <code>&lt;body&gt;</code>; the body holds the regions, in reading order; CSS arranges them into columns later.</p>
+<pre class="code">&lt;body&gt;
+  &lt;header&gt;&lt;h1&gt;City Library&lt;/h1&gt; &lt;nav&gt;...&lt;/nav&gt;&lt;/header&gt;
+  &lt;main&gt;
+    &lt;section&gt;&lt;h2&gt;New arrivals&lt;/h2&gt;
+      &lt;article&gt;&lt;h3&gt;Review: a mystery novel&lt;/h3&gt;...&lt;/article&gt;
+    &lt;/section&gt;
+    &lt;aside&gt;&lt;h2&gt;Events this week&lt;/h2&gt;...&lt;/aside&gt;
+  &lt;/main&gt;
+  &lt;footer&gt;&amp;copy; 2026 City Library &lt;address&gt;12 Mall Road&lt;/address&gt;&lt;/footer&gt;
+&lt;/body&gt;</pre>
+<ul>
+<li><b>Page header:</b> logo or site title and usually the main nav (header &gt; nav).</li>
+<li><b>Where articles and asides go:</b> in the usual skeleton they sit inside the main region. Never inside <code>&lt;head&gt;</code> (metadata only) and not inside the page header or footer. (A site-wide sidebar placed beside main is also valid, but asides about the page content belong in main.)</li>
+<li><b>Page footer last:</b> copyright, contact details in <code>&lt;address&gt;</code>, small print. This is closing information, not a related extra (aside), not a link group (nav) and not a themed block (section).</li>
+<li><b>Repeats:</b> <code>&lt;header&gt;</code> and <code>&lt;footer&gt;</code> may appear again inside an article (byline on top, tags below). Only main is limited: never more than one visible main per page.</li>
+<li><b>Headings follow regions:</b> one h1 in the page header, an h2 per section, an h3 per article.</li>
+</ul><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">7.1&nbsp; A cinema website is rebuilt. Version 1 uses &lt;div id="menu"&gt; and &lt;div id="films"&gt;; version 2 uses &lt;nav&gt; and &lt;main&gt;. Both look identical in a browser. What does a blind visitor using a screen reader gain from version 2?</div><ol><li>The browser automatically adds a drop-down animation to the menu</li><li>She can jump straight to the menu or the film listings using landmark shortcuts</li><li>Version 1 is never indexed by search engines, so only version 2 appears in results</li><li>Version 2 reads itself aloud even on a computer with no screen reader installed</li></ol></div><div class="mcq"><div class="s">7.2&nbsp; A recipe page needs a box whose only job is to let CSS place the ingredient list and the cooking-tips column side by side. Which element should wrap the two columns?</div><ol><li>&lt;figure&gt;, because the two side-by-side columns are shown together like one illustration</li><li>&lt;address&gt;, because the wrapper gives each of the two columns its own fixed place</li><li>A second &lt;main&gt;, so that the ingredients and the tips each count as main content</li><li>&lt;div&gt;, because this wrapper exists only for the layout and carries no meaning</li></ol></div><div class="mcq"><div class="s">7.3&nbsp; A train-booking site shows page-number links (1, 2, 3, Next) under its search results. Which markup is correct?</div><ol><li>One &lt;nav aria-label="Result pages"&gt; around a single list holding all four links</li><li>A separate &lt;nav&gt; around each of the four links, so every page number is its own landmark</li><li>A &lt;footer&gt; around the links, because they appear after the results</li><li>A plain &lt;ol&gt; with no wrapper, because any list already counts as a navigation landmark</li></ol></div><div class="mcq"><div class="s">7.4&nbsp; A sports news page about a cricket series contains: (P) a match report that a partner site could republish unchanged, (Q) a block headed "Squad list" that only makes sense on this page, and (R) a side box of "Other cricket stories". Which mapping is best?</div><ol><li>P = section, Q = article, R = nav</li><li>P = aside, Q = section, R = article</li><li>P = article, Q = section, R = aside</li><li>P = article, Q = footer, R = header</li></ol></div><div class="mcq"><div class="s">7.5&nbsp; Which skeleton for a hotel's home page is structured correctly?</div><ol><li>&lt;main&gt; wraps everything, logo, menu, room cards and copyright, because all of it is content on this page</li><li>&lt;header&gt; holds the logo and menu; &lt;main&gt; holds the room cards and a "Nearby sights" &lt;aside&gt;; &lt;footer&gt; holds the phone and copyright</li><li>&lt;aside&gt; holds the logo and menu, since they repeat on every page; &lt;main&gt; holds the room cards; &lt;footer&gt; holds the phone and copyright</li><li>&lt;header&gt; holds the logo and menu; &lt;main&gt; holds the room cards; the phone and copyright go last in a &lt;section&gt; that has no heading</li></ol></div><div class="mcq"><div class="s">7.6&nbsp; A developer deletes the &lt;h2&gt; from every &lt;section&gt; on a museum's opening-hours page. The page still looks almost the same. What has actually been lost?</div><ol><li>Nothing important: a heading inside a section only sets the font size of its first line</li><li>The sections stop rendering in older browsers, so visitors see blank areas instead</li><li>Screen-reader users lose the labels they use to identify and jump between the sections</li><li>Search engines are now blocked from indexing every section that has no heading</li></ol></div></div></section><section class="nsec" id="s8" data-sec="S8" data-unit="2"><h2><span class="n">8</span>Accessibility: POUR, WCAG, ARIA and keyboard access</h2><p class="chref">Textbook chapters <a href="book.html#ch15">15</a>, <a href="book.html#ch20">20</a></p><h3 id="s8-1">What web accessibility is</h3>
+<p>Web accessibility is the practice of building sites that people with visual, auditory, motor or cognitive disabilities can perceive, understand, navigate and use. In short: nobody is locked out.</p>
+<ul>
+<li><b>Visual:</b> blind users hear the page through a screen reader (NVDA, JAWS, VoiceOver, TalkBack); low-vision users zoom or magnify.</li>
+<li><b>Auditory:</b> deaf users need captions and transcripts.</li>
+<li><b>Motor:</b> some users cannot hold a mouse and use only the keyboard, a switch or voice control.</li>
+<li><b>Cognitive:</b> clear language, consistent menus and helpful error messages.</li>
+</ul>
+<p>It helps everyone: captions on a noisy bus, good contrast in sunlight, keyboard shortcuts for power users. Most of it is simply correct HTML: <code>lang</code>, real headings, <code>alt</code> text, labels, landmarks and native controls.</p>
+<div class="box trap"><b>Trap:</b> Accessibility is not a speed target, not a search-ranking trick and not "works only in the newest browser". A fast, top-ranked page can still be unusable for a blind or keyboard-only visitor.</div>
+
+<h3 id="s8-2">WCAG and its conformance levels</h3>
+<p>WCAG stands for Web Content Accessibility Guidelines, the international standard published by the W3C through its Web Accessibility Initiative (WAI). Versions: 2.0 (2008), 2.1 (2018), 2.2 (2023); each later version adds criteria to the earlier one (2.2 also dropped one obsolete rule, 4.1.1 Parsing). Structure: 4 principles (POUR), then guidelines, then testable <b>success criteria</b>, each given a level.</p>
+<div class="tw"><table class="t">
+<tr><th>Level</th><th>Meaning</th><th>Example criteria</th></tr>
+<tr><td>A</td><td>The minimum; without it some users cannot use the page at all</td><td>Images have text alternatives; everything works by keyboard; captions on recorded video</td></tr>
+<tr><td>AA</td><td>The usual target required by most laws and organisations</td><td>Normal text contrast at least 4.5:1; visible focus; captions on live video</td></tr>
+<tr><td>AAA</td><td>The highest; not required for whole sites because some content cannot meet it</td><td>Contrast 7:1; sign-language video</td></tr>
+</table></div>
+<p>Levels are <b>cumulative</b>: AA means every A and every AA criterion passes. When a policy says "WCAG 2.x compliant" it almost always means Level AA. India's RPwD Rules 2017 require government sites to follow GIGW, which adopts WCAG 2.1 Level AA; the US Section 508 and the EU's EN 301 549 also point to WCAG Level AA.</p>
+<div class="box trap"><b>Trap:</b> Made-up expansions built from words like "World", "Code", "Compliance", "Grading" or "Generator" are wrong: it is <b>Web Content Accessibility Guidelines</b>. There are only three levels, A, AA and AAA; there is no Level B. Level A is only the floor, and AAA is the ideal, not the normal legal target.</div>
+
+<h3 id="s8-3">POUR: the four principles</h3>
+<div class="tw"><table class="t">
+<tr><th>Principle</th><th>The question it asks</th><th>Typical checks</th><th>A scenario that tests it</th></tr>
+<tr><td>Perceivable</td><td>Can users sense the content?</td><td>alt text, captions, transcripts, contrast</td><td>A blind user hears a product photo described</td></tr>
+<tr><td>Operable</td><td>Can users work every control?</td><td>Keyboard-only use, visible focus, skip links, enough time, nothing flashing more than 3 times a second</td><td>Finishing a checkout with only Tab and Enter</td></tr>
+<tr><td>Understandable</td><td>Can users understand the content and the controls?</td><td>Page language declared, consistent navigation, labels, clear error messages</td><td>A form says "Enter a 6-digit PIN code" instead of just "Invalid"</td></tr>
+<tr><td>Robust</td><td>Does it keep working across browsers, devices and assistive technologies?</td><td>Standard HTML, native elements, correct name, role and value for every control</td><td>The same form works in Chrome, Firefox, on a phone and with a screen reader</td></tr>
+</table></div>
+<div class="box key">Scenario trick: <b>sensing</b> = Perceivable; <b>doing, pressing keys</b> = Operable; <b>making sense</b> = Understandable; <b>works everywhere, with any tool</b> = Robust.</div>
+<div class="box trap"><b>Trap:</b> A keyboard-only test is about operating the page, so it is <b>Operable</b>, not Perceivable (nothing is hidden from the senses) and not Understandable (the user already knows what to do). "Keeps working across browsers, devices and assistive technology" is <b>Robust</b>, not Operable.</div>
+
+<h3 id="s8-4">Keyboard access and tabindex</h3>
+<p>Many users never touch a mouse. <b>Tab</b> moves to the next control, <b>Shift+Tab</b> to the previous one, <b>Enter</b> follows a link or presses a button, <b>Space</b> toggles a checkbox or presses a button, and the <b>arrow keys</b> move inside radio groups and menus. Native links (<code>&lt;a href&gt;</code>), buttons and form controls are focusable and keyboard-operable for free; a <code>&lt;div onclick&gt;</code> is not. Never remove the focus outline without a replacement. A skip link at the top (<code>&lt;a href="#main"&gt;Skip to main content&lt;/a&gt;</code>) lets keyboard users bypass the menu.</p>
+<div class="tw"><table class="t">
+<tr><th>Value</th><th>Effect</th></tr>
+<tr><td><code>tabindex="0"</code></td><td>Element becomes focusable and joins the normal Tab order at its position in the source</td></tr>
+<tr><td><code>tabindex="-1"</code></td><td>Not reachable with Tab, but a script can focus it (skip-link target, dialog)</td></tr>
+<tr><td><code>tabindex="3"</code> (any positive number)</td><td>Jumps the queue and scrambles the order; avoid</td></tr>
+</table></div>
+<pre class="code">&lt;div class="seat" tabindex="0"&gt;Seat 14B&lt;/div&gt;
+&lt;!-- Tab now stops here, in source order.
+     Enter and Space still need a script. --&gt;</pre>
+<div class="box trap"><b>Trap:</b> <code>tabindex="0"</code> does <b>not</b> move an element to the front of the Tab order (zero means "normal order"), does <b>not</b> remove it from the order (that is <code>-1</code>), and does <b>not</b> hide anything from screen readers (that is <code>aria-hidden</code>).</div>
+
+<h3 id="s8-5">ARIA: role, aria-label, aria-hidden and the first rule</h3>
+<p>ARIA (WAI-ARIA, Accessible Rich Internet Applications) is a W3C set of HTML attributes that tell assistive technology what an element is, what it is called and what state it is in, where plain HTML cannot say it. ARIA changes <b>what is announced</b>, never <b>how the element behaves</b>: <code>role="button"</code> on a <code>&lt;div&gt;</code> makes a screen reader say "button", but the div still ignores Enter and Space and is not in the Tab order.</p>
+<div class="box key"><b>First rule of ARIA:</b> if a native HTML element already has the meaning and behaviour you need, use it instead of rebuilding it with ARIA. A real <code>&lt;button&gt;</code> beats <code>&lt;div role="button"&gt;</code>. Adding <code>role="button"</code> to a <code>&lt;button&gt;</code> is redundant, and giving a native element a role that contradicts it is worse. ARIA is a fallback for gaps, not a newer replacement for semantic HTML.</div>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>What it gives</th><th>Example</th></tr>
+<tr><td><code>role</code></td><td>Purpose of a non-semantic element for assistive technology</td><td><code>&lt;div role="alert"&gt;Saved&lt;/div&gt;</code></td></tr>
+<tr><td><code>aria-label</code></td><td>Accessible name written directly in the attribute; not shown on screen</td><td><code>&lt;button aria-label="Close"&gt;×&lt;/button&gt;</code></td></tr>
+<tr><td><code>aria-labelledby</code></td><td>Name taken from another element's id</td><td><code>&lt;section aria-labelledby="t1"&gt;&lt;h2 id="t1"&gt;Fees&lt;/h2&gt;</code></td></tr>
+<tr><td><code>aria-describedby</code></td><td>Extra description, read after the name; its value is an id, not text</td><td>A password rule shown under an input</td></tr>
+<tr><td><code>aria-hidden="true"</code></td><td>Hides the element from assistive technology; it stays visible on screen</td><td>A decorative icon beside a labelled button</td></tr>
+</table></div>
+<pre class="code">&lt;button aria-label="Search"&gt;&lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt;
+&lt;button&gt;&lt;svg aria-hidden="true"&gt;...&lt;/svg&gt; Print&lt;/button&gt;</pre>
+<p>The first button has no visible text, so <code>aria-label</code> names it "Search". In the second, the word Print already names the button, so the decorative printer icon is hidden to stop it being read as noise.</p>
+<div class="box trap"><b>Trap:</b> <code>aria-label</code> is not a visible caption (sighted users never see it), not a validation rule (that is <code>required</code> or <code>pattern</code>) and not a CSS hook (that is <code>class</code>). <code>aria-hidden="true"</code> must never go on content people need: the main heading, a form field, a button's own text, or anything focusable. <code>role</code> does not set the Tab order (that is <code>tabindex</code>), does not style anything, and does not restrict who may see an element; it only says what the element is.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">8.1&nbsp; An audit of a bank's website finds four problems: (W) a promo video has no captions; (X) a date picker opens only on a mouse click; (Y) a form error says only "Error 37"; (Z) a custom slider works in one browser, but screen readers cannot report its value. Which principle does each break?</div><ol><li>W Operable, X Perceivable, Y Robust, Z Understandable</li><li>W Perceivable, X Robust, Y Understandable, Z Operable</li><li>W Understandable, X Operable, Y Perceivable, Z Robust</li><li>W Perceivable, X Operable, Y Understandable, Z Robust</li></ol></div><div class="mcq"><div class="s">8.2&nbsp; A tender for a city council portal says the site must be "WCAG 2.2 AA compliant". What must the developers satisfy?</div><ol><li>Only the AA success criteria; Level A criteria can be skipped because AA replaces them</li><li>Every Level A and every Level AA success criterion of the Web Content Accessibility Guidelines</li><li>Only the colour-contrast rules, because AA is the contrast grade of the guidelines</li><li>Every Level AA criterion plus any AAA criterion that applies to the page's content</li></ol></div><div class="mcq"><div class="s">8.3&nbsp; A video player has a Mute button that shows only a speaker icon drawn as an &lt;svg&gt;, and a Share button that shows the visible word Share followed by a decorative arrow &lt;svg&gt;. Which markup is correct for screen-reader users?</div><ol><li>&lt;button aria-hidden="true"&gt;&lt;svg&gt;...&lt;/svg&gt;&lt;/button&gt; and &lt;button&gt;Share &lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt;</li><li>&lt;button aria-label="Mute"&gt;&lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt; and &lt;button&gt;Share &lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt;</li><li>&lt;button aria-label="Mute"&gt;&lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt; and &lt;button&gt;&lt;span aria-hidden="true"&gt;Share&lt;/span&gt; &lt;svg&gt;...&lt;/svg&gt;&lt;/button&gt;</li><li>&lt;button aria-describedby="Mute"&gt;&lt;svg&gt;...&lt;/svg&gt;&lt;/button&gt; and &lt;button aria-hidden="true"&gt;Share &lt;svg&gt;...&lt;/svg&gt;&lt;/button&gt;</li></ol></div><div class="mcq"><div class="s">8.4&nbsp; In a photo gallery each thumbnail is a &lt;div&gt; that opens a larger view when clicked. The developer adds tabindex="0" to every thumbnail. What changes?</div><ol><li>Each thumbnail can now be reached with Tab, in the same order as it appears in the source</li><li>Screen readers now announce each thumbnail as a button</li><li>The thumbnails are moved to after every native link and button in the Tab sequence</li><li>Pressing Enter on a thumbnail now opens the larger view without any extra script</li></ol></div><div class="mcq"><div class="s">8.5&nbsp; A shop needs a control that submits its order form. Which choice follows best practice?</div><ol><li>&lt;div class="button"&gt;Place order&lt;/div&gt;, since the class name tells screen readers what it is</li><li>&lt;span role="button"&gt;Place order&lt;/span&gt;, since the role makes it respond to Enter and Space</li><li>&lt;button type="submit"&gt;Place order&lt;/button&gt;, since it is focusable and submits on Enter or Space with no extra code</li><li>&lt;a&gt;Place order&lt;/a&gt; with no href, since CSS can make it look and act like a button</li></ol></div></div></section><section class="nsec" id="s9" data-sec="S9" data-unit="2"><h2><span class="n">9</span>Forms, input types and validation</h2><p class="chref">Textbook chapters <a href="book.html#ch16">16</a>, <a href="book.html#ch17">17</a>, <a href="book.html#ch18">18</a></p><h3 id="s9-1">The form element: where and how the data travels</h3>
+<p>A <code>&lt;form&gt;</code> collects what the user enters and sends it to a server. When the submit button is pressed, the browser takes every control that has a <code>name</code>, pairs that name with the current value (<code>name=value</code>) and sends the pairs. Exceptions: disabled controls, unticked checkboxes and unchosen radios send nothing, and only the button that was pressed is included. Two attributes on the form decide the journey:</p>
+<ul>
+<li><b>action</b> = <i>where</i>: the URL the form data is sent to. Leave it out and the form submits to the current page.</li>
+<li><b>method</b> = <i>how</i>: <code>get</code> (the default) or <code>post</code>.</li>
+</ul>
+<pre class="code">&lt;form action="/library/renew" method="post"&gt;
+  &lt;input type="hidden" name="book" value="B-204"&gt;
+  &lt;button&gt;Renew&lt;/button&gt;
+&lt;/form&gt;</pre>
+<p>Result: <code>book=B-204</code> goes to <code>/library/renew</code>, inside the request.</p>
+<div class="tw"><table class="t">
+<tr><th></th><th>method="get"</th><th>method="post"</th></tr>
+<tr><td>Where the pairs travel</td><td>Appended to the URL as a query string: <code>/search?q=maps&amp;page=2</code></td><td>In the body of the HTTP request; the URL stays clean</td></tr>
+<tr><td>Shows in address bar and history; can be bookmarked</td><td>Yes</td><td>No</td></tr>
+<tr><td>File uploads</td><td>No</td><td>Yes, with <code>enctype="multipart/form-data"</code></td></tr>
+<tr><td>Use for</td><td>Searches, filters</td><td>Logins, registrations, orders, uploads</td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> POST is <i>not</i> encryption. On a plain <code>http://</code> page anyone watching the network can read the body; only HTTPS encrypts. POST carries files as well as text and does not switch off validation. <code>action</code> is only the destination address: never a validation rule, the method or a button name.</div>
+
+<h3 id="s9-2">name, id, value and the label</h3>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>Who uses it</th><th>Job</th></tr>
+<tr><td><code>name</code></td><td>The server</td><td>The key the value is submitted under. No name, no data.</td></tr>
+<tr><td><code>id</code></td><td>The page</td><td>Unique on the page; what a label's <code>for</code> points at. Never sent.</td></tr>
+<tr><td><code>value</code></td><td>Both</td><td>The data: pre-filled text, or what a chosen radio, checkbox or option sends.</td></tr>
+<tr><td><code>class</code></td><td>CSS</td><td>Styling only; it links nothing.</td></tr>
+</table></div>
+<p>A label is linked to its control when the label's for value matches the control's id exactly (not its name, class or type). Wrapping the control inside the label also works. Then clicking the label focuses the box, and screen readers read the two together.</p>
+<pre class="code">&lt;label for="roll"&gt;Roll number&lt;/label&gt;
+&lt;input type="text" id="roll" name="rollno"&gt;</pre>
+<p>The label finds the box through <code>id="roll"</code>; the server receives <code>rollno=...</code>.</p>
+<div class="box key"><b>Placeholder is a hint, not a label.</b> It disappears as soon as typing starts, so the user can forget what the box was for, and screen readers may not announce it. Keep a visible <code>&lt;label&gt;</code> and use placeholder only for a sample, e.g. <code>placeholder="e.g. 98765 43210"</code>.</div>
+<div class="box trap"><b>Trap:</b> placeholder is not deprecated (it arrived with HTML5), it <i>can</i> be styled with CSS (<code>::placeholder</code>), and it neither blocks nor allows submission: it is not a value at all.</div>
+
+<h3 id="s9-3">Choosing the right control</h3>
+<div class="tw"><table class="t">
+<tr><th>The user must...</th><th>Use</th><th>Not</th></tr>
+<tr><td>pick exactly one of a few (one T-shirt size)</td><td>radio buttons that share one name</td><td>checkbox (allows many)</td></tr>
+<tr><td>tick any number of independent options</td><td><code>&lt;input type="checkbox"&gt;</code></td><td>radio</td></tr>
+<tr><td>pick several items from one list</td><td><code>&lt;select multiple&gt;</code> (Ctrl/Shift-click)</td><td>plain <code>&lt;select&gt;</code> (one only)</td></tr>
+<tr><td>write several lines (a complaint, an address)</td><td><code>&lt;textarea&gt;</code></td><td><code>&lt;input&gt;</code> (one line only)</td></tr>
+</table></div>
+<pre class="code">&lt;fieldset&gt;
+  &lt;legend&gt;T-shirt size&lt;/legend&gt;
+  &lt;label&gt;&lt;input type="radio" name="size" value="s"&gt; S&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="size" value="m"&gt; M&lt;/label&gt;
+  &lt;label&gt;&lt;input type="radio" name="size" value="l"&gt; L&lt;/label&gt;
+&lt;/fieldset&gt;</pre>
+<div class="box key">The <b>shared name</b> is what makes radios one group: choosing one un-chooses the others, and only the chosen one's value is sent (<code>size=m</code>). The <code>id</code> cannot be shared (it must be unique), <code>class</code> only styles, and each <code>value</code> should differ, because the value is what gets sent as the answer.</div>
+<div class="box trap"><b>Trap:</b> give each radio a different name and each becomes its own group of one, so all of them can be selected at once.</div>
+<pre class="code">&lt;label for="msg"&gt;Your complaint&lt;/label&gt;
+&lt;textarea id="msg" name="msg" rows="4"&gt;&lt;/textarea&gt;
+
+&lt;label for="labs"&gt;Labs you will attend&lt;/label&gt;
+&lt;select id="labs" name="labs" multiple&gt;
+  &lt;option&gt;Physics&lt;/option&gt;&lt;option&gt;Chemistry&lt;/option&gt;&lt;option&gt;Workshop&lt;/option&gt;
+&lt;/select&gt;</pre>
+<div class="box trap"><b>Trap:</b> <code>&lt;input type="textarea"&gt;</code> and <code>type="multiline"</code> do not exist. The textarea is its own element with a closing tag, and default text goes between the tags. A <code>&lt;select&gt;</code> is a dropdown of fixed choices, not a typing box.</div>
+
+<h3 id="s9-4">Input types worth knowing</h3>
+<p>One element, <code>&lt;input&gt;</code>, becomes a different control for each <code>type</code>.</p>
+<div class="tw"><table class="t">
+<tr><th>type</th><th>What the user gets</th></tr>
+<tr><td><code>text</code></td><td>A single-line box (the default)</td></tr>
+<tr><td><code>password</code></td><td>Typed characters are masked as dots</td></tr>
+<tr><td><code>hidden</code></td><td>Nothing on screen at all; the value is still sent</td></tr>
+<tr><td><code>email</code></td><td>Address format is checked; phones show an @ key</td></tr>
+<tr><td><code>number</code></td><td>A box with an up/down spinner; takes min, max, step</td></tr>
+<tr><td><code>range</code></td><td>A slider for a value between min and max</td></tr>
+<tr><td><code>date</code></td><td>A native calendar picker</td></tr>
+<tr><td><code>time</code>, <code>month</code>, <code>week</code>, <code>datetime-local</code></td><td>Other native pickers (some desktop browsers show a plain text box for month and week)</td></tr>
+<tr><td><code>color</code>, <code>file</code></td><td>Colour picker; file chooser</td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> made-up types such as <code>secret</code>, <code>mask</code>, <code>slider</code>, <code>scale</code> or <code>calendar</code> raise no error: the browser quietly treats them as <code>text</code>, so a "secret" box shows the password in plain view. And <code>hidden</code> is not masking: it hides the whole field.</div>
+
+<h3 id="s9-5">Buttons: which one submits?</h3>
+<pre class="code">&lt;button type="submit"&gt;Book seat&lt;/button&gt;  &lt;!-- sends the form --&gt;
+&lt;button type="reset"&gt;Clear&lt;/button&gt;       &lt;!-- restores starting values --&gt;
+&lt;button type="button"&gt;Show map&lt;/button&gt;   &lt;!-- does nothing without JavaScript --&gt;</pre>
+<ul>
+<li><b>No type written?</b> Inside a form, a button with no type is a submit button (submit is the default).</li>
+<li><code>&lt;input type="submit"&gt;</code> also submits.</li>
+<li>A link such as <code>&lt;a href="#"&gt;</code> only navigates (here, to the top of the page); it never submits.</li>
+</ul>
+<div class="box trap"><b>Trap:</b> the caption is irrelevant. <code>&lt;button type="button"&gt;Submit&lt;/button&gt;</code> still does nothing, and a reset button sends nothing anywhere.</div>
+
+<h3 id="s9-6">Built-in validation attributes</h3>
+<p>HTML5 <b>constraint validation</b>: attributes describe a valid value; on submit the browser checks them all. If one fails, it stops the submission, focuses the first bad field and shows a message. No JavaScript needed.</p>
+<div class="tw"><table class="t">
+<tr><th>Attribute</th><th>Blocks submission when</th><th>Example</th></tr>
+<tr><td><code>required</code></td><td>the field is empty (no radio chosen, box unticked)</td><td><code>&lt;input name="city" required&gt;</code></td></tr>
+<tr><td><code>min</code>, <code>max</code></td><td>a number or date is below min or above max</td><td><code>type="number" min="5" max="40"</code> accepts 5 to 40</td></tr>
+<tr><td><code>minlength</code></td><td>fewer characters than the limit</td><td><code>minlength="6"</code>: at least 6 characters of any kind</td></tr>
+<tr><td><code>maxlength</code></td><td>never in practice: the browser stops typing at the limit</td><td><code>maxlength="10"</code>: at most 10 characters</td></tr>
+<tr><td><code>pattern</code> + <code>title</code></td><td>the whole value does not match the regular expression</td><td>see below</td></tr>
+<tr><td><code>placeholder</code>, <code>value</code></td><td>never: one is a hint, the other a pre-fill</td><td>a pre-filled required field counts as filled</td></tr>
+</table></div>
+<div class="box key"><b>Value versus length.</b> min/max limit how big a number or date is; minlength/maxlength limit how many characters are typed. So "age 21 to 65" is <code>min="21" max="65"</code>, while <code>minlength="8"</code> on a password means at least 8 characters (not at most, not exactly, not digits only, nothing to do with time). An input has no <code>start</code>/<code>end</code> or <code>range="..."</code> attributes; <code>range</code> is a type.</div>
+<p>An empty box passes both <code>minlength</code> and <code>pattern</code>: they only judge a value that is actually there. That is why they are paired with <code>required</code>.</p>
+<pre class="code">&lt;label for="sub"&gt;Subject code&lt;/label&gt;
+&lt;input id="sub" name="sub" required pattern="[A-Z]{2}[0-9]{3}"
+       title="Two capital letters then 3 digits, e.g. CS101"&gt;</pre>
+<p>Type <code>cs1</code> and the browser blocks the form; its message shows the title text as the hint about the expected format. The title is not the server's key (that is <code>name</code>), not a default value (that is <code>value</code>) and no replacement for a <code>&lt;label&gt;</code>.</p>
+
+<h3 id="s9-7">What type="email" really checks</h3>
+<p>Browsers follow the HTML Living Standard: one or more allowed characters (letters, digits and symbols such as . + _ -, but no spaces), one @, then a domain made of one or more labels of letters, digits and hyphens, separated by dots. A dot after the @ is allowed but not required.</p>
+<div class="tw"><table class="t">
+<tr><th>Value in <code>&lt;input type="email" required&gt;</code></th><th>Result</th></tr>
+<tr><td><code>user.k@campus.ac.in</code></td><td>Valid: dots are fine on both sides of the @</td></tr>
+<tr><td><code>user@campus</code></td><td>Valid: the form submits normally</td></tr>
+<tr><td><code>user@</code></td><td>Blocked: nothing after the @</td></tr>
+<tr><td><code>usercampus.ac.in</code></td><td>Blocked: no @ at all</td></tr>
+<tr><td><code>user k@campus.in</code></td><td>Blocked: a space inside</td></tr>
+<tr><td>(empty)</td><td>Blocked by required</td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> many notes say an address with no dot after the @ (like <code>name@college</code>) is rejected. Real browsers accept it and submit normally. When a value really is invalid, the browser stops the form; it never "corrects" the address and never silently drops the field from the data.</div>
+<p>For a stricter rule, add a <code>pattern</code>; it is checked on top of the email check:</p>
+<pre class="code">&lt;input type="email" name="mail" required
+       pattern=".+@.+\..+" title="Use a full address such as name@college.edu"&gt;</pre>
+<p>Now <code>user@campus</code> is blocked, because the pattern demands a dot after the @.</p>
+
+<h3 id="s9-8">Client-side versus server-side validation</h3>
+<p>Client-side checks are the guard at the gate: quick and polite, but they can be walked past. Server-side checks are the lock on the door.</p>
+<div class="tw"><table class="t">
+<tr><th></th><th>Client-side (browser)</th><th>Server-side (backend)</th></tr>
+<tr><td>Runs</td><td>in the browser, before anything is sent</td><td>on the server, after the data arrives</td></tr>
+<tr><td>Written in</td><td>HTML attributes, JavaScript</td><td>backend code (PHP, Python, Java...), not HTML</td></tr>
+<tr><td>Feedback</td><td>instant, no reload</td><td>only after a round trip, so slower</td></tr>
+<tr><td>Can the user bypass it?</td><td>Yes: DevTools can delete <code>required</code>, or a request can be sent without the form</td><td>No: it runs on the site's own machine, out of the user's reach</td></tr>
+<tr><td>Purpose</td><td>convenience (user experience)</td><td>security: the <b>final line of defence</b></td></tr>
+</table></div>
+<div class="box key">Always do both. Client-side validation improves the experience but never replaces the server check, is not more secure, and does not run on the server.</div><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">9.1&nbsp; A hostel portal has &lt;form action="/hostel/apply" method="post"&gt;. When the student presses Submit, what happens to the filled-in values?</div><ol><li>They are added after a ? in the address bar of /hostel/apply</li><li>They stay on the current page, because post ignores action</li><li>They are sent to /hostel/apply inside the body of the request</li><li>They are encrypted by post and sent to the submit button's name</li></ol></div><div class="mcq"><div class="s">9.2&nbsp; To save space, a designer deletes every &lt;label&gt; from a sign-up form and keeps only placeholder text inside the boxes. What is the real problem?</div><ol><li>Browsers refuse to submit a form that uses placeholders</li><li>The hint vanishes once typing starts and may not be announced</li><li>The placeholder text is sent to the server instead of the typed value</li><li>Placeholder text is not allowed on type="email" inputs</li></ol></div><div class="mcq"><div class="s">9.3&nbsp; A mess-feedback form offers three radio buttons for meal plan, written with name="veg", name="jain" and name="nonveg". What will a user notice?</div><ol><li>Choosing one automatically clears the other two</li><li>The browser turns the three radios into a dropdown</li><li>The form refuses to submit until the names are fixed</li><li>All three can be selected at the same time</li></ol></div><div class="mcq"><div class="s">9.4&nbsp; A developer writes &lt;input type="secure" name="wifi"&gt; for a Wi-Fi passphrase on a lab computer. What does the person typing see?</div><ol><li>The passphrase in plain, readable characters</li><li>A row of dots, because secure is a masked type</li><li>No box at all, because secure hides the field</li><li>An error message in place of the form</li></ol></div><div class="mcq"><div class="s">9.5&nbsp; On a blog editor, Save must send the post to the server, while Preview must only run a script that opens a pop-up and must never send anything. Which markup does exactly that?</div><ol><li>&lt;button type="reset"&gt;Save&lt;/button&gt; &lt;button&gt;Preview&lt;/button&gt;</li><li>&lt;button&gt;Save&lt;/button&gt; &lt;button&gt;Preview&lt;/button&gt;</li><li>&lt;button type="button"&gt;Save&lt;/button&gt; &lt;button type="submit"&gt;Preview&lt;/button&gt;</li><li>&lt;button&gt;Save&lt;/button&gt; &lt;button type="button"&gt;Preview&lt;/button&gt;</li></ol></div><div class="mcq"><div class="s">9.6&nbsp; A locker PIN field is written &lt;input type="password" name="pin" minlength="6"&gt;. The user leaves it completely empty and presses Submit. What happens?</div><ol><li>Submission is blocked because an empty box has fewer than 6 characters</li><li>The form is sent, because minlength does not judge an empty box</li><li>The browser shows an error because minlength works only on type="text"</li><li>The PIN is left out because password fields are never submitted</li></ol></div><div class="mcq"><div class="s">9.7&nbsp; A room-booking box is written &lt;input name="room" pattern="[A-D]-[0-9]{3}" title="Block letter, a hyphen, then the room number, e.g. B-214"&gt;. A student types b214 and presses Submit. Which describes what she experiences?</div><ol><li>The form is sent with b214, because the title only tells the server what the box holds</li><li>The browser rewrites b214 to B-214 by copying the example in the title</li><li>Submission is stopped, the box is focused, and the error message includes the title's text about the expected format</li><li>Submission is stopped silently with no message, because a title is only ever shown on mouse hover</li></ol></div><div class="mcq"><div class="s">9.8&nbsp; An online canteen form limits quantity with &lt;input type="number" min="1" max="5"&gt;. A user opens DevTools, deletes max and orders 500 plates. What should stop this order?</div><ol><li>A check in the server code that validates the quantity again</li><li>Nothing else is needed; the browser restores the deleted max before sending</li><li>Adding placeholder="max 5" to the field</li><li>Switching the form from get to post</li></ol></div><div class="mcq"><div class="s">9.9&nbsp; Which value would a browser refuse in &lt;input type="email" name="mail" required&gt; (no pattern attribute)?</div><ol><li>office@hostel</li><li>office.s@uni.ac.in</li><li>office@</li><li>o+notes@mail.com</li></ol></div></div></section><section class="nsec" id="s10" data-sec="S10" data-unit="2"><h2><span class="n">10</span>Tables and data representation</h2><p class="chref">Textbook chapter <a href="book.html#ch19">19</a></p><h3 id="s10-1">When to use a table, and what each part does</h3>
+<p>Use a table only for <b>tabular data</b>: information whose meaning comes from its position, where a row meets a column. A bus timetable (stop by time), a fee chart (course by year), a results sheet (team by event). If you only want boxes side by side, that is layout, and layout is CSS's job (see the last part of this section).</p>
+<div class="tw"><table class="t">
+<tr><th>Element</th><th>Its job</th><th>It is NOT</th></tr>
+<tr><td><code>&lt;table&gt;</code></td><td>The container for the whole grid</td><td>a page-layout tool</td></tr>
+<tr><td><code>&lt;caption&gt;</code></td><td>A visible title for the whole table, read out first by screen readers. Must be the first child of <code>&lt;table&gt;</code>.</td><td>a column width, a totals row, or a tooltip on each cell (tooltips come from the <code>title</code> attribute)</td></tr>
+<tr><td><code>&lt;thead&gt;</code>, <code>&lt;tbody&gt;</code>, <code>&lt;tfoot&gt;</code></td><td>Sort the rows into sections: heading rows, data rows, and summary rows such as totals</td><td>a single row (each group holds tr rows), a way to merge cells, a border, or a shortcut that lets you skip tr</td></tr>
+<tr><td><code>&lt;tr&gt;</code></td><td>One horizontal row; every cell must sit inside a row</td><td>a column (HTML builds a table row by row; no tag holds a column of cells)</td></tr>
+<tr><td><code>&lt;th&gt;</code></td><td>A header cell: names what its column or row contains</td><td>just "bold text" (bold and centred is only its default look)</td></tr>
+<tr><td><code>&lt;td&gt;</code></td><td>A data cell: holds one value</td><td>a heading</td></tr>
+</table></div>
+<div class="box key">Memory hook: <b>tr</b> = table <b>r</b>ow, <b>th</b> = table <b>h</b>eader, <b>td</b> = table <b>d</b>ata. A table holds rows, rows hold cells, cells hold content. The group tags sit between table and tr: they group rows, they never replace them.</div>
+<p>Why group rows at all? CSS can style the heading section differently from the body, a long table's heading rows can repeat on every printed page, and screen readers can tell heading rows from data rows.</p>
+
+<h3 id="s10-2">The correct order, in one example</h3>
+<p>Children of <code>&lt;table&gt;</code> go in this order: <code>caption</code>, then <code>colgroup</code> (optional), then <code>thead</code>, <code>tbody</code>, <code>tfoot</code>.</p>
+<pre class="code">&lt;table&gt;
+  &lt;caption&gt;Canteen prices&lt;/caption&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th scope="col"&gt;Item&lt;/th&gt;&lt;th scope="col"&gt;Rs&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;Samosa&lt;/th&gt;&lt;td&gt;15&lt;/td&gt;&lt;/tr&gt;
+    &lt;tr&gt;&lt;th scope="row"&gt;Tea&lt;/th&gt;&lt;td&gt;10&lt;/td&gt;&lt;/tr&gt;
+  &lt;/tbody&gt;
+  &lt;tfoot&gt;&lt;tr&gt;&lt;th scope="row"&gt;Both&lt;/th&gt;&lt;td&gt;25&lt;/td&gt;&lt;/tr&gt;&lt;/tfoot&gt;
+&lt;/table&gt;</pre>
+<p>Browsers draw no borders by default; add them in CSS (<code>th, td { border: 1px solid #999; }</code>), not with the old <code>border</code> attribute. If you leave out <code>&lt;tbody&gt;</code>, the browser quietly adds one.</p>
+<div class="box trap"><b>Trap:</b> <code>&lt;table&gt;&lt;td&gt;5&lt;/td&gt;&lt;/table&gt;</code> is invalid: the cell is not inside a <code>&lt;tr&gt;</code> (the browser patches it, but the source is still wrong). A caption placed after <code>&lt;thead&gt;</code> or outside <code>&lt;/table&gt;</code> is also wrong.</div>
+
+<h3 id="s10-3">Merging cells: colspan and rowspan</h3>
+<ul>
+<li><code>colspan="n"</code>: the cell stretches <b>sideways</b> across n <b>columns</b>.</li>
+<li><code>rowspan="n"</code>: the cell stretches <b>downwards</b> across n <b>rows</b>.</li>
+</ul>
+<p>Both go on a <code>&lt;td&gt;</code> or <code>&lt;th&gt;</code>, and n counts grid cells, not pixels. Like knocking down a wall between two rooms: one bigger room, so the plan stops showing two.</p>
+<p><b>Counting rule:</b> every row must add up to the table's column count, spans included. The row below a rowspan cell leaves that cell out, because the slot is already filled from above.</p>
+<pre class="code">&lt;!-- 3 columns: Department | Lab | Day --&gt;
+&lt;tr&gt;&lt;th rowspan="2"&gt;Physics&lt;/th&gt;&lt;td&gt;Optics&lt;/td&gt;&lt;td&gt;Mon&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td&gt;Mechanics&lt;/td&gt;&lt;td&gt;Thu&lt;/td&gt;&lt;/tr&gt;
+&lt;tr&gt;&lt;td colspan="3"&gt;All labs close at 5 pm&lt;/td&gt;&lt;/tr&gt;</pre>
+<div class="box eg"><b>Count it.</b> Row 1: Physics + 2 cells = 3. Row 2: only 2 cells are written, because Physics (rowspan) still fills the Department slot: 1 + 2 = 3. Row 3: one cell with colspan="3" = 3. One label (Physics) heading two rows that sit one under the other is exactly the rowspan job. So colspan="2" covers two columns side by side, and rowspan="2" covers two rows top to bottom.</div>
+<div class="box trap"><b>Trap:</b> colspan never means rows, whole tables or pages, and neither attribute takes pixels. <code>span</code> is not a merge attribute for cells: it belongs on <code>&lt;col&gt;</code> and <code>&lt;colgroup&gt;</code>, where <code>&lt;col span="2"&gt;</code> styles two whole columns at once. <code>scope</code> (any value, including rowgroup) only says which cells a header describes; it merges nothing. Under a rowspan cell, do not repeat the cell or add an empty one: either makes the row one column too wide.</div>
+<p><code>&lt;colgroup&gt;</code> and <code>&lt;col&gt;</code> sit after the caption and before <code>thead</code>, and let you give a whole column a width or background without repeating it on every cell.</p>
+
+<h3 id="s10-4">Tables a screen reader can read</h3>
+<p>A sighted reader glances up to the column heading and left to the row heading. A screen reader reads one cell at a time, so the markup must say which headings belong to each value. Done right, a cell is announced as "Relay, Blue House, 38", not a bare "38". Three tools:</p>
+<ol>
+<li>Use th for every heading cell, column and row headings alike; td is only for values.</li>
+<li>Put <code>scope</code> on each <code>&lt;th&gt;</code> to say which cells it labels.</li>
+<li>Add a <code>&lt;caption&gt;</code>, so the user hears what the table is about before hearing dozens of numbers.</li>
+</ol>
+<div class="tw"><table class="t">
+<tr><th>scope value</th><th>The header labels...</th></tr>
+<tr><td><code>col</code></td><td>the whole column it heads (every cell under it)</td></tr>
+<tr><td><code>row</code></td><td>the whole row it starts</td></tr>
+<tr><td><code>colgroup</code> / <code>rowgroup</code></td><td>a group of columns (a colgroup) / every row of its thead, tbody or tfoot</td></tr>
+</table></div>
+<pre class="code">&lt;table&gt;
+  &lt;caption&gt;Sports day: points by house&lt;/caption&gt;
+  &lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;th scope="col"&gt;100 m&lt;/th&gt;&lt;th scope="col"&gt;Relay&lt;/th&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;th scope="row"&gt;Red House&lt;/th&gt;&lt;td&gt;42&lt;/td&gt;&lt;td&gt;30&lt;/td&gt;&lt;/tr&gt;
+  &lt;tr&gt;&lt;th scope="row"&gt;Blue House&lt;/th&gt;&lt;td&gt;35&lt;/td&gt;&lt;td&gt;38&lt;/td&gt;&lt;/tr&gt;
+&lt;/table&gt;</pre>
+<p>For complex tables with two levels of headings, give each <code>&lt;th&gt;</code> an id and list them on the data cell: <code>&lt;td headers="relay blue"&gt;</code>. scope handles simple tables; headers handles the rest.</p>
+<div class="box key">A data table that sounds confusing when read aloud is fixed by its markup, not its looks: <code>&lt;th&gt;</code> for headings + <code>scope</code> + a <code>&lt;caption&gt;</code>.</div>
+<div class="box trap"><b>Trap:</b> bigger fonts, bold text and background colours change only what sighted people see; a screen reader ignores them. Rebuilding the grid from <code>&lt;div&gt;</code>s throws away the row and column links entirely. Sprinkling colspan merges cells and wrecks the grid without adding a single heading. And scope="col" labels every cell in its column, not just the one cell beneath the heading and not the whole table (naming the whole table is the caption's job).</div>
+
+<h3 id="s10-5">Never use a table for page layout</h3>
+<p>Before CSS, whole pages were built inside tables: a row for the banner, cells for the menu and articles. Today that is wrong. Layout tables hurt accessibility and block responsiveness; tables are meant for tabular data only.</p>
+<ul>
+<li><b>Accessibility:</b> a screen reader may announce "table, 2 columns" and read out row and column positions that mean nothing (browsers try to guess layout tables, but the guess is unreliable).</li>
+<li><b>Responsiveness:</b> a table's grid does not reflow into one column on a phone unless extra CSS tears the table apart; left alone, the cells stay side by side, squeezed or scrolling sideways.</li>
+<li><b>Meaning:</b> the markup claims the page is data when it is not.</li>
+</ul>
+<p>The modern way is semantic regions (<code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;aside&gt;</code>, <code>&lt;footer&gt;</code>) arranged with CSS Flexbox or Grid.</p>
+<div class="box trap"><b>Trap:</b> the reason is <i>not</i> that tables cannot hold images (a cell can hold images, links, lists, even a form), <i>not</i> that browsers dropped <code>&lt;table&gt;</code> (it is a current, fully supported element and the right choice for data), and <i>not</i> speed (tables do not "always" load slower than divs, and speed is not the objection). The real problems are accessibility and reflow.</div>
+<p>If you inherit a layout table you cannot rewrite (old HTML emails are the classic case), <code>&lt;table role="presentation"&gt;</code> tells assistive technology to ignore its data meaning. It changes nothing on screen: it does not hide borders, make the table sortable or make the cells stack on a phone.</p><div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">10.1&nbsp; A mess-menu table has four columns: Day | Breakfast | Lunch | Dinner. On the Sunday row, the words 'Special brunch' must fill the Breakfast and Lunch slots as one cell. Which row markup keeps the grid correct?</div><ol><li>&lt;tr&gt;&lt;th&gt;Sunday&lt;/th&gt;&lt;td rowspan="2"&gt;Special brunch&lt;/td&gt;&lt;td&gt;Pulao&lt;/td&gt;&lt;/tr&gt;</li><li>&lt;tr&gt;&lt;th&gt;Sunday&lt;/th&gt;&lt;td colspan="2"&gt;Special brunch&lt;/td&gt;&lt;td&gt;&lt;/td&gt;&lt;td&gt;Pulao&lt;/td&gt;&lt;/tr&gt;</li><li>&lt;tr&gt;&lt;th&gt;Sunday&lt;/th&gt;&lt;td colspan="2"&gt;Special brunch&lt;/td&gt;&lt;td&gt;Pulao&lt;/td&gt;&lt;/tr&gt;</li><li>&lt;tr&gt;&lt;th&gt;Sunday&lt;/th&gt;&lt;td width="2"&gt;Special brunch&lt;/td&gt;&lt;td&gt;Pulao&lt;/td&gt;&lt;/tr&gt;</li></ol></div><div class="mcq"><div class="s">10.2&nbsp; A library-hours table has columns Day | Shift | Hours. Saturday has two shifts written as two consecutive rows, and the word 'Saturday' must appear only once, covering both rows. What should the markup do?</div><ol><li>Give the Saturday cell rowspan="2" and start the second Saturday row with an empty &lt;td&gt; for the Day column</li><li>Give the Saturday cell rowspan="2" and leave the Day cell out of the second Saturday row</li><li>Place the two Saturday rows in their own &lt;tbody&gt;, because a tbody automatically shares its first cell</li><li>Give the Saturday cell colspan="2" so that it reaches down into the row below</li></ol></div><div class="mcq"><div class="s">10.3&nbsp; A hostel laundry rate card already starts with a &lt;caption&gt; and uses &lt;th&gt; for every heading. Two of its rows are &lt;tr&gt;&lt;td&gt;&lt;/td&gt;&lt;th&gt;Wash&lt;/th&gt;&lt;th&gt;Wash + iron&lt;/th&gt;&lt;/tr&gt; and &lt;tr&gt;&lt;th&gt;Shirt&lt;/th&gt;&lt;td&gt;15&lt;/td&gt;&lt;td&gt;25&lt;/td&gt;&lt;/tr&gt;. Which pair of additions tells a screen reader outright that 25 sits under 'Wash + iron' and beside 'Shirt'?</div><ol><li>role="presentation" on the &lt;table&gt;, and a title on the Shirt heading</li><li>A &lt;tfoot&gt; row repeating both headings, and a larger font for Shirt</li><li>colspan="2" on the Shirt heading, and a border round each price</li><li>scope="col" on the two column headings, and scope="row" on Shirt</li></ol></div><div class="mcq"><div class="s">10.4&nbsp; An old newsletter page is one big &lt;table&gt;: the banner in the top row, the menu in the left cell, articles in the right cell. On a phone the menu and articles stay squeezed side by side, and a screen reader reads out table positions. What is the right fix?</div><ol><li>Rebuild it with &lt;header&gt;, &lt;nav&gt; and &lt;main&gt; regions, arranged by CSS Flexbox or Grid instead of cells</li><li>Keep the table but add role="presentation", which also makes its cells stack into one column on phones</li><li>Hide the table borders with CSS, so phones and screen readers treat it as an ordinary page</li><li>Fix the table at width="980", so a phone has room to show the menu and articles side by side</li></ol></div></div></section><section class="nsec" id="s11" data-sec="S11" data-unit="2"><h2><span class="n">11</span>Responsive content structuring</h2><p class="chref">Textbook chapter <a href="book.html#ch21">21</a></p><h3 id="s11-1">What responsive means</h3>
+<p>A <b>responsive</b> page is <b>one</b> HTML document that adapts to whatever screen shows it, from a 360-pixel phone to a wide monitor: text reflows, columns stack, images shrink. There is no separate mobile site. Think of water: it takes the shape of any glass you pour it into. Three things work together:</p>
+<ol>
+<li>HTML with a clean, logical structure (this section);</li>
+<li>CSS media queries that rearrange it for each screen width (Unit 3);</li>
+<li>images and videos that can scale.</li>
+</ol>
+
+<h3 id="s11-2">The viewport meta tag</h3>
+<p>Mobile browsers were built when the Web was all desktop pages. So, by default, a phone <b>pretends</b> its screen is about 980 pixels wide, lays the page out at that width, then zooms out to squeeze it onto the small screen. The result is a miniature desktop page whose text is too small to read without pinching. One line in the <code>&lt;head&gt;</code> stops the pretending:</p>
+<pre class="code">&lt;meta name="viewport" content="width=device-width, initial-scale=1.0"&gt;</pre>
+<ul>
+<li><code>width=device-width</code>: lay the page out at the device's real screen width.</li>
+<li><code>initial-scale=1.0</code>: open at 100% zoom, not zoomed out.</li>
+</ul>
+<p>Without it, CSS media queries also measure the fake 980-pixel width, so phone-only styles never switch on. That is why the viewport tag is the one meta tag that phones need to show a page at its real size.</p>
+<div class="tw"><table class="t">
+<tr><th>Meta tag</th><th>What it does</th><th>Makes the page fit a phone?</th></tr>
+<tr><td><code>&lt;meta charset="UTF-8"&gt;</code></td><td>Sets the character encoding, so the rupee sign ₹ and Hindi letters display correctly</td><td>No (but still needed on every page)</td></tr>
+<tr><td><code>&lt;meta name="description" content="..."&gt;</code></td><td>A summary that search engines may show under the link</td><td>No</td></tr>
+<tr><td><code>&lt;meta name="author" content="..."&gt;</code></td><td>Records who wrote the page</td><td>No</td></tr>
+<tr><td><code>&lt;meta name="viewport" content="..."&gt;</code></td><td>Sets the layout width and starting zoom on mobile</td><td><b>Yes</b></td></tr>
+</table></div>
+<div class="box trap"><b>Trap:</b> a page with no viewport tag still loads normally, and nothing on it is hidden. The browser does not swap in some built-in "mobile stylesheet" either; it simply shows the desktop layout shrunk down. Also, never add <code>user-scalable=no</code> or <code>maximum-scale=1</code>: blocking zoom hurts people with weak eyesight.</div>
+
+<h3 id="s11-3">Mobile-first and logical source order</h3>
+<p><b>Mobile-first</b> means you start with the smallest screen, then add improvements as screens get bigger: first a single column that works on a phone; when there is more room, CSS adds a second column, then a third. Working the other way (desktop-first: shrinking a big design down) gives cramped, compromised phone pages. Mobile-first also forces good priorities: only the important content fits a small screen, so you decide what matters first. It does not mean "desktop only", and it has nothing to do with print layouts.</p>
+<p>The single-column phone view is simply the HTML in the order it was written. So <b>logical source order</b> is the foundation: header, navigation, main content, related content, footer. Get the order right and the page already works on a phone before any CSS exists; screen readers and search engines read it in that order too.</p>
+<pre class="code">&lt;header&gt;Tech fest&lt;/header&gt;
+&lt;nav&gt;Events | Register&lt;/nav&gt;
+&lt;div class="cols"&gt;
+  &lt;main&gt;Schedule and venues&lt;/main&gt;
+  &lt;aside&gt;Sponsors&lt;/aside&gt;
+&lt;/div&gt;
+&lt;footer&gt;Organising team&lt;/footer&gt;</pre>
+<p>On a phone these simply stack. Later, one CSS rule puts main and aside side by side only when there is room, without touching the HTML:</p>
+<pre class="code">@media (min-width: 700px) {
+  .cols { display: flex; }
+}</pre>
+
+<h3 id="s11-4">Flexible, scalable media</h3>
+<p>A 1600-pixel photo shown at its full 1600 pixels overflows a 390-pixel phone and drags the whole page sideways. In a responsive page, images and videos must be able to shrink and grow with the box that holds them; they are never locked to a pixel width wider than a small screen. The standard CSS rule:</p>
+<pre class="code">img, video { max-width: 100%; height: auto; }</pre>
+<ul>
+<li><code>max-width: 100%</code>: never wider than the box it sits in.</li>
+<li><code>height: auto</code>: the height follows, so the picture keeps its shape instead of stretching.</li>
+</ul>
+<p>Keep writing <code>width</code> and <code>height</code> attributes on <code>&lt;img&gt;</code>: they tell the browser the image's proportions so the page does not jump while it loads, and the CSS above still lets it shrink.</p>
+<div class="box trap"><b>Trap:</b> the wrong habit is <i>fixing</i> the displayed size in pixels so the image cannot shrink. Hiding images on phones, swapping them for text, or sending them only to desktops removes content; responsive design keeps the content and resizes it.</div>
+<p>Shrinking a huge file still downloads the huge file. <code>srcset</code> lists several sizes, <code>sizes</code> says how wide the image will appear, and the browser picks the smallest file that is still sharp. <code>&lt;picture&gt;</code> can even give phones a differently cropped image.</p>
+<pre class="code">&lt;img src="gate-800.jpg" alt="College main gate" width="800" height="450"
+     srcset="gate-400.jpg 400w, gate-800.jpg 800w, gate-1600.jpg 1600w"
+     sizes="(max-width: 600px) 100vw, 800px"&gt;</pre>
+<p>A wide data table cannot become one column without losing its meaning, so let it scroll inside its own box while the page stays still: wrap it in <code>&lt;div class="scroll-x"&gt;</code> and give that class <code>overflow-x: auto</code> in CSS.</p>
+
+<h3 id="s11-5">Habits that help and habits that hurt</h3>
+<div class="tw"><table class="t">
+<tr><th>Habit that hurts</th><th>Why it breaks on a phone</th><th>Do this instead</th></tr>
+<tr><td>Fixed pixel widths on containers (a CSS <code>width: 900px</code>, or an old <code>width="900"</code> attribute on a table)</td><td>Wider than the screen, so the page scrolls sideways</td><td>Fluid widths: percentages or <code>max-width</code></td></tr>
+<tr><td>Fixed pixel heights on sections</td><td>Text wraps onto more lines on a narrow screen and spills out</td><td>Let the content decide the height</td></tr>
+<tr><td>Layout tables, nested inside each other</td><td>A table grid cannot reflow into one column</td><td>Semantic regions + Flexbox or Grid</td></tr>
+<tr><td>Images with no <code>max-width</code></td><td>They overflow their container</td><td><code>max-width: 100%</code>, <code>srcset</code>, <code>&lt;picture&gt;</code></td></tr>
+<tr><td>No viewport tag</td><td>Shrunken desktop page</td><td>Put it in every page's head</td></tr>
+<tr><td>Tiny tap targets; wrong input types</td><td>Hard to tap; wrong keyboard</td><td>Large buttons; <code>type="email"</code>, <code>type="tel"</code></td></tr>
+</table></div>
+<div class="box key">Before any CSS is written, the best preparation is putting content in logical source order and making images and videos flexible, plus the viewport tag. Then the CSS only has to add columns when space allows.</div>
+<p><b>Testing:</b> in Chrome press F12, then Ctrl+Shift+M for device mode, and drag the width; then try a real phone, because emulators do not reproduce touch or slow networks. A page passes when no sideways scrollbar appears at any width, text is readable without zooming, images fit and every control can be tapped.</p>
+<div class="check"><h4>Check yourself</h4><div class="mcq"><div class="s">11.1&nbsp; A portfolio site looks fine on a laptop. On a phone it appears as a miniature of the desktop page, visitors must pinch-zoom to read, and the CSS rule @media (max-width: 600px) never seems to apply. What is the most likely cause?</div><ol><li>The &lt;title&gt; text is longer than 60 characters</li><li>The page has no &lt;meta name="keywords"&gt; tag, so the phone cannot tell it is meant for mobile</li><li>The &lt;head&gt; is missing &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;, so the phone lays the page out about 980px wide and zooms out</li><li>The file is saved as index.htm instead of index.html</li></ol></div><div class="mcq"><div class="s">11.2&nbsp; A team is starting a new canteen-ordering website. Which plan is mobile-first and keeps the HTML ready for a responsive layout?</div><ol><li>Design the 1366px laptop layout first, then hide sections one by one until it fits a phone</li><li>Build a separate mobile site with fixed 360px widths and a second desktop site with fixed 1200px widths</li><li>Fix every section at height: 500px and every photo at width: 1200px so nothing moves between devices</li><li>Write the content in a logical order (header, nav, main, footer) as one column for a 360px phone, let photos shrink with max-width: 100%, then add columns with min-width media queries as screens get wider</li></ol></div><div class="mcq"><div class="s">11.3&nbsp; A 1600-pixel-wide photo of the cricket ground makes a phone page scroll sideways. Which fix keeps the photo on the page and makes it fit the screen?</div><ol><li>Add overflow: hidden to the &lt;body&gt; so the sideways scrollbar disappears</li><li>Add img { max-width: 100%; height: auto; } so the photo shrinks to its container and keeps its shape</li><li>Change width="1600" to width="1600px" so the browser measures it exactly</li><li>Wrap the photo in a &lt;figure&gt; element, which phones shrink automatically</li></ol></div></div></section><section class="nsec answers" id="answers"><h2><span class="n">A</span>Answers to &ldquo;Check yourself&rdquo;</h2><div class="ans" data-sec="S1"><h3>1. Internet, Web, client-server, HTTP/HTTPS and URLs</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>1.1</td><td>(b) The student used the Internet but not the Web, since none of it fetched HTML pages over HTTP</td><td>The Internet carries all these services while the Web is only the HTML-pages-over-HTTP service; having an IP address puts a device on the Internet, not on the Web.</td></tr><tr><td>1.2</td><td>(c) Looking up the recipe in its database and returning it as JSON</td><td>A server stores data, runs logic and responds with content such as JSON or HTML; turning a name into an IP address is the separate DNS step, and history stays on the phone.</td></tr><tr><td>1.3</td><td>(d) The browser uses port 443 and data in transit is TLS-encrypted</td><td>HTTPS is the same HTTP conversation wrapped in TLS on default port 443; the path, the HTML and the content type all stay exactly as they were.</td></tr><tr><td>1.4</td><td>(a) The text line GET /notice.html HTTP/1.1 sent from a browser to a server</td><td>HTTP is the request-response protocol whose HTTP/1.1 messages look like that GET line; the radio signal is physical infrastructure that carries HTTP traffic but is not the protocol itself.</td></tr><tr><td>1.5</td><td>(c) T, R, P, S, Q</td><td>The cycle is user action, request, server processing, response, render; T, S, R, P, Q is tempting but has the response arriving before any request was sent.</td></tr><tr><td>1.6</td><td>(b) Path: /fest/2026/schedule.html</td><td>The path runs from the first / after the domain up to the ?, so it is /fest/2026/schedule.html; /fest/2026 is only part of the path, while the query string is ?day=2&amp;hall=B.</td></tr><tr><td>1.7</td><td>(a) The domain is admissions.greenvalley.ac.in and the protocol is https</td><td>The domain is the whole host name between :// and the first /, and https before :// is the protocol; 'in' is only the top-level domain and /apply is the path.</td></tr></tbody></table></div></div><div class="ans" data-sec="S2"><h3>2. HTML5 document structure, head vs body, meta tags, elements and attributes</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>2.1</td><td>(c) &lt;!doctype html&gt;</td><td>The doctype &lt;!doctype html&gt; (case does not matter) switches on standards mode; HTML5 has no version attribute, meta tag or head type that does this job.</td></tr><tr><td>2.2</td><td>(b) &lt;table&gt; listing the campus bus timings</td><td>A table is visible content, so it goes in the body; the author meta tag, the favicon link and a style block are information about the page and are correct in the head.</td></tr><tr><td>2.3</td><td>(a) &lt;meta charset="UTF-8"&gt;</td><td>charset declares the character encoding so the bytes become the right characters; the viewport tag only controls layout width on phones, and a stylesheet can only restyle characters that were already decoded.</td></tr><tr><td>2.4</td><td>(d) The content of &lt;meta name="description"&gt;</td><td>The meta description supplies the summary under the headline in search results; the &lt;title&gt; supplies the clickable headline itself and the tab text, while the &lt;h1&gt; is the visible heading on the page.</td></tr><tr><td>2.5</td><td>(c) src, alt and width are attributes of the img element</td><td>Each name="value" pair in an opening tag is an attribute that configures the element; a CSS declaration would look like width: 300px; and img is a void element with no content and no closing tag.</td></tr><tr><td>2.6</td><td>(b) &lt;section&gt;</td><td>&lt;section&gt; is block-level like div and p; &lt;strong&gt;, &lt;a&gt; and &lt;code&gt; are inline, so they flow inside a line of text and take only the width of their content.</td></tr><tr><td>2.7</td><td>(d) &lt;h3&gt;Safety Rules&lt;/h3&gt; &lt;img src="goggles.png" alt="Pair of clear safety goggles"&gt;</td><td>Only the last version closes the heading with a matching &lt;/h3&gt; and gives the image alt text while keeping its src; the first adds the alt but closes with &lt;/h4&gt;, which does not match the opening &lt;h3&gt;.</td></tr></tbody></table></div></div><div class="ans" data-sec="S3"><h3>3. Text formatting, headings and lists</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>3.1</td><td>(b) &lt;strong&gt;, &lt;i&gt;, &lt;em&gt;</td><td>&lt;strong&gt; gives the warning real importance, &lt;i&gt; marks a foreign term without stress and &lt;em&gt; marks the stressed word; &lt;b&gt; would only make the warning look bold without telling a screen reader that it matters.</td></tr><tr><td>3.2</td><td>(a) Change the h4 to an h3</td><td>A sub-topic under an h2 must be an h3 so no level is skipped; adding a second h1 or removing the only h1 would leave the page without one clear main topic.</td></tr><tr><td>3.3</td><td>(d) &lt;ul&gt;, &lt;ol&gt;, &lt;dl&gt;</td><td>Unordered snacks take &lt;ul&gt;, a sequence whose order matters takes &lt;ol&gt;, and name-plus-description pairs take &lt;dl&gt; with &lt;dt&gt;/&lt;dd&gt;; putting the ordering steps in a &lt;dl&gt; would confuse a sequence with term-and-definition pairs.</td></tr><tr><td>3.4</td><td>(c) &lt;ol type="I"&gt;&lt;li&gt;Unit one&lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;/ul&gt;&lt;/li&gt;&lt;/ol&gt;</td><td>type="I" gives I, II, III and the sub-list sits inside the first unit's &lt;li&gt;; the first option has the right type but puts the &lt;ul&gt; directly inside the &lt;ol&gt;, which is invalid.</td></tr></tbody></table></div></div><div class="ans" data-sec="S4"><h3>4. Hyperlinks, images and link text (SEO)</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>4.1</td><td>(c) &lt;a href="#refunds"&gt;Refunds&lt;/a&gt;</td><td>A hash followed by the id is a fragment link to that element on the current page; href="refunds.html" would instead load a separate file with that name.</td></tr><tr><td>4.2</td><td>(b) The shop tab taking control of the portfolio tab</td><td>noopener stops the new tab from reaching back to control the tab that opened it (noreferrer additionally hides which page sent the visitor); the value is a safety measure and has nothing to do with loading speed, search listings or downloads.</td></tr><tr><td>4.3</td><td>(d) href="tel:+911800123456" and href="mailto:office@hostel.example"</td><td>tel: starts a call and mailto: opens a new email; sms: is a real scheme but opens a text message rather than a call, and telephone: and inbox: are not recognised at all.</td></tr><tr><td>4.4</td><td>(a) Photo: alt="Captain lifting the inter-college football trophy"; line: alt=""; icon: alt="Search"</td><td>The photo is described, decoration gets an empty but present alt and a functional icon is named by its action; leaving alt off the line can make a screen reader read its file name, and "Magnifying glass icon" describes the look, not what the button does.</td></tr><tr><td>4.5</td><td>(b) srcset</td><td>srcset lists the candidate files with their widths for the browser to choose from; sizes only tells the browser how wide the image will be displayed.</td></tr></tbody></table></div></div><div class="ans" data-sec="S5"><h3>5. SVG graphics</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>5.1</td><td>(c) &lt;circle cx="30" cy="45" r="12" /&gt;</td><td>A circle is placed by its centre (cx, cy) and sized by r; x1/y1 belong to a line and radius is not an SVG attribute, so those versions are ignored.</td></tr><tr><td>5.2</td><td>(d) &lt;line x1="10" y1="60" x2="190" y2="60" stroke="gray" /&gt;</td><td>A line needs x1, y1, x2, y2 for its endpoints and a stroke to be seen; the fill version has correct endpoints but stays invisible because a line has no inside to fill.</td></tr><tr><td>5.3</td><td>(b) 160 px</td><td>The viewBox grid of 50 units is drawn across 200 px (4 px per unit), so the 40-unit diameter becomes 160 px; 40 px forgets that the viewBox maps its units onto the rendered size.</td></tr><tr><td>5.4</td><td>(a) The polyline shows two joined segments with an open end; the polygon adds a third side back to (10,10)</td><td>Only polygon closes the shape back to its first point; neither element draws curves, so the smooth-bend option is wrong.</td></tr><tr><td>5.5</td><td>(c) A closed triangle with corners at (20,20), (60,20) and (60,60)</td><td>h 40 and v 40 move relative to the pen, giving (60,20) then (60,60), and z adds the straight closing side back to the M point (20,20); the open-corner option ignores what z does.</td></tr><tr><td>5.6</td><td>(b) fill="none" stroke="orange" stroke-dasharray="5,3"</td><td>Hollow means fill none, the outline colour is stroke, and dash-then-gap goes in stroke-dasharray; stroke-width sets thickness, not a dash pattern.</td></tr></tbody></table></div></div><div class="ans" data-sec="S6"><h3>6. Multimedia: audio, video and iframes</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>6.1</td><td>(c) &lt;video src="intro.mp4" controls poster="lecturer.png"&gt;&lt;/video&gt;</td><td>controls draws the player buttons and poster sets the pre-play image; the preload version has the right image but no buttons, because preload only hints at downloading.</td></tr><tr><td>6.2</td><td>(a) It plays gym.webm and restarts it from the beginning each time it finishes</td><td>The browser takes the first source in the list it can play and ignores the rest, and loop restarts that clip; sources are a fallback shortlist, not a playlist.</td></tr><tr><td>6.3</td><td>(d) Add title="Live weather for the campus"</td><td>title gives the frame its accessible name, which the screen reader announces; alt is not an iframe attribute, so it does nothing here.</td></tr></tbody></table></div></div><div class="ans" data-sec="S7"><h3>7. Semantic elements and page structure</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>7.1</td><td>(b) She can jump straight to the menu or the film listings using landmark shortcuts</td><td>nav and main are exposed as landmarks a screen reader can jump between, while a div page is still indexed by search engines (just with less structural information), so the search option overstates the difference.</td></tr><tr><td>7.2</td><td>(d) &lt;div&gt;, because this wrapper exists only for the layout and carries no meaning</td><td>A layout-only wrapper carries no meaning, which is exactly the job of div; a second visible main is invalid because a page may never have more than one visible main element.</td></tr><tr><td>7.3</td><td>(a) One &lt;nav aria-label="Result pages"&gt; around a single list holding all four links</td><td>Pagination is one group of navigation links, so it is wrapped once in a single nav; wrapping each link separately creates many meaningless landmarks.</td></tr><tr><td>7.4</td><td>(c) P = article, Q = section, R = aside</td><td>The report stands alone (article), the headed squad block is a thematic part of this page (section) and the related-stories box is useful but removable (aside); the first option swaps the meanings of section and article.</td></tr><tr><td>7.5</td><td>(b) &lt;header&gt; holds the logo and menu; &lt;main&gt; holds the room cards and a "Nearby sights" &lt;aside&gt;; &lt;footer&gt; holds the phone and copyright</td><td>Introductory content belongs in header, the page's own content (including a related aside) in main, and closing contact details in footer; putting the logo and menu in an aside is tempting because they repeat, but they are introduction and navigation, not related extras.</td></tr><tr><td>7.6</td><td>(c) Screen-reader users lose the labels they use to identify and jump between the sections</td><td>A section's heading is what assistive technology uses to name, summarise and navigate it; the page still renders and is still indexed without it, so the rendering and indexing options are false.</td></tr></tbody></table></div></div><div class="ans" data-sec="S8"><h3>8. Accessibility: POUR, WCAG, ARIA and keyboard access</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>8.1</td><td>(d) W Perceivable, X Operable, Y Understandable, Z Robust</td><td>Missing captions block perceiving sound, a mouse-only picker cannot be operated by keyboard, a vague error cannot be understood, and a control that fails in other browsers and assistive technology is not robust; the second option wrongly treats the mouse-only picker as a Robust failure.</td></tr><tr><td>8.2</td><td>(b) Every Level A and every Level AA success criterion of the Web Content Accessibility Guidelines</td><td>WCAG (Web Content Accessibility Guidelines) levels are cumulative, so AA means all A plus all AA criteria and nothing from AAA is required; the first option is wrong because AA builds on Level A rather than replacing it.</td></tr><tr><td>8.3</td><td>(b) &lt;button aria-label="Mute"&gt;&lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt; and &lt;button&gt;Share &lt;svg aria-hidden="true"&gt;...&lt;/svg&gt;&lt;/button&gt;</td><td>aria-label names the icon-only Mute button, the visible word Share names the second button, and aria-hidden goes only on the decorative icons; the third option hides the word Share itself, leaving that button with no name.</td></tr><tr><td>8.4</td><td>(a) Each thumbnail can now be reached with Tab, in the same order as it appears in the source</td><td>tabindex="0" only adds the element to the normal focus order at its source position; it gives no role and no Enter or Space behaviour, which still need a script.</td></tr><tr><td>8.5</td><td>(c) &lt;button type="submit"&gt;Place order&lt;/button&gt;, since it is focusable and submits on Enter or Space with no extra code</td><td>A native &lt;button&gt; already has the button role, keyboard focus and form submission built in; role="button" on a span changes only what is announced, not how it behaves, so Enter and Space still do nothing.</td></tr></tbody></table></div></div><div class="ans" data-sec="S9"><h3>9. Forms, input types and validation</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>9.1</td><td>(c) They are sent to /hostel/apply inside the body of the request</td><td>action names the destination URL and post packs the name=value pairs into the request body; a ? query string in the URL is what get does, and post encrypts nothing.</td></tr><tr><td>9.2</td><td>(b) The hint vanishes once typing starts and may not be announced</td><td>A placeholder is only a temporary hint that disappears on typing and may be skipped by screen readers; it has no effect on submission, so the claim that browsers refuse to submit is wrong.</td></tr><tr><td>9.3</td><td>(d) All three can be selected at the same time</td><td>Radios form one exclusive group only when they share a name; with three different names each is a group of one, so choosing one never clears the others.</td></tr><tr><td>9.4</td><td>(a) The passphrase in plain, readable characters</td><td>There is no type "secure"; browsers turn any unrecognised type into type="text" without complaint, and only type="password" masks characters as dots.</td></tr><tr><td>9.5</td><td>(d) &lt;button&gt;Save&lt;/button&gt; &lt;button type="button"&gt;Preview&lt;/button&gt;</td><td>A &lt;button&gt; with no type inside a form defaults to submit, so Save sends the form, and type="button" gives Preview no default action; leaving both untyped is tempting but makes Preview submit the post too.</td></tr><tr><td>9.6</td><td>(b) The form is sent, because minlength does not judge an empty box</td><td>An empty value never counts as too short, so without required it passes; once something is typed, minlength="6" demands at least six characters.</td></tr><tr><td>9.7</td><td>(c) Submission is stopped, the box is focused, and the error message includes the title's text about the expected format</td><td>b214 fails the pattern (lower-case letter, no hyphen), so the browser blocks the form and shows its mismatch message with the title as the format hint; the browser never fixes the value, and the server's key comes from name, not title.</td></tr><tr><td>9.8</td><td>(a) A check in the server code that validates the quantity again</td><td>Anything in the browser can be edited or skipped, so only server-side validation, which the user cannot reach, enforces the limit; switching to post changes where the data travels, not what is allowed.</td></tr><tr><td>9.9</td><td>(c) office@</td><td>The standard needs a domain after the @, so office@ fails; office@hostel is tempting but valid, because a dot after the @ is allowed but not required.</td></tr></tbody></table></div></div><div class="ans" data-sec="S10"><h3>10. Tables and data representation</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>10.1</td><td>(c) &lt;tr&gt;&lt;th&gt;Sunday&lt;/th&gt;&lt;td colspan="2"&gt;Special brunch&lt;/td&gt;&lt;td&gt;Pulao&lt;/td&gt;&lt;/tr&gt;</td><td>colspan="2" widens the cell sideways over two columns, so Sunday + 2 + Pulao adds up to four; rowspan would stretch it downwards into the next row instead and leave this row one column short.</td></tr><tr><td>10.2</td><td>(b) Give the Saturday cell rowspan="2" and leave the Day cell out of the second Saturday row</td><td>rowspan="2" stretches the label down over both rows, and since it already fills the Day slot of the second row that row must omit the cell; adding an empty &lt;td&gt; pushes the row one column too wide.</td></tr><tr><td>10.3</td><td>(d) scope="col" on the two column headings, and scope="row" on Shirt</td><td>scope="col" and scope="row" declare which column and which row each heading labels, so 25 is announced with both headings; role="presentation" would do the reverse and switch off the table's data meaning altogether, while a title is only a tooltip, a repeated tfoot row and colspan link no heading to any value, and fonts and borders change only the looks.</td></tr><tr><td>10.4</td><td>(a) Rebuild it with &lt;header&gt;, &lt;nav&gt; and &lt;main&gt; regions, arranged by CSS Flexbox or Grid instead of cells</td><td>Semantic regions laid out with Flexbox or Grid can reflow into one column and are not announced as data; role="presentation" only switches off the table meaning for assistive technology and does nothing to make the cells stack.</td></tr></tbody></table></div></div><div class="ans" data-sec="S11"><h3>11. Responsive content structuring</h3><div class="tw"><table class="t key"><thead><tr><th>No.</th><th>Answer</th><th>Why</th></tr></thead><tbody><tr><td>11.1</td><td>(c) The &lt;head&gt; is missing &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;, so the phone lays the page out about 980px wide and zooms out</td><td>Without the viewport tag the phone pretends to be a roughly 980px desktop, so max-width: 600px is never true and the shrunken layout appears; a keywords tag has nothing to do with layout width.</td></tr><tr><td>11.2</td><td>(d) Write the content in a logical order (header, nav, main, footer) as one column for a 360px phone, let photos shrink with max-width: 100%, then add columns with min-width media queries as screens get wider</td><td>Mobile-first starts from the smallest screen and adds enhancements upward on top of a logical source order and scalable media; starting from the laptop design and cutting it down is desktop-first, the opposite direction.</td></tr><tr><td>11.3</td><td>(b) Add img { max-width: 100%; height: auto; } so the photo shrinks to its container and keeps its shape</td><td>max-width: 100% lets the image scale down with its container while height: auto keeps its proportions; hiding the overflow on body only removes the scrollbar and crops the photo instead of fitting it.</td></tr></tbody></table></div></div></section>
+  </article>
+</div>
+
+<script>
+(function () {
+  var KEY = "cse326_notes_pdf";
+  var notes = document.getElementById("notes");
+  function q(sel) { return Array.prototype.slice.call(document.querySelectorAll(sel)); }
+  function chosen() { return q(".pc").filter(function (c) { return c.checked; }).map(function (c) { return c.value; }); }
+  function syncUnits() {
+    q(".pu").forEach(function (u) {
+      var kids = q('.pc[data-unit="' + u.dataset.unit + '"]');
+      var on = kids.filter(function (k) { return k.checked; }).length;
+      u.checked = on === kids.length; u.indeterminate = on > 0 && on < kids.length;
+    });
+    var n = chosen().length;
+    document.getElementById("pcount").textContent = n + " of " + q(".pc").length + " sections chosen";
+    document.getElementById("pgo").disabled = n === 0;
+  }
+  function save() {
+    try { localStorage.setItem(KEY, JSON.stringify({ s: chosen(),
+      q: document.getElementById("pq").checked, a: document.getElementById("pa").checked })); } catch (e) {}
+  }
+  function load() {
+    var st = null;
+    try { st = JSON.parse(localStorage.getItem(KEY) || "null"); } catch (e) {}
+    if (!st || !st.s) return;
+    q(".pc").forEach(function (c) { c.checked = st.s.indexOf(c.value) >= 0; });
+    document.getElementById("pq").checked = st.q !== false;
+    document.getElementById("pa").checked = st.a !== false;
+  }
+  /* Show only the chosen sections, units and answers - used while printing */
+  function apply() {
+    var s = chosen();
+    q(".nsec[data-sec]").forEach(function (e) { e.classList.toggle("off", s.indexOf(e.dataset.sec) < 0); });
+    q(".ans").forEach(function (e) { e.classList.toggle("off", s.indexOf(e.dataset.sec) < 0); });
+    var firstUnit = true;
+    q(".nunit").forEach(function (e) {
+      var any = q('.pc[data-unit="' + e.dataset.unit + '"]').some(function (c) { return c.checked; });
+      e.classList.toggle("off", !any);
+      e.classList.toggle("first", any && firstUnit);
+      if (any) firstUnit = false;
+    });
+    notes.classList.toggle("noq", !document.getElementById("pq").checked);
+    notes.classList.toggle("noans", !document.getElementById("pa").checked);
+    var titles = q(".pc").filter(function (c) { return c.checked; }).map(function (c) {
+      return "<li>" + c.parentNode.textContent.trim().replace(/[<&]/g, "") + "</li>"; });
+    document.getElementById("pclist").innerHTML = titles.join("");
+    var d = new Date();
+    document.getElementById("pcdate").textContent = "Made on " + d.toLocaleDateString(undefined,
+      { day: "numeric", month: "long", year: "numeric" }) + " from proftarun.github.io/CSE326";
+  }
+  function clear() {
+    q(".off").forEach(function (e) { e.classList.remove("off"); });
+    q(".nunit.first").forEach(function (e) { e.classList.remove("first"); });
+    notes.classList.remove("noq", "noans");
+  }
+  window.makeNotesPdf = function () {
+    if (!chosen().length) return;
+    save(); apply();
+    setTimeout(function () { window.print(); }, 60);
+  };
+  window.pickAll = function (on) {
+    q(".pc").forEach(function (c) { c.checked = on; }); syncUnits(); save();
+  };
+  q(".pu").forEach(function (u) {
+    u.addEventListener("change", function () {
+      q('.pc[data-unit="' + u.dataset.unit + '"]').forEach(function (c) { c.checked = u.checked; });
+      syncUnits(); save();
+    });
+  });
+  q(".pc, #pq, #pa").forEach(function (c) { c.addEventListener("change", function () { syncUnits(); save(); }); });
+  /* Ctrl+P on this page also follows the picker */
+  window.addEventListener("beforeprint", apply);
+  window.addEventListener("afterprint", clear);
+  load(); syncUnits();
+  /* the first unit banner never needs a page break before it */
+  var u1 = document.querySelector(".nunit"); if (u1) u1.classList.add("first");
+})();
+</script>
+<script src="js/check.js?v=2026-10-28"></script>
+<script src="js/ai.js?v=2026-10-28"></script>
+<script src="js/app.js?v=2026-10-28"></script>
+<script>mountShell("notes.html");</script>
+</body>
+</html>
