@@ -1,0 +1,817 @@
+<article class="chapter" data-ch="50">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 50 &middot; Arrays and Array Operations</p>
+  <h1>Arrays and Array Operations</h1>
+  <p class="lead">A class has sixty students, a cart holds many items, a timetable has eight periods a day. Giving each one its own variable would be hopeless. An array keeps the whole list under one name, in order, with every value numbered from 0. This chapter shows you how to build one, read it, change it, search it, cut it, sort it and walk through it &mdash; and the one surprise that catches every beginner: copying an array's name does not copy the array.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A variable is a named box for a value; <code>const</code> means the name can never be pointed at a different value (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>Every value has a type; arrays belong to the <i>object</i> type, so <code>typeof</code> calls them <code>"object"</code> (<a href="book.html?ch=43">Chapter 43</a>).</li>
+      <li>A string's characters are counted from 0, the last one is at <code>length - 1</code> or <code>at(-1)</code>, and <code>split</code> cuts text into a list (<a href="book.html?ch=45">Chapter 45</a>).</li>
+      <li>A function runs when you call it with <code>()</code>, and an arrow function such as <code>(m) =&gt; m &gt; 90</code> is a short way to write one (<a href="book.html?ch=48">Chapter 48</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Create an array, read or change any element by its index, and get the last element in two ways.</li>
+      <li>Add and remove elements at either end with <code>push</code>, <code>pop</code>, <code>unshift</code> and <code>shift</code>, and say what each one returns.</li>
+      <li>Search an array with <code>indexOf</code>, <code>includes</code> and <code>find</code>.</li>
+      <li>Choose correctly between <code>slice</code> and <code>splice</code>, and predict the result of each.</li>
+      <li>Combine, convert and reorder arrays with <code>concat</code>, spread, <code>join</code>, <code>split</code>, <code>Array.from</code>, <code>reverse</code> and <code>sort</code>, including sorting numbers properly.</li>
+      <li>Walk through an array of values or of student records with <code>for</code> and <code>for...of</code>, and unpack one with destructuring.</li>
+      <li>Explain why two names can share one array, make a real copy, and say which methods change the original.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>50.1 One name, many values</h2>
+  <p>Suppose you want to keep the marks of four students. With what you know so far, you would write four variables:</p>
+  <pre class="code">const marks1 = 85;
+const marks2 = 72;
+const marks3 = 92;
+const marks4 = 64;</pre>
+  <p>That works for four. It does not work for sixty, and it fails completely when you cannot know in advance how many values there will be: how many items will a customer put in a cart? You also cannot ask for the total without naming every variable by hand. What you want is <b>one name for the whole list</b>:</p>
+  <pre class="code">const marks = [85, 72, 92, 64];</pre>
+  <p>That is an <b>array</b>. Your slides define it in two lines: an array is <i>an ordered list of values</i>, and its values are <i>accessed by index, starting from 0</i>. You write one with square brackets and commas between the values. Each value in the list is called an <span class="jw" data-def="One value stored inside an array, at one numbered position.">element</span>.</p>
+  <pre class="code">const fruits = ["apple", "banana", "orange", "grape"];   // four strings
+const empty = [];                                        // no elements yet
+const mixed = [1, "banana", true, null];                 // any types, mixed
+const grid = [[1, 2], [3, 4]];                           // an array of arrays</pre>
+  <p>An array can be <b>empty</b>, which is how you start a list you will fill later. Its elements can be of <b>any type</b>, even mixed, though in practice one array usually holds one kind of thing. An element can even be another array, which is how a table of rows is stored. Writing the values straight into square brackets is called an array <i>literal</i>, and it is how almost every array is made. (Old code sometimes writes <code>new Array(...)</code>. Avoid it: <code>new Array(3)</code> makes three empty slots, not an array holding the number 3.)</p>
+  <div class="callout analogy"><b>Picture this.</b> A goods train is standing at Jalandhar Cantt, its wagons coupled in a fixed order. Imagine the yard staff number each wagon by how many wagons stand in front of it: the first has none in front, so it is wagon 0; the next is wagon 1. Adding or removing a wagon at the back is one quick coupling. Doing it at the front means every wagon's number shifts by one. Cutting into the middle means uncoupling, inserting and recoupling, and every wagon behind the cut gets a new number. An array behaves exactly like that train, and most of this chapter is about those three kinds of change.</div>
+</section>
+
+<section id="s2">
+  <h2>50.2 Positions: index and length</h2>
+  <p>Every element has a position number called its <span class="jw" data-def="The position number of an element in an array, counted from 0 at the front.">index</span>. You read an element by writing the array's name with the index in square brackets. The first element is at index <b>0</b>, exactly as with the characters of a string in Chapter 45. The easy way to remember it: the index is <i>how many elements come before this one</i>. Nothing comes before the first, so its index is 0.</p>
+  <pre class="code">const fruits = ["apple", "banana", "orange", "grape"];
+console.log(fruits[0]);   // apple
+console.log(fruits[2]);   // orange</pre>
+  <p>Those lines are from your slides. Every array also has a <code>length</code> that says how many elements it holds. Because counting starts at 0, the last index is always <b>one less than the length</b>: four fruits have indexes 0, 1, 2 and 3. That gives the standard way to read the last element. Modern JavaScript adds a shorter one, <code>at()</code>, which also accepts negative numbers that count back from the end:</p>
+  <pre class="code">console.log(fruits.length);                // 4
+console.log(fruits[fruits.length - 1]);    // grape   - the last element
+console.log(fruits.at(-1));                // grape   - the last, the modern way
+console.log(fruits.at(-2));                // orange  - second from the end
+console.log(fruits[4]);                    // undefined - there is no index 4
+console.log(fruits[-1]);                   // undefined - [ ] never counts backwards</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 226" role="img" aria-label="The array fruits drawn as four boxes holding apple, banana, orange and grape, with indexes 0 to 3 above them and at positions minus 4 to minus 1 below. A dashed fifth box at index 4 is empty and reads as undefined. The length is 4 and the last index is 3.">
+      <text x="310" y="22" class="t c mono b">const fruits = ["apple", "banana", "orange", "grape"];</text>
+      <text x="14" y="66" class="t s b">index</text>
+      <text x="14" y="104" class="t s b">element</text>
+      <text x="14" y="146" class="t s b">read with</text>
+      <text x="14" y="168" class="t s b">or with</text>
+      <text x="146" y="66" class="t c b">0</text>
+      <text x="246" y="66" class="t c b">1</text>
+      <text x="346" y="66" class="t c b">2</text>
+      <text x="446" y="66" class="t c b">3</text>
+      <text x="546" y="66" class="t c s">4</text>
+      <rect x="100" y="76" width="92" height="44" rx="8" class="box saf"/>
+      <rect x="200" y="76" width="92" height="44" rx="8" class="box saf"/>
+      <rect x="300" y="76" width="92" height="44" rx="8" class="box saf"/>
+      <rect x="400" y="76" width="92" height="44" rx="8" class="box saf"/>
+      <rect x="500" y="76" width="92" height="44" rx="8" class="box gry" stroke-dasharray="5 4"/>
+      <text x="146" y="103" class="t c mono">"apple"</text>
+      <text x="246" y="103" class="t c mono">"banana"</text>
+      <text x="346" y="103" class="t c mono">"orange"</text>
+      <text x="446" y="103" class="t c mono">"grape"</text>
+      <text x="546" y="103" class="t c s">nothing here</text>
+      <text x="146" y="146" class="t c mono" style="font-size:12px">fruits[0]</text>
+      <text x="246" y="146" class="t c mono" style="font-size:12px">fruits[1]</text>
+      <text x="346" y="146" class="t c mono" style="font-size:12px">fruits[2]</text>
+      <text x="446" y="146" class="t c mono" style="font-size:12px">fruits[3]</text>
+      <text x="546" y="146" class="t c mono" style="font-size:12px">fruits[4]</text>
+      <text x="146" y="168" class="t c mono" style="font-size:12px">at(-4)</text>
+      <text x="246" y="168" class="t c mono" style="font-size:12px">at(-3)</text>
+      <text x="346" y="168" class="t c mono" style="font-size:12px">at(-2)</text>
+      <text x="446" y="168" class="t c mono" style="font-size:12px">at(-1)</text>
+      <text x="546" y="168" class="t c s">gives undefined</text>
+      <path d="M100 182 L100 190 L492 190 L492 182" class="edge"/>
+      <text x="296" y="210" class="t c b">length = 4 &#183; last index = length &#8722; 1 = 3</text>
+    </svg>
+    <figcaption><b>Figure 50.1</b> Four elements, indexes 0 to 3. The last index is always one less than the length; <code>at(-1)</code> counts from the back. Reading a position with no element gives <code>undefined</code>, not an error.</figcaption>
+  </figure>
+  <p>Reading an index that does not exist is <b>not an error</b>. JavaScript simply gives you <code>undefined</code>, the "nothing is here" value from Chapter 43. That is kind, but it means a wrong index fails silently, so whenever an array hands you <code>undefined</code>, check your index first.</p>
+  <h3>Changing an element</h3>
+  <p>To change an element, assign to its index, exactly as you assign to a variable:</p>
+  <pre class="code">fruits[1] = "mango";
+console.log(fruits);    // ['apple', 'mango', 'orange', 'grape']</pre>
+  <p>When you log a whole array, this book's Console shows it in square brackets with each string in single quotes, as above. Chrome's DevTools shows the same thing with the length in front: <code>(4) ['apple', 'mango', 'orange', 'grape']</code>.</p>
+  <div class="callout warn"><b>Do not write past the end.</b> In a four-element array, <code>fruits[10] = "kiwi"</code> does not fail. It puts <code>"kiwi"</code> at index 10, makes the length 11, and leaves indexes 4 to 9 as empty holes that read as <code>undefined</code>. To add an element, use <code>push</code> from the next section.</div>
+  <pre class="code" data-run data-title="Make an array, read it by index, change one element - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; color: #0B2545; }
+  #out { font-size: 17px; font-weight: 700; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const fruits = ["apple", "banana", "orange", "grape"];
+
+  console.log("The array:", fruits);
+  console.log("length:", fruits.length);
+  console.log("fruits[0]:", fruits[0]);
+  console.log("fruits[2]:", fruits[2]);
+  console.log("last, fruits[fruits.length - 1]:", fruits[fruits.length - 1]);
+  console.log("last, fruits.at(-1):", fruits.at(-1));
+  console.log("fruits[9]:", fruits[9]);
+
+  fruits[1] = "mango";                          // replace the element at index 1
+  console.log("after fruits[1] = 'mango':", fruits);
+
+  const mixed = [1, "banana", true, [2, 3]];    // any types, even an array
+  console.log("mixed:", mixed, "has length", mixed.length);
+
+  console.log("typeof fruits:", typeof fruits);
+  console.log("Array.isArray(fruits):", Array.isArray(fruits));
+
+  // put the array on the page too (join glues it into one string: section 50.6)
+  document.getElementById("out").textContent = fruits.join("  |  ");
+&lt;/script&gt;</pre>
+  <pre class="code">The array: ['apple', 'banana', 'orange', 'grape']
+length: 4
+fruits[0]: apple
+fruits[2]: orange
+last, fruits[fruits.length - 1]: grape
+last, fruits.at(-1): grape
+fruits[9]: undefined
+after fruits[1] = 'mango': ['apple', 'mango', 'orange', 'grape']
+mixed: [1, 'banana', true, [2, 3]] has length 4
+typeof fruits: object
+Array.isArray(fruits): true</pre>
+  <p>Two lines deserve a second look. <code>fruits</code> was declared with <code>const</code>, yet changing an element worked; section 50.10 explains why. And <code>typeof</code> says <code>"object"</code> for an array, as Chapter 43 warned, so it cannot tell an array from other objects. To ask "is this an array?", use <code>Array.isArray(value)</code>.</p>
+  <div class="plain">
+    <p>An array is a numbered list. The numbers start at 0, so the last one is <code>length - 1</code>. Put a number in square brackets to read that element or to replace it. A number with no element behind it gives <code>undefined</code>.</p>
+  </div>
+  <details class="qc"><summary>Quick check: for <code>const days = ["Mon", "Tue", "Wed"];</code> what are <code>days.length</code>, <code>days[2]</code> and <code>days[3]</code>?</summary><p><b>3</b>, <b>"Wed"</b> and <b>undefined</b>. Three elements have indexes 0, 1 and 2, so index 2 is the last one and index 3 is past the end.</p></details>
+</section>
+
+<section id="s3">
+  <h2>50.3 Adding and removing at the ends</h2>
+  <p>Most lists grow and shrink at their ends: a new student joins the back of the queue, the person at the front is served. Arrays have four <span class="jw" data-def="A function that belongs to a value and is called with a dot after it, such as fruits.push('kiwi').">methods</span> for exactly this, and each one changes the array it is called on.</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>What it does</th><th>What it returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>push(x)</code></td><td>Adds <code>x</code> to the <b>end</b></td><td>The new length</td></tr>
+      <tr><td><code>pop()</code></td><td>Removes the <b>last</b> element</td><td>The element it removed</td></tr>
+      <tr><td><code>unshift(x)</code></td><td>Adds <code>x</code> to the <b>start</b></td><td>The new length</td></tr>
+      <tr><td><code>shift()</code></td><td>Removes the <b>first</b> element</td><td>The element it removed</td></tr>
+    </tbody>
+  </table>
+  <p>A way to keep them apart: the two short words, <code>push</code> and <code>pop</code>, work at the <b>end</b>; the two longer words, <code>unshift</code> and <code>shift</code>, work at the <b>start</b>. Working at the start is also the slower pair on a very long array, for the train reason: every other element has to be renumbered.</p>
+  <p>The return values are the part people forget and exams ask about. <code>push</code> and <code>unshift</code> hand back a <b>number</b>, the new length, not the array. <code>pop</code> and <code>shift</code> hand back the <b>element they removed</b>, so you can use it: serve the person you just took from the front of the queue. On an empty array there is nothing to remove, and both give <code>undefined</code>. <code>push</code> and <code>unshift</code> can take several values at once.</p>
+  <p>Here is your slides' example, with every return value printed:</p>
+  <pre class="code" data-run data-title="push, unshift, pop and shift - the slides' fruit basket" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  const fruits = ["apple", "banana", "orange", "grape"];
+  console.log("Start:", fruits);
+
+  const newLength = fruits.push("kiwi");        // add to the END
+  console.log("push('kiwi') returned", newLength, "| now", fruits);
+
+  const longer = fruits.unshift("mango");       // add to the START
+  console.log("unshift('mango') returned", longer, "| now", fruits);
+
+  const removedLast = fruits.pop();             // remove from the END
+  console.log("pop() returned", removedLast, "| now", fruits);
+
+  const removedFirst = fruits.shift();          // remove from the START
+  console.log("shift() returned", removedFirst, "| now", fruits);
+
+  const bag = [];
+  console.log("pop() on an empty array returned", bag.pop());
+  bag.push("pen", "pencil", "eraser");          // several values at once
+  console.log("bag:", bag);
+&lt;/script&gt;</pre>
+  <pre class="code">Start: ['apple', 'banana', 'orange', 'grape']
+push('kiwi') returned 5 | now ['apple', 'banana', 'orange', 'grape', 'kiwi']
+unshift('mango') returned 6 | now ['mango', 'apple', 'banana', 'orange', 'grape', 'kiwi']
+pop() returned kiwi | now ['mango', 'apple', 'banana', 'orange', 'grape']
+shift() returned mango | now ['apple', 'banana', 'orange', 'grape']
+pop() on an empty array returned undefined
+bag: ['pen', 'pencil', 'eraser']</pre>
+  <p>After the four calls the slides' array is back to its original four fruits, which is exactly where section 50.5 picks it up.</p>
+  <div class="callout warn"><b>A classic slip.</b> <code>list = list.push("kiwi");</code> does not give you a longer list. It replaces your array with the number that <code>push</code> returned, its new length. Call <code>push</code> on its own line and keep using the same array. (With <code>const list</code>, the push still happens first, and then the assignment throws a TypeError.)</div>
+  <details class="qc"><summary>Quick check: what does <code>[10, 20].push(30)</code> return, and what does <code>[10, 20].pop()</code> return?</summary><p><code>push</code> returns <b>3</b>, the new length. <code>pop</code> returns <b>20</b>, the element it removed from the end.</p></details>
+</section>
+
+<section id="s4">
+  <h2>50.4 Finding a value</h2>
+  <p>Three methods answer three different questions about what is in an array:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Question it answers</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>indexOf(x)</code></td><td>Where is <code>x</code>?</td><td>The index of the first match, or <b>&minus;1</b> if there is none</td></tr>
+      <tr><td><code>includes(x)</code></td><td>Is <code>x</code> there at all?</td><td><code>true</code> or <code>false</code></td></tr>
+      <tr><td><code>find(test)</code></td><td>Which is the first element that passes this test?</td><td>That element, or <code>undefined</code></td></tr>
+    </tbody>
+  </table>
+  <p>Why &minus;1 for "not found" and not 0? Because 0 is a real index, the first one; &minus;1 can never be an index. So the correct check is <code>list.indexOf(x) === -1</code>. Never write <code>if (list.indexOf(x))</code>: it is false when <code>x</code> is first (0 is falsy, Chapter 46) and true when <code>x</code> is missing (&minus;1 is truthy), exactly backwards. When you only need yes or no, <code>includes</code> says it more clearly. <code>lastIndexOf(x)</code> searches from the end instead. All of them compare the way <code>===</code> does, so <code>"Meera"</code> and <code>"meera"</code> are different, and so are <code>5</code> and <code>"5"</code>. (One small exception: <code>includes(NaN)</code> finds a <code>NaN</code>, while <code>indexOf(NaN)</code> always gives &minus;1.)</p>
+  <p><code>find</code> works differently. Instead of a value, you give it a small function: a test. <code>find</code> runs the test on each element in turn, from index 0, and returns the first element for which the test gives <code>true</code>. A function handed to another function in this way is called a <span class="jw" data-def="A function you hand to another function, for that function to call when it needs it, like the test you give to find().">callback</span>; Chapters 53 and 54 are all about them. For now, read <code>marks.find((m) =&gt; m &gt; 90)</code> as "find the first mark <code>m</code> for which <code>m &gt; 90</code> is true".</p>
+  <pre class="code" data-run data-title="indexOf, includes and find on today's register - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // today's register: Rahul was ticked twice by mistake
+  const present = ["Asha", "Rahul", "Meera", "Rahul"];
+
+  console.log("indexOf('Rahul'):", present.indexOf("Rahul"));
+  console.log("lastIndexOf('Rahul'):", present.lastIndexOf("Rahul"));
+  console.log("indexOf('Kabir'):", present.indexOf("Kabir"));
+  console.log("includes('Meera'):", present.includes("Meera"));
+  console.log("includes('meera'):", present.includes("meera"));
+
+  if (present.indexOf("Kabir") === -1) {
+    console.log("Kabir is absent today");
+  }
+
+  const marks = [35, 72, 91, 48, 96];
+  console.log("first mark above 90:", marks.find((m) =&gt; m &gt; 90));
+  console.log("first mark above 99:", marks.find((m) =&gt; m &gt; 99));
+&lt;/script&gt;</pre>
+  <pre class="code">indexOf('Rahul'): 1
+lastIndexOf('Rahul'): 3
+indexOf('Kabir'): -1
+includes('Meera'): true
+includes('meera'): false
+Kabir is absent today
+first mark above 90: 91
+first mark above 99: undefined</pre>
+  <p><code>find</code> stopped at 91 even though 96 is also above 90: it returns the <b>first</b> match only. When no element passes, it gives <code>undefined</code>, just as reading a missing index does.</p>
+</section>
+
+<section id="s5">
+  <h2>50.5 slice and splice</h2>
+  <p>These two names differ by one letter, and their behaviour differs completely. They are the most confused pair in this chapter and a favourite exam question.</p>
+  <ul>
+    <li><b><code>slice(start, end)</code></b> <b>copies</b> the elements from <code>start</code> up to, <b>but not including</b>, <code>end</code> into a <b>new</b> array. The original is untouched. Negative numbers count from the end, as with <code>at()</code>. Leave out <code>end</code> to copy to the end; <code>slice()</code> with nothing copies the whole array.</li>
+    <li><b><code>splice(start, deleteCount, item1, item2, ...)</code></b> goes <b>into the original array</b> at <code>start</code>, removes <code>deleteCount</code> elements, and puts any items you list in their place. It <b>returns an array of the removed elements</b> (empty if it removed none) and <b>changes the original</b>.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Left: fruits.slice(1, 3) copies banana and orange into a new array and leaves fruits with its four elements. Right: fruits.splice(1, 2, pear, melon) cuts banana and orange out of fruits itself and puts pear and melon in their place. Both calls return an array holding banana and orange.">
+      <rect x="8" y="8" width="296" height="254" rx="12" class="box gry"/>
+      <text x="156" y="30" class="t c b mono" style="font-size:12px">fruits.slice(1, 3)</text>
+      <text x="156" y="47" class="t c s">copies indexes 1 and 2 (3 is not included)</text>
+      <text x="50" y="63" class="t c s">0</text><text x="120" y="63" class="t c s">1</text>
+      <text x="190" y="63" class="t c s">2</text><text x="260" y="63" class="t c s">3</text>
+      <rect x="18" y="68" width="64" height="34" rx="6" class="box"/>
+      <rect x="88" y="68" width="64" height="34" rx="6" class="box saf"/>
+      <rect x="158" y="68" width="64" height="34" rx="6" class="box saf"/>
+      <rect x="228" y="68" width="64" height="34" rx="6" class="box"/>
+      <text x="50" y="90" class="t c mono" style="font-size:12px">apple</text>
+      <text x="120" y="90" class="t c mono" style="font-size:12px">banana</text>
+      <text x="190" y="90" class="t c mono" style="font-size:12px">orange</text>
+      <text x="260" y="90" class="t c mono" style="font-size:12px">grape</text>
+      <path d="M120 104 L120 150" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M190 104 L190 150" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="260" y="132" class="t c s">copied</text>
+      <text x="50" y="176" class="t c s">new array:</text>
+      <rect x="88" y="154" width="64" height="34" rx="6" class="box grn"/>
+      <rect x="158" y="154" width="64" height="34" rx="6" class="box grn"/>
+      <text x="120" y="176" class="t c mono" style="font-size:12px">banana</text>
+      <text x="190" y="176" class="t c mono" style="font-size:12px">orange</text>
+      <text x="156" y="210" class="t c mono" style="font-size:12px">returns ['banana', 'orange']</text>
+      <text x="156" y="230" class="t c s">a NEW array (store it, e.g. in citrus)</text>
+      <text x="156" y="250" class="t c s">fruits is unchanged: still 4 elements</text>
+      <rect x="316" y="8" width="296" height="254" rx="12" class="box gry"/>
+      <text x="464" y="30" class="t c b mono" style="font-size:12px">fruits.splice(1, 2, "pear", "melon")</text>
+      <text x="464" y="47" class="t c s">from index 1, remove 2, insert 2</text>
+      <text x="358" y="63" class="t c s">0</text><text x="428" y="63" class="t c s">1</text>
+      <text x="498" y="63" class="t c s">2</text><text x="568" y="63" class="t c s">3</text>
+      <rect x="326" y="68" width="64" height="34" rx="6" class="box"/>
+      <rect x="396" y="68" width="64" height="34" rx="6" class="box red"/>
+      <rect x="466" y="68" width="64" height="34" rx="6" class="box red"/>
+      <rect x="536" y="68" width="64" height="34" rx="6" class="box"/>
+      <text x="358" y="90" class="t c mono" style="font-size:12px">apple</text>
+      <text x="428" y="90" class="t c mono" style="font-size:12px">banana</text>
+      <text x="498" y="90" class="t c mono" style="font-size:12px">orange</text>
+      <text x="568" y="90" class="t c mono" style="font-size:12px">grape</text>
+      <path d="M428 104 L428 150" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M498 104 L498 150" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="358" y="132" class="t c s">fruits after:</text>
+      <text x="568" y="132" class="t c s">replaced</text>
+      <rect x="326" y="154" width="64" height="34" rx="6" class="box"/>
+      <rect x="396" y="154" width="64" height="34" rx="6" class="box grn"/>
+      <rect x="466" y="154" width="64" height="34" rx="6" class="box grn"/>
+      <rect x="536" y="154" width="64" height="34" rx="6" class="box"/>
+      <text x="358" y="176" class="t c mono" style="font-size:12px">apple</text>
+      <text x="428" y="176" class="t c mono" style="font-size:12px">pear</text>
+      <text x="498" y="176" class="t c mono" style="font-size:12px">melon</text>
+      <text x="568" y="176" class="t c mono" style="font-size:12px">grape</text>
+      <text x="464" y="210" class="t c mono" style="font-size:12px">returns ['banana', 'orange']</text>
+      <text x="464" y="230" class="t c s">the lower row IS fruits now</text>
+      <text x="464" y="250" class="t c s">the original array was changed</text>
+    </svg>
+    <figcaption><b>Figure 50.2</b> Both calls hand back <code>['banana', 'orange']</code>, but only <code>splice</code> touched <code>fruits</code>. <code>slice</code> makes a copy; <code>splice</code> operates on the array itself.</figcaption>
+  </figure>
+  <p>Your slides use the same fruit basket. This example starts where section 50.3 left it:</p>
+  <pre class="code" data-run data-title="slice copies, splice changes - the slides' example, then two more splices" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  const fruits = ["apple", "banana", "orange", "grape"];
+
+  // slice: COPY a part into a new array; fruits is untouched
+  const citrus = fruits.slice(1, 3);
+  console.log("slice(1, 3):", citrus);
+  console.log("slice(-2):", fruits.slice(-2));
+  console.log("slice(1):", fruits.slice(1));
+  console.log("fruits after slicing:", fruits);
+
+  // splice: CHANGE fruits - from index 1, remove 2, insert "pear" and "melon"
+  const removed = fruits.splice(1, 2, "pear", "melon");
+  console.log("splice returned:", removed);
+  console.log("fruits after splice:", fruits);
+
+  // insert only: at index 2, remove 0, insert "kiwi"
+  fruits.splice(2, 0, "kiwi");
+  console.log("after splice(2, 0, 'kiwi'):", fruits);
+
+  // remove only: at index 0, remove 1
+  fruits.splice(0, 1);
+  console.log("after splice(0, 1):", fruits);
+&lt;/script&gt;</pre>
+  <pre class="code">slice(1, 3): ['banana', 'orange']
+slice(-2): ['orange', 'grape']
+slice(1): ['banana', 'orange', 'grape']
+fruits after slicing: ['apple', 'banana', 'orange', 'grape']
+splice returned: ['banana', 'orange']
+fruits after splice: ['apple', 'pear', 'melon', 'grape']
+after splice(2, 0, 'kiwi'): ['apple', 'pear', 'kiwi', 'melon', 'grape']
+after splice(0, 1): ['pear', 'kiwi', 'melon', 'grape']</pre>
+  <p>The two extra calls show that <code>splice</code> is really three tools in one: a <code>deleteCount</code> of 0 with items <b>inserts</b>; a count with no items <b>removes</b>; a count with items <b>replaces</b>.</p>
+  <div class="plain">
+    <p><code>slice</code> is a photocopy of part of the list: you get a new list and the original stays as it was. <code>splice</code> is surgery on the list itself: it cuts elements out, can stitch new ones in, and hands you what it cut out.</p>
+  </div>
+  <div class="callout exam"><b>Exam tip.</b> The second number means different things. In <code>slice(1, 3)</code> it is an <b>end position</b>, and it is not included, so you get indexes 1 and 2. In <code>splice(1, 3)</code> it is a <b>count</b>, so three elements go: indexes 1, 2 and 3.</div>
+  <details class="qc"><summary>Quick check: <code>const nums = [1, 2, 3, 4, 5];</code> What does <code>nums.slice(1, 3)</code> return? If you then run <code>nums.splice(1, 3)</code>, what does it return, and what is left in <code>nums</code>?</summary><p><code>slice(1, 3)</code> returns <b>[2, 3]</b> and leaves <code>nums</code> alone. <code>splice(1, 3)</code> removes three elements starting at index 1, so it returns <b>[2, 3, 4]</b> and <code>nums</code> becomes <b>[1, 5]</b>.</p></details>
+</section>
+
+<section id="s6">
+  <h2>50.6 Combining, joining and converting</h2>
+  <p>None of the tools in this section changes the arrays you give it. Each one builds something new.</p>
+  <ul>
+    <li><b><code>concat</code></b> joins arrays end to end into a new array: <code>fruits.concat(moreFruits)</code>, as in your slides.</li>
+    <li><b>Spread</b> does the same job with three dots: <code>[...fruits, ...moreFruits]</code>. <span class="jw" data-def="Three dots written in front of an array, which unpack its elements one by one into the place where they are written.">Spread syntax</span> unpacks an array's elements into the new square brackets, and you can mix in extra values anywhere: <code>[...fruits, "kiwi"]</code>. Written alone, <code>[...fruits]</code> is a copy of the whole array.</li>
+    <li><b><code>join(separator)</code></b> glues the elements into one <b>string</b>, with the separator between them. With no separator you get commas.</li>
+    <li><b><code>split(separator)</code></b> goes the other way, from a string to an array; Chapter 45 showed it.</li>
+    <li><b><code>Array.from(thing)</code></b> makes a real array out of anything list-like: a string becomes its characters, and in Chapter 56 the list of page elements returned by <code>querySelectorAll</code> becomes a proper array. Given an object such as <code>{ length: 5 }</code> and a function, it makes 5 places and fills each one by calling the function with that place's index <code>i</code>.</li>
+  </ul>
+  <pre class="code">const fruits = ["apple", "pear", "melon", "grape"];
+const moreFruits = ["grapefruit", "pineapple"];
+
+fruits.concat(moreFruits);     // ['apple', 'pear', 'melon', 'grape', 'grapefruit', 'pineapple']
+[...fruits, ...moreFruits];    // the same new array, written with spread
+fruits.join(", ");             // "apple, pear, melon, grape"
+fruits.join();                 // "apple,pear,melon,grape"
+"29/10/2026".split("/");       // ['29', '10', '2026']
+Array.from("LPU");             // ['L', 'P', 'U']
+Array.from({ length: 5 }, (v, i) =&gt; i + 1);   // [1, 2, 3, 4, 5] (v is unused here)</pre>
+  <table class="tbl">
+    <thead><tr><th>You have</th><th>You want</th><th>Use</th></tr></thead>
+    <tbody>
+      <tr><td>Two or more arrays</td><td>One array</td><td><code>a.concat(b)</code> or <code>[...a, ...b]</code></td></tr>
+      <tr><td>An array</td><td>A string</td><td><code>arr.join(", ")</code></td></tr>
+      <tr><td>A string</td><td>An array</td><td><code>str.split(",")</code> or <code>Array.from(str)</code></td></tr>
+      <tr><td>An array</td><td>A copy of it</td><td><code>[...arr]</code>, <code>arr.slice()</code> or <code>Array.from(arr)</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s7">
+  <h2>50.7 Putting in order: reverse and sort</h2>
+  <p><code>reverse()</code> turns the array back to front. <code>sort()</code> puts it in order. Unlike the tools in section 50.6, <b>both change the original array</b>, and both return that same array.</p>
+  <p><code>sort()</code> has one famous trap. With no instructions, it turns every element into a string and compares the strings character by character, the way a dictionary orders words. For words that is fine. For numbers it is wrong:</p>
+  <pre class="code">const marks = [10, 9, 100, 25, 1];
+marks.sort();
+console.log(marks);    // [1, 10, 100, 25, 9]   - dictionary order!</pre>
+  <p>As text, <code>"100"</code> comes before <code>"25"</code> because its first character, 1, comes before 2, just as a dictionary puts "ant" before "bee" however long the words are. To sort numbers you must give <code>sort</code> a <b>compare function</b>:</p>
+  <pre class="code">marks.sort((a, b) =&gt; a - b);    // [1, 9, 10, 25, 100]   smallest first
+marks.sort((a, b) =&gt; b - a);    // [100, 25, 10, 9, 1]   largest first</pre>
+  <p>Here is how it works. While sorting, <code>sort</code> keeps picking two elements, calls them <code>a</code> and <code>b</code>, and asks your function which should come first. If the function returns a <b>negative</b> number, <code>a</code> goes first; if <b>positive</b>, <code>b</code> goes first; if <b>0</b>, their order is kept. <code>a - b</code> is negative whenever <code>a</code> is smaller, so the smaller one goes first: ascending order. <code>b - a</code> turns that round: descending order.</p>
+  <div class="plain">
+    <p>Left alone, <code>sort</code> uses dictionary order, which is right for words and wrong for numbers. For numbers, always write <code>sort((a, b) =&gt; a - b)</code> for smallest first, or <code>sort((a, b) =&gt; b - a)</code> for largest first.</p>
+  </div>
+  <p>Dictionary order has one more surprise: every capital letter comes before every small letter, so <code>["asha", "Rahul", "meera"].sort()</code> gives <code>['Rahul', 'asha', 'meera']</code>. Keep names in one consistent case before sorting them.</p>
+  <div class="callout warn"><b>sort changes the original.</b> If you still need the list in its old order (a register in roll-number order, say), sort a copy: <code>[...marks].sort((a, b) =&gt; a - b)</code>. Recent browsers also offer <code>toSorted()</code> and <code>toReversed()</code>, which return a sorted or reversed copy and leave the original alone.</div>
+  <pre class="code" data-run data-title="Combine, convert, reverse and sort - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // ---- combining: neither original changes ----
+  const fruits = ["apple", "pear", "melon", "grape"];
+  const moreFruits = ["grapefruit", "pineapple"];
+
+  console.log("concat:", fruits.concat(moreFruits));
+  console.log("spread:", [...fruits, "kiwi", ...moreFruits]);
+  console.log("fruits is unchanged:", fruits);
+
+  // ---- converting ----
+  console.log("join:", fruits.join(", "));
+  console.log("split:", "29/10/2026".split("/"));
+  console.log("Array.from('LPU'):", Array.from("LPU"));
+  console.log("seat numbers:", Array.from({ length: 5 }, (v, i) =&gt; i + 1));
+
+  // ---- reordering: these two CHANGE the array ----
+  const queue = ["Asha", "Rahul", "Meera"];
+  queue.reverse();
+  console.log("reverse():", queue);
+
+  const marks = [10, 9, 100, 25, 1];
+  marks.sort();
+  console.log("sort() with no help:", marks);
+
+  marks.sort((a, b) =&gt; a - b);
+  console.log("smallest first:", marks);
+
+  marks.sort((a, b) =&gt; b - a);
+  console.log("largest first:", marks);
+
+  const names = ["asha", "Rahul", "meera"];
+  console.log("capitals sort first:", names.sort());
+&lt;/script&gt;</pre>
+  <pre class="code">concat: ['apple', 'pear', 'melon', 'grape', 'grapefruit', 'pineapple']
+spread: ['apple', 'pear', 'melon', 'grape', 'kiwi', 'grapefruit', 'pineapple']
+fruits is unchanged: ['apple', 'pear', 'melon', 'grape']
+join: apple, pear, melon, grape
+split: ['29', '10', '2026']
+Array.from('LPU'): ['L', 'P', 'U']
+seat numbers: [1, 2, 3, 4, 5]
+reverse(): ['Meera', 'Rahul', 'Asha']
+sort() with no help: [1, 10, 100, 25, 9]
+smallest first: [1, 9, 10, 25, 100]
+largest first: [100, 25, 10, 9, 1]
+capitals sort first: ['Rahul', 'asha', 'meera']</pre>
+</section>
+
+<section id="s8">
+  <h2>50.8 Visiting every element</h2>
+  <p>Very often you want to do something with <i>every</i> element: print each name, add up all the marks. Loops get a full chapter of their own (Chapter 52); here are the two forms you need for arrays. The first is from your slides:</p>
+  <pre class="code">const fruits = ["apple", "banana", "orange", "grape"];
+
+for (let i = 0; i &lt; fruits.length; i++) {
+  console.log(fruits[i]);        // apple, banana, orange, grape - one per line
+}</pre>
+  <p>Read the first line as: <i>start <code>i</code> at 0; while <code>i</code> is less than the length, run the block; after each run, add 1 to <code>i</code></i>. So <code>i</code> takes the values 0, 1, 2 and 3, which are exactly the indexes, and the block reads <code>fruits[i]</code> each time. The condition is <code>&lt;</code>, not <code>&lt;=</code>: with <code>&lt;=</code>, <code>i</code> would also reach 4, one step past the end, and print <code>undefined</code>.</p>
+  <p>When you only need the elements and not their positions, <code>for...of</code> is shorter and cannot go past the end:</p>
+  <pre class="code">for (const fruit of fruits) {
+  console.log(fruit);            // apple, banana, orange, grape - one per line
+}</pre>
+  <p>Read it as "for each <code>fruit</code> of <code>fruits</code>". Each time round, <code>fruit</code> holds the next element. Use <code>for...of</code> to read every element, and the counting <code>for</code> when you need the index too: to number the lines, or to change <code>fruits[i]</code>.</p>
+  <h3>Arrays of objects</h3>
+  <p>Real data is rarely a list of bare names. It is a list of <b>records</b>: each student has a name <i>and</i> marks. Chapter 51 teaches objects properly; for now, an object is a bundle of named values in curly braces, <code>{ name: "Asha", marks: 85 }</code>, and you read one value with a dot: <code>student.name</code>. An array of such objects is the commonest shape of data on the web:</p>
+  <pre class="code">const students = [
+  { name: "Asha",  marks: 85 },
+  { name: "Rahul", marks: 72 }
+];
+console.log(students[1].name);    // Rahul  - the element at index 1, then its name</pre>
+  <h3>A preview: forEach, map and filter</h3>
+  <p>Your slides end with three array methods that take a callback, as <code>find</code> does. They are the subject of Chapter 53; here is just enough to recognise them:</p>
+  <pre class="code">const marks = [85, 92, 34, 76, 28];
+
+marks.forEach((mark) =&gt; {               // forEach: do something with each element
+  console.log(mark);                     // 85, 92, 34, 76, 28 - one per line
+});
+
+const bonusMarks = marks.map((mark) =&gt; {   // map: transform each one into a NEW array
+  return mark + 5;
+});
+console.log(bonusMarks);                 // [90, 97, 39, 81, 33]
+
+const numbers = [12, 7, 18, 5, 24, 9, 30, 11];
+const evenNumbers = numbers.filter(function (number) {   // filter: keep those that pass
+  return number % 2 === 0;
+});
+console.log("Even Numbers:", evenNumbers);   // Even Numbers: [12, 18, 24, 30]</pre>
+  <p><code>map</code> and <code>filter</code> build new arrays and leave <code>marks</code> and <code>numbers</code> alone. A fourth, <code>reduce</code>, combines all the elements into one value: <code>marks.reduce((sum, m) =&gt; sum + m, 0)</code> gives 315. Chapter 53 traces it step by step.</p>
+</section>
+
+<section id="s9">
+  <h2>50.9 Destructuring: unpacking an array</h2>
+  <p>Often you want the first few elements of an array in variables of their own. You could write <code>const first = fruits[0];</code> and <code>const second = fruits[1];</code>, but <span class="jw" data-def="Unpacking the elements of an array into separate variables in one line, by position.">destructuring</span> does it in one line. You put square brackets on the <b>left</b> of the <code>=</code>, and each name receives the element at the same position:</p>
+  <pre class="code">const fruits = ["apple", "banana", "orange", "grape"];
+
+const [first, second] = fruits;
+console.log(first, second);           // apple banana
+
+const [a, , c] = fruits;              // an empty gap skips an element
+console.log(a, c);                    // apple orange
+
+const [head, ...rest] = fruits;       // ...rest collects everything left over
+console.log(head, rest);              // apple ['banana', 'orange', 'grape']
+
+const [x, y, z = "none"] = ["red", "green"];   // a default for a missing element
+console.log(z);                       // none</pre>
+  <p>Destructuring only reads: the array is unchanged. Note the two jobs of the three dots. On the <b>right</b> of an <code>=</code>, <code>...fruits</code> is spread: it unpacks. On the <b>left</b>, <code>...rest</code> is a <i>rest</i> element: it collects the leftovers into a new array, and it must come last. One neat use is swapping two variables without a spare one:</p>
+  <pre class="code">let left = "Asha";
+let right = "Rahul";
+[left, right] = [right, left];
+console.log(left, right);             // Rahul Asha</pre>
+  <p>Objects can be destructured too, by property name instead of position; that is in Chapter 51.</p>
+  <h3>Build it: a marks report</h3>
+  <p>This example puts sections 50.2 to 50.9 together: an array of student records, both kinds of loop, <code>push</code>, a sorted copy, destructuring and <code>join</code>. To sort records by marks, the compare function compares their <code>marks</code>: <code>y.marks - x.marks</code> is positive when <code>y</code> has more, so <code>y</code> goes first and the highest mark leads.</p>
+  <pre class="code" data-run data-title="Build it: a marks report from an array of student records" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; color: #0B2545; }
+  pre { background: #F1F5F9; padding: 10px 12px; border-radius: 8px; font-size: 15px; }
+&lt;/style&gt;
+&lt;b&gt;The marks report, written onto the page:&lt;/b&gt;
+&lt;pre id="out"&gt;&lt;/pre&gt;
+&lt;script&gt;
+  // an array of objects: one { } record per student (objects: Chapter 51)
+  const students = [
+    { name: "Asha",  marks: 85 },
+    { name: "Rahul", marks: 72 },
+    { name: "Meera", marks: 92 },
+    { name: "Kabir", marks: 64 }
+  ];
+  console.log("students[1]:", students[1]);
+  console.log("students[1].name:", students[1].name);
+
+  // for: you get each index i, and fetch the element yourself
+  for (let i = 0; i &lt; students.length; i++) {
+    console.log("Roll", i + 1, students[i].name);
+  }
+
+  // for...of: you get each element directly
+  let total = 0;
+  const lines = [];
+  for (const student of students) {
+    total = total + student.marks;
+    lines.push(student.name.padEnd(8, ".") + String(student.marks).padStart(4));
+  }
+  const average = total / students.length;
+  console.log("Total:", total, "| Average:", average);
+
+  // sort a COPY, highest first, then unpack it with destructuring
+  const ranked = [...students].sort((x, y) =&gt; y.marks - x.marks);
+  const [topper, runnerUp, ...others] = ranked;
+  console.log("Topper:", topper.name, "| Runner-up:", runnerUp.name);
+  console.log("Others:", others);
+  console.log("students is still in roll order:", students[0].name);
+
+  lines.push("Average: " + average);
+  lines.push("Topper:  " + topper.name);
+  document.getElementById("out").textContent = lines.join("\n");
+&lt;/script&gt;</pre>
+  <pre class="code">students[1]: {name: 'Rahul', marks: 72}
+students[1].name: Rahul
+Roll 1 Asha
+Roll 2 Rahul
+Roll 3 Meera
+Roll 4 Kabir
+Total: 313 | Average: 78.25
+Topper: Meera | Runner-up: Asha
+Others: [{name: 'Rahul', marks: 72}, {name: 'Kabir', marks: 64}]
+students is still in roll order: Asha</pre>
+  <p>The page shows the four names with dots and right-aligned marks (the <code>padEnd</code> and <code>padStart</code> of Chapter 45), then the average, 78.25, and the topper, Meera. Because the sort was done on the copy <code>[...students]</code>, the original list is still in roll order. Add a fifth student to the array and run it again: every line adjusts, which is the whole point of keeping data in an array.</p>
+</section>
+
+<section id="s10">
+  <h2>50.10 Arrays are shared, not copied</h2>
+  <p>In Chapter 43 you saw that numbers and strings are copied <b>by value</b>: after <code>let a = 5; let b = a; b = 6;</code>, <code>a</code> is still 5. Arrays are objects, and objects behave differently. A variable does not hold the array itself; it holds a <span class="jw" data-def="Where an array or object lives in memory. Copying a reference gives you a second name for the same array, not a second array.">reference</span> to where the array lives in memory. So <code>const sameList = original;</code> copies only the reference, and both names now lead to <b>one and the same array</b>. Change it through either name and the other sees the change, because there is only one array.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 232" role="img" aria-label="Left: the names original and sameList both point to one array holding Asha, Rahul and Meera. Right: original points to one array and copy points to a second, separate array with the same three names.">
+      <rect x="8" y="8" width="296" height="216" rx="12" class="box gry"/>
+      <text x="156" y="30" class="t c b mono" style="font-size:12px">const sameList = original;</text>
+      <rect x="20" y="58" width="96" height="32" rx="8" class="box blu"/>
+      <text x="68" y="79" class="t c mono" style="font-size:12px">original</text>
+      <rect x="20" y="128" width="96" height="32" rx="8" class="box blu"/>
+      <text x="68" y="149" class="t c mono" style="font-size:12px">sameList</text>
+      <rect x="150" y="90" width="48" height="36" rx="6" class="box saf"/>
+      <rect x="200" y="90" width="48" height="36" rx="6" class="box saf"/>
+      <rect x="250" y="90" width="48" height="36" rx="6" class="box saf"/>
+      <text x="174" y="113" class="t c mono" style="font-size:12px">Asha</text>
+      <text x="224" y="113" class="t c mono" style="font-size:12px">Rahul</text>
+      <text x="274" y="113" class="t c mono" style="font-size:12px">Meera</text>
+      <path d="M118 74 L146 98" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M118 144 L146 120" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="156" y="180" class="t c b">ONE array, two names</text>
+      <text x="156" y="198" class="t c s">sameList.push(...) changes original too</text>
+      <text x="156" y="214" class="t c s">original === sameList is true</text>
+      <rect x="316" y="8" width="296" height="216" rx="12" class="box gry"/>
+      <text x="464" y="30" class="t c b mono" style="font-size:12px">const copy = [...original];</text>
+      <rect x="328" y="56" width="96" height="36" rx="8" class="box blu"/>
+      <text x="376" y="79" class="t c mono" style="font-size:12px">original</text>
+      <rect x="328" y="126" width="96" height="36" rx="8" class="box blu"/>
+      <text x="376" y="149" class="t c mono" style="font-size:12px">copy</text>
+      <rect x="458" y="56" width="48" height="36" rx="6" class="box saf"/>
+      <rect x="508" y="56" width="48" height="36" rx="6" class="box saf"/>
+      <rect x="558" y="56" width="48" height="36" rx="6" class="box saf"/>
+      <text x="482" y="79" class="t c mono" style="font-size:12px">Asha</text>
+      <text x="532" y="79" class="t c mono" style="font-size:12px">Rahul</text>
+      <text x="582" y="79" class="t c mono" style="font-size:12px">Meera</text>
+      <rect x="458" y="126" width="48" height="36" rx="6" class="box grn"/>
+      <rect x="508" y="126" width="48" height="36" rx="6" class="box grn"/>
+      <rect x="558" y="126" width="48" height="36" rx="6" class="box grn"/>
+      <text x="482" y="149" class="t c mono" style="font-size:12px">Asha</text>
+      <text x="532" y="149" class="t c mono" style="font-size:12px">Rahul</text>
+      <text x="582" y="149" class="t c mono" style="font-size:12px">Meera</text>
+      <path d="M426 74 L454 74" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M426 144 L454 144" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="464" y="180" class="t c b">TWO separate arrays</text>
+      <text x="464" y="198" class="t c s">copy.push(...) leaves original alone</text>
+      <text x="464" y="214" class="t c s">original === copy is false</text>
+    </svg>
+    <figcaption><b>Figure 50.3</b> Assigning an array copies only the reference, so two names share one array. Spread builds a second array with the same elements, and the two then live separate lives.</figcaption>
+  </figure>
+  <p>Four consequences follow, and the example below shows each one:</p>
+  <ul>
+    <li><b>To copy, build a new array:</b> <code>[...original]</code>, <code>original.slice()</code> or <code>Array.from(original)</code>.</li>
+    <li><b><code>===</code> asks "the same array?", not "the same contents?"</b> Two separately made arrays are never <code>===</code>, even with identical elements: <code>[1, 2] === [1, 2]</code> is <code>false</code>.</li>
+    <li><b>A function receives the same array, not a copy.</b> If it calls <code>push</code> on its parameter, the caller's array grows. Sometimes that is what you want; when it is not, have the function work on a copy.</li>
+    <li><b><code>const</code> locks the name, not the contents.</b> A <code>const</code> array can still be changed with <code>push</code>, <code>splice</code> or <code>arr[0] = ...</code>. What <code>const</code> forbids is pointing the name at a different array.</li>
+  </ul>
+  <p>The runnable example uses <code>try { ... } catch (err) { ... }</code>, as Chapter 49 did, to print an error and carry on.</p>
+  <pre class="code" data-run data-title="Two names, one array - and how to make a real copy" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  const original = ["Asha", "Rahul"];
+  const sameList = original;          // NOT a copy: a second name for the same array
+  sameList.push("Meera");
+  console.log("1. original:", original);
+  console.log("2. original === sameList:", original === sameList);
+
+  const copy = [...original];         // a real copy: a brand-new array
+  copy.push("Kabir");
+  console.log("3. original:", original);
+  console.log("4. copy:", copy);
+  console.log("5. original === copy:", original === copy);
+  console.log("6. [1, 2] === [1, 2]:", [1, 2] === [1, 2]);
+
+  // a function receives the same array, not a copy
+  function addLateComer(list) {
+    list.push("Zoya");
+  }
+  addLateComer(original);
+  console.log("7. after addLateComer:", original);
+
+  // const locks the NAME, not the contents
+  const marks = [80, 90];
+  marks.push(100);
+  console.log("8. const marks after push:", marks);
+  try {
+    marks = [1, 2, 3];                // pointing the name at a different array
+  } catch (err) {
+    console.log("9. reassigning threw", err.name + ": " + err.message);
+  }
+&lt;/script&gt;</pre>
+  <pre class="code">1. original: ['Asha', 'Rahul', 'Meera']
+2. original === sameList: true
+3. original: ['Asha', 'Rahul', 'Meera']
+4. copy: ['Asha', 'Rahul', 'Meera', 'Kabir']
+5. original === copy: false
+6. [1, 2] === [1, 2]: false
+7. after addLateComer: ['Asha', 'Rahul', 'Meera', 'Zoya']
+8. const marks after push: [80, 90, 100]
+9. reassigning threw TypeError: Assignment to constant variable.</pre>
+  <p>(Firefox words line 9 as "invalid assignment to const 'marks'"; same error.) One limit: a spread copy is <b>shallow</b>. If the elements are objects, as in the marks report, the copy is a new list holding the <i>same</i> objects, so changing <code>copy[0].marks</code> changes the original's first record too. Chapter 51 returns to this.</p>
+  <div class="plain">
+    <p>An array variable is a name tag tied to an array, not the array itself. <code>b = a</code> ties a second tag to the same array. To get a second array, build one with <code>[...a]</code>. And <code>const</code> only stops you moving the tag; it never stops you changing what is inside.</p>
+  </div>
+  <details class="qc"><summary>Quick check: <code>const a = [1, 2]; const b = a; b.push(3);</code> What is <code>a.length</code> now? What would it be if the second statement had been <code>const b = [...a];</code>?</summary><p><b>3</b>: <code>a</code> and <code>b</code> are two names for one array, so the push shows through <code>a</code>. With <code>[...a]</code>, <code>b</code> is a separate copy, the push changes only <code>b</code>, and <code>a.length</code> stays <b>2</b>.</p></details>
+  <h3>Which methods change the original?</h3>
+  <p>A method that changes the array it is called on is said to <span class="jw" data-def="To change a value in place, so that every name leading to it sees the change.">mutate</span> it. Keep this table beside you; it settles most "what does this print?" questions.</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Changes the original?</th><th>Returns</th></tr></thead>
+    <tbody>
+      <tr><td><code>push</code>, <code>unshift</code></td><td><b>Yes</b></td><td>The new length</td></tr>
+      <tr><td><code>pop</code>, <code>shift</code></td><td><b>Yes</b></td><td>The removed element (or <code>undefined</code>)</td></tr>
+      <tr><td><code>splice</code></td><td><b>Yes</b></td><td>An array of the removed elements</td></tr>
+      <tr><td><code>sort</code>, <code>reverse</code></td><td><b>Yes</b></td><td>The same array, reordered</td></tr>
+      <tr><td><code>arr[i] = value</code></td><td><b>Yes</b></td><td>(an assignment, not a method)</td></tr>
+      <tr><td><code>slice</code>, <code>concat</code>, <code>[...a, ...b]</code></td><td>No</td><td>A new array</td></tr>
+      <tr><td><code>map</code>, <code>filter</code> (Chapter 53), <code>toSorted</code>, <code>toReversed</code></td><td>No</td><td>A new array</td></tr>
+      <tr><td><code>join</code></td><td>No</td><td>A string</td></tr>
+      <tr><td><code>indexOf</code>, <code>lastIndexOf</code></td><td>No</td><td>A number (&minus;1 if not found)</td></tr>
+      <tr><td><code>includes</code></td><td>No</td><td><code>true</code> or <code>false</code></td></tr>
+      <tr><td><code>find</code>, <code>at</code></td><td>No</td><td>One element (or <code>undefined</code>)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>50.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The first element is at index 1, and the last is at index length."</b><br>Both are one too high: index <code>length</code> is always past the end.</div>
+    <div class="r"><b>&#10003; "The first element is at index 0; the last is at <code>length - 1</code>, or <code>at(-1)</code>."</b><br>The index counts how many elements come before this one.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "push returns the bigger array."</b><br>It returns a number: the new length.</div>
+    <div class="r"><b>&#10003; "push and unshift return the new length; pop and shift return the removed element."</b><br>All four change the array itself, so you rarely need the array back.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "slice and splice are two spellings of the same thing."</b><br>One copies, the other operates on the original.</div>
+    <div class="r"><b>&#10003; "slice copies a part and leaves the original alone; splice removes or inserts in the original."</b><br>And slice's second number is an end (not included), while splice's is a count.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "sort() sorts numbers from smallest to largest."</b><br>It sorts them as text: <code>[10, 9, 1].sort()</code> gives <code>[1, 10, 9]</code>.</div>
+    <div class="r"><b>&#10003; "For numbers, write sort((a, b) =&gt; a - b)."</b><br>Or <code>b - a</code> for largest first. Remember that sort changes the original.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "const b = a gives me a copy of the array."</b><br>It gives a second name for the same array.</div>
+    <div class="r"><b>&#10003; "A copy is a new array: [...a], a.slice() or Array.from(a)."</b><br>And <code>===</code> on arrays checks whether they are the same array, not whether they look alike.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A const array can never change."</b><br>Its elements can be pushed, popped, sorted and replaced freely.</div>
+    <div class="r"><b>&#10003; "const stops the name being pointed at another array."</b><br><code>marks = [1, 2]</code> on a <code>const marks</code> throws a TypeError; <code>marks.push(3)</code> is fine.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the "what does this print?" questions, trace the code on paper first, writing down the array after every line.</p>
+  <details class="q"><summary>Which expression is <code>true</code> only when <code>x</code> is an array?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>typeof x === "array"</code></li><li>B. <code>x.length &gt; 0</code></li><li>C. <code>typeof x === "object"</code></li><li>D. <code>Array.isArray(x)</code></li></ul>
+    <p><b>Answer: D.</b> <code>typeof</code> never gives <code>"array"</code>, so A is never true; it gives <code>"object"</code> for arrays, plain objects and even <code>null</code>, so C is true for far more than arrays. Strings have a length too, so B proves nothing.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const c = ["red", "green", "blue"]; console.log(c[c.length - 1], c[3]);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. green undefined</li><li>B. blue undefined</li><li>C. undefined blue</li><li>D. An error, because index 3 does not exist</li></ul>
+    <p><b>Answer: B.</b> The length is 3, so <code>c[c.length - 1]</code> is <code>c[2]</code>, "blue". Index 3 is past the end, and reading a missing index gives <code>undefined</code> rather than an error, which rules out D.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const a = [5, 10]; const r = a.push(15); console.log(r);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. [5, 10, 15]</li><li>B. 15</li><li>C. 3</li><li>D. undefined</li></ul>
+    <p><b>Answer: C.</b> <code>push</code> returns the new length of the array, 3. The array itself is now <code>[5, 10, 15]</code>, which is why A is tempting, but that is <code>a</code>, not <code>r</code>.</p></div></details>
+  <details class="q"><summary>Which method removes the first element of an array and returns it?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>shift()</code></li><li>B. <code>pop()</code></li><li>C. <code>unshift()</code></li><li>D. <code>slice(0, 1)</code></li></ul>
+    <p><b>Answer: A.</b> <code>pop</code> removes the <i>last</i> element, <code>unshift</code> <i>adds</i> at the start, and <code>slice(0, 1)</code> returns a new one-element array without removing anything.</p></div></details>
+  <details class="q"><summary>What does <code>["Asha", "Rahul"].indexOf("Meera")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. undefined</li><li>B. false</li><li>C. 0</li><li>D. -1</li></ul>
+    <p><b>Answer: D.</b> <code>indexOf</code> returns &minus;1 when the value is not there, because &minus;1 can never be a real index. 0 would mean "found at the first position"; <code>false</code> is what <code>includes</code> would give.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const n = [10, 20, 30, 40, 50]; const s = n.slice(1, 3); console.log(s, n.length);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. [20, 30, 40] 5</li><li>B. [20, 30] 3</li><li>C. [20, 30] 5</li><li>D. [10, 20, 30] 5</li></ul>
+    <p><b>Answer: C.</b> <code>slice(1, 3)</code> copies indexes 1 and 2 (the end, 3, is not included) and leaves <code>n</code> with all 5 elements. A includes the end; B wrongly assumes slice removed elements.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>const n = [10, 20, 30, 40, 50]; const r = n.splice(1, 2); console.log(r, n);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: [20, 30] [10, 40, 50].</b> In <code>splice</code> the second number is a <b>count</b>: starting at index 1, remove 2 elements. <code>splice</code> returns the removed elements as an array and takes them out of <code>n</code> itself.</p></div></details>
+  <details class="q"><summary>What does <code>[10, 9, 100, 1].sort()</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. [1, 9, 10, 100]</li><li>B. [1, 10, 100, 9]</li><li>C. [100, 10, 9, 1]</li><li>D. A TypeError, because sort needs a function</li></ul>
+    <p><b>Answer: B.</b> With no compare function, <code>sort</code> compares the elements as strings, in dictionary order: "1", "10", "100", then "9", because the character 1 comes before 9. A is what you get with <code>sort((a, b) =&gt; a - b)</code>.</p></div></details>
+  <details class="q"><summary>Which call sorts the array <code>marks</code> from the highest mark to the lowest?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>marks.sort((a, b) =&gt; b - a)</code></li><li>B. <code>marks.sort((a, b) =&gt; a - b)</code></li><li>C. <code>marks.sort()</code></li><li>D. <code>marks.reverse()</code></li></ul>
+    <p><b>Answer: A.</b> <code>b - a</code> is positive when <code>b</code> is larger, so the larger element goes first. B gives smallest first, C gives dictionary order, and D only flips the current order, which is highest-first only if the array happened to be sorted already.</p></div></details>
+  <details class="q"><summary>Which of these leaves the original array unchanged?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>reverse()</code></li><li>B. <code>slice()</code></li><li>C. <code>splice()</code></li><li>D. <code>push()</code></li></ul>
+    <p><b>Answer: B.</b> <code>slice</code> returns a new array and never touches the original. <code>reverse</code>, <code>splice</code> and <code>push</code> all change the array they are called on.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const a = [1, 2]; const b = a; b.push(3); console.log(a.length, a === b);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 3 true</li><li>B. 2 false</li><li>C. 2 true</li><li>D. TypeError: Assignment to constant variable</li></ul>
+    <p><b>Answer: A.</b> <code>const b = a</code> copies the reference, so <code>a</code> and <code>b</code> are one array; the push shows through <code>a</code>, and <code>===</code> confirms they are the same array. There is no TypeError: <code>push</code> changes the contents, and <code>const</code> only forbids re-pointing the name.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>const [x, , z, ...rest] = [1, 2, 3, 4, 5]; console.log(x, z, rest);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 1 3 [4, 5].</b> Destructuring assigns by position: <code>x</code> gets index 0, the empty gap skips index 1, <code>z</code> gets index 2, and <code>...rest</code> collects everything left into a new array.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An array is an ordered list of values under one name, written in square brackets. Its elements can be of any type, even other arrays.</li>
+    <li>Indexes start at 0. The last element is <code>arr[arr.length - 1]</code> or <code>arr.at(-1)</code>; a missing index gives <code>undefined</code>. Assign to an index to change an element.</li>
+    <li><code>push</code>/<code>pop</code> work at the end, <code>unshift</code>/<code>shift</code> at the start. <code>push</code> and <code>unshift</code> return the new length; <code>pop</code> and <code>shift</code> return the removed element.</li>
+    <li><code>indexOf</code> gives a position or &minus;1, <code>includes</code> gives <code>true</code>/<code>false</code>, and <code>find(test)</code> gives the first element that passes, or <code>undefined</code>.</li>
+    <li><code>slice(start, end)</code> copies a part (end not included) and leaves the original alone. <code>splice(start, count, ...items)</code> removes and inserts in the original and returns what it removed.</li>
+    <li><code>concat</code> and <code>[...a, ...b]</code> combine into a new array; <code>join</code> makes a string; <code>split</code> and <code>Array.from</code> make an array.</li>
+    <li><code>reverse</code> and <code>sort</code> change the original. <code>sort</code> uses dictionary order unless you pass a compare function: <code>(a, b) =&gt; a - b</code> for numbers, smallest first.</li>
+    <li>Arrays are shared by reference: <code>b = a</code> is a second name, not a copy; <code>[...a]</code> is a copy; <code>===</code> checks for the same array; <code>const</code> locks the name, not the contents.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>const a = ["x", "y", "z"];</code></td><td>An array literal with three elements</td></tr>
+      <tr><td><code>a[0]</code>, <code>a.length</code></td><td>The first element; the number of elements</td></tr>
+      <tr><td><code>a[a.length - 1]</code>, <code>a.at(-1)</code></td><td>The last element, two ways</td></tr>
+      <tr><td><code>a[1] = "q";</code></td><td>Replace the element at index 1</td></tr>
+      <tr><td><code>a.push(v)</code> / <code>a.pop()</code></td><td>Add to / remove from the end</td></tr>
+      <tr><td><code>a.unshift(v)</code> / <code>a.shift()</code></td><td>Add to / remove from the start</td></tr>
+      <tr><td><code>a.indexOf(v)</code>, <code>a.includes(v)</code></td><td>Position or &minus;1; <code>true</code> or <code>false</code></td></tr>
+      <tr><td><code>a.find((v) =&gt; v &gt; 90)</code></td><td>The first element passing the test, or <code>undefined</code></td></tr>
+      <tr><td><code>a.slice(1, 3)</code></td><td>New array of indexes 1 and 2; original unchanged</td></tr>
+      <tr><td><code>a.splice(1, 2, "p", "q")</code></td><td>In the original: from index 1 remove 2, insert "p" and "q"; returns the removed</td></tr>
+      <tr><td><code>a.concat(b)</code>, <code>[...a, ...b]</code></td><td>A new array: both joined</td></tr>
+      <tr><td><code>a.join(", ")</code> / <code>s.split(",")</code></td><td>Array to string / string to array</td></tr>
+      <tr><td><code>a.sort((x, y) =&gt; x - y)</code></td><td>Sort numbers smallest first (changes <code>a</code>)</td></tr>
+      <tr><td><code>a.reverse()</code></td><td>Back to front (changes <code>a</code>)</td></tr>
+      <tr><td><code>for (const v of a) { }</code></td><td>Visit each element in order</td></tr>
+      <tr><td><code>const [first, ...rest] = a;</code></td><td>Destructuring: first element, then the rest as an array</td></tr>
+      <tr><td><code>const copy = [...a];</code></td><td>A real (shallow) copy; <code>const b = a;</code> is not</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array" target="_blank" rel="noopener noreferrer">MDN &mdash; Array<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The complete list of array methods, each with examples, and a clear note on which ones change the array.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort" target="_blank" rel="noopener noreferrer">MDN &mdash; Array.prototype.sort()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly how the compare function works, and why numbers need one.</span></li>
+    <li><a href="https://javascript.info/array" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Arrays<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A gentle second explanation of indexes, push/pop, shift/unshift and looping, with small tasks to try.</span></li>
+    <li><a href="https://javascript.info/array-methods" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Array methods<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">splice, slice, concat, indexOf, find and sort side by side, plus a first look at map, filter and reduce.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

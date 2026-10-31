@@ -1,0 +1,770 @@
+<article class="chapter" data-ch="45">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 45 &middot; Strings and String Methods</p>
+  <h1>Strings and String Methods</h1>
+  <p class="lead">Almost everything a web page says to a person is text: a name, a greeting, a mark, an error message, an address. In JavaScript a piece of text is called a string. This chapter shows you how to write one, join strings together, pick out single letters, and use the ready-made methods that tidy, search, cut and reshape text &mdash; the quiet work behind every form you have ever filled in.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>console.log(value)</code> prints a value in the Console, where you can read it (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li>A variable is a named box for a value: <code>const</code> when it never changes, <code>let</code> when it will (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>Text in quotes is a value of type <i>string</i>: <code>typeof "Asha"</code> is <code>"string"</code>, and <code>String(7)</code> turns a number into text (<a href="book.html?ch=43">Chapter 43</a>).</li>
+      <li><code>+</code> adds numbers but joins text as soon as one side is a string, so <code>"5" + 1</code> is <code>"51"</code> (<a href="book.html?ch=44">Chapter 44</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write a string with single quotes, double quotes or backticks, and pick the right one when the text itself contains quotes, values or several lines.</li>
+      <li>Build a message with a template literal and <code>${ }</code> instead of a long chain of <code>+</code>.</li>
+      <li>Read a string's length and any single character, counting from 0 at the front or from &minus;1 at the back.</li>
+      <li>Explain why a string method never changes the original, and store the new string it returns.</li>
+      <li>Tidy, search, cut and reshape text with <code>trim</code>, <code>toUpperCase</code>, <code>includes</code>, <code>indexOf</code>, <code>slice</code>, <code>replaceAll</code>, <code>split</code>, <code>join</code>, <code>padStart</code>, <code>repeat</code> and their relatives.</li>
+      <li>Chain methods to do real jobs: format a name, mask a phone number, count words and make a URL slug.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>45.1 Writing a string: quotes and escapes</h2>
+  <p>A <b>string</b> is a piece of text: a row of characters &mdash; letters, digits, spaces, punctuation, even emoji &mdash; kept in a fixed order. Your name is a string. So is <code>"CSE326"</code>. So is the empty string <code>""</code>, which has nothing inside it at all, the way an empty form field has nothing typed in it.</p>
+  <p>To write a string you put the text between quote marks. JavaScript accepts three kinds:</p>
+  <pre class="code">const a = 'Hello';    // single quotes
+const b = "Hello";    // double quotes
+const c = `Hello`;    // backticks: the key to the left of 1, above Tab
+
+console.log(a === b);     // true   - exactly the same string
+console.log(typeof c);    // string</pre>
+  <p>The <b>quotes are not part of the string.</b> They are the wrapping paper: they tell JavaScript where the text begins and where it ends, and they disappear when the text is printed. <code>console.log("Hello")</code> shows <code>Hello</code>, not <code>"Hello"</code>. Single and double quotes are completely equivalent; pick one and stay consistent within a file. This book uses double quotes. Backticks are the odd one out: a string in backticks is called a <b>template literal</b> and has two extra powers, which section 45.2 shows.</p>
+  <p>Digits in quotes are text too. A phone number such as <code>"9876543210"</code>, a PIN code or a roll number is best kept as a string: you will never add two phone numbers together, and a number would quietly drop a leading zero (<code>"0172"</code> as a number is just <code>172</code>).</p>
+
+  <h3>When the text contains a quote mark</h3>
+  <p>Trouble starts when the text itself contains a quote. <code>'It's LPU'</code> ends at the apostrophe: JavaScript sees the string <code>'It'</code>, then a stray <code>s LPU'</code> it cannot understand, and stops with a <code>SyntaxError</code>. The easy fix is to wrap the text in a <i>different</i> kind of quote:</p>
+  <pre class="code">const ok1 = "It's LPU";                     // apostrophe inside double quotes
+const ok2 = 'She said "hello"';             // double quotes inside single quotes
+const ok3 = `It's "easy" with backticks`;   // both kinds inside backticks</pre>
+  <p>The opening and closing marks must be the same kind. <code>"Hello'</code> is not a string; it is an error.</p>
+
+  <h3>Escape sequences</h3>
+  <p>When switching quotes is not enough, or you need a character you cannot type into a line of code (such as a line break), use an <span class="jw" data-def="A backslash followed by a character, together standing for something you cannot type directly, such as \n for a new line.">escape sequence</span>: a backslash <code>\</code> followed by a character (the ones you need are all a single character after the backslash). The backslash says to JavaScript, <i>"the next character is special: do not treat it the ordinary way."</i></p>
+  <table class="tbl">
+    <thead><tr><th>You write</th><th>The string contains</th><th>Used for</th></tr></thead>
+    <tbody>
+      <tr><td><code>\'</code></td><td><code>'</code></td><td>An apostrophe inside single quotes: <code>'It\'s LPU'</code></td></tr>
+      <tr><td><code>\"</code></td><td><code>"</code></td><td>A double quote inside double quotes: <code>"She said \"hi\""</code></td></tr>
+      <tr><td><code>\\</code></td><td><code>\</code></td><td>One real backslash, as in a Windows path</td></tr>
+      <tr><td><code>\n</code></td><td>a new line</td><td>Breaking text onto the next line</td></tr>
+      <tr><td><code>\t</code></td><td>a tab</td><td>Lining up short columns</td></tr>
+      <tr><td><code>\`</code></td><td><code>`</code></td><td>A backtick inside a template literal</td></tr>
+    </tbody>
+  </table>
+  <p>Each escape sequence in this table is two characters in your code but <b>one</b> character in the string. <code>"a\nb".length</code> is 3, not 4: <i>a</i>, a line break, <i>b</i>.</p>
+  <div class="callout warn"><b>The backslash trap.</b> <code>"C:\new\notes"</code> does not contain the word <i>new</i>. <code>\n</code> is a line break, so it prints <code>C:</code>, then <code>ew</code> on the next line, then <code>otes</code> on the line after. Every real backslash must be written twice: <code>"C:\\new\\notes"</code>.</div>
+  <p>One more thing to know before you run the example. A line break made with <code>\n</code> shows in the Console and inside a <code>&lt;pre&gt;</code> element, but in ordinary page text the browser squashes every run of spaces, tabs and line breaks into a single space. To break a line on the page itself you use <code>&lt;br&gt;</code> or a <code>&lt;pre&gt;</code>, exactly as in HTML.</p>
+  <pre class="code" data-run data-title="Quotes and escapes - one string in the Console, in a pre and in a paragraph" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  pre, p { background: #F1F5F9; padding: 8px 10px; border-radius: 8px; margin: 4px 0 12px; }
+&lt;/style&gt;
+&lt;b&gt;In a pre element, \n and \t still work:&lt;/b&gt;
+&lt;pre id="inPre"&gt;&lt;/pre&gt;
+&lt;b&gt;In a paragraph, they become plain spaces:&lt;/b&gt;
+&lt;p id="inP"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const apostrophe = 'It\'s LPU';
+  const quoted = "She said \"hello\"";
+  const both = `It's "easy" with backticks`;
+  console.log(apostrophe);
+  console.log(quoted);
+  console.log(both);
+
+  const path = "C:\\Users\\Asha";
+  console.log("Path:", path);
+
+  const card = "Name:\tAsha\nMarks:\t92";
+  console.log(card);
+
+  // the same string on the page (Chapter 56 explains textContent)
+  document.getElementById("inPre").textContent = card;
+  document.getElementById("inP").textContent = card;
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>It's LPU</code>, <code>She said "hello"</code>, the backtick line, <code>Path: C:\Users\Asha</code> with single backslashes, and then the card on two lines. On the page, the <code>&lt;pre&gt;</code> keeps the two lines; the paragraph squashes them into <code>Name: Asha Marks: 92</code>.</p>
+  <details class="qc"><summary>Quick check: how can you write the text <i>It's 5 o'clock</i> as a string without any backslash?</summary><p>Wrap it in double quotes or backticks: <code>"It's 5 o'clock"</code> or <code>`It's 5 o'clock`</code>. Single quotes would end the string at the first apostrophe.</p></details>
+</section>
+
+<section id="s2">
+  <h2>45.2 Joining text: + and template literals</h2>
+  <p>Programs rarely print fixed text. They build messages out of pieces: <i>"Hello, "</i> plus a name plus <i>"!"</i>. JavaScript gives you two ways to do it.</p>
+
+  <h3>Joining with +</h3>
+  <p>You saw in Chapter 44 that <code>+</code> joins strings. Joining strings end to end is called <span class="jw" data-def="Joining strings end to end to make one longer string, usually with the + sign.">concatenation</span>. Here is the slide example:</p>
+  <pre class="code">const firstName = "Aman";
+const lastName = "Kumar";
+console.log(firstName + " " + lastName);    // Aman Kumar</pre>
+  <p>Look at the <code>" "</code> in the middle. <code>+</code> glues exactly what you give it and nothing more, so <code>firstName + lastName</code> is <code>AmanKumar</code>. A forgotten space is the most common concatenation bug there is.</p>
+  <p>You can also grow a message bit by bit with <code>+=</code>, the compound assignment from Chapter 44 (<code>msg += x</code> means <code>msg = msg + x</code>). The variable must be a <code>let</code>, because each step puts a new, longer string into it:</p>
+  <pre class="code">let msg = "Dear " + firstName;
+msg += ", your result is ready.";
+console.log(msg);                           // Dear Aman, your result is ready.</pre>
+  <p>The danger with <code>+</code> is numbers. JavaScript works <b>left to right</b>, and once the running result is a string, every later <code>+</code> joins instead of adding:</p>
+  <pre class="code">console.log("Total: " + 40 + 50);      // Total: 4050   ("Total: 40", then "50" stuck on)
+console.log("Total: " + (40 + 50));    // Total: 90     (brackets add first)
+console.log(40 + 50 + " marks");       // 90 marks      (40 + 50 is done before any string appears)</pre>
+
+  <h3>Template literals: text with blanks to fill in</h3>
+  <p>A <b>template literal</b> is a string written in backticks that can contain placeholders. Write <code>${ }</code>, put an expression inside the braces, and JavaScript works out its value and drops it into the text at that spot. Dropping a value into text like this is called <span class="jw" data-def="Putting a value into the middle of a piece of text, like filling in a blank on a form.">interpolation</span>. The slide example:</p>
+  <pre class="code">const firstName = "Asha";
+const course = "JavaScript";
+console.log(`Hello, ${firstName}!`);       // Hello, Asha!
+console.log(`${course} is fun.`);          // JavaScript is fun.</pre>
+  <p>The braces can hold <b>any expression</b> from Chapter 44, not only a variable name. JavaScript evaluates it first, then turns the answer into text:</p>
+  <pre class="code">const marks = 87;
+console.log(`With 5 grace marks: ${marks + 5}`);    // With 5 grace marks: 92
+console.log(`Total: ${40 + 50}`);                   // Total: 90 - no number trap</pre>
+  <div class="plain"><p>A template literal is a form with blanks. You write the sentence once, put <code>${ }</code> wherever a blank goes, and JavaScript fills each blank with the current value. No plus signs, no forgotten spaces, no numbers glued together by accident.</p></div>
+  <p>The second power: a template literal can <b>span several lines</b>. The line breaks you type become part of the string, so you do not need <code>\n</code>:</p>
+  <pre class="code">const card = `Name:   Asha
+Course: CSE326
+Marks:  92`;
+console.log(card);          // prints three lines, exactly as typed</pre>
+  <p>Exactly as typed means <i>exactly</i>: if you indent the second and third lines to make your code look neat, those spaces become part of the string too.</p>
+  <div class="callout warn"><b>Only backticks fill blanks.</b> <code>'Hello, ${firstName}!'</code> in single or double quotes is printed literally, dollar sign, braces and all: <code>Hello, ${firstName}!</code>. If <code>${ }</code> shows up on your screen, check the quote marks.</div>
+  <table class="tbl">
+    <thead><tr><th>Job</th><th>With <code>+</code></th><th>With a template literal</th></tr></thead>
+    <tbody>
+      <tr><td>Name with a space</td><td><code>firstName + " " + lastName</code></td><td><code>`${firstName} ${lastName}`</code></td></tr>
+      <tr><td>A number in a sentence</td><td><code>"Marks: " + marks</code></td><td><code>`Marks: ${marks}`</code></td></tr>
+      <tr><td>A sum in a sentence</td><td><code>"Total: " + (40 + 50)</code></td><td><code>`Total: ${40 + 50}`</code></td></tr>
+      <tr><td>Two lines</td><td><code>"Line 1\nLine 2"</code></td><td>Press Enter inside the backticks</td></tr>
+    </tbody>
+  </table>
+  <p>Which should you use? A template literal for anything with more than one piece; <code>+</code> is fine for joining two strings. Both give an ordinary string in the end: <code>typeof</code> says <code>"string"</code> either way. (There is also a <code>concat()</code> method, <code>"Aman".concat(" ", "Kumar")</code>, but almost nobody uses it.)</p>
+  <pre class="code" data-run data-title="Joining text - the slide's Aman Kumar example; put in your own name and marks" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  const firstName = "Aman";
+  const lastName = "Kumar";
+
+  // 1. Concatenation with +  (watch the space)
+  console.log(firstName + " " + lastName);
+  console.log(firstName + lastName);
+
+  // 2. A template literal: backticks and ${ }
+  const message = `Hello, ${firstName}!`;
+  console.log(message);
+
+  // 3. Any expression can go inside ${ }
+  const marks = 87;
+  console.log(`Marks: ${marks}/100, with 5 grace marks: ${marks + 5}`);
+
+  // 4. The number trap, and two ways out of it
+  console.log("Total: " + 40 + 50);
+  console.log("Total: " + (40 + 50));
+  console.log(`Total: ${40 + 50}`);
+
+  // 5. A template literal can span lines
+  const card = `Name:   ${firstName} ${lastName}
+Course: CSE326
+Marks:  ${marks}`;
+  console.log(card);
+&lt;/script&gt;</pre>
+  <p>You should see <code>Aman Kumar</code>, then <code>AmanKumar</code> (no space), <code>Hello, Aman!</code>, <code>Marks: 87/100, with 5 grace marks: 92</code>, then <code>Total: 4050</code> followed by <code>Total: 90</code> twice, and finally the three-line card.</p>
+</section>
+
+<section id="s3">
+  <h2>45.3 Length and characters: counting from zero</h2>
+  <p>A string is a row of characters in a fixed order, and every character has a position number called its <span class="jw" data-def="The position number of a character in a string. The first character is at index 0.">index</span>. Here is the rule that trips up every beginner: <b>the first character is at index 0, not 1.</b> The slide example:</p>
+  <pre class="code">const language = "JavaScript";
+console.log(language.length);       // 10
+console.log(language[0]);           // J
+console.log(language.charAt(4));    // S</pre>
+  <p><code>length</code> is a <span class="jw" data-def="A fact that a value carries with it, read with a dot and no brackets, such as word.length.">property</span>: a fact the string carries with it, read with a dot and <b>no brackets</b>. It counts every character, including spaces and punctuation, so <code>"Hi there!".length</code> is 9. Square brackets <code>language[0]</code> and the method <code>charAt(0)</code> both read the character at a given index.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 215" role="img" aria-label="The string JavaScript drawn as ten boxes, numbered 0 to 9 from the front and minus 10 to minus 1 from the end">
+      <text x="310" y="24" class="t c b mono">const language = "JavaScript";</text>
+      <text x="12" y="62" class="t s">index</text>
+      <text x="12" y="99" class="t s">character</text>
+      <text x="12" y="138" class="t s">from the end</text>
+      <rect x="110" y="72" width="44" height="44" rx="6" class="box saf"/>
+      <rect x="158" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="206" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="254" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="302" y="72" width="44" height="44" rx="6" class="box saf"/>
+      <rect x="350" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="398" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="446" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="494" y="72" width="44" height="44" rx="6" class="box"/>
+      <rect x="542" y="72" width="44" height="44" rx="6" class="box saf"/>
+      <text x="132" y="62" class="t c b">0</text><text x="180" y="62" class="t c b">1</text>
+      <text x="228" y="62" class="t c b">2</text><text x="276" y="62" class="t c b">3</text>
+      <text x="324" y="62" class="t c b">4</text><text x="372" y="62" class="t c b">5</text>
+      <text x="420" y="62" class="t c b">6</text><text x="468" y="62" class="t c b">7</text>
+      <text x="516" y="62" class="t c b">8</text><text x="564" y="62" class="t c b">9</text>
+      <text x="132" y="100" class="t c b mono" style="font-size:17px">J</text>
+      <text x="180" y="100" class="t c b mono" style="font-size:17px">a</text>
+      <text x="228" y="100" class="t c b mono" style="font-size:17px">v</text>
+      <text x="276" y="100" class="t c b mono" style="font-size:17px">a</text>
+      <text x="324" y="100" class="t c b mono" style="font-size:17px">S</text>
+      <text x="372" y="100" class="t c b mono" style="font-size:17px">c</text>
+      <text x="420" y="100" class="t c b mono" style="font-size:17px">r</text>
+      <text x="468" y="100" class="t c b mono" style="font-size:17px">i</text>
+      <text x="516" y="100" class="t c b mono" style="font-size:17px">p</text>
+      <text x="564" y="100" class="t c b mono" style="font-size:17px">t</text>
+      <text x="132" y="138" class="t c s">&#8722;10</text><text x="180" y="138" class="t c s">&#8722;9</text>
+      <text x="228" y="138" class="t c s">&#8722;8</text><text x="276" y="138" class="t c s">&#8722;7</text>
+      <text x="324" y="138" class="t c s">&#8722;6</text><text x="372" y="138" class="t c s">&#8722;5</text>
+      <text x="420" y="138" class="t c s">&#8722;4</text><text x="468" y="138" class="t c s">&#8722;3</text>
+      <text x="516" y="138" class="t c s">&#8722;2</text><text x="564" y="138" class="t c s">&#8722;1</text>
+      <text x="150" y="172" class="t c mono" style="font-size:12px">language[0] &#8594; "J"</text>
+      <text x="330" y="172" class="t c mono" style="font-size:12px">language.charAt(4) &#8594; "S"</text>
+      <text x="530" y="172" class="t c mono" style="font-size:12px">language.at(-1) &#8594; "t"</text>
+      <text x="310" y="202" class="t c s">length is 10, so the last index is 10 &#8722; 1 = 9</text>
+    </svg>
+    <figcaption><b>Figure 45.1</b> Ten characters, numbered 0 to 9 from the front. The last index is always one less than the length; counting from the back, <code>at(-1)</code> is the last character.</figcaption>
+  </figure>
+  <p>Because counting starts at 0, the last character of a 10-character string is at index 9. <b>The last index is always <code>length - 1</code></b>, which gives the classic way to read the last character:</p>
+  <pre class="code">console.log(language[language.length - 1]);    // t</pre>
+  <div class="plain"><p>Read an index as <i>"how many characters come before this one"</i>. Nothing comes before the first letter, so its index is 0. Nine letters come before the <i>t</i> in <i>JavaScript</i>, so its index is 9. A 10-letter word therefore has indexes 0 to 9, and index 10 does not exist.</p></div>
+  <p>Modern JavaScript has a neater way to read from the end: <code>at()</code>. For 0 and positive numbers it works like square brackets, but it also accepts <b>negative</b> numbers, which count backwards from the end: <code>at(-1)</code> is the last character, <code>at(-2)</code> the one before it.</p>
+  <table class="tbl">
+    <thead><tr><th>You write</th><th>For <code>"JavaScript"</code></th><th>Position that does not exist</th></tr></thead>
+    <tbody>
+      <tr><td><code>language[4]</code></td><td><code>"S"</code></td><td><code>undefined</code> &mdash; and <code>language[-1]</code> is <code>undefined</code> too: brackets never count from the end</td></tr>
+      <tr><td><code>language.charAt(4)</code></td><td><code>"S"</code></td><td><code>""</code> (an empty string)</td></tr>
+      <tr><td><code>language.at(4)</code>, <code>language.at(-1)</code></td><td><code>"S"</code>, <code>"t"</code></td><td><code>undefined</code></td></tr>
+    </tbody>
+  </table>
+  <p>One honest footnote: <code>length</code> counts the units JavaScript stores, not always the letters you see. For English text they are the same. An emoji such as &#128512; is stored as two units, so <code>"&#128512;".length</code> is 2, and words in Indian scripts often have more units than visible letters, because vowel signs are stored separately.</p>
+  <details class="qc"><summary>Quick check: in <code>"Rahul"</code>, what is the index of the last letter, and what does <code>"Rahul".at(-1)</code> give?</summary><p>Index <b>4</b>: the length is 5 and the last index is always length &minus; 1. <code>"Rahul".at(-1)</code> gives <code>"l"</code>, the last character.</p></details>
+  <pre class="code" data-run data-title="Counting from zero - change the word and run again" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  const language = "JavaScript";
+
+  console.log("length:", language.length);
+  console.log("[0]:", language[0]);
+  console.log("charAt(4):", language.charAt(4));
+  console.log("last, the long way:", language[language.length - 1]);
+  console.log("at(-1):", language.at(-1));
+  console.log("at(-6):", language.at(-6));
+
+  // asking for a position that does not exist
+  console.log("[10]:", language[10]);
+  console.log("[-1]:", language[-1]);
+  console.log("charAt(10): [" + language.charAt(10) + "]");
+&lt;/script&gt;</pre>
+  <p>The last line prints <code>charAt(10): []</code>: the square brackets around an empty string, with nothing between them. Change <code>"JavaScript"</code> to your own name and predict every line before you press Run again.</p>
+</section>
+
+<section id="s4">
+  <h2>45.4 Strings never change: methods hand back new ones</h2>
+  <p>A <span class="jw" data-def="An action a value knows how to do. You call it with a dot, its name and round brackets: word.toUpperCase().">method</span> is an action a value knows how to perform. You call it with a dot, its name and round brackets: <code>word.toUpperCase()</code>. Some methods need extra information inside the brackets &mdash; <code>"Hello".indexOf("l")</code> has to be told which character to look for. A value handed to a method like this is called an <b>argument</b>. The brackets are compulsory even when there is no argument: they are what makes the method run.</p>
+  <p>Here is the slide's tour of five methods. Run it, then look hard at the line that prints <code>text</code> again.</p>
+  <pre class="code" data-run data-title="The slide's five methods - and proof that the original never changes" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  const text = "  JavaScript Fundamentals  ";
+
+  // the [ ] around each result only make the spaces visible
+  console.log(`[${text.toUpperCase()}]`);
+  console.log(`[${text.toLowerCase()}]`);
+  console.log(`[${text.trim()}]`);
+  console.log(text.includes("Script"));
+  console.log("Hello".indexOf("l"));
+
+  // after all that, text is exactly what it was
+  console.log(`text is still [${text}]`);
+
+  // square brackets cannot change a character either
+  const word = "LPU";
+  word[0] = "X";
+  console.log(word);
+
+  // to keep a result, store it
+  const tidy = text.trim();
+  console.log("Stored:", tidy);
+&lt;/script&gt;</pre>
+  <p>The output is <code>[  JAVASCRIPT FUNDAMENTALS  ]</code>, <code>[  javascript fundamentals  ]</code>, <code>[JavaScript Fundamentals]</code>, <code>true</code>, <code>2</code>, then <code>text is still [  JavaScript Fundamentals  ]</code>, <code>LPU</code> and <code>Stored: JavaScript Fundamentals</code>.</p>
+  <p>Now the most important fact in this chapter. Strings are <span class="jw" data-def="Cannot be changed once it is made. You can only make a new one.">immutable</span>: once a string exists, nothing can change a single character inside it. Every method that <i>seems</i> to change a string &mdash; <code>toUpperCase</code>, <code>trim</code>, <code>replace</code>, <code>slice</code>, all of them &mdash; actually builds a <b>brand-new string</b> and returns it. The original is left exactly as it was.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 215" role="img" aria-label="toUpperCase makes a new string ASHA while name still holds asha; the new string is kept only if it is stored in a variable">
+      <rect x="20" y="45" width="90" height="40" rx="8" class="box gry"/>
+      <text x="65" y="70" class="t c b mono">name</text>
+      <path d="M110 65 L146 65" class="edge" marker-end="url(#arr)"/>
+      <rect x="150" y="35" width="150" height="60" rx="10" class="box saf"/>
+      <text x="225" y="62" class="t c b mono" style="font-size:16px">"asha"</text>
+      <text x="225" y="82" class="t c s">original, unchanged</text>
+      <path d="M300 65 L406 65" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="353" y="55" class="t c mono" style="font-size:12px">.toUpperCase()</text>
+      <rect x="410" y="35" width="150" height="60" rx="10" class="box grn"/>
+      <text x="485" y="62" class="t c b mono" style="font-size:16px">"ASHA"</text>
+      <text x="485" y="82" class="t c s">a brand-new string</text>
+      <path d="M450 95 L205 142" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M505 95 L480 142" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="40" y="145" width="260" height="56" rx="10" class="box red"/>
+      <text x="170" y="168" class="t c mono" style="font-size:12px">name.toUpperCase();</text>
+      <text x="170" y="189" class="t c s">made, then thrown away</text>
+      <rect x="320" y="145" width="280" height="56" rx="10" class="box grn"/>
+      <text x="460" y="168" class="t c mono" style="font-size:11.5px">const upper = name.toUpperCase();</text>
+      <text x="460" y="189" class="t c s">kept: upper now holds "ASHA"</text>
+    </svg>
+    <figcaption><b>Figure 45.2</b> A method never edits the string you call it on. It hands back a new one, and only a variable can keep it.</figcaption>
+  </figure>
+  <p>So a method call sitting alone on its own line does nothing useful:</p>
+  <pre class="code">const name = "asha";
+name.toUpperCase();               // makes "ASHA" ... and throws it away
+console.log(name);                // asha
+
+const upper = name.toUpperCase(); // catch the new string
+console.log(upper);               // ASHA</pre>
+  <p>If you want the <i>same</i> variable to hold the new version, it must be a <code>let</code>, and you put the new string into it:</p>
+  <pre class="code">let city = "  delhi ";
+city = city.trim();               // the box now holds a different string
+console.log(city);                // delhi</pre>
+  <p>That line does not change the string <code>"  delhi "</code>; it replaces what is in the box (Chapter 42). With <code>const city</code> the same line fails with <code>TypeError: Assignment to constant variable.</code> (Chrome's wording; other browsers phrase it differently).</p>
+  <div class="callout analogy"><b>Picture this.</b> The photocopy shop outside the LPU gate. You hand over your notes and ask for <i>"the same, but in capitals"</i>, or <i>"only page 4"</i>, or <i>"with every Rahul changed to Meera"</i>. The shopkeeper never writes on your notes. He makes a fresh copy with the change and hands it back, and your original goes back into your bag untouched. If you walk off without collecting the copy, the work is simply lost. String methods are that shopkeeper: they always hand you a new copy, and catching it is your job.</div>
+  <div class="plain"><p>A string method never edits; it copies with a change. Catch the copy in a variable, or it is gone. Square brackets cannot edit either: <code>word[0] = "X"</code> is quietly ignored in an ordinary script, and in strict mode (which JavaScript modules use) it stops with a <code>TypeError</code>.</p></div>
+  <details class="qc"><summary>Quick check: after <code>let city = "delhi"; city.toUpperCase();</code> what is in <code>city</code>?</summary><p>Still <code>"delhi"</code>. The capitals were made and thrown away. To keep them, write <code>city = city.toUpperCase();</code> &mdash; allowed because <code>city</code> is a <code>let</code>.</p></details>
+  <p>The rest of the chapter groups the methods by the job they do:</p>
+  <table class="tbl">
+    <thead><tr><th>Job</th><th>Methods</th><th>They return</th><th>Section</th></tr></thead>
+    <tbody>
+      <tr><td>Tidy</td><td><code>toUpperCase</code>, <code>toLowerCase</code>, <code>trim</code>, <code>trimStart</code>, <code>trimEnd</code></td><td>a new string</td><td>45.5</td></tr>
+      <tr><td>Search</td><td><code>includes</code>, <code>startsWith</code>, <code>endsWith</code>, <code>indexOf</code>, <code>lastIndexOf</code></td><td><code>true</code>/<code>false</code>, or a number</td><td>45.6</td></tr>
+      <tr><td>Cut</td><td><code>slice</code>, <code>substring</code></td><td>a new string</td><td>45.7</td></tr>
+      <tr><td>Reshape</td><td><code>replace</code>, <code>replaceAll</code>, <code>split</code>, <code>join</code>, <code>padStart</code>, <code>padEnd</code>, <code>repeat</code></td><td>a new string (<code>split</code> gives a list)</td><td>45.8</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s5">
+  <h2>45.5 Tidying: capital letters and stray spaces</h2>
+  <p>People type carelessly. They leave Caps Lock on, they paste text with a space at either end, they write <i>Asha@LPU.in</i> one day and <i>asha@lpu.in</i> the next. Before your program compares or stores text, it should tidy it.</p>
+  <h3>Changing case</h3>
+  <p><code>toUpperCase()</code> returns a copy with every letter in capitals; <code>toLowerCase()</code> returns one with every letter small. Digits, spaces and punctuation are left alone: <code>"Room 34-B".toLowerCase()</code> is <code>"room 34-b"</code>.</p>
+  <p>The main reason to change case is <b>comparing</b>. <code>===</code> compares strings character by character, and a capital letter is a different character from a small one, so <code>"LPU" === "lpu"</code> is <code>false</code>. To compare what someone typed with what you expect, lower-case it first:</p>
+  <pre class="code">const typed = "ASHA@lpu.in";
+console.log(typed === "asha@lpu.in");                  // false
+console.log(typed.toLowerCase() === "asha@lpu.in");    // true</pre>
+  <h3>Removing stray spaces</h3>
+  <p>Spaces, tabs and line breaks are together called <b>whitespace</b>: characters you cannot see but that are really there. <code>trim()</code> removes whitespace from <b>both ends</b> of a string; <code>trimStart()</code> only from the front; <code>trimEnd()</code> only from the back. None of them ever touches the spaces <i>between</i> words.</p>
+  <pre class="code">const raw = "   Asha Kumar   ";
+console.log(`[${raw.trim()}]`);         // [Asha Kumar]
+console.log(`[${raw.trimStart()}]`);    // [Asha Kumar   ]
+console.log(`[${raw.trimEnd()}]`);      // [   Asha Kumar]
+console.log(raw.length, raw.trim().length);   // 16 10</pre>
+  <p>Why it matters: a student registers as <code>"asha "</code> with a stray space from a copy-paste, later logs in as <code>"asha"</code>, and the site insists the account does not exist. The two strings differ by one invisible character.</p>
+  <div class="callout why"><b>Key idea.</b> Tidy first, then check. Almost every piece of text a user types should go through <code>trim()</code> &mdash; and, for emails and usernames, <code>toLowerCase()</code> &mdash; before your program compares it, searches it or saves it.</div>
+</section>
+
+<section id="s6">
+  <h2>45.6 Searching inside a string</h2>
+  <p>Three methods answer a yes-or-no question, so they return <code>true</code> or <code>false</code> (the booleans of Chapter 43):</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Asks</th><th>Example &rarr; result</th></tr></thead>
+    <tbody>
+      <tr><td><code>includes(x)</code></td><td>Is <code>x</code> anywhere inside?</td><td><code>"JavaScript".includes("Script")</code> &rarr; <code>true</code></td></tr>
+      <tr><td><code>startsWith(x)</code></td><td>Does it begin with <code>x</code>?</td><td><code>"JavaScript".startsWith("Java")</code> &rarr; <code>true</code></td></tr>
+      <tr><td><code>endsWith(x)</code></td><td>Does it finish with <code>x</code>?</td><td><code>"notes.pdf".endsWith(".pdf")</code> &rarr; <code>true</code></td></tr>
+    </tbody>
+  </table>
+  <pre class="code">const file = "report-final.pdf";
+console.log(file.includes("final"));      // true
+console.log(file.startsWith("report"));   // true
+console.log(file.endsWith(".pdf"));       // true
+console.log(file.endsWith(".PDF"));       // false - case matters</pre>
+  <p>Every search is <b>case-sensitive</b>. <code>"JavaScript".includes("script")</code> is <code>false</code>, because the string has a capital <i>S</i>. When case should not matter, lower-case first: <code>text.toLowerCase().includes("script")</code>.</p>
+  <h3>Where is it? indexOf and lastIndexOf</h3>
+  <p>The other two search methods answer <i>where</i>. <code>indexOf(x)</code> returns the index at which <code>x</code> first appears; <code>lastIndexOf(x)</code> returns where it last appears. When <code>x</code> is not there at all, both return <b><code>-1</code></b> &mdash; a number that can never be a real position, which makes it a safe way to say <i>"not found"</i>.</p>
+  <pre class="code">console.log("Hello".indexOf("l"));            // 2   (from the slides)
+console.log("Hello".lastIndexOf("l"));        // 3
+console.log("Hello".indexOf("z"));            // -1  not found
+console.log("Hello".indexOf("H"));            // 0   found, at the very start
+console.log("Asha Kumar".indexOf("Kumar"));   // 5   where the match begins</pre>
+  <div class="callout exam"><b>Exam tip.</b> <code>includes</code>, <code>startsWith</code> and <code>endsWith</code> return <code>true</code>/<code>false</code>; <code>indexOf</code> and <code>lastIndexOf</code> return a <b>number</b>. And <code>-1</code> means <i>not found</i>, while <code>0</code> means <i>found at the front</i> &mdash; do not mix them up.</div>
+  <p>Searching for a <i>kind</i> of text rather than exact text &mdash; "any digit", "ten digits in a row", "something that looks like an email" &mdash; needs regular expressions, which have a chapter of their own (Chapter 61).</p>
+</section>
+
+<section id="s7">
+  <h2>45.7 Cutting out a piece: slice and substring</h2>
+  <p><code>slice(start, end)</code> returns a copy of part of a string: the characters from index <code>start</code> up to, <b>but not including</b>, index <code>end</code>. Leave out <code>end</code> and it goes to the end of the string.</p>
+  <pre class="code">const language = "JavaScript";
+console.log(language.slice(0, 4));     // Java
+console.log(language.slice(4, 10));    // Script
+console.log(language.slice(4));        // Script - no end means "to the end"</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 205" role="img" aria-label="JavaScript with the gaps between letters numbered 0 to 10; slice 0 to 4 gives Java and slice 4 to 10 gives Script">
+      <text x="12" y="46" class="t s">cut at gap</text>
+      <text x="80" y="44" class="t c b">0</text><text x="126" y="44" class="t c b">1</text>
+      <text x="172" y="44" class="t c b">2</text><text x="218" y="44" class="t c b">3</text>
+      <text x="264" y="44" class="t c b">4</text><text x="310" y="44" class="t c b">5</text>
+      <text x="356" y="44" class="t c b">6</text><text x="402" y="44" class="t c b">7</text>
+      <text x="448" y="44" class="t c b">8</text><text x="494" y="44" class="t c b">9</text>
+      <text x="540" y="44" class="t c b">10</text>
+      <path d="M80 49 L80 59 M126 49 L126 59 M172 49 L172 59 M218 49 L218 59 M264 49 L264 59 M310 49 L310 59 M356 49 L356 59 M402 49 L402 59 M448 49 L448 59 M494 49 L494 59 M540 49 L540 59" class="edge"/>
+      <rect x="80" y="60" width="46" height="44" class="box saf"/>
+      <rect x="126" y="60" width="46" height="44" class="box saf"/>
+      <rect x="172" y="60" width="46" height="44" class="box saf"/>
+      <rect x="218" y="60" width="46" height="44" class="box saf"/>
+      <rect x="264" y="60" width="46" height="44" class="box grn"/>
+      <rect x="310" y="60" width="46" height="44" class="box grn"/>
+      <rect x="356" y="60" width="46" height="44" class="box grn"/>
+      <rect x="402" y="60" width="46" height="44" class="box grn"/>
+      <rect x="448" y="60" width="46" height="44" class="box grn"/>
+      <rect x="494" y="60" width="46" height="44" class="box grn"/>
+      <text x="103" y="89" class="t c b mono" style="font-size:17px">J</text>
+      <text x="149" y="89" class="t c b mono" style="font-size:17px">a</text>
+      <text x="195" y="89" class="t c b mono" style="font-size:17px">v</text>
+      <text x="241" y="89" class="t c b mono" style="font-size:17px">a</text>
+      <text x="287" y="89" class="t c b mono" style="font-size:17px">S</text>
+      <text x="333" y="89" class="t c b mono" style="font-size:17px">c</text>
+      <text x="379" y="89" class="t c b mono" style="font-size:17px">r</text>
+      <text x="425" y="89" class="t c b mono" style="font-size:17px">i</text>
+      <text x="471" y="89" class="t c b mono" style="font-size:17px">p</text>
+      <text x="517" y="89" class="t c b mono" style="font-size:17px">t</text>
+      <path d="M82 112 L82 120 L262 120 L262 112" class="edge saf"/>
+      <path d="M266 112 L266 120 L538 120 L538 112" class="edge grn"/>
+      <text x="172" y="143" class="t c mono" style="font-size:12px">slice(0, 4) &#8594; "Java"</text>
+      <text x="402" y="143" class="t c mono" style="font-size:12px">slice(4, 10) &#8594; "Script"</text>
+      <text x="310" y="170" class="t c s">slice(-6) starts at gap 10 &#8722; 6 = 4, so it also gives "Script"</text>
+      <text x="310" y="194" class="t c s">The end gap is a fence: slice(4, 10) keeps 10 &#8722; 4 = 6 characters</text>
+    </svg>
+    <figcaption><b>Figure 45.3</b> Number the gaps between the letters, not the letters. <code>slice(start, end)</code> cuts at two gaps and keeps what lies between them.</figcaption>
+  </figure>
+  <div class="plain"><p>Picture a knife and number the gaps between letters, starting with gap 0 before the first letter. <code>slice(4, 10)</code> cuts at gap 4 and at gap 10 and keeps what is between. That is why the end number is "not included", and why the number of characters you get is simply <b>end &minus; start</b>.</p></div>
+  <h3>Negative numbers count from the end</h3>
+  <p>Just as with <code>at()</code>, a negative number in <code>slice</code> counts from the end of the string. <code>slice(-4)</code> means <i>"the last four characters"</i> &mdash; very handy:</p>
+  <pre class="code">const phone = "9876543210";
+console.log(phone.slice(-4));            // 3210
+console.log(language.slice(-6, -3));     // Scr        (gaps 4 to 7)
+console.log(language.slice(0, -1));      // JavaScrip  (everything but the last)</pre>
+  <h3>substring: the older cousin</h3>
+  <p><code>substring(start, end)</code> does the same job as <code>slice</code> for ordinary positive numbers. It differs in two ways: negative numbers are treated as 0, and if <code>start</code> is bigger than <code>end</code> it quietly swaps them.</p>
+  <table class="tbl">
+    <thead><tr><th>Call on <code>"JavaScript"</code></th><th><code>slice</code> gives</th><th><code>substring</code> gives</th></tr></thead>
+    <tbody>
+      <tr><td><code>(4, 10)</code></td><td><code>"Script"</code></td><td><code>"Script"</code></td></tr>
+      <tr><td><code>(-3)</code></td><td><code>"ipt"</code> &mdash; the last three</td><td><code>"JavaScript"</code> &mdash; &minus;3 became 0</td></tr>
+      <tr><td><code>(5, 2)</code></td><td><code>""</code> &mdash; start is past end</td><td><code>"vaS"</code> &mdash; swapped to (2, 5)</td></tr>
+    </tbody>
+  </table>
+  <p>Use <code>slice</code>: it has one simple rule and its negative numbers do something useful. You may also meet <code>substr()</code> in old code; it is deprecated, so do not write it in new code.</p>
+  <details class="qc"><summary>Quick check: what does <code>"JavaScript".slice(0, 4)</code> return?</summary><p><code>"Java"</code> &mdash; the characters at indexes 0, 1, 2 and 3. Index 4 (the <i>S</i>) is the fence and is not included; 4 &minus; 0 = 4 characters.</p></details>
+  <p>Now search and cut together. Find the <code>@</code> in an email address with <code>indexOf</code>, then slice on either side of it:</p>
+  <pre class="code" data-run data-title="Search and cut - pull an email address apart" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  const typed = "  Asha.Kumar@LPU.in ";
+  // tidy first: trim, then lower-case (section 45.9 explains this chain)
+  const email = typed.trim().toLowerCase();
+  console.log("Clean:", email);
+
+  // yes-or-no questions
+  console.log("Has an @?", email.includes("@"));
+  console.log("An LPU address?", email.endsWith("@lpu.in"));
+
+  // where is the @ ?
+  const atPos = email.indexOf("@");
+  console.log("@ is at index", atPos);
+
+  // cut on either side of it
+  console.log("User:", email.slice(0, atPos));
+  console.log("Domain:", email.slice(atPos + 1));
+
+  // a negative number: slice counts from the end, substring treats it as 0
+  console.log("slice(-6):", email.slice(-6));
+  console.log("substring(-6):", email.substring(-6));
+&lt;/script&gt;</pre>
+  <p>Expected: <code>Clean: asha.kumar@lpu.in</code>, <code>Has an @? true</code>, <code>An LPU address? true</code>, <code>@ is at index 10</code>, <code>User: asha.kumar</code>, <code>Domain: lpu.in</code>, then <code>slice(-6): lpu.in</code> and <code>substring(-6): asha.kumar@lpu.in</code> &mdash; the whole address. Notice <code>atPos + 1</code>: the domain starts one place <i>after</i> the <code>@</code>.</p>
+</section>
+
+<section id="s8">
+  <h2>45.8 Reshaping: replace, split, join, pad and repeat</h2>
+  <h3>replace and replaceAll</h3>
+  <p><code>replace(old, new)</code> returns a copy in which the <b>first</b> match of <code>old</code> is swapped for <code>new</code>. Only the first. To swap <b>every</b> match, use <code>replaceAll</code>:</p>
+  <pre class="code">const s = "I like Java. Java is fun.";
+console.log(s.replace("Java", "JavaScript"));      // I like JavaScript. Java is fun.
+console.log(s.replaceAll("Java", "JavaScript"));   // I like JavaScript. JavaScript is fun.
+console.log(s);                                    // I like Java. Java is fun.  (unchanged)</pre>
+  <p>Both are case-sensitive, and both leave <code>s</code> alone. Replacing with an empty string deletes: <code>"98-765-43210".replaceAll("-", "")</code> gives <code>"9876543210"</code>. In older code you will see <code>replace(/Java/g, "JavaScript")</code> doing the job of <code>replaceAll</code>; the <code>/Java/g</code> part is a regular expression (Chapter 61).</p>
+
+  <h3>split: one string into a list of pieces</h3>
+  <p><code>split(separator)</code> cuts a string at every separator and returns the pieces as an <span class="jw" data-def="An ordered list of values written in square brackets, like ['29', '10', '2026']. Chapter 50 teaches arrays.">array</span> &mdash; an ordered list in square brackets. Arrays get a chapter of their own (Chapter 50); for now you need three facts: the Console shows one as <code>['29', '10', '2026']</code>, <code>.length</code> says how many pieces there are, and <code>parts[0]</code> is the first piece, counted from 0 just like characters.</p>
+  <pre class="code">const date = "29/10/2026";
+const parts = date.split("/");
+console.log(parts);              // ['29', '10', '2026']
+console.log(parts.length);       // 3
+console.log(parts[2]);           // 2026
+console.log("Asha".split(""));   // ['A', 's', 'h', 'a']   - "" splits into characters</pre>
+  <p>The separator itself disappears: the pieces of <code>"29/10/2026"</code> contain no slashes.</p>
+
+  <h3>join: a list back into one string</h3>
+  <p><code>join(separator)</code> is the reverse, and it belongs to the array, not the string. It glues the pieces into one string with the separator between them:</p>
+  <pre class="code">console.log(parts.join("-"));           // 29-10-2026
+console.log(["CSE", "326"].join(""));   // CSE326
+console.log(parts.join());              // 29,10,2026   - no separator means commas</pre>
+  <p>A <code>split</code> followed by a <code>join</code> swaps one separator for another: <code>date.split("/").join("-")</code> and <code>date.replaceAll("/", "-")</code> both give <code>"29-10-2026"</code>.</p>
+
+  <h3>padStart, padEnd and repeat</h3>
+  <p><code>padStart(targetLength, padText)</code> adds <code>padText</code> to the front until the string is <code>targetLength</code> characters long; <code>padEnd</code> adds it to the back. The first number is the length you want to <b>end up with</b>, not how many characters to add. Leave out the second argument and it pads with spaces.</p>
+  <pre class="code">console.log("7".padStart(3, "0"));            // 007
+console.log("42".padStart(3, "0"));           // 042
+console.log("123".padStart(3, "0"));          // 123   - already 3 long, nothing added
+console.log(String(9).padStart(2, "0") + ":05");   // 09:05
+console.log("Asha".padEnd(8, ".") + "92");    // Asha....92</pre>
+  <p><code>padStart</code> is a string method, so a number must become a string first: <code>String(7).padStart(3, "0")</code>. Writing <code>(7).padStart(3, "0")</code> fails, because numbers do not have this method.</p>
+  <p><code>repeat(n)</code> returns the string written <code>n</code> times in a row; <code>repeat(0)</code> gives the empty string.</p>
+  <pre class="code">console.log("-".repeat(20));              // --------------------
+console.log("ha".repeat(3));              // hahaha
+console.log("&#9733;".repeat(4) + "&#9734;");          // &#9733;&#9733;&#9733;&#9733;&#9734;</pre>
+  <pre class="code" data-run data-title="Reshape - replace, split, join, pad and repeat build a small report" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  pre { background: #F1F5F9; padding: 10px 12px; border-radius: 8px; font-size: 15px; }
+&lt;/style&gt;
+&lt;b&gt;The report, written onto the page:&lt;/b&gt;
+&lt;pre id="out"&gt;&lt;/pre&gt;
+&lt;script&gt;
+  const s = "I like Java. Java is fun.";
+  console.log(s.replace("Java", "JavaScript"));
+  console.log(s.replaceAll("Java", "JavaScript"));
+
+  const date = "29/10/2026";
+  const parts = date.split("/");
+  console.log(parts);
+  console.log(parts.join("-"));
+  console.log(date.replaceAll("/", "-"));
+
+  const roll = 7;
+  console.log("LPU" + String(roll).padStart(4, "0"));
+
+  // padEnd + padStart line the marks up in neat columns
+  const line = "=".repeat(16);
+  const report =
+    line + "\n" +
+    "Asha".padEnd(12, ".") + "92".padStart(4) + "\n" +
+    "Rahul".padEnd(12, ".") + "78".padStart(4) + "\n" +
+    "Meera".padEnd(12, ".") + "100".padStart(4) + "\n" +
+    line + "\n" +
+    "Rating: " + "&#9733;".repeat(4) + "&#9734;";
+  console.log(report);
+  document.getElementById("out").textContent = report;
+&lt;/script&gt;</pre>
+  <p>Every row of the report is exactly 16 characters wide &mdash; 12 for the padded name, 4 for the padded mark &mdash; so the marks line up on the right, both on the page and in the Console. Change <code>"Rahul"</code> to <code>"Ravi"</code> and the dots grow to keep the column straight.</p>
+</section>
+
+<section id="s9">
+  <h2>45.9 Chaining methods: four everyday jobs</h2>
+  <p>Because a string method returns a string, you can call another method straight on the result, then another on that. Calling methods one after another like this is called <b>chaining</b>, and it reads left to right like the steps of a recipe:</p>
+  <pre class="code">const tag = "  web dev  ".trim().toUpperCase().replace(" ", "_");
+console.log(tag);     // WEB_DEV</pre>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th>Value after the step</th></tr></thead>
+    <tbody>
+      <tr><td>start</td><td><code>"  web dev  "</code></td></tr>
+      <tr><td><code>.trim()</code></td><td><code>"web dev"</code></td></tr>
+      <tr><td><code>.toUpperCase()</code></td><td><code>"WEB DEV"</code></td></tr>
+      <tr><td><code>.replace(" ", "_")</code></td><td><code>"WEB_DEV"</code></td></tr>
+    </tbody>
+  </table>
+  <p>A long chain is easier to read with one call per line. JavaScript does not mind the line breaks, because the dot at the start of each line shows the chain continues:</p>
+  <pre class="code">const slug = title
+  .trim()
+  .toLowerCase()
+  .replaceAll(" ", "-");</pre>
+  <p>A chain of <i>string</i> methods continues only while each step returns a string. <code>includes</code>, <code>startsWith</code> and <code>indexOf</code> return a boolean or a number, so they end a chain: <code>"Asha".includes("sh").toUpperCase()</code> fails with a <code>TypeError</code>, because <code>true</code> has no <code>toUpperCase</code> method. <code>split</code> returns an array, which has methods of its own &mdash; that is why <code>split(...).join(...)</code> works.</p>
+  <p>Here are four small jobs that real websites do every day, each one a short chain.</p>
+  <h3>Job 1: format a name typed carelessly</h3>
+  <p>Someone types <code>"  aSHA kUMAR "</code>. Tidy it, lower-case it, split it into the two words, and give each word a capital first letter: the first character upper-cased, joined to the rest of the word.</p>
+  <pre class="code">const parts = "  aSHA kUMAR ".trim().toLowerCase().split(" ");  // ['asha', 'kumar']
+const first = parts[0][0].toUpperCase() + parts[0].slice(1);     // "A" + "sha"
+const last = parts[1][0].toUpperCase() + parts[1].slice(1);      // "K" + "umar"
+console.log(`${first} ${last}`);                                 // Asha Kumar</pre>
+  <p><code>parts[0][0]</code> reads the first <i>piece</i>, then the first <i>character</i> of that piece. The two nearly identical lines are a sign that a function would help; Chapter 48 shows how, and Chapter 53 handles names with any number of words.</p>
+  <h3>Job 2: mask a phone number</h3>
+  <p>Show only the last four digits, as banks and delivery apps do. Two ways, same answer:</p>
+  <pre class="code">const phone = "9876543210";
+console.log(phone.slice(-4).padStart(phone.length, "*"));     // ******3210
+console.log("*".repeat(phone.length - 4) + phone.slice(-4));  // ******3210</pre>
+  <h3>Job 3: count the words in a sentence</h3>
+  <p>Trim the ends, split at each space, and count the pieces:</p>
+  <pre class="code">const sentence = "  Web pages are made of text  ";
+console.log(sentence.trim().split(" ").length);    // 6</pre>
+  <div class="callout warn"><b>Where this breaks.</b> Two spaces between words make an empty piece. Split <i>Web</i>, two spaces, <i>pages</i> at every single space and you get <code>['Web', '', 'pages']</code>: the empty string between the two spaces counts as a third word. This is also why the <code>trim()</code> matters &mdash; a space at either end would add an empty piece too. Splitting on <i>"one or more spaces"</i> needs a regular expression, <code>split(/\s+/)</code>, from Chapter 61.</div>
+  <h3>Job 4: make a URL slug</h3>
+  <p>A <b>slug</b> is the readable part of a web address made from a title, like <code>lpu.in/blog/strings-and-string-methods-in-js</code>. A web address cannot hold a plain space (the browser would turn it into an ugly <code>%20</code>), and small letters avoid confusion, so:</p>
+  <pre class="code">const title = "  Strings &amp; String Methods in JS  ";
+const slug = title.trim().toLowerCase()
+  .replaceAll(" &amp; ", " and ")
+  .replaceAll(" ", "-");
+console.log(slug);      // strings-and-string-methods-in-js</pre>
+  <p>Now all four together, plus a live box: type any title into it and watch the slug being rebuilt with every key you press.</p>
+  <pre class="code" data-run data-title="Build it: four everyday text jobs, and a live slug maker" data-h="330" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  pre { background: #F1F5F9; padding: 10px 12px; border-radius: 8px; margin: 4px 0 14px; }
+  label { font-weight: 700; display: block; margin-bottom: 4px; }
+  input { width: 100%; box-sizing: border-box; padding: 8px 10px; font-size: 15px;
+          border: 1px solid #94A3B8; border-radius: 8px; }
+  code { background: #FFF1E0; padding: 1px 5px; border-radius: 4px; }
+&lt;/style&gt;
+&lt;b&gt;Four jobs, done with string methods:&lt;/b&gt;
+&lt;pre id="jobs"&gt;&lt;/pre&gt;
+&lt;label for="title"&gt;Live: type any title&lt;/label&gt;
+&lt;input id="title" value="  Strings &amp; String Methods in JS  "&gt;
+&lt;p&gt;Slug: &lt;code id="slug"&gt;&lt;/code&gt;&lt;/p&gt;
+&lt;p&gt;Characters after trim: &lt;b id="count"&gt;&lt;/b&gt;&lt;/p&gt;
+&lt;script&gt;
+  // 1. Format a name typed carelessly
+  const parts = "  aSHA kUMAR ".trim().toLowerCase().split(" ");
+  const first = parts[0][0].toUpperCase() + parts[0].slice(1);
+  const last = parts[1][0].toUpperCase() + parts[1].slice(1);
+  const fullName = `${first} ${last}`;
+  console.log("1. Name:", fullName);
+
+  // 2. Mask a phone number: keep only the last four digits
+  const phone = "9876543210";
+  const masked = phone.slice(-4).padStart(phone.length, "*");
+  console.log("2. Phone:", masked);
+
+  // 3. Count the words in a sentence
+  const sentence = "  Web pages are made of text  ";
+  const words = sentence.trim().split(" ").length;
+  console.log("3. Words:", words);
+
+  // 4. Make a URL slug from a title
+  const title = "  Strings &amp; String Methods in JS  ";
+  const slug = title.trim().toLowerCase()
+    .replaceAll(" &amp; ", " and ")
+    .replaceAll(" ", "-");
+  console.log("4. Slug:", slug);
+
+  document.getElementById("jobs").textContent =
+    `1. ${fullName}\n2. ${masked}\n3. ${words} words\n4. ${slug}`;
+
+  // The live box. "() =&gt; { ... }" is a function (Chapter 48) and
+  // addEventListener runs it on every key press (Chapter 57).
+  // For now, read only the string lines inside it.
+  const box = document.getElementById("title");
+  const update = () =&gt; {
+    const tidy = box.value.trim();
+    document.getElementById("slug").textContent =
+      tidy.toLowerCase().replaceAll(" &amp; ", " and ").replaceAll(" ", "-");
+    document.getElementById("count").textContent = tidy.length;
+  };
+  update();
+  box.addEventListener("input", update);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>1. Name: Asha Kumar</code>, <code>2. Phone: ******3210</code>, <code>3. Words: 6</code> and <code>4. Slug: strings-and-string-methods-in-js</code>, and the live box starts at 30 characters. Type a title with two spaces in a row and you will see <code>--</code> in the slug: the same weakness as Job 3, and the same cure in Chapter 61.</p>
+</section>
+
+<section id="mistakes">
+  <h2>45.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>name.toUpperCase()</code> turns <code>name</code> into capitals."</b><br>Strings are immutable. The method builds a new string and, if nothing catches it, the new string is lost.</div>
+    <div class="r"><b>&#10003; "<code>const upper = name.toUpperCase();</code>"</b><br>Store the returned string &mdash; or, with a <code>let</code>, put it back: <code>name = name.toUpperCase();</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The first character is at position 1."</b><br>That is how people count, not how JavaScript does. <code>"Asha"[1]</code> is <code>"s"</code>.</div>
+    <div class="r"><b>&#10003; "The first character is at index 0; the last is at <code>length - 1</code>."</b><br>Or use <code>at(-1)</code> for the last one.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>replace()</code> changes every match."</b><br>It changes only the first: <code>"banana".replace("a", "o")</code> is <code>"bonana"</code>.</div>
+    <div class="r"><b>&#10003; "<code>replaceAll()</code> changes every match."</b><br><code>"banana".replaceAll("a", "o")</code> is <code>"bonono"</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>slice(2, 5)</code> gives the characters at 2, 3, 4 and 5."</b><br>The end index is a fence and is never included.</div>
+    <div class="r"><b>&#10003; "<code>slice(2, 5)</code> gives indexes 2, 3 and 4 &mdash; 5 &minus; 2 = 3 characters."</b><br><code>"JavaScript".slice(2, 5)</code> is <code>"vaS"</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>word.length()</code> gives the length."</b><br>It stops with <code>TypeError: word.length is not a function</code>.</div>
+    <div class="r"><b>&#10003; "<code>length</code> is a property: <code>word.length</code>, no brackets."</b><br>Methods have brackets (<code>trim()</code>); properties do not.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>'Hello, ${name}'</code> fills in the name."</b><br>In single or double quotes, <code>${name}</code> is printed as it stands.</div>
+    <div class="r"><b>&#10003; "Only backticks fill blanks: <code>`Hello, ${name}`</code>."</b><br>If you see <code>${</code> on the screen, check the quote marks.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most are four-option questions with exactly one correct answer; the last few ask you to predict the output.</p>
+  <details class="q"><summary>Which of these is NOT a valid string in JavaScript?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 'Hello'</li><li>B. "Hello"</li><li>C. `Hello`</li><li>D. "Hello'</li></ul>
+    <p><b>Answer: D.</b> The opening and closing quote marks must be the same kind. Single quotes, double quotes and backticks are all valid on their own; mixing them on one string is a <code>SyntaxError</code>.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const firstName = "Asha"; console.log('Hi, ${firstName}!');</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Hi, ${firstName}!</li><li>B. Hi, Asha!</li><li>C. Hi, firstName!</li><li>D. A SyntaxError</li></ul>
+    <p><b>Answer: A.</b> <code>${ }</code> is filled in only inside backticks. In single quotes it is ordinary text, so it is printed exactly as written. B is what the backtick version would print.</p></div></details>
+  <details class="q"><summary>What is the value of <code>"JavaScript".length</code>?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 9</li><li>B. 11</li><li>C. 10</li><li>D. undefined</li></ul>
+    <p><b>Answer: C.</b> Ten characters. The tempting 9 is the index of the <i>last</i> character, because indexes start at 0: last index = length &minus; 1.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const s = "Hello"; s.toUpperCase(); console.log(s);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. HELLO</li><li>B. Hello</li><li>C. hello</li><li>D. undefined</li></ul>
+    <p><b>Answer: B.</b> Strings are immutable. <code>toUpperCase()</code> returned a new string <code>"HELLO"</code>, but nothing stored it, and <code>s</code> was never changed.</p></div></details>
+  <details class="q"><summary>What does <code>"Hello".indexOf("l")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 1</li><li>B. 3</li><li>C. -1</li><li>D. 2</li></ul>
+    <p><b>Answer: D.</b> H is 0, e is 1, the first l is 2. <code>indexOf</code> reports the <i>first</i> match; 3 is what <code>lastIndexOf("l")</code> would give, and &minus;1 would mean not found.</p></div></details>
+  <details class="q"><summary>What does <code>"banana".replace("a", "o")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. "bonono"</li><li>B. "banano"</li><li>C. "bonana"</li><li>D. "banana"</li></ul>
+    <p><b>Answer: C.</b> <code>replace</code> swaps only the first match. A is what <code>replaceAll</code> gives; D would be the original, which is indeed unchanged &mdash; but the question asks what the method <i>returns</i>.</p></div></details>
+  <details class="q"><summary>What does <code>"JavaScript".slice(-6)</code> return?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. "Script"</li><li>B. "JavaSc"</li><li>C. "tpircS"</li><li>D. "Scrip"</li></ul>
+    <p><b>Answer: A.</b> A negative start counts from the end: &minus;6 means 10 &minus; 6 = index 4, and with no end it runs to the end of the string. B is <code>slice(0, 6)</code>; slice never reverses anything.</p></div></details>
+  <details class="q"><summary>Which of these methods returns a number rather than true or false?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. includes()</li><li>B. indexOf()</li><li>C. endsWith()</li><li>D. startsWith()</li></ul>
+    <p><b>Answer: B.</b> <code>indexOf</code> returns the position of the first match, or &minus;1 when there is none. The other three answer a yes-or-no question with a boolean.</p></div></details>
+  <details class="q"><summary>What does <code>"red,green,blue".split(",")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The string "red green blue"</li><li>B. The number 3</li><li>C. An array of three strings: ['red', 'green', 'blue']</li><li>D. An array holding one string: ['red,green,blue']</li></ul>
+    <p><b>Answer: C.</b> <code>split</code> cuts at every comma and returns the pieces as an array; the commas themselves disappear. Its <code>.length</code> would be 3, but <code>split</code> itself returns the array. D is what <code>split</code> gives when the separator is not found.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const word = "LPU"; word[0] = "X"; console.log(word);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. LPU</li><li>B. XPU</li><li>C. X</li><li>D. A TypeError, in every kind of script</li></ul>
+    <p><b>Answer: A.</b> A string's characters cannot be changed, so the assignment is quietly ignored in an ordinary script. (In strict mode, which modules use, it would stop with a <code>TypeError</code> instead &mdash; but it never produces <code>XPU</code>.)</p></div></details>
+  <details class="q"><summary>Predict both lines: <code>console.log("Total: " + 40 + 50); console.log(`Total: ${40 + 50}`);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>Total: 4050</code>, then <code>Total: 90</code>.</b> In the first line JavaScript works left to right: <code>"Total: " + 40</code> is the string <code>"Total: 40"</code>, and adding <code>50</code> to a string joins it. In the template literal, <code>40 + 50</code> is worked out first as a number sum, then dropped into the text.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>const phone = "9876543210"; console.log(phone.slice(-4).padStart(phone.length, "*"));</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>******3210</code>.</b> <code>slice(-4)</code> gives the last four characters, <code>"3210"</code>. <code>padStart(10, "*")</code> then adds stars to the front until the string is 10 long: six stars. The first argument of <code>padStart</code> is the target length, not the number of stars.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A string is text in quotes: <code>'...'</code>, <code>"..."</code> or <code>`...`</code>. The quotes are not part of the text. Use the other kind of quote, or a backslash escape (<code>\'</code> <code>\"</code> <code>\\</code> <code>\n</code> <code>\t</code>), when the text needs them.</li>
+    <li>A template literal (backticks) fills <code>${ }</code> with any expression and can span lines. With <code>+</code>, once a string appears everything after it joins: <code>"Total: " + 40 + 50</code> is <code>"Total: 4050"</code>.</li>
+    <li>Characters are numbered from 0. <code>length</code> (a property, no brackets) counts them; the last is at <code>length - 1</code> or <code>at(-1)</code>.</li>
+    <li>Strings are immutable. Every method returns a <b>new</b> string; store it or lose it.</li>
+    <li>Tidy before you compare: <code>trim()</code> for stray spaces, <code>toLowerCase()</code> because <code>===</code> and every search are case-sensitive.</li>
+    <li><code>includes</code>, <code>startsWith</code>, <code>endsWith</code> return true/false; <code>indexOf</code> and <code>lastIndexOf</code> return a position, or &minus;1 for not found.</li>
+    <li><code>slice(start, end)</code> leaves out the end index and accepts negatives. <code>replace</code> changes the first match, <code>replaceAll</code> every one. <code>split</code> makes an array; <code>join</code> makes a string. <code>padStart</code>/<code>padEnd</code> pad to a target length; <code>repeat(n)</code> repeats.</li>
+    <li>Chain methods left to right while each step still returns a string.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>`Hi, ${firstName}!`</code></td><td><code>"Hi, Asha!"</code> when <code>firstName</code> is <code>"Asha"</code></td></tr>
+      <tr><td><code>"JavaScript".length</code></td><td><code>10</code></td></tr>
+      <tr><td><code>"JavaScript"[0]</code></td><td><code>"J"</code></td></tr>
+      <tr><td><code>"JavaScript".charAt(4)</code></td><td><code>"S"</code></td></tr>
+      <tr><td><code>"JavaScript".at(-1)</code></td><td><code>"t"</code></td></tr>
+      <tr><td><code>"Asha".toUpperCase()</code></td><td><code>"ASHA"</code></td></tr>
+      <tr><td><code>"  hi  ".trim()</code></td><td><code>"hi"</code> (<code>trimStart</code>/<code>trimEnd</code>: one side only)</td></tr>
+      <tr><td><code>"Hello".includes("ell")</code></td><td><code>true</code></td></tr>
+      <tr><td><code>"notes.pdf".endsWith(".pdf")</code></td><td><code>true</code> (also <code>startsWith</code>)</td></tr>
+      <tr><td><code>"Hello".indexOf("l")</code></td><td><code>2</code> (&minus;1 if not found)</td></tr>
+      <tr><td><code>"Hello".lastIndexOf("l")</code></td><td><code>3</code></td></tr>
+      <tr><td><code>"JavaScript".slice(0, 4)</code></td><td><code>"Java"</code></td></tr>
+      <tr><td><code>"JavaScript".slice(-6)</code></td><td><code>"Script"</code></td></tr>
+      <tr><td><code>"banana".replace("a", "o")</code></td><td><code>"bonana"</code></td></tr>
+      <tr><td><code>"banana".replaceAll("a", "o")</code></td><td><code>"bonono"</code></td></tr>
+      <tr><td><code>"a,b,c".split(",")</code></td><td><code>['a', 'b', 'c']</code></td></tr>
+      <tr><td><code>["29", "10"].join("-")</code></td><td><code>"29-10"</code></td></tr>
+      <tr><td><code>"7".padStart(3, "0")</code></td><td><code>"007"</code></td></tr>
+      <tr><td><code>"ab".repeat(3)</code></td><td><code>"ababab"</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/String" target="_blank" rel="noopener noreferrer">MDN &mdash; String<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every string method in one list, each with a small live example you can edit.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals" target="_blank" rel="noopener noreferrer">MDN &mdash; Template literals<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Backticks, <code>${ }</code> and multi-line strings, with the escape rules spelled out.</span></li>
+    <li><a href="https://javascript.info/string" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Strings<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a friendly second voice, with small tasks and worked solutions at the end.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

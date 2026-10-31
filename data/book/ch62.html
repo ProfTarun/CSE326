@@ -1,0 +1,696 @@
+<article class="chapter" data-ch="62">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 62 &middot; Date and Time Handling</p>
+  <h1>Date and Time Handling</h1>
+  <p class="lead">An exam timetable, a library due date, a countdown to results, a clock in the corner of the screen: dates and times are on almost every useful page. JavaScript stores each moment as one large number and gives you the <code>Date</code> object to make, read, change, compare and display it. This chapter teaches all five, and the few traps &mdash; a month counted from zero, a date string that quietly means midnight at Greenwich &mdash; that catch nearly everyone once.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>Math.round</code>, <code>Math.floor</code> and <code>Math.ceil</code> round to the nearest, down and up; <code>NaN</code> is the number that means "not a valid number" (<a href="book.html?ch=46">Chapter 46</a>).</li>
+      <li>Arrays count from 0, so the first item of <code>days</code> is <code>days[0]</code> (<a href="book.html?ch=50">Chapter 50</a>).</li>
+      <li><code>new</code> builds an object from a constructor, and <code>const b = a;</code> gives the same object a second name instead of copying it (<a href="book.html?ch=51">Chapter 51</a>).</li>
+      <li><code>setInterval(fn, 1000)</code> calls <code>fn</code> every 1000 milliseconds until <code>clearInterval(id)</code> stops it (<a href="book.html?ch=54">Chapter 54</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what a timestamp is, and create a date for now, from a timestamp, from ISO text and from parts &mdash; remembering that months count from 0.</li>
+      <li>Read a date's parts with the getters, and turn month and weekday numbers into names.</li>
+      <li>Change a date with the setters, add days safely across month ends, and copy a date before changing it.</li>
+      <li>Work out the days between two dates, a countdown and a person's age.</li>
+      <li>Display dates and times for Indian readers with <code>toLocaleDateString</code>, <code>toLocaleTimeString</code>, the <code>"en-IN"</code> locale, options and <code>Intl.DateTimeFormat</code>.</li>
+      <li>Build a live clock with a greeting that depends on the time of day.</li>
+      <li>Explain why Indian times show <code>+05:30</code>, and avoid the classic date traps.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>62.1 One moment, one number</h2>
+  <p>Your lecture slide says it in one line: JavaScript's <code>Date</code> object represents <b>a specific point in time</b>. Not a day, not a page of a calendar &mdash; one exact moment, such as "the instant the CSE326 exam begins".</p>
+  <p>How does a computer hold a moment? The way it holds everything: as a number. JavaScript picked one fixed starting moment, midnight at the start of <b>1 January 1970</b> in <span class="jw" data-def="Coordinated Universal Time: the world's reference clock, the time at 0&deg; longitude (Greenwich, London). Every time zone is written as UTC plus or minus some hours.">UTC</span>, and called it the <span class="jw" data-def="The fixed starting moment that computer clocks count from: midnight UTC at the start of 1 January 1970.">epoch</span>. Every other moment is stored as <b>the number of milliseconds since the epoch</b>. A millisecond is a thousandth of a second, so one second is 1000, one day is 86,400,000, and the moment the exam starts &mdash; 9:30 am in India on Friday 20 November 2026 &mdash; is <b>1,795,147,200,000</b>.</p>
+  <p>A moment written as that one number is called a <span class="jw" data-def="A moment written as one number: the milliseconds since 1 January 1970 UTC. A bigger number means a later moment.">timestamp</span>. <code>Date.now()</code> gives you the timestamp of this very instant:</p>
+  <pre class="code">console.log(Date.now());   // a 13-digit number that grows by 1000 every second</pre>
+  <p>Why store a moment as a plain count? Because counts are easy to work with. A later moment is simply a bigger number, so comparing two dates means comparing two numbers, and the time between them is one subtraction. Moments before 1970 are negative numbers, and nothing else changes.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 200" role="img" aria-label="A timeline starting at the epoch, 1 January 1970 00:00 UTC, which is 0 milliseconds. 1 January 2000 is 946684800000 milliseconds. The exam moment, 9:30 am in India on 20 November 2026, is 1795147200000 milliseconds.">
+      <path d="M20 100 L622 100" class="edge" marker-end="url(#arr)"/>
+      <circle cx="100" cy="100" r="7" class="box gry"/>
+      <text x="100" y="60" class="t c b">1 Jan 1970, 00:00 UTC</text>
+      <text x="100" y="78" class="t c s">the epoch</text>
+      <text x="100" y="128" class="t c b mono">0</text>
+      <text x="100" y="144" class="t c s">milliseconds</text>
+      <circle cx="322" cy="100" r="6" class="box gry"/>
+      <text x="322" y="60" class="t c">1 Jan 2000, 00:00 UTC</text>
+      <text x="322" y="128" class="t c mono">946684800000</text>
+      <circle cx="520" cy="100" r="8" class="box saf"/>
+      <text x="520" y="60" class="t c b">Fri 20 Nov 2026, 9:30 am IST</text>
+      <text x="520" y="78" class="t c s">(4:00 am UTC)</text>
+      <text x="520" y="128" class="t c b mono">1795147200000</text>
+      <text x="520" y="144" class="t c s">milliseconds since the epoch</text>
+      <path d="M100 166 L510 166" class="edge dash" marker-end="url(#arr)"/>
+      <text x="305" y="188" class="t c s">the timestamp: how far along the line the moment is</text>
+    </svg>
+    <figcaption><b>Figure 62.1</b> Every moment is a distance along one line, measured in milliseconds from the epoch. A later moment is always a bigger number.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Inside, every date is just one number: how many thousandths of a second have passed since the start of 1970. Everything else &mdash; the year, the month, "9:30 am", "Friday" &mdash; is worked out from that number when you ask for it.</p>
+  </div>
+  <div class="callout analogy"><b>Picture this.</b> On a November afternoon, the first ball of a cricket final is bowled. A fan in Mumbai glances at her watch: 2:00 pm. A fan in Dubai sees 12:30 pm, and one in London sees 8:30 am. Nobody disagrees about <i>when</i> the ball was bowled; each of them is reading the same moment off a different clock. A <code>Date</code> is that moment. Ask it for the hour and it reads the moment off <i>your computer's</i> clock &mdash; section 62.8 shows how to read it off someone else's.</div>
+  <details class="qc"><summary>Quick check: which is the later moment, 1795147200000 or 1700000000000?</summary><p><code>1795147200000</code>. A timestamp only grows as time passes, so the bigger number is always the later moment. (The first is the exam; the second was a day in November 2023.)</p></details>
+</section>
+
+<section id="s2">
+  <h2>62.2 Making a date: new Date, four ways</h2>
+  <p><code>Date</code> is a constructor built into JavaScript, so you make one with <code>new</code>, just as you made books with <code>new Book(...)</code> in Chapter 51. What you put in the brackets decides which moment you get:</p>
+  <table class="tbl">
+    <thead><tr><th>You write</th><th>You get</th></tr></thead>
+    <tbody>
+      <tr><td><code>new Date()</code></td><td>This moment, read from the computer's clock</td></tr>
+      <tr><td><code>new Date(0)</code></td><td>The moment that many milliseconds after the epoch. <code>0</code> is the epoch itself; <code>new Date(position.timestamp)</code> turns a location reading into a date (Chapter 66)</td></tr>
+      <tr><td><code>new Date("2026-11-20T09:30")</code></td><td>The moment written as text</td></tr>
+      <tr><td><code>new Date(2026, 10, 20, 9, 30)</code></td><td>The moment built from parts: year, month, day, hours, minutes (seconds and milliseconds may follow)</td></tr>
+    </tbody>
+  </table>
+  <p>The text must follow the <span class="jw" data-def="The international standard way to write a date: year, month, day, biggest first, as 2026-11-20, with an optional T and a time such as T09:30.">ISO 8601</span> pattern: <code>YYYY-MM-DD</code>, biggest unit first, then if you like a <code>T</code> and the time as <code>HH:MM</code>. It is the one text format every browser reads in the same way. Other ways of writing a date are guesswork, and section 62.9 shows what Chrome makes of <code>"20/11/2026"</code>.</p>
+  <h3>The month that starts at zero</h3>
+  <p>Now look hard at the parts form. The exam is in November, the eleventh month, yet the code says <b>10</b>. In the parts form, <b>months are counted from 0</b>: January is 0, February is 1 and December is 11. The day, the hours and the minutes are counted the ordinary way. This is the most famous trap in JavaScript dates, and it has a reason: the month number was designed to be used as a position in an array of month names, and array positions start at 0 (62.3 shows it).</p>
+  <div class="callout warn"><b>Wrong on purpose.</b> <code>new Date(2026, 11, 20)</code> is <b>20 December</b>, not 20 November. And <code>new Date(2026, 12, 1)</code> is not an error: month 12 is "one past December", so you get 1 January 2027. In the text form, by contrast, months are written normally: <code>"2026-11-20"</code> is November.</div>
+  <div class="plain">
+    <p>When you build a date from numbers, take one off the month: January is 0, December is 11. When you write a date as text, write the month as people do. Everything else is normal in both.</p>
+  </div>
+  <p>If the browser cannot understand what you gave it, you still get a Date object, but an empty one. It prints as <code>Invalid Date</code>, and its number is <code>NaN</code> (Chapter 46). Before trusting a date that came from a user, check it with <code>Number.isNaN(d.getTime())</code>.</p>
+  <pre class="code" data-run data-title="Four ways to make a date - then try new Date(2026, 11, 20)" data-h="150">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } &lt;/style&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const now = new Date();                        // 1. this moment
+  const epoch = new Date(0);                     // 2. 0 ms after the epoch
+  const fromText = new Date("2026-11-20T09:30"); // 3. from ISO text
+  const exam = new Date(2026, 10, 20, 9, 30);    // 4. from parts: 10 = November!
+
+  console.log("1. now:", now);
+  console.log("2. epoch:", epoch);
+  console.log("3. fromText:", fromText);
+  console.log("4. exam:", exam);
+
+  console.log("Same moment?", fromText.getTime() === exam.getTime());
+  console.log("The number inside:", exam.getTime());
+  console.log("Date.now() gives a", typeof Date.now());
+
+  const bad = new Date("hello");
+  console.log("bad:", bad, "| its number:", bad.getTime());
+
+  document.getElementById("out").textContent = "The exam: " + exam;
+&lt;/script&gt;</pre>
+  <p>On a computer set to Indian time, the Console first shows the current moment, then <code>2. epoch: Thu Jan 01 1970 05:30:00 GMT+0530 (India Standard Time)</code>. Lines 3 and 4 are identical, <code>Fri Nov 20 2026 09:30:00 GMT+0530 (India Standard Time)</code>, and <code>Same moment? true</code> confirms that the text and the parts describe one moment, <code>1795147200000</code>. <code>Date.now()</code> gives a plain <code>number</code>, not a Date object. The word <code>hello</code> gives <code>Invalid Date</code> and <code>NaN</code>. On the page, joining the date to text with <code>+</code> produced the same long format: correct, but written for programmers rather than people. Section 62.6 fixes that.</p>
+  <p>One line deserves a second look: the epoch printed as <b>5:30 am</b>, not midnight. Midnight at Greenwich <i>was</i> half past five in the morning in India. Hold that thought until 62.8.</p>
+</section>
+
+<section id="s3">
+  <h2>62.3 Reading the parts: the getters</h2>
+  <p>Once you have a date, a family of methods called <b>getters</b> reads its parts. These are the methods from your slide, applied to the exam date:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Gives you</th><th>For the exam (Fri 20 Nov 2026, 9:30 am)</th></tr></thead>
+    <tbody>
+      <tr><td><code>getFullYear()</code></td><td>The year, four digits</td><td><code>2026</code></td></tr>
+      <tr><td><code>getMonth()</code></td><td>The month, <b>0 to 11</b> (0 = January)</td><td><code>10</code></td></tr>
+      <tr><td><code>getDate()</code></td><td>The day of the month, 1 to 31</td><td><code>20</code></td></tr>
+      <tr><td><code>getDay()</code></td><td>The weekday, <b>0 to 6</b> (0 = Sunday)</td><td><code>5</code></td></tr>
+      <tr><td><code>getHours()</code></td><td>The hour, 0 to 23</td><td><code>9</code></td></tr>
+      <tr><td><code>getMinutes()</code></td><td>The minutes, 0 to 59</td><td><code>30</code></td></tr>
+      <tr><td><code>getSeconds()</code></td><td>The seconds, 0 to 59</td><td><code>0</code></td></tr>
+      <tr><td><code>getTime()</code></td><td>The timestamp in milliseconds</td><td><code>1795147200000</code></td></tr>
+    </tbody>
+  </table>
+  <p>The getters read the moment in the computer's own <b>local time</b>: Indian time on an Indian laptop. Two of them trip people up. <code>getDate()</code> is the <b>date</b>, the number on the calendar page. <code>getDay()</code> is the <b>day of the week</b>, counted from Sunday as 0, so Friday is 5. And avoid the old <code>getYear()</code>: it gives years since 1900, so it says <code>126</code> for 2026. Always write <code>getFullYear()</code>.</p>
+  <p>Why count months and weekdays from 0? So that they can pick a name straight out of an array:</p>
+  <pre class="code">const months = ["January", "February", "March", "April", "May", "June", "July",
+                "August", "September", "October", "November", "December"];
+const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+months[exam.getMonth()]   // months[10] is "November"
+days[exam.getDay()]       // days[5] is "Friday"</pre>
+  <p>When you need the month as a <i>number</i> for people, add one: <code>exam.getMonth() + 1</code> is 11. (Chapter 47 turned day numbers into names with <code>switch</code>; the array does the same job in one line.)</p>
+  <figure class="fig">
+    <svg viewBox="0 0 680 250" role="img" aria-label="Two numbered strips. Months run from 0 for January to 11 for December, with 10, November, highlighted; underneath, people number the same months 1 to 12. Weekdays run from 0 for Sunday to 6 for Saturday, with 5, Friday, highlighted.">
+      <text x="40" y="24" class="t b mono">getMonth()</text>
+      <text x="140" y="24" class="t s">0 to 11 &mdash; for the exam date, 10</text>
+      <rect x="40" y="34" width="50" height="52" class="box"/>
+      <rect x="90" y="34" width="50" height="52" class="box"/>
+      <rect x="140" y="34" width="50" height="52" class="box"/>
+      <rect x="190" y="34" width="50" height="52" class="box"/>
+      <rect x="240" y="34" width="50" height="52" class="box"/>
+      <rect x="290" y="34" width="50" height="52" class="box"/>
+      <rect x="340" y="34" width="50" height="52" class="box"/>
+      <rect x="390" y="34" width="50" height="52" class="box"/>
+      <rect x="440" y="34" width="50" height="52" class="box"/>
+      <rect x="490" y="34" width="50" height="52" class="box"/>
+      <rect x="540" y="34" width="50" height="52" class="box saf"/>
+      <rect x="590" y="34" width="50" height="52" class="box"/>
+      <text x="65" y="56" class="t c b mono">0</text><text x="65" y="76" class="t c s">Jan</text>
+      <text x="115" y="56" class="t c b mono">1</text><text x="115" y="76" class="t c s">Feb</text>
+      <text x="165" y="56" class="t c b mono">2</text><text x="165" y="76" class="t c s">Mar</text>
+      <text x="215" y="56" class="t c b mono">3</text><text x="215" y="76" class="t c s">Apr</text>
+      <text x="265" y="56" class="t c b mono">4</text><text x="265" y="76" class="t c s">May</text>
+      <text x="315" y="56" class="t c b mono">5</text><text x="315" y="76" class="t c s">Jun</text>
+      <text x="365" y="56" class="t c b mono">6</text><text x="365" y="76" class="t c s">Jul</text>
+      <text x="415" y="56" class="t c b mono">7</text><text x="415" y="76" class="t c s">Aug</text>
+      <text x="465" y="56" class="t c b mono">8</text><text x="465" y="76" class="t c s">Sep</text>
+      <text x="515" y="56" class="t c b mono">9</text><text x="515" y="76" class="t c s">Oct</text>
+      <text x="565" y="56" class="t c b mono">10</text><text x="565" y="76" class="t c b">Nov</text>
+      <text x="615" y="56" class="t c b mono">11</text><text x="615" y="76" class="t c s">Dec</text>
+      <text x="65" y="104" class="t c s">1</text><text x="115" y="104" class="t c s">2</text>
+      <text x="165" y="104" class="t c s">3</text><text x="215" y="104" class="t c s">4</text>
+      <text x="265" y="104" class="t c s">5</text><text x="315" y="104" class="t c s">6</text>
+      <text x="365" y="104" class="t c s">7</text><text x="415" y="104" class="t c s">8</text>
+      <text x="465" y="104" class="t c s">9</text><text x="515" y="104" class="t c s">10</text>
+      <text x="565" y="104" class="t c s">11</text><text x="615" y="104" class="t c s">12</text>
+      <text x="40" y="124" class="t s">the grey row is how people number the months: getMonth() + 1</text>
+      <text x="60" y="152" class="t b mono">getDay()</text>
+      <text x="140" y="152" class="t s">0 to 6, starting on Sunday &mdash; for the exam date, 5</text>
+      <rect x="60" y="162" width="80" height="52" class="box"/>
+      <rect x="140" y="162" width="80" height="52" class="box"/>
+      <rect x="220" y="162" width="80" height="52" class="box"/>
+      <rect x="300" y="162" width="80" height="52" class="box"/>
+      <rect x="380" y="162" width="80" height="52" class="box"/>
+      <rect x="460" y="162" width="80" height="52" class="box saf"/>
+      <rect x="540" y="162" width="80" height="52" class="box"/>
+      <text x="100" y="184" class="t c b mono">0</text><text x="100" y="204" class="t c s">Sun</text>
+      <text x="180" y="184" class="t c b mono">1</text><text x="180" y="204" class="t c s">Mon</text>
+      <text x="260" y="184" class="t c b mono">2</text><text x="260" y="204" class="t c s">Tue</text>
+      <text x="340" y="184" class="t c b mono">3</text><text x="340" y="204" class="t c s">Wed</text>
+      <text x="420" y="184" class="t c b mono">4</text><text x="420" y="204" class="t c s">Thu</text>
+      <text x="500" y="184" class="t c b mono">5</text><text x="500" y="204" class="t c b">Fri</text>
+      <text x="580" y="184" class="t c b mono">6</text><text x="580" y="204" class="t c s">Sat</text>
+      <text x="340" y="238" class="t c s">getDate() is the odd one out: the day of the month counts from 1, like a calendar.</text>
+    </svg>
+    <figcaption><b>Figure 62.2</b> Months and weekdays are numbered like positions in an array, starting at 0. For the exam date, <code>getMonth()</code> is 10 (November) and <code>getDay()</code> is 5 (Friday).</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Read every part, then build a sentence - change the date and run again" data-h="140">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #card { font-size: 20px; font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;p id="card"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const months = ["January", "February", "March", "April", "May", "June", "July",
+                  "August", "September", "October", "November", "December"];
+  const days = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"];
+
+  const exam = new Date(2026, 10, 20, 9, 30);
+
+  console.log("getFullYear():", exam.getFullYear());
+  console.log("getMonth():", exam.getMonth(), "means", months[exam.getMonth()]);
+  console.log("getDate():", exam.getDate());
+  console.log("getDay():", exam.getDay(), "means", days[exam.getDay()]);
+  console.log("getHours():", exam.getHours());
+  console.log("getMinutes():", exam.getMinutes());
+  console.log("Month for people:", exam.getMonth() + 1);
+
+  // padStart (Chapter 45) turns 5 minutes into "05"
+  const mm = String(exam.getMinutes()).padStart(2, "0");
+  const text = `${days[exam.getDay()]}, ${exam.getDate()} ${months[exam.getMonth()]} ` +
+               `${exam.getFullYear()} at ${exam.getHours()}:${mm}`;
+  document.getElementById("card").textContent = text;
+  console.log(text);
+
+  const today = new Date();
+  console.log("Today is", days[today.getDay()], "the", today.getDate(), "of", months[today.getMonth()]);
+&lt;/script&gt;</pre>
+  <p>The Console lists every part: <code>getFullYear(): 2026</code>, <code>getMonth(): 10 means November</code>, <code>getDate(): 20</code>, <code>getDay(): 5 means Friday</code>, <code>getHours(): 9</code>, <code>getMinutes(): 30</code> and <code>Month for people: 11</code>. The page and the Console then show the sentence built from those parts: <b>Friday, 20 November 2026 at 9:30</b>. The minutes went through <code>padStart</code>, so a time of 9:05 would not come out as <code>9:5</code>. The last line reads today's date, so its words change from day to day.</p>
+  <details class="qc"><summary>Quick check: a page shows a November exam as 20/10/2026. What did the programmer forget?</summary><p>The <code>+ 1</code>. They put <code>getMonth()</code> straight into the text, and <code>getMonth()</code> for November is 10. For a month number that people read, write <code>getMonth() + 1</code>.</p></details>
+</section>
+
+<section id="s4">
+  <h2>62.4 Changing a date: setters, and adding days</h2>
+  <p>Every getter has a matching <b>setter</b>: <code>setFullYear</code>, <code>setMonth</code>, <code>setDate</code>, <code>setHours</code>, <code>setMinutes</code> and <code>setSeconds</code>. A setter changes the Date object itself &mdash; it <span class="jw" data-def="Changes an existing object in place, instead of making a new one. Everyone holding that object sees the change.">mutates</span> it &mdash; and returns the new timestamp:</p>
+  <pre class="code">const d = new Date(2026, 10, 20, 9, 30);
+d.setHours(14);                  // same day, now 2:30 pm
+d.setMonth(11);                  // same date and time, now in December
+console.log(d.toDateString());   // Sun Dec 20 2026</pre>
+  <p><code>toDateString()</code> gives just the date part in short English, which is handy in the Console.</p>
+  <p>The setters have one very useful habit: <b>they roll over</b>. Give a value past the end of its range and the date carries on into the next month or year, exactly as a calendar would. Day 32 of January is 1 February, and day 0 of a month is the last day of the month before. The parts form of <code>new Date</code> rolls over in the same way. That makes adding days a one-liner:</p>
+  <pre class="code">const due = new Date(2026, 10, 25);   // 25 November
+due.setDate(due.getDate() + 14);       // "day 39 of November"...
+console.log(due.toDateString());       // Wed Dec 09 2026 - rolled into December</pre>
+  <p>November has 30 days, so day 39 is 9 December. You did not need to know that; the Date did. It works across the end of a year too, and for going back: <code>d.setDate(d.getDate() - 7)</code> is a week earlier.</p>
+  <div class="plain">
+    <p>To move a date by some days, take its day number, add (or subtract), and put the answer back with <code>setDate</code>. You never have to know how long a month is: if the number runs past the end, JavaScript counts on into the next month for you.</p>
+  </div>
+  <p>You may also see days added as milliseconds: <code>new Date(d.getTime() + 14 * 86400000)</code>. That works in India, but in countries that change their clocks for summer, one day a year has 23 hours and another 25, so <code>setDate</code> is the safer habit.</p>
+  <h3>Copy before you change</h3>
+  <p>Because setters change the object, Chapter 51's warning about objects applies in full. <code>=</code> does not copy a Date; it gives the same Date a second name. To make a real copy, pass the old date to <code>new Date</code>:</p>
+  <pre class="code">const issued = new Date(2026, 10, 25);
+
+const wrong = issued;              // a second name for the SAME Date
+const right = new Date(issued);    // a NEW Date at the same moment</pre>
+  <p>Change <code>wrong</code> and <code>issued</code> changes with it; change <code>right</code> and <code>issued</code> is safe. Notice too that <code>const</code> does not protect a date from its setters. <code>const</code> fixes which object the name points at, not what is inside the object.</p>
+  <pre class="code" data-run data-title="A library due date, roll-over, and the sharing trap" data-h="160">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } &lt;/style&gt;
+&lt;p&gt;Book issued: &lt;b id="issued"&gt;&lt;/b&gt;&lt;/p&gt;
+&lt;p&gt;Return by: &lt;b id="due"&gt;&lt;/b&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  // 1. A real copy, then add 14 days
+  const issued = new Date(2026, 10, 25);       // 25 November 2026
+  const due = new Date(issued);                // a NEW Date at the same moment
+  due.setDate(due.getDate() + 14);             // day 39 of November rolls into December
+
+  console.log("Issued:", issued.toDateString());
+  console.log("Due:", due.toDateString());
+  document.getElementById("issued").textContent = issued.toDateString();
+  document.getElementById("due").textContent = due.toDateString();
+
+  // 2. Roll-over works for every part
+  console.log("Day 32 of January:", new Date(2026, 0, 32).toDateString());
+  console.log("Month 12 of 2026:", new Date(2026, 12, 1).toDateString());
+  console.log("Day 0 of March:", new Date(2026, 2, 0).toDateString());
+
+  // 3. The trap: = shares one Date, it does not copy it
+  const start = new Date(2026, 10, 25);
+  const end = start;                           // a second name for the SAME Date
+  end.setDate(end.getDate() + 14);
+  console.log("start, after changing end:", start.toDateString());
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Issued: Wed Nov 25 2026</code> and <code>Due: Wed Dec 09 2026</code>, and the issue date is untouched because <code>due</code> is a real copy. Then the roll-overs: <code>Sun Feb 01 2026</code>, <code>Fri Jan 01 2027</code> and <code>Sat Feb 28 2026</code>. That last one is a neat trick: day 0 of March is the last day of February, so <code>new Date(year, month + 1, 0).getDate()</code> tells you how many days any month has. Finally, <code>start, after changing end: Wed Dec 09 2026</code>: the code never touched <code>start</code>, yet it moved, because <code>start</code> and <code>end</code> are one Date with two names.</p>
+  <details class="qc"><summary>Quick check: const d = new Date(2026, 11, 28); d.setDate(d.getDate() + 7); &mdash; what date is d now?</summary><p><b>4 January 2027.</b> Month 11 is December, which has 31 days, so "day 35 of December" rolls over into 4 January of the next year.</p></details>
+</section>
+
+<section id="s5">
+  <h2>62.5 How long between? Differences, countdowns and age</h2>
+  <p>Because a Date is a number underneath, you can <b>subtract</b> one date from another. The minus sign turns each date into its timestamp, so the answer is a number of milliseconds. Divide by the milliseconds in a day to get days:</p>
+  <pre class="code">const MS_PER_DAY = 24 * 60 * 60 * 1000;    // 86,400,000
+
+const exam = new Date(2026, 10, 20);
+const start = new Date(2026, 9, 30);        // 30 October
+console.log(exam - start);                  // 1814400000 (on a computer in India)
+console.log((exam - start) / MS_PER_DAY);   // 21</pre>
+  <p>Hours, minutes and seconds work the same way: divide by <code>60 * 60 * 1000</code>, <code>60 * 1000</code> or <code>1000</code>. The comparisons <code>&lt;</code>, <code>&gt;</code>, <code>&lt;=</code> and <code>&gt;=</code> also turn dates into numbers, so <code>exam &gt; start</code> is <code>true</code>. Two operators do <b>not</b>. <code>===</code> compares objects, not moments (Chapter 51), so two separate dates for the same instant are not <code>===</code>; compare <code>a.getTime() === b.getTime()</code> instead. And <code>+</code> prefers joining text, so <code>exam + 1</code> is the long date with a "1" stuck on the end, not one millisecond later.</p>
+  <h3>Counting calendar days</h3>
+  <p>A countdown such as "21 days to the exam" counts <b>calendar days</b>, and the time of day gets in the way. At 10:15 pm on 30 October, the 9:30 am exam on 20 November is only 20.47 days away by the clock, though everyone would call it 21 days, and rounding down would say 20. The fix is to move both dates to midnight before subtracting. Then round, to absorb the odd 23- or 25-hour day in countries that change their clocks:</p>
+  <pre class="code">function daysBetween(from, to) {
+  const a = new Date(from.getFullYear(), from.getMonth(), from.getDate());  // midnight
+  const b = new Date(to.getFullYear(), to.getMonth(), to.getDate());        // midnight
+  return Math.round((b - a) / MS_PER_DAY);
+}</pre>
+  <div class="plain">
+    <p>Take one date away from another and you get milliseconds. Divide by 86,400,000 and you get days. If you want whole calendar days, set both dates to midnight first, so the time of day cannot spoil the count.</p>
+  </div>
+  <h3>Age</h3>
+  <p>Age is not "days divided by 365": leap years make that wrong on the days around a birthday. Work it out the way people do. Subtract the birth year from this year, then take one off if this year's birthday has not come yet:</p>
+  <pre class="code">function ageOn(birth, day) {
+  let age = day.getFullYear() - birth.getFullYear();
+  const hadBirthday = day.getMonth() &gt; birth.getMonth() ||
+    (day.getMonth() === birth.getMonth() &amp;&amp; day.getDate() &gt;= birth.getDate());
+  if (!hadBirthday) age = age - 1;
+  return age;
+}</pre>
+  <p>One more everyday use: to time how long some code takes, read <code>Date.now()</code> before and after, and subtract. Chapter 54 did exactly that to time a busy loop.</p>
+  <pre class="code" data-run data-title="Days to the exam, two ages, and comparing dates" data-h="130">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #left { font-size: 22px; font-weight: 800; color: #0B2545; }
+&lt;/style&gt;
+&lt;p id="left"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const MS_PER_DAY = 24 * 60 * 60 * 1000;
+
+  function daysBetween(from, to) {
+    const a = new Date(from.getFullYear(), from.getMonth(), from.getDate());
+    const b = new Date(to.getFullYear(), to.getMonth(), to.getDate());
+    return Math.round((b - a) / MS_PER_DAY);
+  }
+
+  function ageOn(birth, day) {
+    let age = day.getFullYear() - birth.getFullYear();
+    const hadBirthday = day.getMonth() &gt; birth.getMonth() ||
+      (day.getMonth() === birth.getMonth() &amp;&amp; day.getDate() &gt;= birth.getDate());
+    if (!hadBirthday) age = age - 1;
+    return age;
+  }
+
+  const exam = new Date(2026, 10, 20, 9, 30);      // Fri 20 Nov 2026, 9:30 am
+  const someNight = new Date(2026, 9, 30, 22, 15); // Fri 30 Oct 2026, 10:15 pm
+
+  console.log("Raw difference (ms):", exam - someNight);
+  console.log("By the clock (days):", (exam - someNight) / MS_PER_DAY);
+  console.log("Calendar days:", daysBetween(someNight, exam));
+  console.log("Exam is later?", exam &gt; someNight);
+
+  const asha = new Date(2007, 2, 15);              // 15 March 2007
+  const rahul = new Date(2007, 11, 25);            // 25 December 2007
+  console.log("Asha on exam day:", ageOn(asha, exam));
+  console.log("Rahul on exam day:", ageOn(rahul, exam));
+
+  const copy = new Date(exam);
+  console.log("copy === exam:", copy === exam);
+  console.log("same moment:", copy.getTime() === exam.getTime());
+
+  // The same function, from the real today
+  const left = daysBetween(new Date(), exam);
+  let message;
+  if (left &gt; 0) message = `${left} days to the CSE326 exam`;
+  else if (left === 0) message = "The CSE326 exam is today!";
+  else message = "The CSE326 exam is over";
+  document.getElementById("left").textContent = message;
+  console.log("From the real today:", left);
+&lt;/script&gt;</pre>
+  <p>Trace the Console. <code>Raw difference (ms): 1768500000</code>, which is <code>By the clock (days): 20.46875</code>: twenty days and a bit under half a day, because 10:15 pm to 9:30 am is less than a full day. <code>Calendar days: 21</code> is the answer a person expects. <code>Exam is later? true</code>. Asha, born in March, has had her 2026 birthday, so she is <code>19</code>. Rahul's birthday is on 25 December, still to come on 20 November, so <code>2026 - 2007 = 19</code> becomes <code>18</code>. The copy holds the same moment (<code>same moment: true</code>), yet <code>copy === exam</code> is <code>false</code>, because they are two objects. The big line on the page uses the real today, so it changes daily.</p>
+</section>
+
+<section id="s6">
+  <h2>62.6 Showing dates to people</h2>
+  <p>The default text, <code>Fri Nov 20 2026 09:30:00 GMT+0530 (India Standard Time)</code>, is correct but unfriendly, and building a sentence from getters, as in 62.3, is slow work. The browser already knows how dates are written all over the world, in hundreds of languages. You only say whose way you want, with a <span class="jw" data-def="A short code naming a language and a region, such as en-IN (English as used in India) or hi-IN (Hindi, India). It decides how dates and numbers are written.">locale</span> code such as <code>"en-IN"</code>, English as written in India. The two methods on your slide do the work:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result for the exam</th></tr></thead>
+    <tbody>
+      <tr><td><code>exam.toLocaleDateString("en-IN")</code></td><td><code>20/11/2026</code></td></tr>
+      <tr><td><code>exam.toLocaleDateString("en-US")</code></td><td><code>11/20/2026</code> &mdash; Americans write the month first</td></tr>
+      <tr><td><code>exam.toLocaleTimeString("en-IN")</code></td><td><code>9:30:00 am</code></td></tr>
+      <tr><td><code>exam.toLocaleTimeString("en-US")</code></td><td><code>9:30:00 AM</code></td></tr>
+      <tr><td><code>exam.toLocaleString("en-IN")</code></td><td><code>20/11/2026, 9:30:00 am</code> &mdash; date and time together</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Always name the locale.</b> With empty brackets, <code>toLocaleDateString()</code> follows whatever the reader's computer is set to, so the same line prints <code>20/11/2026</code> on one laptop and <code>11/20/2026</code> on the next. For an Indian site, write <code>"en-IN"</code> and every reader sees the same thing.</div>
+  <p>A second argument, an <b>options object</b>, chooses which parts appear and how long each one is:</p>
+  <pre class="code">exam.toLocaleDateString("en-IN", { weekday: "long", day: "numeric", month: "long", year: "numeric" })
+// Friday, 20 November 2026
+
+exam.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" })
+// 9:30 am</pre>
+  <table class="tbl">
+    <thead><tr><th>Option</th><th>Values</th><th>For the exam</th></tr></thead>
+    <tbody>
+      <tr><td><code>weekday</code></td><td><code>"long"</code>, <code>"short"</code></td><td>Friday, Fri</td></tr>
+      <tr><td><code>day</code></td><td><code>"numeric"</code>, <code>"2-digit"</code></td><td>20</td></tr>
+      <tr><td><code>month</code></td><td><code>"long"</code>, <code>"short"</code>, <code>"numeric"</code>, <code>"2-digit"</code></td><td>November, Nov, 11</td></tr>
+      <tr><td><code>year</code></td><td><code>"numeric"</code>, <code>"2-digit"</code></td><td>2026, 26</td></tr>
+      <tr><td><code>hour</code>, <code>minute</code></td><td><code>"numeric"</code>, <code>"2-digit"</code></td><td>9:30 am, 09:30 am</td></tr>
+      <tr><td><code>hour12</code></td><td><code>false</code></td><td>A 24-hour clock: 09:30, and 17:05 for 5:05 pm</td></tr>
+      <tr><td><code>timeZone</code></td><td><code>"Asia/Kolkata"</code>, <code>"Asia/Tokyo"</code>, ...</td><td>Read the moment on another place's clock (62.8)</td></tr>
+    </tbody>
+  </table>
+  <p>Leave out the parts you do not want. Change <code>"en-IN"</code> to <code>"hi-IN"</code> and the same options give <b>&#2358;&#2369;&#2325;&#2381;&#2352;&#2357;&#2366;&#2352;, 20 &#2344;&#2357;&#2306;&#2348;&#2352; 2026</b>: the browser knows the month and day names too.</p>
+  <h3>Intl.DateTimeFormat: one formatter, many dates</h3>
+  <p>Behind both methods stands <code>Intl.DateTimeFormat</code>, part of the browser's <span class="jw" data-def="JavaScript's built-in toolbox for internationalisation: writing dates, numbers and money the way each language and country expects.">Intl</span> toolbox. You can use it directly: build a formatter once, with a locale and options, then call its <code>format</code> method on as many dates as you like. That is tidier, and faster, when you format a whole timetable:</p>
+  <pre class="code">const fmt = new Intl.DateTimeFormat("en-IN", { dateStyle: "medium" });
+fmt.format(exam);   // 20 Nov 2026</pre>
+  <p><code>dateStyle</code> and <code>timeStyle</code> are ready-made choices, each <code>"full"</code>, <code>"long"</code>, <code>"medium"</code> or <code>"short"</code>.</p>
+  <pre class="code" data-run data-title="One exam date, many formats, and a timetable from one formatter" data-h="300">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } li { margin: 3px 0; } &lt;/style&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  const exam = new Date(2026, 10, 20, 9, 30);
+  const list = document.getElementById("list");
+
+  function show(label, text) {
+    console.log(label + ":", text);
+    const li = document.createElement("li");
+    li.textContent = `${label}: ${text}`;
+    list.append(li);
+  }
+
+  show("en-IN date", exam.toLocaleDateString("en-IN"));
+  show("en-US date", exam.toLocaleDateString("en-US"));
+  show("en-IN time", exam.toLocaleTimeString("en-IN"));
+  show("en-IN both", exam.toLocaleString("en-IN"));
+
+  const long = { weekday: "long", day: "numeric", month: "long", year: "numeric" };
+  show("long, en-IN", exam.toLocaleDateString("en-IN", long));
+  show("long, hi-IN", exam.toLocaleDateString("hi-IN", long));
+  show("short time", exam.toLocaleTimeString("en-IN", { hour: "numeric", minute: "2-digit" }));
+  show("24-hour", exam.toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit", hour12: false }));
+
+  // One formatter, used for every paper in the timetable
+  const fmt = new Intl.DateTimeFormat("en-IN", { weekday: "short", day: "numeric", month: "short" });
+  const papers = [
+    { code: "CSE326", day: new Date(2026, 10, 20) },
+    { code: "CSE305", day: new Date(2026, 10, 23) },
+    { code: "CSE201", day: new Date(2026, 10, 26) }
+  ];
+  papers.forEach((p) =&gt; show(p.code, fmt.format(p.day)));
+&lt;/script&gt;</pre>
+  <p>The list reads: <code>20/11/2026</code>, <code>11/20/2026</code>, <code>9:30:00 am</code>, <code>20/11/2026, 9:30:00 am</code>, <code>Friday, 20 November 2026</code>, the same in Hindi, <code>9:30 am</code> and <code>09:30</code>. The timetable lines come from one formatter: <code>CSE326: Fri, 20 Nov</code>, <code>CSE305: Mon, 23 Nov</code>, <code>CSE201: Thu, 26 Nov</code>. Not one month name or weekday was typed by hand.</p>
+</section>
+
+<section id="s7">
+  <h2>62.7 Build it: a live clock with a greeting</h2>
+  <p>Your second slide puts the chapter to work: show the current date and time, and keep the time display up to date every second. <code>setInterval</code> (Chapter 54) calls a function again and again at a fixed interval in milliseconds; here, 1000 milliseconds is one second.</p>
+  <p>One idea makes or breaks the clock. <b>A Date does not tick.</b> It is a snapshot of the moment it was made, like a photograph of a clock. So the clock must take a fresh reading, <code>new Date()</code>, <b>inside</b> the function that runs each second:</p>
+  <pre class="code">// WRONG: one snapshot, shown again and again - the clock is frozen
+const now = new Date();
+setInterval(() =&gt; { clock.textContent = now.toLocaleTimeString("en-IN"); }, 1000);
+
+// RIGHT: a new reading every second
+setInterval(() =&gt; { clock.textContent = new Date().toLocaleTimeString("en-IN"); }, 1000);</pre>
+  <p>The greeting is a decision (Chapter 47) on <code>getHours()</code>, which runs from 0 to 23: before 12 is morning, before 17 (5 pm) is afternoon, and the rest is evening.</p>
+  <pre class="code" data-run data-title="Slide 42's clock: greeting, time and date, updated every second" data-h="210">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; text-align: center; }
+  #greet { font-size: 18px; color: #E07B1E; font-weight: 700; margin: 0; }
+  #time { font-size: 40px; font-weight: 800; color: #0B2545; margin: 4px 0;
+          font-variant-numeric: tabular-nums; }
+  #date { color: #3C4A60; margin: 0 0 10px; }
+  button { padding: 8px 14px; cursor: pointer; }
+&lt;/style&gt;
+&lt;p id="greet"&gt;&lt;/p&gt;
+&lt;p id="time"&gt;&lt;/p&gt;
+&lt;p id="date"&gt;&lt;/p&gt;
+&lt;button id="stop"&gt;Stop the clock&lt;/button&gt;
+
+&lt;script&gt;
+  const greetEl = document.getElementById("greet");
+  const timeEl = document.getElementById("time");
+  const dateEl = document.getElementById("date");
+
+  function greetingFor(hour) {
+    if (hour &lt; 12) return "Good morning";
+    if (hour &lt; 17) return "Good afternoon";
+    return "Good evening";
+  }
+
+  // Test the decision on fixed hours first
+  [9, 13, 20].forEach((h) =&gt; console.log(h + ":00 gives", greetingFor(h)));
+
+  function tick() {
+    const now = new Date();                      // a FRESH reading, every time
+    greetEl.textContent = greetingFor(now.getHours()) + ", Meera!";
+    timeEl.textContent = now.toLocaleTimeString("en-IN");
+    dateEl.textContent = now.toLocaleDateString("en-IN",
+      { weekday: "long", day: "numeric", month: "long", year: "numeric" });
+  }
+
+  tick();                                        // show it at once...
+  const clockId = setInterval(tick, 1000);       // ...then every 1000 ms
+  console.log("Clock started, timer ID:", clockId);
+
+  document.getElementById("stop").addEventListener("click", () =&gt; {
+    clearInterval(clockId);
+    console.log("Clock stopped at", new Date().toLocaleTimeString("en-IN"));
+  });
+&lt;/script&gt;</pre>
+  <p>The Console first tests the decision: <code>9:00 gives Good morning</code>, <code>13:00 gives Good afternoon</code>, <code>20:00 gives Good evening</code>. Then <code>Clock started, timer ID:</code> with a whole number. The page shows the right greeting for now, the time ticking once a second in the Indian style (<code>4:07:52 pm</code>, say) and today's date written out in full. Press <b>Stop the clock</b> and the Console records the moment it froze.</p>
+  <p>Three details are worth copying. The first <code>tick()</code> call fills the display at once. <code>setInterval</code>'s delay is "at least 1000 ms", not exactly 1000 (Chapter 54), so a tick may come late; because each tick takes a fresh reading, the time shown is still right, and at worst a second is skipped. And the clock has no <code>aria-live</code>: a screen reader would otherwise announce it every second (Chapter 59).</p>
+  <details class="qc"><summary>Quick check: why does the script call tick() once before calling setInterval?</summary><p>Because <code>setInterval</code> waits a full 1000 ms before its <b>first</b> call. Without the early <code>tick()</code>, the clock would sit empty for the first second.</p></details>
+</section>
+
+<section id="s8">
+  <h2>62.8 Time zones: why India shows +05:30</h2>
+  <p>Back to the cricket fans. The number inside a Date is the same everywhere on Earth: at 9:30 am in India it is 1,795,147,200,000 in Mumbai, in Tokyo and in New York. What differs is the wall clock. A <span class="jw" data-def="A region that sets its clocks in the same way, written as an offset from UTC: India is UTC+05:30, Japan is UTC+09:00.">time zone</span> is a rule for turning that one number into a local time, written as an offset from UTC.</p>
+  <p>India's offset is <b>+05:30</b>: Indian Standard Time is 5 hours 30 minutes ahead of UTC. The half hour comes from geography. The Earth turns 360&deg; in 24 hours, which is 15&deg; every hour, and time zones follow longitude. India sets its clocks by the line of 82.5&deg; East, which runs near Mirzapur in Uttar Pradesh, and 82.5 &divide; 15 = 5.5 hours. The whole country shares this one zone and never changes its clocks for summer, so the offset is +05:30 all year. That is the <code>GMT+0530</code> in every long date you have printed, and the reason the epoch showed 5:30 am.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 240" role="img" aria-label="One Date holding the number 1795147200000 is read on four clocks: India, Friday 9:30 am; UTC, Friday 4:00 am; Tokyo, Friday 1:00 pm; New York, Thursday 11:00 pm.">
+      <rect x="16" y="78" width="190" height="84" rx="12" class="box ink"/>
+      <text x="111" y="106" class="t c w b">one Date</text>
+      <text x="111" y="128" class="t c w mono">1795147200000</text>
+      <text x="111" y="148" class="t c w s">the same number everywhere</text>
+      <path d="M206 120 L286 36" class="edge" marker-end="url(#arr)"/>
+      <path d="M206 120 L286 92" class="edge" marker-end="url(#arr)"/>
+      <path d="M206 120 L286 148" class="edge" marker-end="url(#arr)"/>
+      <path d="M206 120 L286 204" class="edge" marker-end="url(#arr)"/>
+      <rect x="290" y="14" width="334" height="44" rx="10" class="box saf"/>
+      <text x="306" y="33" class="t b">India</text>
+      <text x="306" y="50" class="t s">Asia/Kolkata &middot; UTC+05:30</text>
+      <text x="560" y="41" class="t c b mono">Fri 9:30 am</text>
+      <rect x="290" y="70" width="334" height="44" rx="10" class="box gry"/>
+      <text x="306" y="89" class="t b">UTC (Greenwich)</text>
+      <text x="306" y="106" class="t s">the world's reference clock &middot; +00:00</text>
+      <text x="560" y="97" class="t c b mono">Fri 4:00 am</text>
+      <rect x="290" y="126" width="334" height="44" rx="10" class="box blu"/>
+      <text x="306" y="145" class="t b">Tokyo</text>
+      <text x="306" y="162" class="t s">Asia/Tokyo &middot; UTC+09:00</text>
+      <text x="560" y="153" class="t c b mono">Fri 1:00 pm</text>
+      <rect x="290" y="182" width="334" height="44" rx="10" class="box red"/>
+      <text x="306" y="201" class="t b">New York</text>
+      <text x="306" y="218" class="t s">America/New_York &middot; UTC&#8722;05:00</text>
+      <text x="560" y="209" class="t c b mono">Thu 11:00 pm</text>
+    </svg>
+    <figcaption><b>Figure 62.3</b> One moment, four clocks. The number never changes; the time zone only decides how it is shown &mdash; and in New York it is still Thursday night.</figcaption>
+  </figure>
+  <p>JavaScript gives you both views of the moment:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>On a computer in India</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>exam.getHours()</code></td><td><code>9</code></td><td>The local hour. All the plain getters are local</td></tr>
+      <tr><td><code>exam.getUTCHours()</code></td><td><code>4</code></td><td>The hour at Greenwich. Each getter and setter for a part has a UTC twin, such as <code>getUTCDate()</code></td></tr>
+      <tr><td><code>exam.getTimezoneOffset()</code></td><td><code>-330</code></td><td>Minutes to add to local time to reach UTC. India is 330 minutes <i>ahead</i>, so the sign is minus</td></tr>
+      <tr><td><code>exam.toISOString()</code></td><td><code>2026-11-20T04:00:00.000Z</code></td><td>Always UTC. The <code>Z</code> means "zero offset"</td></tr>
+      <tr><td><code>exam.toLocaleString("en-IN", { timeZone: "Asia/Tokyo" })</code></td><td><code>20/11/2026, 1:00:00 pm</code></td><td>The moment on another place's clock</td></tr>
+    </tbody>
+  </table>
+  <p><code>toISOString()</code> matters for one more reason. When a date is turned into JSON, to be saved in localStorage or sent to a server, <code>JSON.stringify</code> writes it as this ISO text. When it comes back through <code>JSON.parse</code>, it is still just text. Chapter 64 promised the cure, and it is short: pass the text to <code>new Date()</code> and you have a real date again.</p>
+  <div class="callout warn"><b>The date-only trap.</b> A date-only ISO string, <code>new Date("2026-11-20")</code>, is read as midnight <b>UTC</b>: 5:30 am on 20 November in India, and 7 pm on 19 November in New York &mdash; the wrong day. Add a time, <code>"2026-11-20T00:00"</code>, and the same text is read as midnight <b>local</b> time. Watch for this with <code>&lt;input type="date"&gt;</code>, whose value is exactly that date-only text: write <code>new Date(input.value + "T00:00")</code>.</div>
+  <div class="plain">
+    <p>A Date holds one moment. The time zone only decides how that moment is <i>shown</i>. India shows it 5 hours 30 minutes ahead of the world's reference clock, which is why Indian dates carry <code>+05:30</code>.</p>
+  </div>
+  <pre class="code" data-run data-title="One moment around the world, saved as JSON and brought back" data-h="170">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } &lt;/style&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  // This text names its own zone (+05:30), so it is the same moment on every computer
+  const exam = new Date("2026-11-20T09:30:00+05:30");
+  const list = document.getElementById("list");
+
+  ["Asia/Kolkata", "UTC", "Asia/Tokyo", "America/New_York"].forEach((zone) =&gt; {
+    const text = exam.toLocaleString("en-IN",
+      { timeZone: zone, weekday: "short", hour: "numeric", minute: "2-digit" });
+    console.log(zone + ":", text);
+    const li = document.createElement("li");
+    li.textContent = `${zone}: ${text}`;
+    list.append(li);
+  });
+
+  console.log("The number:", exam.getTime());
+  console.log("getHours():", exam.getHours(), "| getUTCHours():", exam.getUTCHours());
+  console.log("getTimezoneOffset():", exam.getTimezoneOffset());
+  console.log("toISOString():", exam.toISOString());
+
+  // Into JSON (as localStorage would store it) and back again
+  const saved = JSON.stringify({ paper: "CSE326", when: exam });
+  console.log("Saved text:", saved);
+  const back = JSON.parse(saved);
+  console.log("After JSON.parse, when is a", typeof back.when);
+  const restored = new Date(back.when);
+  console.log("Restored:", restored.toLocaleString("en-IN"));
+
+  // The date-only trap
+  console.log("Date only:", new Date("2026-11-20").toString());
+  console.log("With T00:00:", new Date("2026-11-20T00:00").toString());
+&lt;/script&gt;</pre>
+  <p>The list and the Console agree: <code>Asia/Kolkata: Fri, 9:30 am</code>, <code>UTC: Fri, 4:00 am</code>, <code>Asia/Tokyo: Fri, 1:00 pm</code> and <code>America/New_York: Thu, 11:00 pm</code> &mdash; on any computer, because the text named its own offset. The number is <code>1795147200000</code>, as always. On a computer in India the next lines are <code>getHours(): 9 | getUTCHours(): 4</code>, <code>getTimezoneOffset(): -330</code> and <code>toISOString(): 2026-11-20T04:00:00.000Z</code>. The JSON text holds <code>"when":"2026-11-20T04:00:00.000Z"</code>; after parsing, <code>when is a string</code>; <code>new Date</code> turns it back into <code>20/11/2026, 9:30:00 am</code>. Last, the trap in action: the date-only text gives <code>05:30:00</code>, while the text with <code>T00:00</code> gives <code>00:00:00</code>.</p>
+</section>
+
+<section id="mistakes">
+  <h2>62.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "new Date(2026, 11, 20) is 20 November."</b><br>In the parts form, months count from 0, so 11 is December.</div>
+    <div class="r"><b>&#10003; "Months are 0 to 11 in parts and in getMonth(); people's months are getMonth() + 1."</b><br>Write 10 for November. In ISO text, <code>"2026-11-20"</code>, months are written normally.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "getDay() gives the day of the month."</b><br>For 20 November 2026 it gives 5.</div>
+    <div class="r"><b>&#10003; "getDate() is the date (1&ndash;31); getDay() is the weekday (0 = Sunday)."</b><br>And it is <code>getFullYear()</code>, never the old <code>getYear()</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Any sensible date text works: new Date("20/11/2026")."</b><br>Chrome reads it month-first, finds no month 20 and gives <code>Invalid Date</code>. Other non-ISO formats vary from browser to browser.</div>
+    <div class="r"><b>&#10003; "Use ISO text with a time, "2026-11-20T09:30", or the parts form."</b><br>A date-only ISO string means midnight UTC, which in India is 5:30 am.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "const due = issued; gives me a copy I can change."</b><br>It is the same Date, so <code>setDate</code> changes both names.</div>
+    <div class="r"><b>&#10003; "Copy with new Date(issued), then change the copy."</b><br>Setters mutate the object, even one held in a <code>const</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Two dates for the same moment are ===."</b><br><code>===</code> compares objects, and two Date objects are never the same object.</div>
+    <div class="r"><b>&#10003; "Compare a.getTime() === b.getTime()."</b><br><code>&lt;</code> and <code>&gt;</code> do work on dates directly; subtracting gives milliseconds.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Make the Date once, and setInterval will keep it current."</b><br>A Date is a snapshot; it never moves by itself.</div>
+    <div class="r"><b>&#10003; "Call new Date() inside the function that runs every second."</b><br>And call that function once at the start, so the clock is never blank.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three are short answers with no options.</p>
+  <details class="q"><summary>For a date in March, what does <code>getMonth()</code> return?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 3</li><li>B. "March"</li><li>C. 2</li><li>D. "03"</li></ul>
+    <p><b>Answer: C.</b> Months count from 0: January 0, February 1, March 2. A is what people expect, which is exactly why it is the trap; the getter returns a number, not a name or text.</p></div></details>
+  <details class="q"><summary>Which moment does <code>new Date(2026, 0, 26)</code> represent?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 26 January 2026, midnight</li><li>B. 26 February 2026, midnight</li><li>C. 26 December 2025, midnight</li><li>D. Invalid Date, because there is no month 0</li></ul>
+    <p><b>Answer: A.</b> Month 0 is January, so this is Republic Day 2026. Month 0 is perfectly valid; it is the first month, not a missing one.</p></div></details>
+  <details class="q"><summary>Which method gives the day of the week, with 0 for Sunday?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. getDate()</li><li>B. getWeekday()</li><li>C. getHours()</li><li>D. getDay()</li></ul>
+    <p><b>Answer: D.</b> <code>getDay()</code> is the weekday, 0 to 6. <code>getDate()</code> is the day of the month, 1 to 31, and <code>getWeekday()</code> does not exist.</p></div></details>
+  <details class="q"><summary>What does <code>Date.now()</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A Date object for this moment</li><li>B. The number of milliseconds since 1 January 1970 UTC</li><li>C. The time now as text, such as "9:30 am"</li><li>D. The number of seconds since 1 January 1970 UTC</li></ul>
+    <p><b>Answer: B.</b> It is a plain number, the timestamp of now. <code>new Date()</code> is the one that makes a Date object (A), and the count is in milliseconds, not seconds (D).</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const d = new Date(2026, 10, 25); d.setDate(d.getDate() + 10); console.log(d.getDate(), d.getMonth());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 5 11.</b> The date starts as 25 November (month 10). Day 35 of November rolls over, because November has 30 days, to 5 December. <code>getDate()</code> is 5 and <code>getMonth()</code> for December is 11.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const a = new Date(2026, 10, 20); const b = new Date(2026, 10, 20); console.log(a === b, a.getTime() === b.getTime(), a &lt;= b);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. true true true</li><li>B. false true true</li><li>C. false false true</li><li>D. true true false</li></ul>
+    <p><b>Answer: B.</b> <code>a</code> and <code>b</code> are two separate objects, so <code>===</code> is <code>false</code> even though they hold the same moment. Their timestamps are equal, and <code>&lt;=</code> compares the timestamps, so both of those are <code>true</code>.</p></div></details>
+  <details class="q"><summary>Which line shows the exam date as 20/11/2026 on every reader's computer?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. exam.toLocaleDateString()</li><li>B. exam.toString()</li><li>C. exam.toLocaleDateString("en-IN")</li><li>D. exam.toISOString()</li></ul>
+    <p><b>Answer: C.</b> Naming the locale fixes the format. A depends on each computer's settings and may print <code>11/20/2026</code>; B gives the long programmer's format; D gives <code>2026-11-20T04:00:00.000Z</code>.</p></div></details>
+  <details class="q"><summary><span>A clock shows one time and never changes: <code>const now = new Date(); setInterval(() =&gt; { clock.textContent = now.toLocaleTimeString("en-IN"); }, 1000);</code> Why?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The Date was made once, outside the function, and a Date never updates itself</li><li>B. The interval should be 1, not 1000</li><li>C. toLocaleTimeString can only be called once</li><li>D. textContent cannot be changed by a timer</li></ul>
+    <p><b>Answer: A.</b> The function does run every second, but it shows the same snapshot each time. Move <code>new Date()</code> inside the function. B would call it every millisecond and still show the same snapshot.</p></div></details>
+  <details class="q"><summary>On a computer in India, what does <code>new Date().getTimezoneOffset()</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 330</li><li>B. -330</li><li>C. 5.5</li><li>D. "+05:30"</li></ul>
+    <p><b>Answer: B.</b> The offset is in minutes, and it is the amount to add to local time to reach UTC. India is 330 minutes ahead of UTC, so the answer is minus 330. A has the sign the wrong way round.</p></div></details>
+  <details class="q"><summary>On a computer in India, what does <code>new Date("2026-11-20").getHours()</code> return?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 0</li><li>B. 9</li><li>C. 5</li><li>D. NaN</li></ul>
+    <p><b>Answer: C.</b> A date-only ISO string means midnight UTC, which is 5:30 am in India, and <code>getHours()</code> reads local time. A is the trap: you would get 0 from <code>"2026-11-20T00:00"</code>, which is read as local midnight.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const issued = new Date(2026, 10, 25); const due = issued; due.setDate(due.getDate() + 14); console.log(issued.getDate());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 9.</b> <code>due = issued</code> does not copy the Date; both names lead to one object. Adding 14 days to 25 November gives 9 December, and <code>issued</code> sees the change. <code>const due = new Date(issued);</code> would have kept the issue date at 25.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log(new Date(2026, 2, 0).getDate());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 28.</b> Month 2 is March, and day 0 of March rolls back to the last day of February. 2026 is not a leap year, so February ends on the 28th. That makes <code>new Date(year, month + 1, 0).getDate()</code> a quick way to count the days in any month.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A Date is one moment, stored as the milliseconds since 1 January 1970 UTC (the epoch). <code>Date.now()</code> gives that number for now; <code>getTime()</code> gives it for any date.</li>
+    <li><code>new Date()</code> is now; <code>new Date(ms)</code> is a timestamp; <code>new Date("2026-11-20T09:30")</code> is ISO text; <code>new Date(2026, 10, 20, 9, 30)</code> is parts &mdash; and months in parts count from 0.</li>
+    <li>The getters read local time: <code>getFullYear</code>, <code>getMonth</code> (0&ndash;11), <code>getDate</code> (1&ndash;31), <code>getDay</code> (0&ndash;6, Sunday 0), <code>getHours</code>, <code>getMinutes</code>. The zero-based numbers index arrays of names; add 1 for a month number.</li>
+    <li>Setters change the date itself and roll over, so <code>d.setDate(d.getDate() + 14)</code> adds 14 days across month and year ends. Copy first with <code>new Date(old)</code>; <code>=</code> only shares.</li>
+    <li>Subtracting dates gives milliseconds; divide by 86,400,000 for days, moving both to midnight for calendar days. <code>&lt;</code> and <code>&gt;</code> work; for equality compare <code>getTime()</code>.</li>
+    <li>Display with <code>toLocaleDateString</code> and <code>toLocaleTimeString</code>, always naming the locale (<code>"en-IN"</code>), plus an options object; reuse one <code>Intl.DateTimeFormat</code> for many dates.</li>
+    <li>A live clock makes a fresh <code>new Date()</code> inside its <code>setInterval</code> callback and calls it once at the start.</li>
+    <li>IST is UTC+05:30 (82.5&deg; East &divide; 15&deg; per hour). <code>toISOString()</code> and JSON are UTC; a date-only ISO string means UTC midnight.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>new Date()</code></td><td>A Date for this moment</td></tr>
+      <tr><td><code>Date.now()</code></td><td>The timestamp of now, as a plain number</td></tr>
+      <tr><td><code>new Date(2026, 10, 20, 9, 30)</code></td><td>20 November 2026, 9:30 am local (month 10 = November)</td></tr>
+      <tr><td><code>new Date("2026-11-20T09:30")</code></td><td>The same moment, from ISO text</td></tr>
+      <tr><td><code>d.getMonth() + 1</code></td><td>The month number people use</td></tr>
+      <tr><td><code>days[d.getDay()]</code></td><td>The weekday's name from an array</td></tr>
+      <tr><td><code>d.setDate(d.getDate() + 7)</code></td><td>One week later, rolling over month ends</td></tr>
+      <tr><td><code>new Date(d)</code></td><td>A real copy of a date</td></tr>
+      <tr><td><code>(b - a) / 86400000</code></td><td>Days between two dates</td></tr>
+      <tr><td><code>a.getTime() === b.getTime()</code></td><td>Same moment?</td></tr>
+      <tr><td><code>d.toLocaleDateString("en-IN")</code></td><td><code>20/11/2026</code></td></tr>
+      <tr><td><code>d.toLocaleTimeString("en-IN")</code></td><td><code>9:30:00 am</code></td></tr>
+      <tr><td><code>new Intl.DateTimeFormat("en-IN", options).format(d)</code></td><td>A reusable formatter</td></tr>
+      <tr><td><code>setInterval(tick, 1000)</code></td><td>Run <code>tick</code> every second (make <code>new Date()</code> inside it)</td></tr>
+      <tr><td><code>d.toISOString()</code></td><td>UTC text such as <code>2026-11-20T04:00:00.000Z</code></td></tr>
+      <tr><td><code>d.getTimezoneOffset()</code></td><td><code>-330</code> in India</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date" target="_blank" rel="noopener noreferrer">MDN &mdash; Date<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every constructor form, getter and setter on one page, including the UTC twins.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Date/toLocaleDateString" target="_blank" rel="noopener noreferrer">MDN &mdash; Date.prototype.toLocaleDateString()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Locales and options, with examples you can edit and run.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Intl/DateTimeFormat" target="_blank" rel="noopener noreferrer">MDN &mdash; Intl.DateTimeFormat<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full list of formatting options, from <code>weekday</code> to <code>timeZone</code>.</span></li>
+    <li><a href="https://javascript.info/date" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Date and time<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a second voice, with small tasks and worked solutions.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

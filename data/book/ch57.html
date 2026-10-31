@@ -1,0 +1,698 @@
+<article class="chapter" data-ch="57">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 57 &middot; Event Handling</p>
+  <h1>Event Handling</h1>
+  <p class="lead">Until now your scripts ran once, top to bottom, and then stopped. A real page does something different: it sits and waits, and the moment you click, type, press a key or send a form, a piece of your code springs to life. This chapter shows how to tell the browser "when this happens, run that", what the browser tells you about each happening, and how one small idea &mdash; events travel up the page &mdash; lets a single line of code look after a hundred buttons.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A function's name without brackets, <code>greet</code>, is the function itself; with brackets, <code>greet()</code>, it runs now (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>A callback is a function you hand to someone else to call later, when the time comes (<a href="book.html?ch=54">Chapter 54</a>).</li>
+      <li>The page is a tree: every element sits inside a parent, up to <code>&lt;body&gt;</code>, <code>&lt;html&gt;</code> and <code>document</code> (<a href="book.html?ch=55">Chapter 55</a>).</li>
+      <li><code>getElementById</code> finds an element, <code>textContent</code> and <code>classList</code> change it, and <code>dataset</code> reads its <code>data-*</code> attributes (<a href="book.html?ch=56">Chapter 56</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name the common events (click, input, change, submit, keydown, mouseover, focus, blur, load, DOMContentLoaded) and say when each one fires.</li>
+      <li>Attach a handler in all three ways, and explain why <code>addEventListener</code> is the one to use.</li>
+      <li>Read the event object: <code>type</code>, <code>target</code>, <code>currentTarget</code>, <code>key</code> and <code>target.value</code>.</li>
+      <li>Stop a form submit or a link with <code>preventDefault()</code>, and stop an event travelling with <code>stopPropagation()</code>.</li>
+      <li>Predict the order in which nested elements hear a click (capturing, target, bubbling).</li>
+      <li>Handle a whole list of buttons with one delegated listener that reads <code>data-*</code> attributes.</li>
+      <li>Remove a listener correctly, and build the interactive counter with mouse and keyboard support.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>57.1 What is an event?</h2>
+  <p>An <span class="jw" data-def="Something that happens in the browser, such as a click, a key press or the page finishing loading, which your code can be set to respond to.">event</span> is something that happens in the browser which your code can respond to. Most events are caused by the person using the page: they click a button, type a letter, move the mouse over a picture, press <kbd>Enter</kbd> in a form. Some are caused by the browser itself: the page has finished loading, a video has reached its end. The browser notices every one of them. Your job is only to say which ones you care about, and what should happen.</p>
+  <p>Here are the events you will use most often. The name in the first column is exactly the text you will type in your code, in lowercase.</p>
+  <table class="tbl">
+    <thead><tr><th>Event</th><th>Fires when</th><th>A typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>click</code></td><td>An element is clicked or tapped &mdash; or a focused button is activated with <kbd>Enter</kbd> or <kbd>Space</kbd></td><td>Buttons of every kind</td></tr>
+      <tr><td><code>input</code></td><td>The value of a text box changes: every letter typed, pasted or deleted</td><td>Live search, a character counter</td></tr>
+      <tr><td><code>change</code></td><td>A value is <i>committed</i>: a checkbox ticked, a dropdown option chosen, or a text box left after editing</td><td>Dropdowns, checkboxes</td></tr>
+      <tr><td><code>submit</code></td><td>A form is sent, by its submit button or by <kbd>Enter</kbd> in one of its boxes</td><td>Checking a form before it goes</td></tr>
+      <tr><td><code>keydown</code> / <code>keyup</code></td><td>A key goes down / comes back up</td><td>Keyboard shortcuts, games</td></tr>
+      <tr><td><code>mouseover</code> / <code>mouseout</code></td><td>The mouse pointer moves onto / off an element</td><td>Showing a hint, highlighting a card</td></tr>
+      <tr><td><code>focus</code> / <code>blur</code></td><td>An element gets / loses the keyboard's attention (clicked into, or reached with <kbd>Tab</kbd>)</td><td>Showing help next to the box being filled</td></tr>
+      <tr><td><code>DOMContentLoaded</code></td><td>On <code>document</code>: the HTML has been read and the tree is built</td><td>Starting a script placed in the head (Chapter 55)</td></tr>
+      <tr><td><code>load</code></td><td>On <code>window</code>: the page <i>and</i> all its images and stylesheets have arrived</td><td>Code that needs image sizes</td></tr>
+    </tbody>
+  </table>
+  <p>Such a page works in a loop: it <b>waits</b>, something <b>happens</b>, your code <b>reacts</b> by changing the page, and the page waits again. This is called <i>event-driven</i> programming. The function you hand over is an <span class="jw" data-def="A function you give the browser to run each time a particular event happens on a particular element. Also called an event handler.">event listener</span> (or event handler; the names mean the same here). It is a callback, as in Chapter 54: you never call it yourself; the browser calls it every time the event happens.</p>
+  <div class="callout analogy"><b>Picture this.</b> At the hostel gate sits a watchman with a notebook. You tell him once: "When a courier comes for room 204, ring my phone," and go back to studying &mdash; he does the waiting. When a courier arrives he finds your line and rings you, handing over a slip saying who came and with what. Your roommate can leave a line for the same courier too, and the watchman rings you both, in the order the lines were written. You can cross your line out &mdash; but only by pointing to the exact line you wrote. The browser is the watchman, the courier is the event, your line is the listener, and the slip is the event object.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="The event loop of a page: something happens, the browser builds an event object, calls each listener in order, the code changes the page, and the page waits again">
+      <rect x="20" y="20" width="170" height="84" rx="10" class="box saf"/>
+      <text x="105" y="44" class="t c b">1. Something happens</text>
+      <text x="105" y="66" class="t c s">Asha clicks the</text>
+      <text x="105" y="82" class="t c s">Save button</text>
+      <path d="M190 62 L222 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="225" y="20" width="170" height="84" rx="10" class="box blu"/>
+      <text x="310" y="42" class="t c b">2. Browser builds</text>
+      <text x="310" y="60" class="t c b">an event object</text>
+      <text x="310" y="78" class="t c s mono">type: "click"</text>
+      <text x="310" y="94" class="t c s mono">target: the button</text>
+      <path d="M395 62 L427 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="430" y="20" width="170" height="84" rx="10" class="box grn"/>
+      <text x="515" y="42" class="t c b">3. It calls each</text>
+      <text x="515" y="60" class="t c s">click listener on that</text>
+      <text x="515" y="76" class="t c s">button, in the order</text>
+      <text x="515" y="92" class="t c s">they were added</text>
+      <path d="M515 104 L515 138" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="430" y="142" width="170" height="70" rx="10" class="box gry"/>
+      <text x="515" y="166" class="t c b">4. Your function</text>
+      <text x="515" y="186" class="t c s">changes the page</text>
+      <text x="515" y="202" class="t c s">(text, classes, styles)</text>
+      <path d="M430 177 L398 177" class="edge" marker-end="url(#arr)"/>
+      <rect x="225" y="142" width="170" height="70" rx="10" class="box"/>
+      <text x="310" y="166" class="t c b">5. Back to waiting</text>
+      <text x="310" y="186" class="t c s">until the next event &mdash;</text>
+      <text x="310" y="202" class="t c s">the page never "ends"</text>
+      <path d="M225 177 L105 177 L105 108" class="edge dash" marker-end="url(#arr)"/>
+      <text x="105" y="200" class="t c s">wait &#8594; react &#8594; wait</text>
+    </svg>
+    <figcaption><b>Figure 57.1</b> The life of an event-driven page. Your code runs only in step 4; the browser does all the waiting and noticing for you.</figcaption>
+  </figure>
+  <details class="qc"><summary>Quick check: a student types "Hi" into a search box. Which event fires twice, and which fires only when she clicks somewhere else?</summary><div class="a">
+    <p><code>input</code> fires twice, once for each letter. <code>change</code> fires once, when she leaves the box, because that is when a text box's value is committed.</p></div></details>
+</section>
+
+<section id="s2">
+  <h2>57.2 Three ways to attach a handler</h2>
+  <p>The lecture slides show three ways of connecting a function to an event. All three still work in every browser, and you will meet all three in other people's code, so you must be able to read them. Only one should go into code you write.</p>
+  <pre class="code">&lt;!-- 1. Inline event handler: JavaScript inside an HTML attribute --&gt;
+&lt;button onclick="alert('Hello!')"&gt;Click Me&lt;/button&gt;
+
+// 2. DOM property: store a function in the element's onclick property
+button.onclick = function () { alert("Button clicked!"); };
+
+// 3. addEventListener() - the recommended approach
+document.getElementById("btn").addEventListener("click", () =&gt; {
+  alert("Button clicked!");
+});</pre>
+  <p><b>Way 1</b>, the oldest, puts JavaScript as text inside an HTML attribute: two languages in one line, hard to read, hard to reuse, and blocked outright by many real websites for security reasons. <b>Way 2</b> keeps the code in JavaScript, but an element has exactly <i>one</i> <code>onclick</code> property, and like any variable it holds one value: assign a second function and the first is silently thrown away. <b>Way 3</b>, <code>addEventListener</code>, <i>adds</i> a listener to a list the browser keeps for that element and event. Add three, and all three run.</p>
+  <pre class="code" data-run data-title="The three ways side by side - click each button and watch the Console" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { display: block; margin: 8px 0; padding: 8px 14px; cursor: pointer; }
+&lt;/style&gt;
+&lt;button id="b1" onclick="console.log('Way 1: the onclick attribute ran')"&gt;Way 1: onclick attribute&lt;/button&gt;
+&lt;button id="b2"&gt;Way 2: onclick property&lt;/button&gt;
+&lt;button id="b3"&gt;Way 3: addEventListener&lt;/button&gt;
+
+&lt;script&gt;
+  // Way 2: the property holds ONE function
+  const b2 = document.getElementById("b2");
+  b2.onclick = function () { console.log("Way 2: first handler"); };
+  b2.onclick = function () { console.log("Way 2: second handler"); };  // replaces the first!
+
+  // Way 3: every addEventListener call ADDS one more listener
+  const b3 = document.getElementById("b3");
+  b3.addEventListener("click", () =&gt; console.log("Way 3: first listener"));
+  b3.addEventListener("click", () =&gt; console.log("Way 3: second listener"));
+
+  console.log("Handlers attached. Now click each button.");
+&lt;/script&gt;</pre>
+  <p>On Run the Console shows only <code>Handlers attached. Now click each button.</code> &mdash; nothing else, because no handler runs until its event happens. Then, click by click:</p>
+  <ul>
+    <li><b>Way 1</b> prints <code>Way 1: the onclick attribute ran</code>.</li>
+    <li><b>Way 2</b> prints only <code>Way 2: second handler</code>. The first function was overwritten before anyone clicked.</li>
+    <li><b>Way 3</b> prints <code>Way 3: first listener</code> and then <code>Way 3: second listener</code>: both kept, in the order they were added.</li>
+  </ul>
+  <table class="tbl">
+    <thead><tr><th></th><th>Inline <code>onclick="..."</code></th><th><code>el.onclick = fn</code></th><th><code>el.addEventListener("click", fn)</code></th></tr></thead>
+    <tbody>
+      <tr><td>Where the code lives</td><td>Inside the HTML, as text</td><td>In JavaScript</td><td>In JavaScript</td></tr>
+      <tr><td>Handlers per event</td><td>One</td><td>One &mdash; a new one replaces the old</td><td>As many as you like</td></tr>
+      <tr><td>Removing one</td><td>Remove the attribute</td><td><code>el.onclick = null</code></td><td><code>removeEventListener</code> (57.3)</td></tr>
+      <tr><td>Extra options</td><td>None</td><td>None</td><td>Capturing, run once (57.3, 57.6)</td></tr>
+      <tr><td>Use it?</td><td>Read it, don't write it</td><td>Read it, rarely write it</td><td><b>Yes &mdash; always</b></td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Three ways, one winner. The <code>onclick</code> attribute mixes JavaScript into HTML. The <code>onclick</code> property can hold only one function, so a second one wipes out the first. <code>addEventListener</code> keeps HTML and JavaScript apart, lets many listeners share one event, and lets you take any of them away again.</p>
+  </div>
+  <div class="callout exam"><b>Exam tip.</b> "Why is <code>addEventListener</code> preferred?" has three marks waiting in it: (1) it allows <b>several</b> listeners for the same event, (2) a listener can be <b>removed</b>, and (3) it keeps JavaScript <b>separate</b> from HTML. A fourth point, if you have room: it offers options such as the capturing phase.</div>
+</section>
+
+<section id="s3">
+  <h2>57.3 addEventListener up close</h2>
+  <p>Every call has the same shape: <i>which element</i>, a dot, <code>addEventListener</code>, and two things in the brackets.</p>
+  <pre class="code">saveBtn.addEventListener("click", saveNotes);
+//  |                      |        |
+//  element to watch       event    function to run each time it happens</pre>
+  <p><b>The event name is a string, without "on".</b> Write <code>"click"</code>, never <code>"onclick"</code>. The browser has no event called <code>onclick</code>, so <code>addEventListener("onclick", fn)</code> waits for something that never happens: no error, no click, just silence.</p>
+  <p><b>The function goes in without brackets.</b> This is the bug every beginner writes at least once:</p>
+  <pre class="code">function saveNotes() { console.log("Saved!"); }
+
+saveBtn.addEventListener("click", saveNotes);     // right: hands over the function
+saveBtn.addEventListener("click", saveNotes());   // wrong: runs it NOW, hands over undefined</pre>
+  <p>With brackets, <code>saveNotes()</code> runs immediately, while the page loads, and prints <i>Saved!</i> once. Its result, <code>undefined</code>, is what gets handed over, and a listener of <code>undefined</code> is quietly ignored, so later clicks do nothing. You told the watchman "ring me" and then rang yourself on the spot. You can also write the function in place; both of these are fine:</p>
+  <pre class="code">saveBtn.addEventListener("click", function () { console.log("Saved!"); });
+saveBtn.addEventListener("click", () =&gt; console.log("Saved!"));</pre>
+  <h3>Taking a listener away again</h3>
+  <p><code>removeEventListener</code> takes the same two things and crosses that line out of the browser's list. The catch is in the watchman story: you must point to the <i>exact line you wrote</i>. The browser compares the function by its <span class="jw" data-def="The function itself, as a value you can pass around, rather than a fresh copy that looks the same. A name like greet, written without brackets, is a reference to one particular function.">reference</span> &mdash; is it the very same function object? &mdash; not by whether the code looks the same.</p>
+  <pre class="code" data-run data-title="Several listeners on one button, and removing one - click Say hello, then Stop counting, then Say hello" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { padding: 8px 14px; margin-right: 6px; cursor: pointer; }
+&lt;/style&gt;
+&lt;button id="hello"&gt;Say hello&lt;/button&gt;
+&lt;button id="stop"&gt;Stop counting&lt;/button&gt;
+&lt;p id="out"&gt;Clicks counted: 0&lt;/p&gt;
+
+&lt;script&gt;
+  const hello = document.getElementById("hello");
+  const out = document.getElementById("out");
+  let clicks = 0;
+
+  function greet() {
+    console.log("greet: Hello!");
+  }
+  function countClick() {
+    clicks++;
+    out.textContent = `Clicks counted: ${clicks}`;
+    console.log("countClick: clicks =", clicks);
+  }
+
+  hello.addEventListener("click", greet);        // listener 1
+  hello.addEventListener("click", countClick);   // listener 2
+  hello.addEventListener("click", () =&gt; console.log("arrow: still here"));  // listener 3
+
+  // Trying to remove listener 3: this arrow is a NEW function, so nothing matches
+  hello.removeEventListener("click", () =&gt; console.log("arrow: still here"));
+
+  document.getElementById("stop").addEventListener("click", () =&gt; {
+    hello.removeEventListener("click", countClick);   // same name = same function
+    console.log("countClick removed. The other two stay.");
+  });
+
+  console.log("Three listeners on Say hello. Click it.");
+&lt;/script&gt;</pre>
+  <p>Click <b>Say hello</b> once and the Console shows three lines in order: <code>greet: Hello!</code>, <code>countClick: clicks = 1</code>, <code>arrow: still here</code>. The attempt to remove the arrow failed: the arrow written inside <code>removeEventListener</code> looks identical, but it is a brand-new function, a second sheet of paper with the same words on it. Now press <b>Stop counting</b> (<code>countClick removed. The other two stay.</code>) and <b>Say hello</b> again: only <code>greet: Hello!</code> and <code>arrow: still here</code>. The counter on the page freezes at 1, because <code>countClick</code> was named, so the browser could find that exact function and cross it out.</p>
+  <div class="plain">
+    <p>If you will ever need to remove a listener, give its function a name and use that name in both calls. A function written straight into the brackets has no name to point to, so it can never be removed.</p>
+  </div>
+  <p>For the common case "run this only the first time", there is a shortcut that removes the listener for you: a third argument of options, <code>btn.addEventListener("click", showWelcome, { once: true })</code>.</p>
+  <details class="qc"><summary>Quick check: why does hello.removeEventListener("click", greet) work, while removing an arrow function written out again does not?</summary><div class="a">
+    <p><code>greet</code> names one particular function, the same one that was added, so the browser finds it in its list. Writing the arrow out again creates a <i>new</i> function that merely looks the same; it was never added, so there is nothing to remove.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>57.4 The event object: the slip the browser hands you</h2>
+  <p>Every time the browser calls one of your listeners, it passes it one argument: an <span class="jw" data-def="An object the browser creates for each event and passes to your listener, full of details: what kind of event it was, which element it happened on, which key was pressed, and more.">event object</span> describing what just happened. To receive it, give your function a parameter. Any name works; <code>event</code>, <code>evt</code> and <code>e</code> are the usual choices.</p>
+  <pre class="code">nameBox.addEventListener("input", (event) =&gt; {
+  console.log(event.type);           // "input"
+  console.log(event.target.value);   // whatever is in the box right now
+});</pre>
+  <table class="tbl">
+    <thead><tr><th>Property or method</th><th>What it tells you, or does</th></tr></thead>
+    <tbody>
+      <tr><td><code>event.type</code></td><td>The kind of event, as a string: <code>"click"</code>, <code>"input"</code>, <code>"keydown"</code> &hellip;</td></tr>
+      <tr><td><code>event.target</code></td><td>The element where the event <b>started</b> &mdash; the exact thing clicked or typed into</td></tr>
+      <tr><td><code>event.target.value</code></td><td>For a text box, dropdown or similar: its current value (always a string)</td></tr>
+      <tr><td><code>event.currentTarget</code></td><td>The element whose listener is running <b>now</b> (57.6 shows when this differs from <code>target</code>)</td></tr>
+      <tr><td><code>event.key</code></td><td>Keyboard events only: the key pressed, such as <code>"a"</code>, <code>"A"</code>, <code>"Enter"</code>, <code>"ArrowUp"</code>, <code>" "</code></td></tr>
+      <tr><td><code>event.preventDefault()</code></td><td>Stops the browser's usual action for this event (57.5)</td></tr>
+      <tr><td><code>event.stopPropagation()</code></td><td>Stops the event travelling on to other elements (57.6)</td></tr>
+    </tbody>
+  </table>
+  <p>The lecture's example is a box that greets you as you type. Try it, and then press <kbd>Tab</kbd> or click outside the box.</p>
+  <pre class="code" data-run data-title="The event object live - type a name, then click outside the box" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  input { font: inherit; padding: 6px 8px; }
+  #mirror { font-size: 20px; font-weight: 700; color: #0B2545; }
+  #keyInfo { color: #64748B; }
+&lt;/style&gt;
+&lt;label for="nameBox"&gt;Your name&lt;/label&gt;
+&lt;input id="nameBox" type="text" placeholder="Type here"&gt;
+&lt;p id="mirror"&gt;Hello, stranger!&lt;/p&gt;
+&lt;p id="keyInfo"&gt;Last key: (none yet)&lt;/p&gt;
+
+&lt;script&gt;
+  const nameBox = document.getElementById("nameBox");
+  const mirror = document.getElementById("mirror");
+  const keyInfo = document.getElementById("keyInfo");
+
+  nameBox.addEventListener("focus", () =&gt; console.log("focus: the box is ready"));
+
+  nameBox.addEventListener("keydown", (event) =&gt; {
+    keyInfo.textContent = `Last key: "${event.key}"`;
+    console.log(event.type, "| key:", event.key);
+  });
+
+  nameBox.addEventListener("input", (event) =&gt; {
+    const typed = event.target.value;
+    mirror.textContent = `Hello, ${typed || "stranger"}!`;
+    console.log(event.type, "| value:", typed);
+  });
+
+  nameBox.addEventListener("change", (event) =&gt; {
+    console.log("change | committed:", event.target.value);
+  });
+
+  nameBox.addEventListener("blur", () =&gt; console.log("blur: you left the box"));
+
+  console.log("Click in the box and type a name.");
+&lt;/script&gt;</pre>
+  <p>Click in the box and type <i>asha</i>, in small letters. The Console shows <code>focus: the box is ready</code>, then for each letter a pair: <code>keydown | key: a</code>, then <code>input | value: a</code>; <code>keydown | key: s</code>, then <code>input | value: as</code>, and so on. The order teaches something: <code>keydown</code> fires <i>before</i> the letter reaches the box, and <code>input</code> fires <i>after</i> the value has changed. That is why a key listener asks <code>event.key</code> and an input listener asks <code>event.target.value</code>.</p>
+  <p>Press <kbd>Shift</kbd> on its own and you get <code>keydown | key: Shift</code> but no <code>input</code> line: a key went down, but the value did not change. (Type a capital letter and you see both: <code>key: Shift</code>, then <code>key: A</code>.) Finally click outside the box: <code>change | committed: asha</code>, then <code>blur: you left the box</code>. The page greets you letter by letter because it listens to <code>input</code>; had it listened to <code>change</code>, the greeting would appear only once you left the box.</p>
+  <details class="qc"><summary>Quick check: you want a character counter under a feedback box that updates as the student types. input or change?</summary><div class="a">
+    <p><code>input</code>. It fires on every change to the value. <code>change</code> fires only when the box is left, so the counter would lag behind until the student clicked somewhere else.</p></div></details>
+</section>
+
+<section id="s5">
+  <h2>57.5 preventDefault: stopping the browser's usual action</h2>
+  <p>Many events come with a <span class="jw" data-def="What the browser does on its own when an event happens, if your code does not stop it: a link opens its page, a form is sent and the page reloads, a ticked checkbox changes.">default action</span>: something the browser does by itself after your listeners have run. Click a link and the browser goes to its address. Submit a form and the browser sends the data and loads a new page &mdash; for a form with no <code>action</code> address, that means loading the same page again, fresh and empty. Calling <code>event.preventDefault()</code> inside a listener cancels that default action for this one event.</p>
+  <p>The most common use by far is a form you want to handle with JavaScript. Listen for <code>submit</code> on the <b>form</b>, not <code>click</code> on the button: the form fires <code>submit</code> whether the user clicks the button or presses <kbd>Enter</kbd> in a box, so one listener catches both.</p>
+  <pre class="code" data-run data-title="preventDefault on a form and a link - type a name and press Enter, then click the link" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  input, button { font: inherit; padding: 6px 10px; }
+  #msg { font-weight: 700; color: #138808; min-height: 1.4em; }
+&lt;/style&gt;
+&lt;form id="joinForm"&gt;
+  &lt;label for="who"&gt;Name&lt;/label&gt;
+  &lt;input id="who" type="text" placeholder="e.g. Rahul"&gt;
+  &lt;button type="submit"&gt;Join the coding club&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="msg"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;a id="lpuLink" href="https://www.lpu.in"&gt;Visit lpu.in&lt;/a&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const form = document.getElementById("joinForm");
+  const who = document.getElementById("who");
+  const msg = document.getElementById("msg");
+  const link = document.getElementById("lpuLink");
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                 // no sending, no page reload
+    const name = who.value.trim() || "friend";
+    msg.textContent = `Welcome to the club, ${name}! (The page did not reload.)`;
+    console.log("submit stopped | name:", name);
+  });
+
+  link.addEventListener("click", (event) =&gt; {
+    event.preventDefault();                 // the browser does not follow the link
+    console.log("link stopped | it would have opened", link.getAttribute("href"));
+  });
+
+  console.log("Ready. Submit the form, then click the link.");
+&lt;/script&gt;</pre>
+  <p>Type <i>Rahul</i> and press <kbd>Enter</kbd> (or click the button): the message appears, the name stays in the box, and the Console says <code>submit stopped | name: Rahul</code>. Click the link: you stay where you are, and the Console says <code>link stopped | it would have opened https://www.lpu.in</code>. Delete the <code>preventDefault()</code> line from the form listener and try again: the browser sends the form, the preview is replaced by a new page, and your message and the typed name are gone (at most the message flickers for an instant). Chapter 60 builds proper form validation on exactly this pattern.</p>
+  <div class="callout warn"><b>preventDefault is not "stop everything".</b> It cancels only the browser's own action. Your other listeners still run, and the event still travels up the page as the next section describes. Stopping that travel is a different method, <code>stopPropagation()</code>. Mixing the two up is one of the most common exam mistakes.</div>
+</section>
+
+<section id="s6">
+  <h2>57.6 Bubbling and capturing: how an event travels</h2>
+  <p>Here is a puzzle. A button sits inside a <code>&lt;div&gt;</code>, which sits inside <code>&lt;body&gt;</code>. You click the button. Did you also click the div? And the body? From the user's point of view, yes: the button is <i>part of</i> the div, the way your hand is part of your arm. The browser agrees, and so a click is not delivered to one element only. It travels through the tree in three phases, together called <span class="jw" data-def="The journey an event makes through the page's tree: down from the document to the element where it happened, and then back up again through every parent.">propagation</span>:</p>
+  <ol>
+    <li><b>Capturing phase</b> &mdash; the event travels <i>down</i> from the top (<code>window</code>, then <code>document</code>), through every ancestor, towards the element that was clicked.</li>
+    <li><b>Target phase</b> &mdash; it arrives at the element that was clicked: <code>event.target</code>.</li>
+    <li><b>Bubbling phase</b> &mdash; it travels back <i>up</i> through every ancestor to <code>document</code> and finally <code>window</code>, like a bubble rising through water.</li>
+  </ol>
+  <p>A listener added the normal way runs on the way <b>up</b>, during bubbling. So a click on the inner element is heard first by its own listeners, then by its parent's, then by the grandparent's. To have a listener run on the way <b>down</b> instead, pass <code>true</code> as the third argument (or <code>{ capture: true }</code>); to remove such a listener later, pass <code>true</code> to <code>removeEventListener</code> as well. You will rarely need capturing; you will use bubbling every day.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 260" role="img" aria-label="Three nested boxes, and the path a click on the inner box takes: down from window and document to the inner box while capturing, then back up to the top while bubbling">
+      <rect x="20" y="20" width="270" height="222" rx="10" class="box"/>
+      <text x="36" y="42" class="t b mono">div#outer</text>
+      <rect x="45" y="56" width="220" height="164" rx="10" class="box blu"/>
+      <text x="60" y="78" class="t b mono">div#middle</text>
+      <rect x="75" y="96" width="160" height="100" rx="10" class="box saf"/>
+      <text x="155" y="134" class="t c b mono">div#inner</text>
+      <text x="155" y="156" class="t c s">you click here</text>
+      <text x="155" y="172" class="t c s">event.target = inner</text>
+      <rect x="390" y="14" width="130" height="24" rx="6" class="box gry"/>
+      <text x="455" y="31" class="t c s mono">window, document</text>
+      <rect x="390" y="46" width="130" height="24" rx="6" class="box gry"/>
+      <text x="455" y="63" class="t c s mono">html</text>
+      <rect x="390" y="78" width="130" height="24" rx="6" class="box gry"/>
+      <text x="455" y="95" class="t c s mono">body</text>
+      <rect x="390" y="110" width="130" height="24" rx="6" class="box"/>
+      <text x="455" y="127" class="t c s mono">div#outer</text>
+      <rect x="390" y="142" width="130" height="24" rx="6" class="box blu"/>
+      <text x="455" y="159" class="t c s mono">div#middle</text>
+      <rect x="390" y="174" width="130" height="24" rx="6" class="box saf"/>
+      <text x="455" y="191" class="t c s mono">div#inner</text>
+      <path d="M370 22 L370 186" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M540 190 L540 26" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="548" y="206" class="t s">2. target</text>
+      <text x="455" y="228" class="t c s">Left arrow: 1. capturing, down to the target</text>
+      <text x="455" y="246" class="t c s">Right arrow: 3. bubbling, back up to the top</text>
+    </svg>
+    <figcaption><b>Figure 57.2</b> One click on the inner box visits every box around it twice: once on the way down (capturing) and once on the way up (bubbling). Ordinary listeners run on the way up.</figcaption>
+  </figure>
+  <p>Now <code>event.currentTarget</code> earns its place. During the journey, <code>target</code> never changes: it is always the innermost element, where the click started. <code>currentTarget</code> is whichever element's listener is running at this moment, so it changes at every stop. Inside a listener on the outer box, <code>target</code> might be the inner box while <code>currentTarget</code> is the outer box.</p>
+  <pre class="code" data-run data-title="Bubbling and capturing - click the inner box, then the middle one, then tick the checkbox and click inner again" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  #outer, #middle, #inner { border: 2px solid #0B2545; border-radius: 10px; padding: 14px; }
+  #outer  { background: #FFFFFF; }
+  #middle { background: #EEF2FF; }
+  #inner  { background: #FFF1E0; text-align: center; cursor: pointer; }
+&lt;/style&gt;
+&lt;label&gt;&lt;input type="checkbox" id="stopBox"&gt; inner calls stopPropagation()&lt;/label&gt;
+&lt;div id="outer"&gt;outer
+  &lt;div id="middle"&gt;middle
+    &lt;div id="inner"&gt;inner (click me)&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  const stopBox = document.getElementById("stopBox");
+
+  function report(event) {
+    console.log(`${event.currentTarget.id} heard it (target: ${event.target.id})`);
+    if (stopBox.checked &amp;&amp; event.currentTarget.id === "inner") {
+      event.stopPropagation();
+      console.log("inner called stopPropagation() - no more bubbling");
+    }
+  }
+
+  // Ordinary listeners: they run while the event bubbles UP
+  document.getElementById("inner").addEventListener("click", report);
+  document.getElementById("middle").addEventListener("click", report);
+  document.getElementById("outer").addEventListener("click", report);
+
+  // One capturing listener (third argument true): it runs on the way DOWN
+  document.getElementById("outer").addEventListener("click", (event) =&gt; {
+    console.log(`--- outer, capturing on the way down (target: ${event.target.id})`);
+  }, true);
+
+  console.log("Listeners on outer, middle and inner. Click a box.");
+&lt;/script&gt;</pre>
+  <p>Click the <b>inner</b> box. Four lines appear:</p>
+  <pre class="code">--- outer, capturing on the way down (target: inner)
+inner heard it (target: inner)
+middle heard it (target: inner)
+outer heard it (target: inner)</pre>
+  <p>Trace it against Figure 57.2. On the way down only the capturing listener on <code>outer</code> is listening, so it speaks first, although <code>outer</code> is the furthest box from the click. Then the event bubbles up: inner, middle, outer. <code>target</code> stays <code>inner</code> throughout, while <code>currentTarget</code> walks outwards.</p>
+  <p>Click the <b>middle</b> box (on the word "middle"): the capturing line says <code>target: middle</code>, then <code>middle heard it</code> and <code>outer heard it</code>. Inner is not on the path at all; the event starts at middle and travels <i>up</i>. Now tick the checkbox and click inner again: the capturing line, <code>inner heard it</code>, <code>inner called stopPropagation() - no more bubbling</code> &mdash; and nothing from middle or outer. The capturing listener had already run, because it was earlier on the trip.</p>
+  <div class="plain">
+    <p>A click belongs to the element you clicked <i>and</i> to every element around it. The browser first walks down to the clicked element, then walks back up, and normal listeners hear it on the way up: innermost first, outermost last. <code>target</code> is where the click happened; <code>currentTarget</code> is who is listening right now. <code>stopPropagation()</code> says "nobody further up needs to hear this".</p>
+  </div>
+  <p>Use <code>stopPropagation()</code> sparingly: a listener higher up, such as one that closes a menu when you click elsewhere, may need to hear every click. Most events bubble: <code>click</code>, <code>input</code>, <code>change</code>, <code>submit</code>, <code>keydown</code> and <code>mouseover</code> all do. A few do not bubble: <code>focus</code> and <code>blur</code> (their bubbling twins are <code>focusin</code> and <code>focusout</code>), and <code>mouseenter</code> and <code>mouseleave</code> (the bubbling versions are <code>mouseover</code> and <code>mouseout</code>).</p>
+  <div class="callout warn"><b>A trap with <code>this</code>.</b> In older code you will see <code>this</code> inside a listener. In a listener written with the <code>function</code> keyword, <code>this</code> is the same as <code>event.currentTarget</code>. In an arrow function it is <i>not</i> &mdash; arrows do not get their own <code>this</code>. Write <code>event.currentTarget</code> and the question never comes up.</div>
+</section>
+
+<section id="s7">
+  <h2>57.7 Event delegation: one listener for many buttons</h2>
+  <p>Bubbling makes possible one of the most useful patterns on the web. Suppose a course list has an <i>Enrol</i> button beside each of fifty courses. Instead of fifty listeners, add <b>one</b> to the list that contains them all. Every click on any button bubbles up to the list, where your listener asks <code>event.target</code> which button it came from. This is <span class="jw" data-def="Putting one listener on a parent element and letting it handle events on any of its children, by checking which child the event came from.">event delegation</span>. There is one listener to maintain instead of fifty, and it works for buttons that <b>did not exist yet</b> when it was added: a course added later sits inside the same parent, so its clicks bubble to the same listener.</p>
+  <p>The listener still needs to know <i>which</i> course a button is for. Write that on the button itself, in <code>data-*</code> attributes (Chapter 56): <code>&lt;button data-code="CSE326" data-credits="4"&gt;</code>, read back as <code>button.dataset.code</code>. <code>dataset</code> values are always <b>strings</b>, so convert numbers with <code>Number()</code>; and a hyphenated name becomes camelCase: <code>data-course-name</code> is <code>dataset.courseName</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Clicks on any Enrol button inside a list bubble up to one listener on the list, which reads the button's data attributes">
+      <rect x="20" y="16" width="300" height="168" rx="10" class="box"/>
+      <text x="36" y="38" class="t b mono">ul#courses</text>
+      <text x="140" y="38" class="t s">&#8592; ONE listener here</text>
+      <rect x="38" y="54" width="264" height="34" rx="6" class="box gry"/>
+      <text x="50" y="76" class="t s mono">CSE326</text>
+      <rect x="226" y="59" width="66" height="24" rx="5" class="box saf"/>
+      <text x="259" y="76" class="t c s">Enrol</text>
+      <rect x="38" y="96" width="264" height="34" rx="6" class="box gry"/>
+      <text x="50" y="118" class="t s mono">MTH174</text>
+      <rect x="226" y="101" width="66" height="24" rx="5" class="box saf"/>
+      <text x="259" y="118" class="t c s">Enrol</text>
+      <rect x="38" y="138" width="264" height="34" rx="6" class="box gry"/>
+      <text x="50" y="160" class="t s mono">CSE121</text>
+      <rect x="226" y="143" width="66" height="24" rx="5" class="box saf"/>
+      <text x="259" y="160" class="t c s">Enrol</text>
+      <path d="M292 113 C 312 100, 312 60, 300 40" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M320 100 L358 100" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="362" y="16" width="240" height="168" rx="10" class="box grn"/>
+      <text x="482" y="40" class="t c b">The list's listener asks</text>
+      <text x="482" y="64" class="t c s mono">event.target.closest("button")</text>
+      <text x="482" y="82" class="t c s">which button was it?</text>
+      <text x="482" y="110" class="t c s mono">btn.dataset.code</text>
+      <text x="482" y="128" class="t c s">which course is it for?</text>
+      <text x="482" y="158" class="t c s">Buttons added later</text>
+      <text x="482" y="174" class="t c s">work with no new code</text>
+    </svg>
+    <figcaption><b>Figure 57.3</b> Delegation. The buttons have no listeners of their own; their clicks bubble up to the list, and its single listener reads the clicked button's <code>data-*</code> attributes.</figcaption>
+  </figure>
+  <p>One line in the code below needs a word first. <code>event.target</code> is the innermost element clicked, which may not be a button at all: click the course name and the target is the <code>&lt;li&gt;</code>. <code>element.closest("button")</code> answers "is this element, or anything it sits inside, a button? If so, which one?" It returns that button, or <code>null</code> if there is none. Chapter 58 uses the same line again.</p>
+  <pre class="code" data-run data-title="Event delegation with data-* - enrol in two courses, add CSE121, enrol in it too" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  #courses { list-style: none; padding: 0; max-width: 420px; }
+  #courses li { display: flex; justify-content: space-between; align-items: center;
+                padding: 6px 10px; margin-bottom: 6px;
+                border: 1px solid #CBD5E1; border-radius: 8px; }
+  button { padding: 4px 12px; cursor: pointer; }
+  #total { font-weight: 700; }
+&lt;/style&gt;
+&lt;h3&gt;Choose your electives&lt;/h3&gt;
+&lt;ul id="courses"&gt;
+  &lt;li&gt;CSE326 Internet Programming &lt;button data-code="CSE326" data-credits="4"&gt;Enrol&lt;/button&gt;&lt;/li&gt;
+  &lt;li&gt;MTH174 Engineering Maths &lt;button data-code="MTH174" data-credits="4"&gt;Enrol&lt;/button&gt;&lt;/li&gt;
+  &lt;li&gt;PEL121 Communication Skills &lt;button data-code="PEL121" data-credits="2"&gt;Enrol&lt;/button&gt;&lt;/li&gt;
+&lt;/ul&gt;
+&lt;button id="addCourse"&gt;Add CSE121 to the list&lt;/button&gt;
+&lt;p id="total"&gt;Credits chosen: 0&lt;/p&gt;
+
+&lt;script&gt;
+  const list = document.getElementById("courses");
+  const total = document.getElementById("total");
+  const addCourse = document.getElementById("addCourse");
+  let credits = 0;
+
+  // ONE listener, on the list, for every Enrol button - now and later
+  list.addEventListener("click", (event) =&gt; {
+    const btn = event.target.closest("button");
+    if (btn === null) {
+      console.log("Clicked", event.target.tagName, "- not a button, ignored");
+      return;
+    }
+    if (btn.disabled) return;                       // already enrolled
+    const code = btn.dataset.code;                  // "CSE326"
+    const add = Number(btn.dataset.credits);        // "4" -&gt; 4
+    credits += add;
+    btn.textContent = "Enrolled";
+    btn.disabled = true;                            // greyed out: one enrolment each
+    total.textContent = `Credits chosen: ${credits}`;
+    console.log(`Enrolled in ${code} (+${add}) | total ${credits}`);
+  });
+
+  addCourse.addEventListener("click", () =&gt; {
+    const li = document.createElement("li");
+    li.innerHTML = 'CSE121 Programming in C &lt;button data-code="CSE121" data-credits="3"&gt;Enrol&lt;/button&gt;';
+    list.append(li);
+    addCourse.disabled = true;
+    console.log("CSE121 added - no new listener was needed");
+  });
+
+  console.log("Buttons in the list:", list.querySelectorAll("button").length, "| listeners on them: 0");
+&lt;/script&gt;</pre>
+  <p>On Run: <code>Buttons in the list: 3 | listeners on them: 0</code>. Enrol in CSE326 and PEL121: <code>Enrolled in CSE326 (+4) | total 4</code>, then <code>Enrolled in PEL121 (+2) | total 6</code>. Click the words <i>Engineering Maths</i>: <code>Clicked LI - not a button, ignored</code>. Press <b>Add CSE121 to the list</b> (<code>CSE121 added - no new listener was needed</code>) and enrol in it: <code>Enrolled in CSE121 (+3) | total 9</code>. That button was born after the listener was attached, and it works anyway, because its click bubbles to the list like all the others.</p>
+  <p>Without <code>Number()</code>, the first enrolment would make <code>credits</code> the string <code>"04"</code> &mdash; zero joined to the text "4" &mdash; and the next would make it <code>"042"</code>. Data attributes are text, always.</p>
+  <details class="qc"><summary>Quick check: a delegated listener is on a ul. The user clicks an Enrol button inside an li. What are event.target and event.currentTarget?</summary><div class="a">
+    <p><code>event.target</code> is the button, where the click started. <code>event.currentTarget</code> is the <code>ul</code>, because that is the element whose listener is running.</p></div></details>
+</section>
+
+<section id="s8">
+  <h2>57.8 Keyboard events and accessibility</h2>
+  <p>Not everyone uses a mouse. Some people use only a keyboard, blind users drive a screen reader with keys, and a phone has no mouse at all. Your choice of events decides who can use your page, so three habits matter from day one.</p>
+  <p><b>1. Listen for <code>click</code> on a real <code>&lt;button&gt;</code>.</b> A <code>&lt;button&gt;</code> can be reached with <kbd>Tab</kbd>, and pressing <kbd>Enter</kbd> or <kbd>Space</kbd> on it fires <code>click</code>. So one <code>click</code> listener already serves mouse, touch and keyboard users alike. A <code>&lt;div&gt;</code> styled to look like a button gets none of this: it cannot be reached with <kbd>Tab</kbd>, and keys do nothing to it. Chapter 59 shows what it takes to rescue such a "fake button" &mdash; and why it is easier to use the real one.</p>
+  <p><b>2. Use <code>keydown</code> and <code>event.key</code> for keyboard shortcuts.</b> <code>keydown</code> fires when a key goes down, and again and again while it is held. <code>keyup</code> fires when it is released. <code>event.key</code> names the key as the user sees it:</p>
+  <table class="tbl">
+    <thead><tr><th>The user presses</th><th><code>event.key</code> is</th></tr></thead>
+    <tbody>
+      <tr><td>A letter, digit or symbol</td><td>That character: <code>"a"</code>, <code>"A"</code> (with Shift), <code>"7"</code>, <code>"+"</code></td></tr>
+      <tr><td><kbd>Enter</kbd>, <kbd>Escape</kbd>, <kbd>Tab</kbd>, <kbd>Backspace</kbd></td><td><code>"Enter"</code>, <code>"Escape"</code>, <code>"Tab"</code>, <code>"Backspace"</code></td></tr>
+      <tr><td>The arrow keys</td><td><code>"ArrowUp"</code>, <code>"ArrowDown"</code>, <code>"ArrowLeft"</code>, <code>"ArrowRight"</code></td></tr>
+      <tr><td>The space bar</td><td><code>" "</code> &mdash; a string holding one space</td></tr>
+    </tbody>
+  </table>
+  <p>You may meet an old event called <code>keypress</code>, and an old property <code>event.keyCode</code> holding numbers like 13 for Enter. Both are outdated; use <code>keydown</code> and <code>event.key</code>. A shortcut on the whole page goes on <code>document</code>, where every key press ends up by bubbling. If a key already has a job &mdash; the arrow keys scroll the page &mdash; call <code>preventDefault()</code> when your shortcut uses it.</p>
+  <p><b>3. Never make the mouse the only way.</b> Something that appears only on <code>mouseover</code> &mdash; a hint, a hidden menu &mdash; is invisible to keyboard and touch users. Show it on <code>focus</code> as well, or better, behind a button they can click.</p>
+  <div class="plain">
+    <p>Use a real button and listen for <code>click</code>: that one listener works for mouse, finger and keyboard. Add <code>keydown</code> shortcuts as a bonus, never as the only way. And whatever a mouse can reveal, a keyboard must be able to reveal too.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <h2>57.9 Build it: the interactive counter</h2>
+  <p>The lecture ends with an interactive counter: a number and three buttons, <b>+</b>, <b>&minus;</b> and <b>Reset</b>. It has the shape of every interactive page: one piece of <i>state</i> (the number), and one function, <code>render()</code>, whose only job is to make the page show that state. Every listener changes the state, then calls <code>render()</code>. This version also turns the number red below zero and adds keyboard shortcuts.</p>
+  <pre class="code" data-run data-title="The interactive counter - use the buttons, then click in the preview and press + - ArrowUp ArrowDown 0" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; text-align: center; }
+  #count { font-size: 56px; font-weight: 800; margin: 8px 0; color: #0B2545; }
+  #count.negative { color: #B42318; }
+  button { font-size: 20px; min-width: 56px; padding: 8px 14px; margin: 0 4px; cursor: pointer; }
+  .hint { color: #64748B; font-size: 14px; }
+&lt;/style&gt;
+&lt;h3&gt;Interactive counter&lt;/h3&gt;
+&lt;p id="count"&gt;0&lt;/p&gt;
+&lt;button id="minus" type="button" aria-label="Decrease"&gt;&amp;minus;&lt;/button&gt;
+&lt;button id="reset" type="button"&gt;Reset&lt;/button&gt;
+&lt;button id="plus" type="button" aria-label="Increase"&gt;+&lt;/button&gt;
+&lt;p class="hint"&gt;Keyboard: + or ArrowUp adds, - or ArrowDown subtracts, 0 resets.&lt;/p&gt;
+
+&lt;script&gt;
+  let count = 0;                                     // the state: one number
+  const countBox = document.getElementById("count");
+  const plusBtn  = document.getElementById("plus");
+  const minusBtn = document.getElementById("minus");
+  const resetBtn = document.getElementById("reset");
+
+  function render() {                                // state -&gt; page
+    countBox.textContent = count;
+    countBox.classList.toggle("negative", count &lt; 0);   // add the class only below zero
+    console.log("count =", count);
+  }
+
+  // Mouse, touch, and Enter/Space on a focused button all fire "click"
+  plusBtn.addEventListener("click", () =&gt; { count++; render(); });
+  minusBtn.addEventListener("click", () =&gt; { count--; render(); });
+  resetBtn.addEventListener("click", () =&gt; { count = 0; render(); });
+
+  // Shortcuts for the whole page: every key press bubbles up to document
+  document.addEventListener("keydown", (event) =&gt; {
+    if (event.key === "+" || event.key === "ArrowUp") {
+      count++;
+    } else if (event.key === "-" || event.key === "ArrowDown") {
+      count--;
+    } else if (event.key === "0") {
+      count = 0;
+    } else {
+      return;                                        // any other key: not ours
+    }
+    event.preventDefault();                          // stop the arrows scrolling
+    render();
+  });
+
+  render();                                          // show the starting value
+&lt;/script&gt;</pre>
+  <p>On Run, the last line calls <code>render()</code> once, so the Console starts with <code>count = 0</code>. Press <b>+</b> three times: <code>count = 1</code>, <code>count = 2</code>, <code>count = 3</code>. Press <b>&minus;</b> four times and watch the number turn red at <code>count = -1</code>: <code>classList.toggle("negative", count &lt; 0)</code> adds the class when the condition is true and removes it when it is false. <b>Reset</b> gives <code>count = 0</code> and the colour goes back. Now click once in the empty part of the preview (so the keyboard is talking to it), and press <kbd>ArrowUp</kbd> twice: <code>count = 1</code>, <code>count = 2</code>, and the frame does not scroll.</p>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>Why it is there</th></tr></thead>
+    <tbody>
+      <tr><td><code>let count = 0</code></td><td>The state. <code>let</code>, because it changes.</td></tr>
+      <tr><td><code>render()</code></td><td>The only code that touches the page, so the number shown can never disagree with <code>count</code>.</td></tr>
+      <tr><td>Three <code>click</code> listeners</td><td>Change the state, then <code>render()</code>. Real buttons make them keyboard-friendly for free.</td></tr>
+      <tr><td>The <code>keydown</code> listener on <code>document</code></td><td>Shortcuts. Other keys <code>return</code> early and keep their default action.</td></tr>
+      <tr><td>The last <code>render()</code></td><td>Draws the starting state once, before any event.</td></tr>
+    </tbody>
+  </table>
+  <p>With delegation and <code>data-*</code>, the three button listeners become one. Each button carries its step:</p>
+  <pre class="code">&lt;div id="controls"&gt;
+  &lt;button type="button" data-step="-1"&gt;&amp;minus;&lt;/button&gt;
+  &lt;button type="button" data-step="0"&gt;Reset&lt;/button&gt;
+  &lt;button type="button" data-step="1"&gt;+&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // count and render() as in the counter above
+  document.getElementById("controls").addEventListener("click", (event) =&gt; {
+    const btn = event.target.closest("button");
+    if (btn === null) return;
+    const step = Number(btn.dataset.step);
+    count = step === 0 ? 0 : count + step;   // 0 means reset
+    render();
+  });
+&lt;/script&gt;</pre>
+  <p>Add a <b>+5</b> button now and it needs one line of HTML, <code>data-step="5"</code>, and no JavaScript at all. Chapter 58 grows this same state-and-<code>render()</code> idea from one number into whole lists, and Chapter 59 makes this counter announce itself to screen readers.</p>
+</section>
+
+<section id="mistakes">
+  <h2>57.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "btn.addEventListener("click", show()) runs show on every click."</b><br>The brackets run <code>show</code> once, at once, and hand its result (<code>undefined</code>) to the browser.</div>
+    <div class="r"><b>&#10003; "Pass the function, don't call it: addEventListener("click", show)."</b><br>The browser adds the brackets itself, later, each time the event happens.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "event.target is always the element I put the listener on."</b><br>Only when the click happened on that very element.</div>
+    <div class="r"><b>&#10003; "target is where the event started; currentTarget is where the listener is."</b><br>With a listener on a parent, <code>target</code> is usually a child inside it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "preventDefault() stops the event going any further."</b><br>It cancels only the browser's own action, such as following a link or submitting a form.</div>
+    <div class="r"><b>&#10003; "preventDefault stops the default action; stopPropagation stops the travel."</b><br>They are independent: you can use either one, or both.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "To remove a listener, write the same code again in removeEventListener."</b><br>Code that looks the same is a new function, and nothing is removed.</div>
+    <div class="r"><b>&#10003; "Removing needs the very same function: name it."</b><br>Pass the same name to <code>addEventListener</code> and <code>removeEventListener</code>, with the same event name.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "For a form, listen for click on the submit button."</b><br>That misses the user who presses Enter in a text box.</div>
+    <div class="r"><b>&#10003; "Listen for submit on the form."</b><br>It fires for the button and for Enter alike, and <code>preventDefault()</code> there stops the reload.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three ask you to predict what the code prints.</p>
+  <details class="q"><summary>Which line runs <code>showMenu</code> every time <code>btn</code> is clicked?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>btn.addEventListener("onclick", showMenu);</code></li><li>B. <code>btn.addEventListener("click", showMenu());</code></li><li>C. <code>btn.addEventListener("click", showMenu);</code></li><li>D. <code>btn.addEventListener(click, showMenu);</code></li></ul>
+    <p><b>Answer: C.</b> The event name is the string <code>"click"</code> and the function is passed without brackets. A listens for an event that does not exist; B runs <code>showMenu</code> once at load and passes <code>undefined</code>; D uses an undeclared variable <code>click</code>, which throws a ReferenceError.</p></div></details>
+  <details class="q"><summary><span>What does one click on the button print? <code>btn.onclick = () =&gt; console.log("A"); btn.onclick = () =&gt; console.log("B"); btn.addEventListener("click", () =&gt; console.log("C"));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: B, then C.</b> The <code>onclick</code> property holds one function, so the second assignment replaced the first and A never prints. <code>addEventListener</code> adds a separate listener, which runs as well.</p></div></details>
+  <details class="q"><summary>Which is NOT a reason to prefer <code>addEventListener</code> over the <code>onclick</code> attribute?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Several listeners can handle the same event</li><li>B. It makes the event fire faster</li><li>C. A listener can be removed with removeEventListener</li><li>D. It keeps JavaScript out of the HTML</li></ul>
+    <p><b>Answer: B.</b> Events fire at the same moment however the handler was attached. A, C and D are the three standard reasons.</p></div></details>
+  <details class="q"><summary>A listener is on a <code>&lt;ul&gt;</code>. The user clicks a <code>&lt;button&gt;</code> inside one of its <code>&lt;li&gt;</code>s. Inside the listener, <code>event.currentTarget</code> is:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The ul</li><li>B. The button</li><li>C. The li</li><li>D. document</li></ul>
+    <p><b>Answer: A.</b> <code>currentTarget</code> is the element whose listener is running, the <code>ul</code>. The button (B) is <code>event.target</code>, where the click started &mdash; the tempting swap.</p></div></details>
+  <details class="q"><summary><span>Three nested divs, outer &gt; middle &gt; inner, each with <code>addEventListener("click", e =&gt; console.log(e.currentTarget.id))</code>; middle's listener also calls <code>e.stopPropagation()</code>. What does a click on inner print?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: inner, then middle.</b> Ordinary listeners run while the event bubbles up: inner first, then middle. Middle stops the propagation, so outer never hears it.</p></div></details>
+  <details class="q"><summary>What does <code>event.preventDefault()</code> do inside a form's <code>submit</code> listener?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Deletes everything typed in the form</li><li>B. Stops the event bubbling to the form's parents</li><li>C. Removes the submit listener</li><li>D. Stops the browser sending the form and reloading the page</li></ul>
+    <p><b>Answer: D.</b> It cancels the default action, which for a form is sending it and loading a new page. B describes <code>stopPropagation()</code>, a different method.</p></div></details>
+  <details class="q"><summary>Why does <code>btn.removeEventListener("click", () =&gt; alert("Hi"))</code> fail to remove a listener that was added as <code>btn.addEventListener("click", () =&gt; alert("Hi"))</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Arrow functions can never be listeners</li><li>B. The second arrow is a different function object, so nothing matches</li><li>C. removeEventListener only works on the onclick property</li><li>D. Listeners can only be removed after the event has fired</li></ul>
+    <p><b>Answer: B.</b> The browser matches the exact function, not code that looks the same. Store the function in a name and pass that name to both calls.</p></div></details>
+  <details class="q"><summary>Which event fires on every letter typed into a text box?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. change</li><li>B. submit</li><li>C. input</li><li>D. blur</li></ul>
+    <p><b>Answer: C.</b> <code>input</code> fires on every change to the value. <code>change</code> (A) waits until the value is committed, which for a text box means when the box is left.</p></div></details>
+  <details class="q"><summary>What is the main advantage of event delegation for a list of buttons?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. One listener on the parent handles every button, including buttons added later</li><li>B. It stops events bubbling</li><li>C. It makes each button fire its own separate event</li><li>D. It is the only way to read data-* attributes</li></ul>
+    <p><b>Answer: A.</b> Delegation <i>depends</i> on bubbling (so B is backwards): clicks on the buttons travel up to the parent's single listener, and new buttons inside the parent are covered automatically.</p></div></details>
+  <details class="q"><summary><span>What does this print when the button is clicked? <code>&lt;button id="b" data-credits="4"&gt;</code> with <code>b.addEventListener("click", e =&gt; console.log(e.target.dataset.credits + 1));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 41.</b> Every <code>dataset</code> value is a string, so <code>"4" + 1</code> joins them as text. <code>Number(e.target.dataset.credits) + 1</code> gives 5.</p></div></details>
+  <details class="q"><summary>A "button" is made from a <code>&lt;div&gt;</code> with a click listener. Who cannot use it?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Mouse users</li><li>B. Touch-screen users</li><li>C. Keyboard-only users</li><li>D. Nobody &mdash; a click listener works for everyone</li></ul>
+    <p><b>Answer: C.</b> A div cannot be reached with Tab, and Enter or Space does nothing to it. A real <code>&lt;button&gt;</code> fires <code>click</code> for the keyboard too, which is why it is the right element.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An event is something that happens (click, input, change, submit, keydown, mouseover, focus, blur, load, DOMContentLoaded). A listener is a callback the browser runs each time it happens.</li>
+    <li>Three ways to attach: the <code>onclick</code> attribute, the <code>onclick</code> property (one function only; a new one replaces the old) and <code>addEventListener</code> &mdash; several listeners, removable, JavaScript kept out of the HTML. Use the last.</li>
+    <li>Write <code>addEventListener("click", fn)</code>: the event name without "on", the function without brackets. <code>removeEventListener</code> needs the very same function, so name it.</li>
+    <li>The event object: <code>type</code>, <code>target</code> (where it started), <code>currentTarget</code> (whose listener is running), <code>target.value</code>, <code>key</code>.</li>
+    <li><code>preventDefault()</code> cancels the browser's own action (form submit, following a link). <code>stopPropagation()</code> stops the event travelling further. They are different.</li>
+    <li>An event travels down (capturing), reaches the target, then bubbles up. Ordinary listeners run on the way up, innermost first.</li>
+    <li>Delegation: one listener on a parent, <code>event.target.closest(...)</code> to find the child, <code>dataset</code> to read its data (as strings). It covers children added later.</li>
+    <li>For access: real buttons plus <code>click</code> serve mouse, touch and keyboard; <code>keydown</code> with <code>event.key</code> adds shortcuts; nothing should be mouse-only.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>btn.addEventListener("click", fn)</code></td><td>Run <code>fn</code> on every click (adds; never replaces)</td></tr>
+      <tr><td><code>btn.removeEventListener("click", fn)</code></td><td>Remove that same listener</td></tr>
+      <tr><td><code>btn.addEventListener("click", fn, { once: true })</code></td><td>Run once, then remove itself</td></tr>
+      <tr><td><code>box.addEventListener("click", fn, true)</code></td><td>Listen in the capturing phase (on the way down)</td></tr>
+      <tr><td><code>event.type</code>, <code>event.key</code></td><td>The event's name; the key pressed</td></tr>
+      <tr><td><code>event.target</code> / <code>event.currentTarget</code></td><td>Where it started / whose listener is running</td></tr>
+      <tr><td><code>event.target.value</code></td><td>A box's current value (a string)</td></tr>
+      <tr><td><code>event.preventDefault()</code></td><td>Cancel the default action</td></tr>
+      <tr><td><code>event.stopPropagation()</code></td><td>Stop the bubbling (or capturing) here</td></tr>
+      <tr><td><code>form.addEventListener("submit", fn)</code></td><td>Handle a form sent by button or Enter</td></tr>
+      <tr><td><code>event.target.closest("button")</code></td><td>The clicked button, or <code>null</code> (delegation)</td></tr>
+      <tr><td><code>btn.dataset.credits</code></td><td>Read <code>data-credits</code> &mdash; always a string</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener" target="_blank" rel="noopener noreferrer">MDN &mdash; EventTarget.addEventListener()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every option of addEventListener, including once and capture, with the exact rules for removing listeners.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Event" target="_blank" rel="noopener noreferrer">MDN &mdash; Event<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full list of properties and methods on the event object, and links to every kind of event.</span></li>
+    <li><a href="https://javascript.info/bubbling-and-capturing" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Bubbling and capturing<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A second, careful walk through the three phases, with small examples to try.</span></li>
+    <li><a href="https://javascript.info/event-delegation" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Event delegation<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">More delegation patterns, including the "behaviour" pattern built on data-* attributes.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

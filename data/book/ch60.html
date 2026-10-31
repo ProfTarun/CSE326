@@ -1,0 +1,803 @@
+<article class="chapter" data-ch="60">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 60 &middot; Form Validation with JavaScript</p>
+  <h1>Form Validation with JavaScript</h1>
+  <p class="lead">A form is a conversation: the page asks, the user answers, and somebody has to check the answers before they are used. HTML can already refuse an empty box, but it speaks in the browser's words, one bubble at a time, and only when Submit is pressed. JavaScript lets you check any rule you like, say exactly what is wrong right next to the box that is wrong, and help while the user is still typing.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>type="email"</code>, <code>type="number"</code>, <code>min</code>/<code>max</code> and <code>minlength</code> describe what a box should hold (<a href="book.html?ch=17">Chapter 17</a>); with <code>required</code> and <code>pattern</code> the browser checks them before sending, and the server must check again (<a href="book.html?ch=18">Chapter 18</a>).</li>
+      <li>Every box needs a <code>&lt;label for="..."&gt;</code> that names it, and a form is sent by a <code>type="submit"</code> button (<a href="book.html?ch=16">Chapter 16</a>).</li>
+      <li><code>addEventListener("submit", fn)</code> runs a function when a form is sent, and <code>event.preventDefault()</code> stops the browser's usual action (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li><code>text.trim()</code> gives back a copy of the text without the spaces at its two ends (<a href="book.html?ch=45">Chapter 45</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what HTML's built-in validation cannot do, and when JavaScript is needed.</li>
+      <li>Write a submit handler that stops the send, reads and trims each value, decides, and shows a message.</li>
+      <li>Show each error next to its box, mark it with <code>aria-invalid</code> and <code>aria-describedby</code>, and move focus to the first problem.</li>
+      <li>Check boxes while the user types without complaining too early.</li>
+      <li>Use <code>checkValidity()</code>, <code>reportValidity()</code>, the <code>validity</code> flags, <code>setCustomValidity()</code> and <code>novalidate</code>.</li>
+      <li>Explain why the server checks everything again, and build the lecture's Product Order Form.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>60.1 What validation is, and what HTML already does</h2>
+  <p><b>Form validation</b> means checking that the information a user entered obeys your rules <i>before</i> the application accepts it. The lecture's examples are the everyday ones: an email must be in an acceptable format, a password must be long enough, an age must fall within an allowed range, and required boxes must not be empty. Each rule is a <span class="jw" data-def="A rule that a value must obey, such as 'not empty', 'exactly 10 digits' or 'at least 17'.">constraint</span>.</p>
+  <p>You met the HTML way in Chapter 18: write the rule as an attribute, and the browser enforces it when Submit is pressed.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Rule it describes</th></tr></thead>
+    <tbody>
+      <tr><td><code>required</code></td><td>The box must not be empty</td></tr>
+      <tr><td><code>type="email"</code>, <code>"url"</code>, <code>"number"</code></td><td>The value must fit that kind of data</td></tr>
+      <tr><td><code>min</code>, <code>max</code></td><td>A number or date must be inside the range</td></tr>
+      <tr><td><code>minlength</code>, <code>maxlength</code></td><td>The number of characters must be inside the range</td></tr>
+      <tr><td><code>pattern</code></td><td>The whole value must match a pattern</td></tr>
+    </tbody>
+  </table>
+  <p>That is a good start, but it has real limits:</p>
+  <ul>
+    <li><b>The words are not yours.</b> The browser writes its own sentence ("Please fill in this field.") in a bubble that fades away, worded differently in every browser.</li>
+    <li><b>One problem at a time, only on Submit.</b> The bubble appears for the first bad box only. The user fixes it, presses Submit again, and only then discovers the second problem.</li>
+    <li><b>No rule can compare two boxes.</b> "Confirm password must match password" or "return date must be after departure date" has no attribute.</li>
+    <li><b>Looser than you expect.</b> A box containing three spaces satisfies <code>required</code>, and <code>type="email"</code> happily accepts <code>asha@lpu</code> with no dot, because the HTML standard allows addresses on private networks.</li>
+  </ul>
+  <p>JavaScript fills every one of these gaps. It does not replace the attributes: they still describe your rules, they still work if your script fails to load, and in 60.5 your script will read them.</p>
+  <details class="qc"><summary>Quick check: a box has the required attribute, and the user types three spaces. Does the browser accept it?</summary><div class="a">
+    <p>Yes. Spaces are characters, so the box is not empty as far as <code>required</code> is concerned. That is why every script in this chapter calls <code>.trim()</code> before testing for <code>""</code>.</p></div></details>
+  <figure class="fig">
+    <svg viewBox="0 0 700 215" role="img" aria-label="A form is checked at three moments: while typing, on submit in the browser, and again on the server">
+      <rect x="16" y="24" width="200" height="120" rx="12" class="box saf"/>
+      <text x="116" y="52" class="t c b">1  WHILE TYPING</text>
+      <text x="116" y="78" class="t c s">input and blur events</text>
+      <text x="116" y="98" class="t c s">a hint under one box</text>
+      <text x="116" y="118" class="t c s">never blocks anything</text>
+      <path d="M218 84 L244 84" class="edge" marker-end="url(#arr)"/>
+      <rect x="248" y="24" width="200" height="120" rx="12" class="box blu"/>
+      <text x="348" y="52" class="t c b">2  ON SUBMIT</text>
+      <text x="348" y="78" class="t c s">the submit event</text>
+      <text x="348" y="98" class="t c s">check every box</text>
+      <text x="348" y="118" class="t c s">preventDefault() if any fail</text>
+      <path d="M450 84 L476 84" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="463" y="74" class="t c s">sent</text>
+      <rect x="480" y="24" width="204" height="120" rx="12" class="box grn"/>
+      <text x="582" y="52" class="t c b">3  ON THE SERVER</text>
+      <text x="582" y="78" class="t c s">every rule checked again</text>
+      <text x="582" y="98" class="t c s">then saved to the database</text>
+      <text x="582" y="118" class="t c s">the final line of defence</text>
+      <rect x="16" y="162" width="432" height="36" rx="8" class="box gry"/>
+      <text x="232" y="185" class="t c s">In the browser: kind and fast, but the user controls it</text>
+      <rect x="480" y="162" width="204" height="36" rx="8" class="box ink"/>
+      <text x="582" y="185" class="t c w b">the user cannot touch it</text>
+    </svg>
+    <figcaption><b>Figure 60.1</b> Three moments of checking. The first two happen in the browser and exist to help the user; only the third, on the server, can be trusted.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> The clerk at a speed-post counter. She does not snatch your form while you are still writing. When you hand it over, she reads every box, puts a pencil mark and a short note beside each one that is wrong &mdash; not a vague "form incorrect" &mdash; and points to the first. The moment you correct a box she stops complaining about it. And whatever she accepts, the head post office checks again before anything is dispatched, because forms can reach it without passing her counter. This chapter teaches you to be that clerk.</div>
+</section>
+
+<section id="s2">
+  <h2>60.2 Taking over the submit: four steps</h2>
+  <p>Every JavaScript validator, from a one-box OTP form to a forty-box admission form, does the same four things:</p>
+  <ol>
+    <li><b>Stop.</b> Listen for the form's <code>submit</code> event and call <code>event.preventDefault()</code> as the very first line.</li>
+    <li><b>Read.</b> Take each box's <code>.value</code> &mdash; always a string, even in a number box &mdash; and <code>.trim()</code> it, so stray <span class="jw" data-def="Characters you cannot see but that are really there: spaces, tabs and line breaks.">whitespace</span> at the ends does not count.</li>
+    <li><b>Decide.</b> Test the value with <code>if</code> / <code>else</code>.</li>
+    <li><b>Tell.</b> Write a message on the page. If everything passed, let the data go on.</li>
+  </ol>
+  <p>For "exactly 10 digits" the lecture uses a <span class="jw" data-def="A pattern that describes what a piece of text should look like, such as 'exactly ten digits'. JavaScript writes it between two slashes.">regular expression</span>: <code>/^\d{10}$/</code>. Read it as <i>"from the start, ten digits, then the end"</i>. Its <code>.test(text)</code> method answers <code>true</code> or <code>false</code>. Chapter 61 teaches you to write these; in this chapter every pattern is explained in words.</p>
+  <pre class="code" data-run data-title="The four steps on one box - try empty, then '  98765 ', then 9876543210" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; color: #0B2545; }
+  input, button { font-size: 15px; padding: 7px 10px; }
+  #msg { font-weight: 600; }
+&lt;/style&gt;
+&lt;form id="signup"&gt;
+  &lt;label for="mobile"&gt;Mobile number&lt;/label&gt;&lt;br&gt;
+  &lt;input id="mobile" name="mobile"&gt;
+  &lt;button type="submit"&gt;Send OTP&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="msg"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const form = document.getElementById("signup");
+  const mobile = document.getElementById("mobile");
+  const msg = document.getElementById("msg");
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                       // 1. stop: do not send the form yet
+    const value = mobile.value.trim();            // 2. read the box, cut stray spaces
+    console.log("Checking:", JSON.stringify(value));
+
+    let message;
+    if (value === "") {                           // 3. decide
+      message = "Please enter your mobile number.";
+    } else if (!/^\d{10}$/.test(value)) {
+      message = "A mobile number is exactly 10 digits.";
+    } else {
+      message = "OTP sent to " + value + ".";
+    }
+    msg.textContent = message;                    // 4. tell the user
+    console.log("Message:", message);
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Send OTP</b> with the box empty: the Console shows <code>Checking: ""</code> and <code>Message: Please enter your mobile number.</code> Now type <code>&nbsp;&nbsp;98765&nbsp;</code> with spaces around it: <code>Checking: "98765"</code> proves the spaces were trimmed, and the ten-digit message appears. Finally type <code>9876543210</code> and press <kbd>Enter</kbd> instead of clicking: <code>OTP sent to 9876543210.</code> The same handler ran: Enter in a box submits the form too. (<code>JSON.stringify</code> adds the quotes, so you can see where the value starts and ends.)</p>
+  <div class="plain">
+    <p>Pressing Submit normally means <i>"send this form now and load the reply page"</i>. <code>preventDefault()</code> says <i>"not yet &mdash; let my code look first"</i>. If the answers are fine, your code sends them on; on a real site that is usually done with <code>fetch</code> (Chapter 65). If not, the user stays on the page, sees the message, and loses nothing they typed.</p>
+  </div>
+  <div class="callout warn"><b>Listen to the form, not the button.</b> The <code>submit</code> event fires however the form is sent &mdash; the button, <kbd>Enter</kbd> in a box, or a second submit button &mdash; and its default action is exactly the send you want to stop. Make <code>preventDefault()</code> the first line: if any line above it crashes, it never runs, and the browser goes ahead and sends the unchecked form.</div>
+  <details class="qc"><summary>Quick check: what does the browser do if your handler has a typing mistake on its second line and preventDefault() is on its last line?</summary><div class="a">
+    <p>It sends the form anyway. The error stops your function before it reaches <code>preventDefault()</code>, so nothing cancelled the submission. Put <code>preventDefault()</code> first and a crash leaves the user safely on the page.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>60.3 Error messages people can find</h2>
+  <p>"Invalid input" printed at the bottom of a long form helps nobody. Good error messages follow three rules:</p>
+  <ol>
+    <li><b>Next to the box, saying what to do.</b> "Enter an email like asha@lpu.in", not "Email invalid".</li>
+    <li><b>All at once.</b> Check every box on each submit and show every message, so the user fixes everything in one pass.</li>
+    <li><b>Go to the first one.</b> Move <span class="jw" data-def="The one element that keyboard typing currently goes into. A focused box shows a blinking cursor and usually an outline.">focus</span> there with <code>input.focus()</code>, so the cursor is already in the box that needs fixing.</li>
+  </ol>
+  <p>A sighted user sees the red text under the box. A blind user, listening through a <span class="jw" data-def="Software that reads the page aloud, and announces boxes, buttons and messages, for people who cannot see the screen.">screen reader</span>, needs the message joined to its box in code. Two attributes do it; you used both on a single roll-number box in Chapter 59, and now every box gets them:</p>
+  <ul>
+    <li><b><code>aria-invalid="true"</code></b> on the input marks it as wrong; screen readers announce "invalid entry". Remove it when the box is fixed.</li>
+    <li><b><code>aria-describedby="email-error"</code></b> on the input names the <code>id</code> of the message element. Whenever the box gets focus, the reader speaks its label and then that message.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 680 235" role="img" aria-label="The input points at its error paragraph through aria-describedby, so a screen reader speaks the label, invalid entry, and the message">
+      <rect x="16" y="20" width="338" height="196" rx="12" class="box gry"/>
+      <text x="30" y="48" class="t mono" style="font-size:11.5px">&lt;label for="email"&gt;Email&lt;/label&gt;</text>
+      <text x="30" y="76" class="t mono" style="font-size:11.5px">&lt;input id="email" type="email"</text>
+      <text x="30" y="96" class="t mono" style="font-size:11.5px">       aria-invalid="true"</text>
+      <text x="30" y="116" class="t mono" style="font-size:11.5px">       aria-describedby="email-error"&gt;</text>
+      <text x="30" y="152" class="t mono" style="font-size:11.5px">&lt;p id="email-error"&gt;</text>
+      <text x="30" y="172" class="t mono" style="font-size:11.5px">  Enter an email like asha@lpu.in.</text>
+      <text x="30" y="192" class="t mono" style="font-size:11.5px">&lt;/p&gt;</text>
+      <path d="M300 122 C 330 134, 250 140, 175 142" class="edge saf dash" marker-end="url(#arr-saf)"/>
+      <rect x="380" y="28" width="284" height="116" rx="14" class="box saf"/>
+      <text x="522" y="54" class="t c b">A screen reader says, roughly:</text>
+      <text x="522" y="80" class="t c">&ldquo;Email, edit text,</text>
+      <text x="522" y="100" class="t c">invalid entry,</text>
+      <text x="522" y="120" class="t c">Enter an email like asha@lpu.in.&rdquo;</text>
+      <text x="384" y="172" class="t s">label &#8594; the name, &ldquo;Email&rdquo;</text>
+      <text x="384" y="192" class="t s">aria-invalid="true" &#8594; &ldquo;invalid entry&rdquo;</text>
+      <text x="384" y="212" class="t s">aria-describedby &#8594; reads the message</text>
+    </svg>
+    <figcaption><b>Figure 60.2</b> The dashed arrow is the whole trick: <code>aria-describedby</code> holds the <code>id</code> of the message, so the message is read out every time the box gets focus.</figcaption>
+  </figure>
+  <p>Here is the registration form from the lecture, built on those rules. Each box has an empty <code>&lt;p class="error"&gt;</code> waiting under it; the script fills it or empties it.</p>
+  <pre class="code" data-run data-title="The lecture's registration form - press Register empty, then fix one box at a time" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  label { display: block; font-weight: 600; margin-top: 10px; }
+  input { font-size: 15px; padding: 6px 8px; width: 250px; max-width: 100%;
+          border: 2px solid #94A3B8; border-radius: 6px; }
+  input[aria-invalid="true"] { border-color: #C42B2B; background: #FFF5F5; }
+  .error { color: #C42B2B; font-size: 14px; margin: 3px 0 0; }
+  button { margin-top: 14px; font-size: 15px; padding: 7px 16px; }
+  #done { color: #138808; font-weight: 700; }
+&lt;/style&gt;
+&lt;form id="reg" novalidate&gt;
+  &lt;label for="fullname"&gt;Full name&lt;/label&gt;
+  &lt;input id="fullname" aria-describedby="fullname-error"&gt;
+  &lt;p class="error" id="fullname-error"&gt;&lt;/p&gt;
+
+  &lt;label for="email"&gt;Email&lt;/label&gt;
+  &lt;input id="email" type="email" aria-describedby="email-error"&gt;
+  &lt;p class="error" id="email-error"&gt;&lt;/p&gt;
+
+  &lt;label for="pw"&gt;Password (at least 8 characters)&lt;/label&gt;
+  &lt;input id="pw" type="password" aria-describedby="pw-error"&gt;
+  &lt;p class="error" id="pw-error"&gt;&lt;/p&gt;
+
+  &lt;label for="pw2"&gt;Confirm password&lt;/label&gt;
+  &lt;input id="pw2" type="password" aria-describedby="pw2-error"&gt;
+  &lt;p class="error" id="pw2-error"&gt;&lt;/p&gt;
+
+  &lt;button type="submit"&gt;Register&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="done"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const form = document.getElementById("reg");
+  const fullname = document.getElementById("fullname");
+  const email = document.getElementById("email");
+  const pw = document.getElementById("pw");
+  const pw2 = document.getElementById("pw2");
+  const done = document.getElementById("done");
+  const emailPattern = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;   // text@text.text, no spaces
+
+  // One rule per box: give back "" if the value is fine, otherwise the message
+  function checkName(value) {
+    if (value.trim() === "") return "Enter your full name.";
+    return "";
+  }
+  function checkEmail(value) {
+    const v = value.trim();
+    if (v === "") return "Enter your email address.";
+    if (!emailPattern.test(v)) return "That email looks incomplete - try asha@lpu.in.";
+    return "";
+  }
+  function checkPassword(value) {
+    if (value.length &lt; 8) return `Use at least 8 characters (you have ${value.length}).`;
+    return "";
+  }
+  function checkConfirm(value) {
+    if (value !== pw.value) return "The two passwords do not match.";
+    return "";
+  }
+
+  // Put a message under a box (or clear it) and mark the box for screen readers
+  function showMessage(input, message) {
+    document.getElementById(input.id + "-error").textContent = message;
+    if (message === "") {
+      input.removeAttribute("aria-invalid");
+    } else {
+      input.setAttribute("aria-invalid", "true");
+    }
+  }
+
+  const fields = [
+    { box: fullname, check: checkName },
+    { box: email, check: checkEmail },
+    { box: pw, check: checkPassword },
+    { box: pw2, check: checkConfirm },
+  ];
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();
+    let firstBad = null;
+
+    for (const f of fields) {                      // check EVERY box, top to bottom
+      const message = f.check(f.box.value);
+      showMessage(f.box, message);
+      if (message !== "" &amp;&amp; firstBad === null) {
+        firstBad = f.box;                          // remember the first failure
+      }
+    }
+
+    if (firstBad !== null) {
+      done.textContent = "";
+      firstBad.focus();                            // take the user straight to it
+      console.log("Not sent. First problem:", firstBad.id);
+    } else {
+      done.textContent = `Registered! Welcome, ${fullname.value.trim()}.`;
+      console.log("All four boxes passed - now the data would go to the server.");
+    }
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Register</b> with every box empty. Three messages appear at once, the password one saying <code>(you have 0)</code>, and the cursor jumps into Full name; the Console says <code>Not sent. First problem: fullname</code>. Confirm password shows nothing, because two empty passwords do match &mdash; the password message already explains the real problem.</p>
+  <p>Now type <code>Asha Kumar</code>, <code>asha@lpu</code>, <code>secret12</code> and <code>secret21</code>, and press Register again. The name's message vanishes, because every submit rewrites every box's message. Email (no dot) and Confirm (21, not 12) are marked, and the Console names <code>email</code>. Fix both and you get <code>Registered! Welcome, Asha Kumar.</code></p>
+  <div class="plain">
+    <p>Each check function answers one question: <i>"what is wrong with this value?"</i> An empty answer, <code>""</code>, means "nothing". The loop asks every check, writes each answer under its own box, and remembers the first box that complained so the cursor can be sent there.</p>
+  </div>
+  <p>Two small decisions are worth noticing. The passwords are <b>not</b> trimmed, because a space can be a deliberate part of a password. And the form carries <code>novalidate</code>, so the browser's own email bubble does not jump in ahead of the script; 60.6 explains why that matters.</p>
+</section>
+
+<section id="s4">
+  <h2>60.4 Checking while the user types, without nagging</h2>
+  <p>Two events from Chapter 57 let you check before Submit. <b><code>input</code></b> fires on every change to a box: each key, each paste, each delete. <b><code>blur</code></b> fires when the box loses focus, because the user pressed Tab or clicked somewhere else.</p>
+  <p>Checking on every key from the very first one is <i>nagging</i>: type one letter of your email and you are told "That is not an email address". Of course not &mdash; you have typed one letter. The friendly rule is <b>late to complain, quick to forgive</b>:</p>
+  <table class="tbl">
+    <thead><tr><th>Moment</th><th>What the script does</th></tr></thead>
+    <tbody>
+      <tr><td>Typing in a box that shows no error</td><td>Stay quiet</td></tr>
+      <tr><td>Leaving a box the user has typed in (<code>blur</code>)</td><td>Check it; show a message if it is wrong</td></tr>
+      <tr><td>Typing in a box that <b>is</b> showing an error (<code>input</code>)</td><td>Re-check on every key, so the message disappears the moment it is fixed</td></tr>
+      <tr><td>Pressing Submit</td><td>Check every box, whatever happened before</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Late to complain, quick to forgive - follow the steps below and watch the Console" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  label { display: block; font-weight: 600; margin-top: 10px; }
+  input { font-size: 15px; padding: 6px 8px; width: 250px; max-width: 100%;
+          border: 2px solid #94A3B8; border-radius: 6px; }
+  input[aria-invalid="true"] { border-color: #C42B2B; background: #FFF5F5; }
+  .error { color: #C42B2B; font-size: 14px; margin: 3px 0 0; min-height: 18px; }
+&lt;/style&gt;
+&lt;label for="who"&gt;Name (at least 3 characters)&lt;/label&gt;
+&lt;input id="who" aria-describedby="who-error"&gt;
+&lt;p class="error" id="who-error"&gt;&lt;/p&gt;
+
+&lt;label for="phone"&gt;Mobile (10 digits)&lt;/label&gt;
+&lt;input id="phone" inputmode="numeric" aria-describedby="phone-error"&gt;
+&lt;p class="error" id="phone-error"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  function nameMessage(value) {
+    return value.trim().length &gt;= 3 ? "" : "At least 3 characters, please.";
+  }
+  function phoneMessage(value) {
+    return /^\d{10}$/.test(value.trim()) ? "" : "Exactly 10 digits, no spaces.";
+  }
+
+  // Late to complain, quick to forgive
+  function liveCheck(input, getMessage) {
+    const slot = document.getElementById(input.id + "-error");
+    let touched = false;                          // has the user typed here yet?
+
+    function judge(why) {
+      const message = getMessage(input.value);
+      slot.textContent = message;
+      if (message === "") {
+        input.removeAttribute("aria-invalid");
+      } else {
+        input.setAttribute("aria-invalid", "true");
+      }
+      console.log(`${why} on ${input.id}:`, message || "OK");
+    }
+
+    input.addEventListener("input", () =&gt; {
+      touched = true;
+      if (input.hasAttribute("aria-invalid")) {   // an error is showing, so
+        judge("input");                           // re-check on every key
+      }
+    });
+    input.addEventListener("blur", () =&gt; {
+      if (touched) {                              // they have finished with the box:
+        judge("blur");                            // now it is fair to judge
+      }
+    });
+  }
+
+  liveCheck(document.getElementById("who"), nameMessage);
+  liveCheck(document.getElementById("phone"), phoneMessage);
+&lt;/script&gt;</pre>
+  <p>Click into Name and press Tab without typing: the Console stays empty, because a box nobody has touched is not an error yet. Click back, type <code>As</code> and press Tab: <code>blur on who: At least 3 characters, please.</code> Click back and type <code>h</code>: <code>input on who: OK</code>, and the message disappears on that very key. In Mobile, type <code>98765</code> and leave: the message appears. Go back and type the remaining digits one at a time; each key re-checks, and the tenth digit brings <code>input on phone: OK</code>.</p>
+  <div class="plain">
+    <p>Do not judge a box while someone is still writing in it. Judge it when they leave. Once you have pointed out a mistake, watch every key, so you can take the complaint back the instant it is fixed.</p>
+  </div>
+  <p>Live hints are a kindness, never a replacement. A user can skip a box completely, and then no <code>blur</code> ever fires on it, so the full check on Submit from 60.3 must still run.</p>
+</section>
+
+<section id="s5">
+  <h2>60.5 The Constraint Validation API: the browser's checker, from JavaScript</h2>
+  <p>Writing every rule by hand repeats work the browser already knows how to do. Every input carries a ready-made checker that reads its HTML attributes and reports, to your script, exactly what is wrong. Its official name is the <b>Constraint Validation <span class="jw" data-def="Application Programming Interface: a set of ready-made objects and methods that the browser hands to your code, so you can use a feature without building it yourself.">API</span></b>, and these are its tools:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th><th>Gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>input.checkValidity()</code></td><td>Checks one box against its attributes, quietly</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td><code>form.checkValidity()</code></td><td>Checks every box in the form, quietly</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td><code>form.reportValidity()</code></td><td>Checks, and if something fails shows the browser's bubble on the first bad box and focuses it</td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td><code>input.validity</code></td><td>An object of true/false flags saying <i>which</i> rule failed</td><td>A <code>ValidityState</code> object</td></tr>
+      <tr><td><code>input.validationMessage</code></td><td>The browser's own sentence for the current problem</td><td>Text, or <code>""</code> if the box is valid</td></tr>
+      <tr><td><code>input.setCustomValidity("...")</code></td><td>Marks the box invalid with your message; <code>""</code> clears it</td><td>Nothing</td></tr>
+    </tbody>
+  </table>
+  <p><code>input.validity</code> is the most useful of them. Each of its properties is a <span class="jw" data-def="A true/false value that records whether something is the case, like a light that is either on or off.">flag</span> for one kind of failure:</p>
+  <table class="tbl">
+    <thead><tr><th>Flag</th><th>Is <code>true</code> when</th><th>Switched on by</th></tr></thead>
+    <tbody>
+      <tr><td><code>valueMissing</code></td><td>The box is empty</td><td><code>required</code></td></tr>
+      <tr><td><code>typeMismatch</code></td><td>The value does not fit the type</td><td><code>type="email"</code>, <code>type="url"</code></td></tr>
+      <tr><td><code>patternMismatch</code></td><td>The value does not match the pattern</td><td><code>pattern</code></td></tr>
+      <tr><td><code>tooShort</code> / <code>tooLong</code></td><td>Fewer / more characters than allowed</td><td><code>minlength</code> / <code>maxlength</code></td></tr>
+      <tr><td><code>rangeUnderflow</code> / <code>rangeOverflow</code></td><td>A number or date below <code>min</code> / above <code>max</code></td><td><code>min</code> / <code>max</code></td></tr>
+      <tr><td><code>stepMismatch</code></td><td>The number is not on the step</td><td><code>step</code></td></tr>
+      <tr><td><code>customError</code></td><td>Your script set a non-empty custom message</td><td><code>setCustomValidity()</code></td></tr>
+      <tr><td><code>valid</code></td><td>Every flag is <code>false</code> (the above, plus the rarer <code>badInput</code>: text a number box cannot read)</td><td>(all of them together)</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 250" role="img" aria-label="An email box containing asha@ has typeMismatch true and every other flag false, so valid is false">
+      <text x="20" y="46" class="t mono s">&lt;input type="email" required&gt;</text>
+      <rect x="20" y="58" width="220" height="40" rx="6" class="box red"/>
+      <text x="34" y="84" class="t mono">asha@</text>
+      <text x="20" y="124" class="t s">what the user has typed</text>
+      <text x="20" y="162" class="t b">One rule broken:</text>
+      <text x="20" y="182" class="t">the value is not</text>
+      <text x="20" y="200" class="t">an email address</text>
+      <path d="M246 78 L298 78" class="edge" marker-end="url(#arr)"/>
+      <rect x="304" y="18" width="320" height="216" rx="12" class="box"/>
+      <text x="320" y="44" class="t b mono">input.validity</text>
+      <rect x="312" y="79" width="304" height="20" rx="4" class="box red"/>
+      <text x="322" y="70" class="t mono">valueMissing</text><text x="520" y="70" class="t mono">false</text>
+      <text x="322" y="93" class="t mono b">typeMismatch</text><text x="520" y="93" class="t mono b">true</text>
+      <text x="322" y="116" class="t mono">patternMismatch</text><text x="520" y="116" class="t mono">false</text>
+      <text x="322" y="138" class="t mono">tooShort</text><text x="520" y="138" class="t mono">false</text>
+      <text x="322" y="160" class="t mono">rangeUnderflow</text><text x="520" y="160" class="t mono">false</text>
+      <text x="322" y="182" class="t mono">customError</text><text x="520" y="182" class="t mono">false</text>
+      <path d="M314 194 L614 194" class="edge"/>
+      <text x="322" y="220" class="t mono b">valid</text><text x="520" y="220" class="t mono b">false</text>
+    </svg>
+    <figcaption><b>Figure 60.3</b> One switched-on flag is enough to make <code>valid</code> false. Your script reads the flag to learn <i>why</i>, and can then choose its own words.</figcaption>
+  </figure>
+  <p>Two facts surprise almost everyone. First, <b>an empty box breaks only <code>required</code></b>: <code>pattern</code>, <code>type</code> and <code>minlength</code> all ignore an empty box, so an optional box may be left blank. If a value is compulsory <i>and</i> must match a pattern, write both attributes. Second, <b><code>tooShort</code> only switches on after the user has typed</b> in the box; a value placed there by your script or by the <code>value</code> attribute is not length-checked. That is why the explorer below has no <code>minlength</code> box.</p>
+  <p>Some rules no attribute can express, such as "the two passwords must match". For those, <code>setCustomValidity(message)</code> switches the box to invalid with your message, and <b><code>setCustomValidity("")</code></b> switches it back to valid. The explorer runs its <code>matchPasswords</code> on every key in either password box.</p>
+  <pre class="code" data-run data-title="The validity flags, live - read the Console, then press the two buttons" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  label { display: block; font-weight: 600; margin-top: 8px; }
+  input { font-size: 15px; padding: 5px 8px; width: 230px; max-width: 100%; }
+  input:invalid { border: 2px solid #C42B2B; }
+  input:valid { border: 2px solid #138808; }
+  button { margin: 12px 6px 0 0; padding: 7px 12px; }
+&lt;/style&gt;
+&lt;form id="f"&gt;
+  &lt;label for="mail"&gt;Email (required)&lt;/label&gt;
+  &lt;input id="mail" type="email" required value="asha@"&gt;
+  &lt;label for="code"&gt;Product code (PRD and 4 digits)&lt;/label&gt;
+  &lt;input id="code" pattern="PRD\d{4}" value="PRD12"&gt;
+  &lt;label for="age"&gt;Age (17 to 60)&lt;/label&gt;
+  &lt;input id="age" type="number" min="17" max="60" value="15"&gt;
+  &lt;label for="city"&gt;City (required)&lt;/label&gt;
+  &lt;input id="city" required&gt;
+  &lt;label for="pw"&gt;Password&lt;/label&gt;
+  &lt;input id="pw" type="password" value="secret12"&gt;
+  &lt;label for="pw2"&gt;Confirm password&lt;/label&gt;
+  &lt;input id="pw2" type="password" value="secret21"&gt;
+  &lt;br&gt;
+  &lt;button type="button" id="check"&gt;checkValidity()&lt;/button&gt;
+  &lt;button type="button" id="report"&gt;reportValidity()&lt;/button&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+  const form = document.getElementById("f");
+  const pw = document.getElementById("pw");
+  const pw2 = document.getElementById("pw2");
+  const FLAGS = ["valueMissing", "typeMismatch", "patternMismatch", "tooShort",
+                 "rangeUnderflow", "rangeOverflow", "customError"];
+
+  // A rule no attribute can express: the two passwords must match
+  function matchPasswords() {
+    if (pw2.value === pw.value) {
+      pw2.setCustomValidity("");                       // "" means: no complaint
+    } else {
+      pw2.setCustomValidity("Passwords do not match.");
+    }
+  }
+  matchPasswords();
+  pw.addEventListener("input", matchPasswords);
+  pw2.addEventListener("input", matchPasswords);
+
+  // Print the flags that are switched on, box by box
+  function showFlags() {
+    for (const box of form.querySelectorAll("input")) {
+      const on = FLAGS.filter((name) =&gt; box.validity[name]);
+      console.log(`${box.id}:`, on.length &gt; 0 ? on.join(", ") : "valid");
+    }
+    console.log("pw2 says:", pw2.validationMessage);
+  }
+  showFlags();
+
+  document.getElementById("check").addEventListener("click", () =&gt; {
+    showFlags();
+    console.log("form.checkValidity() =", form.checkValidity());
+  });
+  document.getElementById("report").addEventListener("click", () =&gt; {
+    console.log("form.reportValidity() =", form.reportValidity());
+  });
+&lt;/script&gt;</pre>
+  <p>Run it and read the Console from the top: <code>mail: typeMismatch</code>, <code>code: patternMismatch</code>, <code>age: rangeUnderflow</code>, <code>city: valueMissing</code>, <code>pw: valid</code> (it has no rules at all), <code>pw2: customError</code>, and <code>pw2 says: Passwords do not match.</code> The red and green borders come from the CSS <code>:invalid</code> and <code>:valid</code> pseudo-classes (Chapter 32), which read the same flags.</p>
+  <p>Press <b>reportValidity()</b>: a bubble appears beside the email box, the cursor goes there, and the Console prints <code>form.reportValidity() = false</code>. Now fix every box &mdash; <code>asha@lpu.in</code>, <code>PRD1234</code>, <code>19</code>, any city, and <code>secret12</code> in Confirm &mdash; and press <b>checkValidity()</b>. Every line says <code>valid</code>, <code>pw2 says:</code> is empty, and the last line is <code>form.checkValidity() = true</code>, with no bubble, because <code>checkValidity()</code> never shows anything.</p>
+  <div class="plain">
+    <p>The browser keeps a little row of lights for every box, one light per kind of mistake. <code>validity</code> lets your script look at the lights. <code>checkValidity()</code> asks "are all the lights off?" quietly; <code>reportValidity()</code> asks the same question out loud, with a bubble. <code>setCustomValidity()</code> is a light your own script switches on, and only your script can switch it off again.</p>
+  </div>
+  <div class="callout warn"><b>The empty string is the off switch.</b> Call <code>setCustomValidity("Passwords do not match.")</code> without ever calling <code>setCustomValidity("")</code>, and the box stays invalid for ever, even after the user types the right password. It is the most common <code>setCustomValidity</code> bug. And run the check whenever <i>either</i> box changes, because changing the first password can break or mend the match.</div>
+  <details class="qc"><summary>Quick check: in matchPasswords, someone deletes the line pw2.setCustomValidity(""). The user then types matching passwords. What is pw2.validity.valid?</summary><div class="a">
+    <p><code>false</code>. <code>customError</code> was switched on when the passwords differed, and now nothing ever switches it off, so the box can never become valid.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>60.6 novalidate: keep the rules, write the messages yourself</h2>
+  <p>Here is a trap that catches every class. You build a form with <code>required</code> and <code>type="email"</code>, add a <code>submit</code> listener that writes lovely messages under each box, and press Submit with a bad value. <b>Your listener never runs.</b> The browser checks the attributes first, shows its own bubble, and cancels the send before the <code>submit</code> event even fires.</p>
+  <p>The fix is <code>novalidate</code> on the form (Chapter 18). It tells the browser to stop blocking and stop showing bubbles &mdash; but the browser still understands every attribute, so <code>validity</code> and <code>checkValidity()</code> keep working. Now <code>submit</code> always fires, your script asks the browser <i>what</i> is wrong, and you choose the words.</p>
+  <p>Better still, switch it on from the script with <code>form.noValidate = true;</code>. If the script ever fails to load &mdash; a slow network, a typing mistake &mdash; the line never runs, and the browser's own checks still protect the form.</p>
+  <pre class="code" data-run data-title="The browser finds the problem, the script writes the words - then try the experiment below" data-h="290">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  label { display: block; font-weight: 600; margin-top: 10px; }
+  input { font-size: 15px; padding: 6px 8px; width: 250px; max-width: 100%;
+          border: 2px solid #94A3B8; border-radius: 6px; }
+  input[aria-invalid="true"] { border-color: #C42B2B; background: #FFF5F5; }
+  .error { color: #C42B2B; font-size: 14px; margin: 3px 0 0; }
+  button { margin-top: 14px; font-size: 15px; padding: 7px 16px; }
+  #done { color: #138808; font-weight: 700; }
+&lt;/style&gt;
+&lt;form id="join"&gt;
+  &lt;label for="email"&gt;College email&lt;/label&gt;
+  &lt;input id="email" type="email" required aria-describedby="email-error"&gt;
+  &lt;p class="error" id="email-error"&gt;&lt;/p&gt;
+
+  &lt;label for="age"&gt;Age&lt;/label&gt;
+  &lt;input id="age" type="number" required min="17" max="60" aria-describedby="age-error"&gt;
+  &lt;p class="error" id="age-error"&gt;&lt;/p&gt;
+
+  &lt;button type="submit"&gt;Join the coding club&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="done"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const form = document.getElementById("join");
+  const done = document.getElementById("done");
+  form.noValidate = true;     // the script is running, so the script shows the messages
+
+  // The browser has already worked out WHAT is wrong; we only choose the words
+  function messageFor(input) {
+    const v = input.validity;
+    if (v.valueMissing) return "Please fill in this box.";
+    if (v.typeMismatch) return "That does not look like an email address.";
+    if (v.rangeUnderflow) return `Members must be at least ${input.min}.`;
+    if (v.rangeOverflow) return `The upper age limit is ${input.max}.`;
+    return input.validationMessage;            // anything else: the browser's own words
+  }
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();
+    let firstBad = null;
+
+    for (const input of form.querySelectorAll("input")) {
+      const ok = input.checkValidity();        // the browser checks the attributes
+      const message = ok ? "" : messageFor(input);
+      document.getElementById(input.id + "-error").textContent = message;
+      input.setAttribute("aria-invalid", ok ? "false" : "true");
+      console.log(input.id, ok ? "OK" : "-&gt; " + message);
+      if (!ok &amp;&amp; firstBad === null) {
+        firstBad = input;
+      }
+    }
+
+    if (firstBad !== null) {
+      done.textContent = "";
+      firstBad.focus();
+    } else {
+      done.textContent = "Welcome to the coding club!";
+      console.log("All rules passed.");
+    }
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Join</b> with both boxes empty: <code>email -&gt; Please fill in this box.</code> and the same for <code>age</code>. Type <code>asha</code> and <code>15</code>: <code>That does not look like an email address.</code> and <code>Members must be at least 17.</code> Change the age to <code>75</code>: <code>The upper age limit is 60.</code> Then <code>asha@lpu.in</code> and <code>19</code> give <code>All rules passed.</code> Notice that the script contains no email pattern and no number checks: the rules live only in the HTML.</p>
+  <p><b>The experiment.</b> Put <code>//</code> in front of the <code>form.noValidate</code> line, press Run again, and press Join with the boxes empty. The browser's bubble appears, and the Console stays at <i>Nothing logged yet</i>: the <code>submit</code> event never fired, which is exactly the trap described above.</p>
+  <div class="plain">
+    <p><code>novalidate</code> does not delete a single rule. It only tells the browser: <i>"do not interrupt &mdash; my script will show the messages."</i> The attributes stay in the HTML as the description of the rules, and both the browser and your script read them.</p>
+  </div>
+  <table class="tbl">
+    <thead><tr><th>Approach</th><th>Who checks the rules</th><th>Who writes the messages</th></tr></thead>
+    <tbody>
+      <tr><td>HTML attributes only (Chapter 18)</td><td>The browser</td><td>The browser, in a bubble</td></tr>
+      <tr><td>Script only (60.3)</td><td>Your <code>if</code> statements</td><td>Your script, beside each box</td></tr>
+      <tr><td>Attributes + API + <code>novalidate</code> (60.6)</td><td>The browser, asked by your script</td><td>Your script, beside each box</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: a form has required boxes and a submit listener, but no novalidate. The user presses Submit with one box empty. Does the listener run?</summary><div class="a">
+    <p>No. The browser's own check fails first, so it shows its bubble and cancels the send before any <code>submit</code> event is fired. Add <code>novalidate</code> (or <code>form.noValidate = true</code>) if your script is to show the messages.</p></div></details>
+</section>
+
+<section id="s7">
+  <h2>60.7 Why the server must check again</h2>
+  <p>Everything in this chapter runs inside the user's browser, on a machine the user controls. Anyone who wants to send bad data can <span class="jw" data-def="Get around a check without passing it, the way you might walk around a locked gate instead of through it.">bypass</span> it in a minute:</p>
+  <ul>
+    <li><b>Switch JavaScript off.</b> Your submit handler simply never runs.</li>
+    <li><b>Use DevTools.</b> Delete an attribute, edit your script, or type <code>document.querySelector("form").submit()</code> into the Console. The form's <code>submit()</code> <i>method</i> sends the form without firing the <code>submit</code> event and without any validation at all.</li>
+    <li><b>Skip the page entirely.</b> Tools such as <code>curl</code> or Postman send data straight to the server's address, with no form involved.</li>
+  </ul>
+  <p>So browser validation is for <b>convenience</b>: quick, friendly feedback that saves a round trip. Server validation is for <b>security</b>: the server repeats every rule, usually in another language such as Python, Java, PHP or Node.js, before anything is saved. The lecture puts it in one line: client-side validation improves usability, but the server must independently validate untrusted input.</p>
+  <div class="callout exam"><b>Exam tip.</b> Any option claiming that JavaScript validation makes server-side validation unnecessary, or "more secure", is wrong. The correct pairing is always: <b>client for user experience, server for security</b>.</div>
+</section>
+
+<section id="s8">
+  <h2>60.8 Worked task: the Product Order Form</h2>
+  <p>The lecture's task asks for an order form with six fields, each validated with a regular expression and <code>.test()</code>, a <b>Submit Order</b> button handled through the <code>submit</code> event and <code>event.preventDefault()</code>, a specific message for each invalid field, and <b>"Order Placed Successfully!"</b> only when everything passes.</p>
+  <table class="tbl">
+    <thead><tr><th>Field</th><th>Rule from the task</th><th>Pattern</th><th>Read it as</th></tr></thead>
+    <tbody>
+      <tr><td>Customer Name</td><td>English letters and spaces only</td><td><code>/^[A-Za-z ]+$/</code></td><td>One or more characters, each a capital letter, a small letter or a space</td></tr>
+      <tr><td>Email Address</td><td>Basic email format</td><td><code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code></td><td>Some text, an @, more text, a dot, more text &mdash; no spaces anywhere</td></tr>
+      <tr><td>Phone Number</td><td>Exactly 10 digits</td><td><code>/^\d{10}$/</code></td><td>Ten digits and nothing else</td></tr>
+      <tr><td>Product Code</td><td>PRD + exactly 4 digits</td><td><code>/^PRD\d{4}$/</code></td><td>The capitals PRD, then four digits</td></tr>
+      <tr><td>Quantity</td><td>Positive whole number, 1&ndash;3 digits</td><td><code>/^\d{1,3}$/</code> and at least 1</td><td>One to three digits, and the number is not zero</td></tr>
+      <tr><td>Coupon Code</td><td>SAVE + exactly 2 digits</td><td><code>/^SAVE\d{2}$/</code></td><td>The capitals SAVE, then two digits</td></tr>
+    </tbody>
+  </table>
+  <p>Every pattern begins with <code>^</code> (start) and ends with <code>$</code> (end), so it must match the <i>whole</i> value. Without them, <code>xxPRD1234yy</code> would pass, because it contains PRD1234 somewhere inside. (The HTML <code>pattern</code> attribute adds the anchors for you, which is why <code>pattern="PRD\d{4}"</code> in 60.5 needed none; in JavaScript you write them yourself.) Chapter 61 takes these patterns apart symbol by symbol.</p>
+  <p>The plan is the 60.3 pattern again: the six rules sit in an array, and on submit one loop trims each value, says "is required" if it is empty or "must be &hellip;" if it fails, writes the message and <code>aria-invalid</code>, and remembers the first bad box. The boxes start filled with nearly-right answers, so one press shows several kinds of mistake.</p>
+  <pre class="code" data-run data-title="The lecture's Product Order Form, solved - press Submit Order, then fix each box" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px 16px; color: #0B2545; }
+  h3 { margin: 0 0 4px; }
+  label { display: block; font-weight: 600; margin-top: 8px; }
+  input { font-size: 15px; padding: 5px 8px; width: 250px; max-width: 100%;
+          border: 2px solid #94A3B8; border-radius: 6px; }
+  input[aria-invalid="true"] { border-color: #C42B2B; background: #FFF5F5; }
+  .error { color: #C42B2B; font-size: 13px; margin: 2px 0 0; }
+  button { margin-top: 12px; font-size: 15px; padding: 7px 16px; font-weight: 700; }
+  #result { font-weight: 700; }
+&lt;/style&gt;
+&lt;h3&gt;Product Order Form&lt;/h3&gt;
+&lt;form id="order" novalidate&gt;
+  &lt;label for="cname"&gt;Customer Name&lt;/label&gt;
+  &lt;input id="cname" value="Asha Kumar" aria-describedby="cname-error"&gt;
+  &lt;p class="error" id="cname-error"&gt;&lt;/p&gt;
+
+  &lt;label for="cemail"&gt;Email Address&lt;/label&gt;
+  &lt;input id="cemail" type="email" value="asha@lpu" aria-describedby="cemail-error"&gt;
+  &lt;p class="error" id="cemail-error"&gt;&lt;/p&gt;
+
+  &lt;label for="cphone"&gt;Phone Number&lt;/label&gt;
+  &lt;input id="cphone" type="tel" value="98765 43210" aria-describedby="cphone-error"&gt;
+  &lt;p class="error" id="cphone-error"&gt;&lt;/p&gt;
+
+  &lt;label for="pcode"&gt;Product Code (e.g. PRD1234)&lt;/label&gt;
+  &lt;input id="pcode" value="PRD123" aria-describedby="pcode-error"&gt;
+  &lt;p class="error" id="pcode-error"&gt;&lt;/p&gt;
+
+  &lt;label for="qty"&gt;Quantity&lt;/label&gt;
+  &lt;input id="qty" inputmode="numeric" value="0" aria-describedby="qty-error"&gt;
+  &lt;p class="error" id="qty-error"&gt;&lt;/p&gt;
+
+  &lt;label for="coupon"&gt;Coupon Code (e.g. SAVE25)&lt;/label&gt;
+  &lt;input id="coupon" value="SAVE25" aria-describedby="coupon-error"&gt;
+  &lt;p class="error" id="coupon-error"&gt;&lt;/p&gt;
+
+  &lt;button type="submit"&gt;Submit Order&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="result" role="status"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  // The six rules from the task: which box, its pattern, and how to describe it
+  const rules = [
+    { id: "cname",  label: "Customer name", pattern: /^[A-Za-z ]+$/,  hint: "English letters and spaces only" },
+    { id: "cemail", label: "Email",         pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/, hint: "an address like asha@lpu.in" },
+    { id: "cphone", label: "Phone number",  pattern: /^\d{10}$/,      hint: "exactly 10 digits" },
+    { id: "pcode",  label: "Product code",  pattern: /^PRD\d{4}$/,    hint: "PRD followed by 4 digits, e.g. PRD1234" },
+    { id: "qty",    label: "Quantity",      pattern: /^\d{1,3}$/,     hint: "a whole number from 1 to 999" },
+    { id: "coupon", label: "Coupon code",   pattern: /^SAVE\d{2}$/,   hint: "SAVE followed by 2 digits, e.g. SAVE25" },
+  ];
+
+  const form = document.getElementById("order");
+  const result = document.getElementById("result");
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                  // nothing leaves until every rule passes
+    let firstBad = null;
+
+    for (const rule of rules) {
+      const input = document.getElementById(rule.id);
+      const value = input.value.trim();
+      let message = "";
+
+      if (value === "") {
+        message = `${rule.label} is required.`;
+      } else if (!rule.pattern.test(value)) {
+        message = `${rule.label} must be ${rule.hint}.`;
+      } else if (rule.id === "qty" &amp;&amp; Number(value) &lt; 1) {
+        message = `${rule.label} must be ${rule.hint}.`;    // "0" has the right shape but is not positive
+      }
+
+      document.getElementById(rule.id + "-error").textContent = message;
+      input.setAttribute("aria-invalid", message === "" ? "false" : "true");
+      console.log(rule.id, JSON.stringify(value), message || "OK");
+      if (message !== "" &amp;&amp; firstBad === null) {
+        firstBad = input;
+      }
+    }
+
+    if (firstBad !== null) {
+      result.textContent = "Order not placed: please fix the messages under the boxes.";
+      result.style.color = "#C42B2B";
+      firstBad.focus();
+    } else {
+      result.textContent = "Order Placed Successfully!";
+      result.style.color = "#138808";
+    }
+    console.log("Result:", result.textContent);
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Submit Order</b> without changing anything. The Console traces the loop, one line per rule:</p>
+  <pre class="code">cname "Asha Kumar" OK
+cemail "asha@lpu" Email must be an address like asha@lpu.in.
+cphone "98765 43210" Phone number must be exactly 10 digits.
+pcode "PRD123" Product code must be PRD followed by 4 digits, e.g. PRD1234.
+qty "0" Quantity must be a whole number from 1 to 999.
+coupon "SAVE25" OK
+Result: Order not placed: please fix the messages under the boxes.</pre>
+  <p>The cursor lands in Email, the first failure. Notice <code>"98765 43210"</code>: <code>trim()</code> removes spaces only at the ends, so the space in the middle still breaks the ten-digit rule. Now fix the four boxes &mdash; <code>asha@lpu.in</code>, <code>9876543210</code>, <code>PRD1234</code>, <code>2</code> &mdash; and press again: six <code>OK</code> lines and <code>Result: Order Placed Successfully!</code> Then try to break it: <code>save25</code> fails (capitals matter), <code>000</code> fails (right shape, but not positive), <code>1000</code> fails (four digits) and <code>Asha K.</code> fails (a dot is not a letter).</p>
+  <p>Two design notes. The quantity rule shows that <b>a pattern checks shape, not meaning</b>: <code>/^\d{1,3}$/</code> happily accepts <code>0</code>, so a second, numeric test is needed. And the task makes the coupon compulsory, but a real shop would make it optional. Give that rule <code>optional: true</code> and change the first test:</p>
+  <pre class="code">if (value === "") {
+  message = rule.optional ? "" : `${rule.label} is required.`;
+} else if (!rule.pattern.test(value)) {</pre>
+  <p>An empty optional box is accepted; anything typed in it must still match. Finally, <code>role="status"</code> on the result line makes screen readers announce it when it changes, so a blind user hears whether the order went through (Chapter 59).</p>
+</section>
+
+<section id="mistakes">
+  <h2>60.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "With JavaScript validation, the server can trust the data."</b><br>One line in the Console, <code>form.submit()</code>, sends the form with no checks at all.</div>
+    <div class="r"><b>&#10003; "The browser checks for the user's sake; the server checks for safety."</b><br>Every rule is repeated on the server before anything is saved.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>required</code> stops a box full of spaces."</b><br>Spaces are characters, so the box is not empty.</div>
+    <div class="r"><b>&#10003; "Trim first, then test for <code>""</code>."</b><br><code>value.trim() === ""</code> catches empty and spaces-only alike.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "My submit listener will show my messages even though the boxes have <code>required</code>."</b><br>The browser blocks first, and the event never fires.</div>
+    <div class="r"><b>&#10003; "Add <code>novalidate</code>, or <code>form.noValidate = true</code>, and let the script speak."</b><br>The attributes and the <code>validity</code> flags keep working.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I only call <code>setCustomValidity</code> when something is wrong."</b><br>Then the box stays invalid for ever.</div>
+    <div class="r"><b>&#10003; "Call it with the message when wrong, and with <code>""</code> when right."</b><br>And re-run it when either related box changes.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>pattern</code> makes a box compulsory."</b><br>An empty box passes <code>pattern</code>, <code>type</code> and <code>minlength</code>.</div>
+    <div class="r"><b>&#10003; "Use <code>required</code> as well when a value must be given."</b><br>Each attribute checks one thing only.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which method checks a form AND shows the browser's message bubble on the first invalid box?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. checkValidity()</li><li>B. reportValidity()</li><li>C. setCustomValidity()</li><li>D. validationMessage</li></ul>
+    <p><b>Answer: B.</b> Both A and B return true or false, but <code>checkValidity()</code> is silent. <code>setCustomValidity()</code> sets a message, and <code>validationMessage</code> is a property holding the text, not a check.</p></div></details>
+  <details class="q"><summary>In a form's submit handler, what does event.preventDefault() do?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Clears every box in the form</li><li>B. Runs the browser's built-in validation</li><li>C. Stops the browser sending the form and loading a new page</li><li>D. Shows an error message under each box</li></ul>
+    <p><b>Answer: C.</b> It cancels the <code>submit</code> event's default action, which is sending the form. It does not validate or show anything by itself.</p></div></details>
+  <details class="q"><summary>A form has &lt;input required&gt;, no novalidate, and a submit listener that logs "submit ran". The user presses Submit with the box empty. What happens?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The browser shows its own message and the listener does not run</li><li>B. The listener runs and logs "submit ran"</li><li>C. The form is sent with an empty value</li><li>D. The browser removes the required attribute</li></ul>
+    <p><b>Answer: A.</b> Built-in validation runs before the <code>submit</code> event. When it fails, the browser shows its bubble and cancels the send, so no event fires. B is the trap: it is what happens <i>with</i> <code>novalidate</code>.</p></div></details>
+  <details class="q"><summary>An &lt;input type="email" required&gt; contains asha@ . Which validity flag is true?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. valueMissing</li><li>B. patternMismatch</li><li>C. tooShort</li><li>D. typeMismatch</li></ul>
+    <p><b>Answer: D.</b> The box is not empty, so not A; it has no <code>pattern</code> or <code>minlength</code>, so not B or C. The value does not fit <code>type="email"</code>, which is a type mismatch.</p></div></details>
+  <details class="q"><summary>A confirm-password box calls setCustomValidity("Passwords do not match.") when the passwords differ. After the user fixes them, the box still refuses to be valid. Why, and what is the fix?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the custom error was never switched off. A custom message stays until the script calls <code>setCustomValidity("")</code>. Check on every change of either box and set <code>""</code> when they match.</p></div></details>
+  <details class="q"><summary>Which timing gives live validation without nagging?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Show an error from the very first keystroke</li><li>B. Check on blur once the user has typed; then re-check on every input while an error is showing</li><li>C. Check only when the page loads</li><li>D. Use alert() after every key</li></ul>
+    <p><b>Answer: B.</b> Late to complain, quick to forgive. A judges an unfinished value, C runs before the user has typed anything, and D is the worst kind of nagging.</p></div></details>
+  <details class="q"><summary>Which pair of attributes connects an invalid input to its error message for screen-reader users?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. tabindex and role</li><li>B. title and placeholder</li><li>C. aria-hidden and aria-label</li><li>D. aria-invalid="true" and aria-describedby</li></ul>
+    <p><b>Answer: D.</b> <code>aria-invalid</code> announces "invalid entry"; <code>aria-describedby</code> holds the <code>id</code> of the message, which is read after the label whenever the box gets focus.</p></div></details>
+  <details class="q"><summary>Why must the server validate data that JavaScript has already validated?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Browser checks can be bypassed: JavaScript can be switched off, edited in DevTools, or skipped by sending data straight to the server</li><li>B. The server runs JavaScript faster than the browser</li><li>C. Browsers cannot run regular expressions</li><li>D. HTML validation attributes are out of date</li></ul>
+    <p><b>Answer: A.</b> The browser is on the user's machine, under the user's control. Client-side checks are for convenience; the server's checks are for security.</p></div></details>
+  <details class="q"><summary>What does this print?<br><code>const v = "  98765 43210 ".trim();</code><br><code>console.log(JSON.stringify(v), /^\d{10}$/.test(v));</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>"98765 43210" false</code></b>. <code>trim()</code> removes spaces only at the two ends; the space in the middle stays, so the value is not ten digits from start to end.</p></div></details>
+  <details class="q"><summary>What is the effect of form.noValidate = true; in a script?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It deletes every required and pattern attribute</li><li>B. It makes the form impossible to submit</li><li>C. The browser stops blocking and showing bubbles, so submit always fires, but validity and checkValidity() still work</li><li>D. It moves validation to the server</li></ul>
+    <p><b>Answer: C.</b> It is the script version of the <code>novalidate</code> attribute. The rules stay in the HTML; the script takes over the messages.</p></div></details>
+  <details class="q"><summary>Predict both lines. The box is &lt;input id="code" pattern="PRD\d{4}"&gt; and starts empty.<br><code>const code = document.getElementById("code");</code><br><code>console.log(code.validity.valid);</code><br><code>code.value = "PRD12";</code><br><code>console.log(code.validity.patternMismatch);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>true</code>, then <code>true</code>.</b> An empty box is not checked against <code>pattern</code> (only <code>required</code> complains about empty), so it starts valid. <code>PRD12</code> has only two digits, so it does not match and <code>patternMismatch</code> switches on.</p></div></details>
+  <details class="q"><summary>Which value passes the Product Code rule /^PRD\d{4}$/ ?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. PRD1234</li><li>B. prd1234</li><li>C. PRD123</li><li>D. PRD12345</li></ul>
+    <p><b>Answer: A.</b> B has small letters (patterns are case-sensitive), C has only three digits, and D has five, which <code>$</code> forbids: after exactly four digits the value must end.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>HTML attributes are the foundation, but their messages are the browser's, one at a time, only on Submit, and no attribute can compare two boxes.</li>
+    <li>Four steps: listen for the form's <code>submit</code>, call <code>preventDefault()</code> first, read and <code>trim()</code> each value, decide, then tell the user.</li>
+    <li>Check every box, put each message beside its box, mark it with <code>aria-invalid</code> and <code>aria-describedby</code>, and <code>focus()</code> the first problem.</li>
+    <li>Live checks: late to complain (on <code>blur</code>), quick to forgive (on <code>input</code> while an error shows). Submit still checks everything.</li>
+    <li><code>validity</code> flags say which rule failed; <code>checkValidity()</code> is silent, <code>reportValidity()</code> shows bubbles; <code>setCustomValidity("")</code> clears a custom error.</li>
+    <li>Without <code>novalidate</code>, a failing form never fires <code>submit</code>. Set <code>form.noValidate = true</code> from the script to take over the messages.</li>
+    <li>A pattern checks shape, not meaning, and an empty box passes every rule except <code>required</code>. The server checks everything again.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>form.addEventListener("submit", fn)</code></td><td>Run your checks whenever the form is sent</td></tr>
+      <tr><td><code>event.preventDefault()</code></td><td>Stop the send so the script can decide</td></tr>
+      <tr><td><code>input.value.trim()</code></td><td>The typed text without spaces at the ends</td></tr>
+      <tr><td><code>/^\d{10}$/.test(v)</code></td><td><code>true</code> if <code>v</code> is exactly ten digits</td></tr>
+      <tr><td><code>input.setAttribute("aria-invalid", "true")</code></td><td>Tell screen readers the box is wrong</td></tr>
+      <tr><td><code>aria-describedby="email-error"</code></td><td>Read the message with the box</td></tr>
+      <tr><td><code>input.focus()</code></td><td>Put the cursor in the box</td></tr>
+      <tr><td><code>input.checkValidity()</code> / <code>form.checkValidity()</code></td><td><code>true</code>/<code>false</code>, silently</td></tr>
+      <tr><td><code>form.reportValidity()</code></td><td><code>true</code>/<code>false</code>, and show the browser's bubble</td></tr>
+      <tr><td><code>input.validity.valueMissing</code> (and friends)</td><td>Which rule failed</td></tr>
+      <tr><td><code>input.setCustomValidity("msg")</code> / <code>("")</code></td><td>Fail / un-fail a rule of your own</td></tr>
+      <tr><td><code>novalidate</code> / <code>form.noValidate = true</code></td><td>Keep the rules, show your own messages</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Extensions/Forms/Form_validation" target="_blank" rel="noopener noreferrer">MDN &mdash; Client-side form validation<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The built-in attributes and the Constraint Validation API side by side, with a full custom-message example.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/ValidityState" target="_blank" rel="noopener noreferrer">MDN &mdash; ValidityState<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every validity flag, including badInput, with exactly what switches it on.</span></li>
+    <li><a href="https://javascript.info/forms-submit" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Forms: event and method submit<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The submit event versus the submit() method, and why Enter submits a form.</span></li>
+    <li><a href="https://web.dev/learn/forms/validation" target="_blank" rel="noopener noreferrer">web.dev &mdash; Help users enter the right data in forms<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">When to validate, how to word messages, and how to keep them accessible.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

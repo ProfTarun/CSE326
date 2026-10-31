@@ -1,0 +1,894 @@
+<article class="chapter" data-ch="64">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 64 &middot; Browser Storage: localStorage and sessionStorage</p>
+  <h1>Browser Storage: localStorage and sessionStorage</h1>
+  <p class="lead">Type your name into a page, tick dark mode, add three things to a cart &mdash; then press F5, and an ordinary page has forgotten all of it. Web Storage gives every website a small notebook inside the visitor's own browser, where your JavaScript can write things down and read them back on the next visit.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>An object groups named values, <code>{ name: "Rahul", age: 19 }</code>, and you read one with <code>student.name</code> (<a href="book.html?ch=51">Chapter 51</a>).</li>
+      <li><code>addEventListener("click", fn)</code> runs a function when something happens; <code>"change"</code> and <code>"input"</code> are events too (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li><code>getElementById</code> finds an element; <code>textContent</code> and <code>classList</code> change it (<a href="book.html?ch=56">Chapter 56</a>).</li>
+      <li><code>"5"</code> (text) and <code>5</code> (a number) are different types, and <code>typeof</code> tells you which (<a href="book.html?ch=43">Chapter 43</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain why a reload wipes every variable, and where Web Storage keeps data instead.</li>
+      <li>Choose between <code>localStorage</code> and <code>sessionStorage</code> by how long the data must live and which tabs need it.</li>
+      <li>Use <code>setItem</code>, <code>getItem</code>, <code>removeItem</code>, <code>clear</code>, <code>key</code> and <code>length</code>, and say what <code>getItem</code> returns for a missing key.</li>
+      <li>Turn stored text back into numbers, and store objects and arrays with <code>JSON.stringify</code> and <code>JSON.parse</code>.</li>
+      <li>Build pages that remember a name, a theme, a draft and a set of preferences.</li>
+      <li>Find, edit and clear stored data in DevTools.</li>
+      <li>State the limits and safety rules: about 5 MB, synchronous, never secrets, can vanish, wrap risky calls in <code>try...catch</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>64.1 Why a page forgets everything</h2>
+  <p>Open any page you have built so far, type into a box, tick a checkbox, and press <kbd>F5</kbd>. The box is empty and the tick has gone. Nothing is broken: every time the browser loads a page it builds it fresh from the HTML, runs your JavaScript from the first line, and keeps every variable in the page's working memory. A reload throws that memory away. As far as your code is concerned, every visit is the first visit.</p>
+  <p>Real websites remember:</p>
+  <ul>
+    <li><b>Dark mode</b> &mdash; YouTube keeps your theme even when you are not logged in.</li>
+    <li><b>Your name</b> &mdash; "Welcome back, Rahul!" on every visit.</li>
+    <li><b>A shopping cart</b> &mdash; the items are still there after a refresh.</li>
+    <li><b>Form drafts</b> &mdash; a half-written feedback form is not lost when the page reloads.</li>
+  </ul>
+  <p>None of these needs a server, a database or a login. The page asks the browser to <span class="jw" data-def="To stay saved after the page is reloaded or closed, instead of vanishing with the page.">persist</span> a small note on the visitor's own device, and reads it back the next time the page starts. This browser feature is <b>Web Storage</b>, and it gives your JavaScript two ready-made objects, <code>localStorage</code> and <code>sessionStorage</code>. There is nothing to create or import: like <code>document</code> and <code>console</code>, they are simply there.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="An ordinary variable is lost when the page reloads; a value saved in Web Storage is still there after the reload">
+      <text x="235" y="28" class="t c b">PAGE LOAD 1</text>
+      <text x="525" y="28" class="t c b">PAGE LOAD 2 (after F5)</text>
+      <text x="20" y="78" class="t b">Ordinary</text>
+      <text x="20" y="94" class="t b">variable</text>
+      <rect x="150" y="50" width="170" height="60" rx="10" class="box gry"/>
+      <text x="235" y="76" class="t c mono">let visits = 3;</text>
+      <text x="235" y="96" class="t c s">lives in the page's memory</text>
+      <path d="M325 80 L435 80" class="edge" marker-end="url(#arr)"/>
+      <text x="380" y="70" class="t c s">reload</text>
+      <text x="380" y="98" class="t c s">memory wiped</text>
+      <rect x="440" y="50" width="170" height="60" rx="10" class="box red"/>
+      <text x="525" y="76" class="t c b">the 3 is gone</text>
+      <text x="525" y="96" class="t c s">code starts from scratch</text>
+      <text x="20" y="158" class="t b">Web</text>
+      <text x="20" y="174" class="t b">Storage</text>
+      <rect x="150" y="130" width="170" height="60" rx="10" class="box grn"/>
+      <text x="235" y="156" class="t c mono" style="font-size:11px">setItem("visits", "3")</text>
+      <text x="235" y="176" class="t c s">copied into the browser</text>
+      <path d="M325 160 L435 160" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="380" y="150" class="t c s">reload</text>
+      <text x="380" y="178" class="t c s">storage kept</text>
+      <rect x="440" y="130" width="170" height="60" rx="10" class="box grn"/>
+      <text x="525" y="156" class="t c mono" style="font-size:11px">getItem("visits")</text>
+      <text x="525" y="176" class="t c s">gives back "3"</text>
+      <path d="M235 190 L235 208" class="edge dash"/>
+      <path d="M525 190 L525 208" class="edge dash"/>
+      <rect x="150" y="208" width="460" height="30" rx="8" class="box saf"/>
+      <text x="380" y="228" class="t c s">Browser storage on YOUR device &mdash; no server, no database</text>
+    </svg>
+    <figcaption><b>Figure 64.1</b> A reload wipes the page's memory, so the variable is lost; a value copied into Web Storage sits in the browser, outside the page.</figcaption>
+  </figure>
+  <div class="callout why"><b>Key idea.</b> Variables live in the page and die with it. Web Storage lives in the browser and survives the reload. Your page <i>writes</i> to it when something changes and <i>reads</i> from it when the page starts.</div>
+</section>
+
+<section id="s2">
+  <h2>64.2 Key&ndash;value pairs, kept per origin</h2>
+  <p>Web Storage keeps data as <span class="jw" data-def="A label and the one value filed under it, such as theme &rarr; dark. You always look the value up by its label.">key&ndash;value pairs</span>. The <b>key</b> is a label you choose, such as <code>"theme"</code>. The <b>value</b> is the data filed under that label, such as <code>"dark"</code>. You save a value under a key; later you ask for the key and get the value back. No tables, no queries.</p>
+  <table class="tbl">
+    <thead><tr><th>Key</th><th>Value (always text)</th><th>What a site might use it for</th></tr></thead>
+    <tbody>
+      <tr><td><code>theme</code></td><td><code>"dark"</code></td><td>The colour scheme the visitor chose</td></tr>
+      <tr><td><code>studentName</code></td><td><code>"Rahul"</code></td><td>A friendly greeting</td></tr>
+      <tr><td><code>semester</code></td><td><code>"1"</code></td><td>Which semester's timetable to open first</td></tr>
+      <tr><td><code>cart</code></td><td><code>'["pen","book"]'</code></td><td>A list, written out as text (64.6 shows how)</td></tr>
+    </tbody>
+  </table>
+  <p>Two rules matter from the very first minute:</p>
+  <ol>
+    <li><b>Keys and values are both strings.</b> Even <code>semester</code> above holds the text <code>"1"</code>, not the number 1. This explains most beginner bugs (64.5).</li>
+    <li><b>One key holds one value.</b> Saving under an existing key replaces the old value.</li>
+  </ol>
+  <div class="callout analogy"><b>Picture this.</b> A wall of lockers in a hostel corridor. Each locker has a label on its door (the key) and holds one folded paper note (the value). Put a new note into the locker labelled <i>theme</i> and the old note is thrown away first. The lockers take <i>only paper</i>: your cricket kit will not fit, but a written description of it will &mdash; that writing-down step is JSON, in 64.6. And each hostel block has its own wall: a student from another block cannot open your lockers.</div>
+  <p>That last point is the safety rule of Web Storage. Storage is kept separately for every <span class="jw" data-def="A site's home address, made of three parts together: protocol + host name + port, such as https://lpu.in on port 443. Pages with the same three parts share storage.">origin</span>. An origin is three things taken together: the <b>protocol</b> (<code>http</code> or <code>https</code>), the <b>host</b> (such as <code>lpu.in</code>) and the <b>port</b> (443 is the hidden default for https, 80 for http). Pages whose addresses share all three parts share one storage area; change even one and you get a separate area that cannot read the first. The path after the host &mdash; <code>/courses</code>, <code>/exam/results.html</code> &mdash; does not count.</p>
+  <table class="tbl">
+    <thead><tr><th>Page</th><th>Same origin as <code>https://lpu.in</code>?</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>https://lpu.in/courses/cse326.html</code></td><td><b>Yes</b></td><td>Only the path differs</td></tr>
+      <tr><td><code>http://lpu.in</code></td><td>No</td><td>Different protocol</td></tr>
+      <tr><td><code>https://ums.lpu.in</code></td><td>No</td><td>A sub-domain is a different host</td></tr>
+      <tr><td><code>https://lpu.in:8443</code></td><td>No</td><td>Different port (the plain address means 443)</td></tr>
+      <tr><td><code>http://127.0.0.1:5500</code> vs <code>http://127.0.0.1:5501</code></td><td>No</td><td>Two Live Server ports are two different origins</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Only pages from your own address can read your site's storage. Change <code>https</code> to <code>http</code>, add a sub-domain such as <code>ums.</code>, or change the port, and you are at a different address with different &mdash; and empty &mdash; storage. The page name at the end makes no difference &mdash; so a value saved on Live Server's port 5500 is not lost when Live Server opens on 5501 tomorrow; you are just looking at another origin's storage.</p>
+  </div>
+  <details class="qc"><summary>Quick check: a page at https://lpu.in saved a key. Can https://lpu.in/courses/cse326.html read it? Can http://lpu.in?</summary><div class="a">
+    <p>The first one <b>can</b>: only the path differs, and the path is not part of the origin. The second one <b>cannot</b>: <code>http</code> and <code>https</code> are different protocols, so it is a different origin with its own, separate storage.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>64.3 localStorage and sessionStorage: long-term and short-term memory</h2>
+  <p>Both objects have exactly the same methods. They differ in only two ways: <b>how long the data lives</b>, and <b>which tabs can see it</b>.</p>
+  <table class="tbl">
+    <thead><tr><th>Feature</th><th><code>localStorage</code></th><th><code>sessionStorage</code></th></tr></thead>
+    <tbody>
+      <tr><td>Data lifetime</td><td>Until your code or the user deletes it (or the browser clears it to free space)</td><td>Until the tab is closed</td></tr>
+      <tr><td>Page reload (F5)</td><td>&#10003; Survives</td><td>&#10003; Survives</td></tr>
+      <tr><td>Close and reopen the browser</td><td>&#10003; Survives</td><td>&#10007; Lost (unless the browser restores your old tabs)</td></tr>
+      <tr><td>Tabs and windows</td><td>One copy, shared by every tab of the origin</td><td>A separate copy for each tab</td></tr>
+      <tr><td>Typical use</td><td>Theme, language, saved preferences</td><td>Multi-step form, quiz progress, a one-visit filter</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Two tabs of lpu.in share one localStorage, but each tab has its own sessionStorage; a tab of another site has completely separate storage">
+      <rect x="20" y="16" width="170" height="44" rx="10" class="box blu"/>
+      <text x="105" y="35" class="t c b">sessionStorage</text>
+      <text x="105" y="51" class="t c s">Tab 1 only</text>
+      <rect x="225" y="16" width="170" height="44" rx="10" class="box blu"/>
+      <text x="310" y="35" class="t c b">sessionStorage</text>
+      <text x="310" y="51" class="t c s">Tab 2 only</text>
+      <rect x="430" y="16" width="170" height="44" rx="10" class="box blu"/>
+      <text x="515" y="35" class="t c b">sessionStorage</text>
+      <text x="515" y="51" class="t c s">Tab 3 only</text>
+      <path d="M105 90 L105 60" class="edge"/>
+      <path d="M310 90 L310 60" class="edge"/>
+      <path d="M515 90 L515 60" class="edge"/>
+      <rect x="20" y="90" width="170" height="50" rx="10" class="box"/>
+      <text x="105" y="111" class="t c b">Tab 1</text>
+      <text x="105" y="128" class="t c s mono">https://lpu.in/courses</text>
+      <rect x="225" y="90" width="170" height="50" rx="10" class="box"/>
+      <text x="310" y="111" class="t c b">Tab 2</text>
+      <text x="310" y="128" class="t c s mono">https://lpu.in/exam</text>
+      <rect x="430" y="90" width="170" height="50" rx="10" class="box"/>
+      <text x="515" y="111" class="t c b">Tab 3</text>
+      <text x="515" y="128" class="t c s mono">https://other.com</text>
+      <path d="M105 140 L105 178" class="edge saf"/>
+      <path d="M310 140 L310 178" class="edge saf"/>
+      <path d="M515 140 L515 178" class="edge"/>
+      <rect x="20" y="178" width="375" height="52" rx="10" class="box saf"/>
+      <text x="207" y="200" class="t c b">localStorage of https://lpu.in</text>
+      <text x="207" y="218" class="t c s">ONE copy, shared by every tab and window of this origin</text>
+      <rect x="430" y="178" width="170" height="52" rx="10" class="box gry"/>
+      <text x="515" y="200" class="t c b">localStorage of</text>
+      <text x="515" y="218" class="t c s mono">https://other.com</text>
+      <path d="M412 16 L412 236" class="edge dash"/>
+      <text x="310" y="258" class="t c s">Same origin = same protocol + host + port. The path (/courses, /exam) does not matter.</text>
+    </svg>
+    <figcaption><b>Figure 64.2</b> Tabs 1 and 2 are the same origin, so they read and write one shared <code>localStorage</code> &mdash; but each tab still has its own <code>sessionStorage</code>. Tab 3 is another site and sees none of it.</figcaption>
+  </figure>
+  <h3>sessionStorage, step by step</h3>
+  <p><code>sessionStorage</code> is the one people misjudge. In one tab, a page runs the lecture's example:</p>
+  <pre class="code">// Save for this tab only
+sessionStorage.setItem("username", "Aman");
+console.log(sessionStorage.getItem("username"));   // Aman</pre>
+  <table class="tbl">
+    <thead><tr><th>What happens next</th><th><code>sessionStorage.getItem("username")</code> gives</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Reload the tab (F5)</td><td><code>"Aman"</code></td><td>Same tab, same session: a reload keeps it</td></tr>
+      <tr><td>Close the tab, then open the site again</td><td><code>null</code></td><td>Closing the tab ended the session and threw the data away</td></tr>
+      <tr><td>Open the site in a second tab</td><td><code>null</code></td><td>A new tab starts a new, empty session</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p><code>localStorage</code>: one copy for the whole site, kept until somebody deletes it. <code>sessionStorage</code>: one copy <i>per tab</i>, kept through reloads, thrown away when that tab closes. Two tabs never share a <code>sessionStorage</code>, even on the same site.</p>
+  </div>
+  <p>One footnote: reopening a closed tab, restoring tabs after a crash or using <i>Duplicate tab</i> may bring a copy of the old <code>sessionStorage</code> along. Never build a page that depends on it.</p>
+  <p><b>Which one should you use?</b> Ask: <i>should this still be here tomorrow?</i> If yes &mdash; a theme, a language, preferences &mdash; use <code>localStorage</code>. If it only matters for this visit in this tab &mdash; a multi-step registration form, quiz progress &mdash; use <code>sessionStorage</code>, so a half-filled form on a shared lab computer does not greet tomorrow's student.</p>
+  <details class="qc"><summary>Quick check: Meera's quiz saves quizStep = "3" in sessionStorage. She opens the same quiz in a new tab. What does getItem("quizStep") give in the new tab?</summary><div class="a">
+    <p><code>null</code>. Each tab has its own <code>sessionStorage</code>, and a brand-new tab starts empty. In the original tab it would still be <code>"3"</code>, even after a reload. Had the quiz used <code>localStorage</code>, both tabs would see <code>"3"</code>.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>64.4 The six tools</h2>
+  <p>Everything you do with Web Storage uses five methods and one property, and they work identically on both objects: <code>localStorage.setItem(...)</code> or <code>sessionStorage.setItem(...)</code>, and so on.</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th><th>Gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>localStorage.setItem("theme", "dark")</code></td><td>Saves the value under the key &mdash; or replaces it, if the key exists</td><td>Nothing (<code>undefined</code>)</td></tr>
+      <tr><td><code>localStorage.getItem("theme")</code></td><td>Reads the value saved under the key</td><td>The text, e.g. <code>"dark"</code> &mdash; or <b><code>null</code></b> if there is no such key</td></tr>
+      <tr><td><code>localStorage.removeItem("theme")</code></td><td>Deletes that one key and its value; the others are untouched</td><td>Nothing, and no error if the key was not there</td></tr>
+      <tr><td><code>localStorage.clear()</code></td><td>Deletes <b>every</b> key this origin saved in this storage</td><td>Nothing</td></tr>
+      <tr><td><code>localStorage.key(0)</code></td><td>The <i>name</i> of the key at position 0, 1, 2 &hellip;</td><td>A key name, or <code>null</code> past the end</td></tr>
+      <tr><td><code>localStorage.length</code></td><td>How many keys are stored. A property, so <b>no brackets</b></td><td>A number</td></tr>
+    </tbody>
+  </table>
+  <p><code>clear()</code> does <i>not</i> touch other websites' storage, or the other storage object: <code>localStorage.clear()</code> leaves <code>sessionStorage</code> alone, and vice versa.</p>
+  <p>Every one of these calls is <span class="jw" data-def="Done there and then: the line finishes its work completely before the next line of code starts. Nothing happens later in the background.">synchronous</span>. When the <code>setItem</code> line finishes, the value is already saved and the next line can read it back. (Fetching data from a server is the opposite &mdash; it takes time, and <a href="book.html?ch=65">Chapter 65</a> shows how to wait for it.)</p>
+  <div class="callout warn"><b>About the Run button in this book.</b> The preview frames have no web address of their own, so their storage is a temporary stand-in: it behaves like the real thing while you click, but <b>Run again starts it empty</b>. On a real site &mdash; such as your own file opened with VS Code Live Server &mdash; the data stays through reloads and browser restarts.</div>
+  <pre class="code" data-run data-title="The six tools on one page - then press the three buttons" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  #box { background: #F1F5F9; border-radius: 8px; padding: 10px 14px;
+         font-family: monospace; white-space: pre; min-height: 54px; }
+  button { margin: 10px 6px 0 0; padding: 7px 12px; cursor: pointer; }
+&lt;/style&gt;
+&lt;h3&gt;What is in localStorage right now?&lt;/h3&gt;
+&lt;div id="box"&gt;&lt;/div&gt;
+&lt;button id="remove"&gt;removeItem("course")&lt;/button&gt;
+&lt;button id="wipe"&gt;clear()&lt;/button&gt;
+&lt;button id="refill"&gt;Save the three again&lt;/button&gt;
+
+&lt;script&gt;
+  const box = document.getElementById("box");
+
+  // List every key and its value, using length and key(i)
+  function show() {
+    const lines = [];
+    for (let i = 0; i &lt; localStorage.length; i++) {
+      const k = localStorage.key(i);
+      lines.push(`${k} = ${localStorage.getItem(k)}`);
+    }
+    box.textContent = lines.length ? lines.join("\n") : "(empty - no keys stored)";
+    console.log("length is now", localStorage.length);
+  }
+
+  function saveThree() {
+    localStorage.setItem("name", "Rahul");
+    localStorage.setItem("course", "CSE");
+    localStorage.setItem("semester", "1");
+    show();
+  }
+
+  saveThree();
+  console.log("course:", localStorage.getItem("course"));      // CSE
+  console.log("hostel:", localStorage.getItem("hostel"));      // null - never saved
+
+  localStorage.setItem("semester", "2");                       // same key: replaced
+  console.log("semester:", localStorage.getItem("semester"));  // 2
+  show();
+
+  document.getElementById("remove").addEventListener("click", () =&gt; {
+    localStorage.removeItem("course");
+    show();
+  });
+  document.getElementById("wipe").addEventListener("click", () =&gt; {
+    localStorage.clear();
+    show();
+  });
+  document.getElementById("refill").addEventListener("click", saveThree);
+&lt;/script&gt;</pre>
+  <p>Press <b>Run</b> and read the Console from the top: <code>length is now 3</code>, <code>course: CSE</code>, then <code>hostel: null</code> &mdash; never saved, so nothing to find. Then <code>semester: 2</code>: the second <code>setItem</code> replaced the <code>"1"</code>, so the count is <i>still</i> 3. Now press <b>removeItem("course")</b> (two keys left), then <b>clear()</b> (none): one locker emptied, then the whole wall.</p>
+  <p>The loop in <code>show()</code> is the standard way to list everything: count from 0 to <code>length - 1</code>, ask <code>key(i)</code> for each name, then <code>getItem</code> for its value. The order of the keys is up to the browser, so never depend on it.</p>
+  <div class="callout exam"><b>Exam tip.</b> <code>getItem</code> on a key that does not exist returns <b><code>null</code></b> &mdash; not <code>undefined</code>, not an empty string <code>""</code>, not <code>false</code>. Your restore-on-load code depends on it: <i>"if I got <code>null</code>, nothing was saved yet, so use the default."</i></div>
+  <div class="callout warn"><b>Use the methods, not dots.</b> Browsers also accept <code>localStorage.theme = "dark"</code>, and you will meet it in old code. Avoid it: a key named <code>length</code> or <code>key</code> clashes with the built-in names, and the methods make it obvious you are talking to storage.</div>
+</section>
+
+<section id="s5">
+  <h2>64.5 Everything comes back as text</h2>
+  <p>Whatever value you hand to <code>setItem</code>, it is first turned into a string, and that string is what gets stored. <code>getItem</code> then gives you the string &mdash; never the original number, true/false, array or object.</p>
+  <table class="tbl">
+    <thead><tr><th>You save</th><th>What is stored, and what <code>getItem</code> gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>setItem("count", 5)</code></td><td><code>"5"</code> &mdash; text, not a number</td></tr>
+      <tr><td><code>setItem("price", 19.5)</code></td><td><code>"19.5"</code></td></tr>
+      <tr><td><code>setItem("seen", true)</code></td><td><code>"true"</code></td></tr>
+      <tr><td><code>setItem("seen", false)</code></td><td><code>"false"</code> &mdash; a non-empty string, which counts as <i>true</i> in an <code>if</code></td></tr>
+      <tr><td><code>setItem("x", null)</code></td><td><code>"null"</code> &mdash; four letters, not the value <code>null</code></td></tr>
+      <tr><td><code>setItem("cart", ["pen", "book"])</code></td><td><code>"pen,book"</code> &mdash; the list structure is lost</td></tr>
+      <tr><td><code>setItem("student", { name: "Rahul" })</code></td><td><code>"[object Object]"</code> &mdash; the data is lost completely</td></tr>
+    </tbody>
+  </table>
+  <p>Two kinds of bug follow. <b>Maths:</b> when one side of <code>+</code> is a string, JavaScript <i>joins</i>, so <code>"5" + 1</code> gives <code>"51"</code>. <b>Yes/no values:</b> <code>if (localStorage.getItem("seen"))</code> runs even after you saved <code>false</code>, because the stored value is the text <code>"false"</code> and every non-empty string counts as true.</p>
+  <div class="plain">
+    <p>Storage only understands words. Hand it the number 5 and it writes down the character "5" &mdash; so convert it with <code>Number()</code> before you add. Hand it <code>false</code> and it writes the word "false", which counts as true because it is not empty &mdash; so compare words with words: <code>localStorage.getItem("seen") === "true"</code>.</p>
+  </div>
+  <pre class="code" data-run data-title="The string trap, and a visit counter - press the button a few times" data-h="210">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .row { display: flex; gap: 10px; flex-wrap: wrap; margin: 10px 0; }
+  .pill { background: #F1F5F9; border-radius: 10px; padding: 10px 14px; }
+  button { padding: 8px 14px; cursor: pointer; }
+&lt;/style&gt;
+&lt;h3&gt;Visit counter&lt;/h3&gt;
+&lt;div class="row"&gt;
+  &lt;div class="pill"&gt;Ordinary variable: &lt;b id="plain"&gt;?&lt;/b&gt;&lt;/div&gt;
+  &lt;div class="pill"&gt;localStorage: &lt;b id="saved"&gt;?&lt;/b&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;button id="reload"&gt;Pretend to reload the page&lt;/button&gt;
+
+&lt;script&gt;
+  // Part 1 - the string trap (watch the Console)
+  localStorage.setItem("count", 5);
+  const c = localStorage.getItem("count");
+  console.log("Stored value:", c, "| type:", typeof c);
+  console.log("c + 1 =", c + 1);
+  console.log("Number(c) + 1 =", Number(c) + 1);
+
+  localStorage.setItem("seen", false);
+  if (localStorage.getItem("seen")) {
+    console.log('Surprise: "false" is a non-empty string, so the if ran');
+  }
+  console.log("Correct test:", localStorage.getItem("seen") === "true");
+
+  // Part 2 - everything a real page does when it starts
+  function startPage() {
+    let plain = 0;                       // an ordinary variable starts again at 0
+    plain = plain + 1;
+
+    let visits = Number(localStorage.getItem("visits"));   // null becomes 0
+    visits = visits + 1;
+    localStorage.setItem("visits", visits);                // stored as text
+
+    document.getElementById("plain").textContent = plain;
+    document.getElementById("saved").textContent = visits;
+    console.log("Page start: plain =", plain, "| visits =", visits);
+  }
+
+  startPage();
+  document.getElementById("reload").addEventListener("click", startPage);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Stored value: 5 | type: string</code>, <code>c + 1 = 51</code> and <code>Number(c) + 1 = 6</code>; then the surprise line &mdash; the <code>if</code> ran although we saved <code>false</code> &mdash; and <code>Correct test: false</code>.</p>
+  <p>Now the counter. <code>startPage()</code> does what a real page does on every load: fresh variables, then a read from storage; the button calls it again, as a reload would. Press it three times: the ordinary variable says <b>1</b> every time, because it is born again at 0; the stored count climbs <b>2, 3, 4</b>, because it lives outside the page.</p>
+  <p>On the first visit there is no key, so <code>getItem</code> gives <code>null</code> &mdash; and <code>Number(null)</code> is 0, so the first visit counts as 1 with no special case. If the text could ever be non-numeric, <code>Number("abc")</code> gives <code>NaN</code>; <code>Number(...) || 0</code> turns that into 0 too.</p>
+  <details class="qc"><summary>Quick check: after localStorage.setItem("n", 7), what is typeof localStorage.getItem("n")?</summary><div class="a">
+    <p><code>"string"</code>. The 7 was stored as the text <code>"7"</code>. To get the number back, write <code>Number(localStorage.getItem("n"))</code>.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>64.6 Objects and arrays: JSON.stringify and JSON.parse</h2>
+  <p>A student's record is naturally an object: <code>{ name: "Rahul", age: 19, course: "CSE" }</code>. Hand that straight to <code>setItem</code> and you get the useless string <code>"[object Object]"</code> &mdash; every name and value gone for good. Arrays fare little better: <code>["pen", "book"]</code> becomes <code>"pen,book"</code>, a plain string, no longer a list.</p>
+  <p>The answer is <span class="jw" data-def="JavaScript Object Notation: a standard way of writing objects and arrays out as plain text, so they can be saved or sent, and rebuilt exactly later.">JSON</span>, JavaScript Object Notation: a way of writing an object or array out as text that keeps <i>all</i> of its structure. You need both of its functions:</p>
+  <ul>
+    <li><b><code>JSON.stringify(value)</code></b> &mdash; object or array <b>&rarr; text</b>. Use it on the way <i>in</i>, just before <code>setItem</code>.</li>
+    <li><b><code>JSON.parse(text)</code></b> &mdash; text <b>&rarr; object or array</b>. Use it on the way <i>out</i>, just after <code>getItem</code>.</li>
+  </ul>
+  <pre class="code">const student = { name: "Rahul", age: 19, course: "CSE" };
+
+localStorage.setItem("student", JSON.stringify(student));
+// stored text: {"name":"Rahul","age":19,"course":"CSE"}
+
+const savedStudent = JSON.parse(localStorage.getItem("student"));
+console.log(savedStudent.name);   // Rahul</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 260" role="img" aria-label="JSON.stringify turns an object into text for storage, and JSON.parse turns the text back into an object">
+      <rect x="20" y="20" width="210" height="62" rx="10" class="box blu"/>
+      <text x="125" y="44" class="t c b">JavaScript object</text>
+      <text x="125" y="66" class="t c mono" style="font-size:11px">{ name: "Rahul", age: 19 }</text>
+      <path d="M235 51 L395 51" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="315" y="42" class="t c b mono" style="font-size:11px">JSON.stringify()</text>
+      <text x="315" y="68" class="t c s">object becomes text</text>
+      <rect x="400" y="20" width="200" height="172" rx="10" class="box saf"/>
+      <text x="500" y="46" class="t c b">localStorage</text>
+      <text x="500" y="70" class="t c s">key: "student"</text>
+      <text x="500" y="96" class="t c s">value (one string):</text>
+      <text x="500" y="118" class="t c mono" style="font-size:11px">{"name":"Rahul",</text>
+      <text x="500" y="134" class="t c mono" style="font-size:11px">"age":19}</text>
+      <text x="500" y="160" class="t c s">just characters,</text>
+      <text x="500" y="176" class="t c s">no longer an object</text>
+      <path d="M395 161 L235 161" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="315" y="152" class="t c b mono" style="font-size:11px">JSON.parse()</text>
+      <text x="315" y="178" class="t c s">text becomes object</text>
+      <rect x="20" y="130" width="210" height="62" rx="10" class="box grn"/>
+      <text x="125" y="154" class="t c b">An object again</text>
+      <text x="125" y="176" class="t c mono" style="font-size:11px">saved.name &#8594; "Rahul"</text>
+      <rect x="20" y="208" width="580" height="40" rx="10" class="box red"/>
+      <text x="310" y="226" class="t c s">Without JSON: setItem("student", student) stores the text "[object Object]".</text>
+      <text x="310" y="241" class="t c s">The names and values are lost and cannot be got back.</text>
+    </svg>
+    <figcaption><b>Figure 64.3</b> The round trip. <code>stringify</code> on the way in, <code>parse</code> on the way out &mdash; skip either step and you are left holding text, or holding nothing.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Storage cannot hold an object, only text. So before saving, <code>JSON.stringify</code> writes the object out as text, keeping every name and value. After reading, <code>JSON.parse</code> builds a real object from that text again, so <code>.name</code> works. <b>Parse what you stringified</b> &mdash; that is the whole rule.</p>
+  </div>
+  <p>What survives the trip? Text, numbers, <code>true</code>/<code>false</code>, <code>null</code>, arrays and plain objects, nested as deeply as you like. Functions and <code>undefined</code> values inside an object silently disappear (inside an array they become <code>null</code>), and a date comes back as text (<a href="book.html?ch=62">Chapter 62</a>). JSON is also how browsers and servers exchange data; <a href="book.html?ch=65">Chapter 65</a> gives its full rules.</p>
+  <h3>A safe default when nothing is saved yet</h3>
+  <p>On a first visit there is no <code>cart</code> key, so <code>getItem</code> gives <code>null</code>. Conveniently, <code>JSON.parse(null)</code> also gives <code>null</code> (it reads the text <code>"null"</code>), so a default fits in one line:</p>
+  <pre class="code">const cart = JSON.parse(localStorage.getItem("cart")) || [];   // [] on a first visit</pre>
+  <h3>When the saved text is broken</h3>
+  <p>If the stored text is <i>not</i> valid JSON &mdash; an older version of your page saved <code>"[object Object]"</code>, someone edited it in DevTools, or a plain word like <code>"Rahul"</code> was saved without <code>stringify</code> &mdash; then <code>JSON.parse</code> <b>throws an error</b>, and an uncaught error stops the rest of your script. One bad note in one locker kills the page.</p>
+  <p>The protection is <code>try...catch</code>. Put the risky line inside <code>try { }</code>. If it works, the <code>catch</code> part is skipped; if it throws, JavaScript jumps into <code>catch (err) { }</code> instead of crashing, and your code carries on with a default.</p>
+  <div class="plain">
+    <p><code>try</code> means "attempt this". <code>catch</code> means "if that blew up, do this instead of crashing". For storage, "this instead" is almost always <i>use the default value</i>. <a href="book.html?ch=70">Chapter 70</a> covers <code>try...catch</code> fully; here you only need this one pattern.</p>
+  </div>
+  <h3>Changing an array that is in storage</h3>
+  <p>You cannot <code>push</code> into storage, because storage holds text. Changing a stored list takes three steps: <b>read</b> it (parse), <b>change</b> the real array, <b>write it back</b> (stringify). Forget the third and the change lives only in a variable, which dies on reload.</p>
+  <pre class="code" data-run data-title="JSON in and out, a safe reader, and a cart that keeps its items" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { margin: 6px 6px 0 0; padding: 7px 12px; cursor: pointer; }
+&lt;/style&gt;
+&lt;h3&gt;My cart&lt;/h3&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;button id="add"&gt;Add a notebook&lt;/button&gt;
+&lt;button id="empty"&gt;Empty the cart&lt;/button&gt;
+
+&lt;script&gt;
+  // 1. The bug: an object saved directly
+  const student = { name: "Rahul", age: 19, course: "CSE" };
+  localStorage.setItem("student", student);
+  console.log("Without JSON:", localStorage.getItem("student"));
+
+  // 2. The fix: stringify on the way in, parse on the way out
+  localStorage.setItem("student", JSON.stringify(student));
+  const text = localStorage.getItem("student");
+  console.log("Stored text:", text);
+  const saved = JSON.parse(text);
+  console.log("Name:", saved.name, "| age next year:", saved.age + 1);
+
+  // 3. A safe reader: missing or broken data gives a default, not a crash
+  function loadJSON(key, fallback) {
+    try {
+      const value = JSON.parse(localStorage.getItem(key));   // null if missing
+      if (value === null) return fallback;
+      return value;
+    } catch (err) {
+      console.warn(`"${key}" holds broken JSON (${err.name}) - using the default`);
+      return fallback;
+    }
+  }
+  localStorage.setItem("broken", "[object Object]");
+  console.log("missing key:", loadJSON("wishlist", []));
+  console.log("broken key:", loadJSON("broken", []));
+
+  // 4. An array: read it, change it, write it back
+  const list = document.getElementById("list");
+  localStorage.setItem("cart", JSON.stringify(["pen", "book"]));
+
+  function showCart() {
+    const cart = loadJSON("cart", []);
+    list.innerHTML = "";
+    for (const item of cart) {
+      const li = document.createElement("li");
+      li.textContent = item;
+      list.append(li);
+    }
+    if (cart.length === 0) list.innerHTML = "&lt;li&gt;(empty)&lt;/li&gt;";
+    console.log("cart in storage:", localStorage.getItem("cart"));
+  }
+
+  document.getElementById("add").addEventListener("click", () =&gt; {
+    const cart = loadJSON("cart", []);                     // 1 read
+    cart.push("notebook");                                 // 2 change
+    localStorage.setItem("cart", JSON.stringify(cart));    // 3 write back
+    showCart();
+  });
+  document.getElementById("empty").addEventListener("click", () =&gt; {
+    localStorage.removeItem("cart");
+    showCart();
+  });
+
+  showCart();
+&lt;/script&gt;</pre>
+  <p>Read the Console in order. <code>Without JSON: [object Object]</code> is the bug. <code>Stored text: {"name":"Rahul","age":19,"course":"CSE"}</code> is real JSON: double quotes round every name, no spaces. <code>Name: Rahul | age next year: 20</code> proves <code>age</code> came back as the <i>number</i> 19, not the text <code>"19"</code>. JSON keeps types; plain <code>setItem</code> does not.</p>
+  <p>Then the safe reader: <code>missing key: []</code>, a warning that <code>"broken"</code> holds broken JSON (<code>SyntaxError</code> is what <code>JSON.parse</code> throws), and <code>broken key: []</code> &mdash; the script survived. Finally <code>cart in storage: ["pen","book"]</code>. Press <b>Add a notebook</b> twice and watch the stored text grow; <b>Empty the cart</b> makes it <code>null</code>, which the reader turns back into an empty list.</p>
+</section>
+
+<section id="s7">
+  <h2>64.7 Mini projects: a name, a theme and a draft</h2>
+  <p>Every storage project follows the same five steps:</p>
+  <ol>
+    <li>The user does something &mdash; types a name, clicks a toggle.</li>
+    <li>Your event handler runs.</li>
+    <li><code>setItem()</code> saves the new value in the browser.</li>
+    <li>Later, on the next page load, <code>getItem()</code> reads it back.</li>
+    <li>The page updates its interface to match.</li>
+  </ol>
+  <p>Steps 1&ndash;3 happen when the user acts. Steps 4&ndash;5 happen <b>every time the page starts</b>, and beginners forget them. To try these projects for real, Copy the code into a file, open it with VS Code Live Server, and reload. (A double-clicked file gets a <code>file:</code> address, and browsers treat storage for those inconsistently; Live Server gives a proper origin such as <code>http://127.0.0.1:5500</code>.)</p>
+
+  <h3>Mini project 1: remember my name</h3>
+  <p>This is the lecture's project, with the script inside the page so it runs in one box (the slides keep it in <code>app.js</code>).</p>
+  <pre class="code" data-run data-title="Mini project 1: type a name, Save, then Delete" data-h="220">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Save My Name&lt;/title&gt;
+  &lt;style&gt; body { font-family: system-ui, sans-serif; padding: 16px; } &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h2&gt;Welcome!&lt;/h2&gt;
+  &lt;input id="nameInput" type="text" placeholder="Enter your name"&gt;
+  &lt;button id="saveBtn"&gt;Save&lt;/button&gt;
+  &lt;button id="deleteBtn"&gt;Delete&lt;/button&gt;
+  &lt;p id="message"&gt;No name saved yet.&lt;/p&gt;
+
+  &lt;script&gt;
+    // Pretend Rahul saved his name on an earlier visit:
+    // in the Playground, delete the two slashes on the next line and Run.
+    // localStorage.setItem("studentName", "Rahul");
+
+    const nameInput = document.getElementById("nameInput");
+    const message   = document.getElementById("message");
+    const saveBtn   = document.getElementById("saveBtn");
+    const deleteBtn = document.getElementById("deleteBtn");
+
+    function showName() {
+      const saved = localStorage.getItem("studentName");
+      if (saved) {
+        message.textContent = `Hello, ${saved}!`;
+      } else {
+        message.textContent = "No name saved yet.";
+      }
+      console.log("showName() found:", saved);
+    }
+
+    saveBtn.addEventListener("click", () =&gt; {
+      const name = nameInput.value.trim();
+      if (name === "") {
+        alert("Please enter a name");
+        return;
+      }
+      localStorage.setItem("studentName", name);
+      nameInput.value = "";
+      showName();
+    });
+
+    deleteBtn.addEventListener("click", () =&gt; {
+      localStorage.removeItem("studentName");
+      showName();
+    });
+
+    // Runs on EVERY page load - this line is what makes the name survive a reload
+    showName();
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>showName()</code></td><td>Reads <code>studentName</code>. A saved name is a non-empty string, so the <code>if</code> greets it; <code>null</code> counts as false, so the default message shows.</td></tr>
+      <tr><td>Save handler</td><td><code>trim()</code> removes stray spaces, an empty box is refused, then <code>setItem</code> saves and <code>showName()</code> updates the page.</td></tr>
+      <tr><td>Delete handler</td><td><code>removeItem</code> forgets the name; <code>showName()</code> then finds <code>null</code>.</td></tr>
+      <tr><td>The last line, <code>showName();</code></td><td>Steps 4&ndash;5, on every page load. <b>This line makes the name survive a reload.</b></td></tr>
+    </tbody>
+  </table>
+  <p>Run it: <code>showName() found: null</code>. Type <i>Rahul</i> and press Save: the page says <b>Hello, Rahul!</b> and the Console <code>showName() found: Rahul</code>. On a real site you could press F5, or come back next week, and the greeting would be waiting; un-comment the pretend line in the Playground to see the page start already saying hello.</p>
+  <details class="qc"><summary>Quick check: Asha deletes the last line, showName();, and saves her file. Saving a name still works. What breaks?</summary><div class="a">
+    <p>The greeting no longer appears after a reload. The name is still in storage, but nothing reads it when the page starts, so the page shows "No name saved yet." until she presses Save again. Saving is only half of persistence; restoring on load is the other half.</p></div></details>
+
+  <h3>Mini project 2: dark mode that survives a reload</h3>
+  <p>The CSS defines two looks, and a class <code>dark</code> on the <code>&lt;body&gt;</code> switches between them. JavaScript only adds or removes that class &mdash; and remembers the choice.</p>
+  <pre class="code" data-run data-title="Mini project 2: tick Dark mode, untick it, watch the Console" data-h="170">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Theme Saver&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: sans-serif; padding: 20px; background: #ffffff; color: #222222; }
+    body.dark { background: #1e1e2e; color: #f1f1f1; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h2&gt;My Study Notes&lt;/h2&gt;
+  &lt;label&gt;&lt;input type="checkbox" id="themeToggle"&gt; Dark mode&lt;/label&gt;
+
+  &lt;script&gt;
+    // Pretend a dark theme was saved on an earlier visit:
+    // in the Playground, delete the two slashes on the next line and Run.
+    // localStorage.setItem("theme", "dark");
+
+    const toggle = document.getElementById("themeToggle");
+
+    // 1. On page load: restore the saved theme
+    const savedTheme = localStorage.getItem("theme");
+    if (savedTheme === "dark") {
+      document.body.classList.add("dark");
+      toggle.checked = true;
+    }
+    console.log("Theme found on load:", savedTheme);
+
+    // 2. When the user flips the toggle: apply + save
+    toggle.addEventListener("change", () =&gt; {
+      if (toggle.checked) {
+        document.body.classList.add("dark");
+        localStorage.setItem("theme", "dark");
+      } else {
+        document.body.classList.remove("dark");
+        localStorage.setItem("theme", "light");
+      }
+      console.log("Saved theme:", localStorage.getItem("theme"));
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Part 1 runs <b>once</b>, on load; part 2 runs <b>every time</b> the checkbox changes. The Console starts with <code>Theme found on load: null</code>; tick the box for <code>Saved theme: dark</code>, untick it for <code>Saved theme: light</code>. On a real site: Rahul ticks <i>Dark mode</i> &rarr; <code>setItem("theme", "dark")</code> &rarr; he closes the browser &rarr; tomorrow <code>getItem</code> gives <code>"dark"</code> and the class is added before he touches anything.</p>
+  <p>Two details are worth copying. <code>toggle.checked = true</code> on load keeps the checkbox honest &mdash; without it the page would be dark with the box unticked. And the test is <code>=== "dark"</code>, text compared with text. (Polish for later: a script at the end of the body runs after the page may already have been drawn in light colours, so a slow page can flash white first; large sites put a tiny theme script in the <code>&lt;head&gt;</code>.)</p>
+
+  <h3>Mini project 3: a draft that lives in one tab</h3>
+  <p>Now <code>sessionStorage</code>: a feedback box that saves on <i>every keystroke</i> (the <code>input</code> event), so an accidental F5 does not wipe a half-written paragraph &mdash; but the draft disappears with the tab, so it never greets the next person at a lab computer.</p>
+  <pre class="code" data-run data-title="Mini project 3: type, then Submit - a sessionStorage draft" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  textarea { width: 100%; max-width: 440px; height: 80px; font: inherit; }
+  #note { color: #6B7A90; font-size: 14px; }
+&lt;/style&gt;
+&lt;h3&gt;Feedback for CSE326&lt;/h3&gt;
+&lt;textarea id="draft" placeholder="Start typing your feedback..."&gt;&lt;/textarea&gt;
+&lt;p id="note"&gt;Nothing saved yet.&lt;/p&gt;
+&lt;button id="send"&gt;Submit&lt;/button&gt;
+
+&lt;script&gt;
+  const draft = document.getElementById("draft");
+  const note  = document.getElementById("note");
+
+  // On load: bring back this tab's unsent draft, if there is one
+  const kept = sessionStorage.getItem("feedbackDraft");
+  if (kept !== null) {
+    draft.value = kept;
+    note.textContent = "Draft restored from this tab.";
+  }
+  console.log("Draft found on load:", kept);
+
+  // Every keystroke: save the draft for THIS TAB only
+  draft.addEventListener("input", () =&gt; {
+    sessionStorage.setItem("feedbackDraft", draft.value);
+    note.textContent = `Draft saved (${draft.value.length} characters).`;
+  });
+
+  // Submitted: the draft is no longer needed
+  document.getElementById("send").addEventListener("click", () =&gt; {
+    console.log("Sending:", draft.value);
+    sessionStorage.removeItem("feedbackDraft");
+    draft.value = "";
+    note.textContent = "Sent. The draft has been removed.";
+    console.log("Draft left in this tab:", sessionStorage.getItem("feedbackDraft"));
+  });
+&lt;/script&gt;</pre>
+  <p>The Console starts with <code>Draft found on load: null</code>. Type a sentence and the note counts characters as each is saved. Press Submit: <code>Sending:</code> shows your text and <code>Draft left in this tab: null</code> confirms the clean-up. The load test is <code>kept !== null</code>, not <code>if (kept)</code>: an empty draft <code>""</code> is a real saved value, and only <code>null</code> means "nothing saved". A <code>localStorage</code> version would swap only the object's name in its four places; the methods stay, the lifetime changes.</p>
+</section>
+
+<section id="s8">
+  <h2>64.8 Seeing storage in DevTools</h2>
+  <p>The browser will show you what is stored, and let you change it by hand. In Chrome or Edge:</p>
+  <ol>
+    <li>Open DevTools with <kbd>F12</kbd> (or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>I</kbd>; on a Mac <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>I</kbd>).</li>
+    <li>Choose the <b>Application</b> tab. If you cannot see it, it is hiding behind the <b>&raquo;</b> at the end of the tab row.</li>
+    <li>In the left sidebar, under <b>Storage</b>, open <b>Local storage</b> and click your origin, such as <code>http://127.0.0.1:5500</code>. <b>Session storage</b> is just below it.</li>
+    <li>A <b>Key</b> / <b>Value</b> table appears. Double-click a value to edit it, select a row and press <kbd>Delete</kbd> to remove it, or use the toolbar above to refresh or clear everything.</li>
+  </ol>
+  <p>In Firefox the same table is in the <b>Storage</b> tab (<kbd>Shift</kbd>+<kbd>F9</kbd>). Two more tricks work in any browser's <b>Console</b>: type <code>localStorage</code> and press Enter to see every key at once, or type a single call such as <code>localStorage.getItem("theme")</code> to see one value &mdash; the Console prints it in quotes, a reminder that it is text.</p>
+  <p>Try the five-minute exercise from the lecture. On any page opened from Live Server, type <code>localStorage.setItem("studentName", "Rahul")</code> in the Console and check the Application tab: the row is there. Reload, then type only <code>localStorage.getItem("studentName")</code>. The answer is still <code>'Rahul'</code> &mdash; persistence, seen with your own eyes. Editing by hand also tests odd data: type <code>banana</code> into a key your page expects to be JSON and see whether your <code>try...catch</code> earns its keep.</p>
+  <p>The Application tab also shows cookies and has a <b>Clear site data</b> button that empties everything an origin has stored. <a href="book.html?ch=69">Chapter 69</a> tours the whole of DevTools.</p>
+</section>
+
+<section id="s9">
+  <h2>64.9 Limits, safety rules, and cookies</h2>
+  <p>Web Storage is small and simple, and that sets six limits to remember.</p>
+  <table class="tbl">
+    <thead><tr><th>Rule</th><th>What it means</th><th>What you do</th></tr></thead>
+    <tbody>
+      <tr><td><b>Values become strings</b></td><td><code>setItem("age", 19)</code> stores <code>"19"</code></td><td><code>Number()</code>; JSON for objects</td></tr>
+      <tr><td><b><code>JSON.parse</code> can throw</b></td><td>Broken text crashes the script</td><td><code>try...catch</code> with a default</td></tr>
+      <tr><td><b>Limited space</b></td><td>About 5 MB per origin for <code>localStorage</code>, and about the same for <code>sessionStorage</code></td><td>Small settings and lists &mdash; never photos or files</td></tr>
+      <tr><td><b>Synchronous</b></td><td>Each call makes the page wait until it is done</td><td>Keep values small</td></tr>
+      <tr><td><b>Not secret</b></td><td>Any script on the page can read every key</td><td>Never passwords, tokens or sensitive personal data</td></tr>
+      <tr><td><b>Not a real database</b></td><td>One browser on one device; the user can clear it</td><td>Always a default; real records on a server</td></tr>
+    </tbody>
+  </table>
+  <p>The 5 MB <span class="jw" data-def="The most space the browser lets one website use. Try to store more and the browser refuses with an error.">quota</span> is plenty for settings and lists, nowhere near enough for images. Go over it and <code>setItem</code> throws a <code>QuotaExceededError</code> instead of saving; and since every call is synchronous, storing a huge string freezes the page while it happens.</p>
+  <h3>Storage is not a safe place for secrets</h3>
+  <div class="callout warn"><b>Never store passwords, login tokens, bank or card details, Aadhaar or phone numbers in Web Storage.</b> It feels private because it is "on my own computer", but every script running on the page can read every key: your own code, the analytics and advertising scripts the page includes, and &mdash; if the site has a <span class="jw" data-def="Cross-site scripting: an attack in which someone sneaks their own JavaScript into your page, where it can do and read anything your own code can.">cross-site scripting (XSS)</span> bug &mdash; an attacker's script too. Anyone at the same computer can also read it in DevTools. Secrets belong on the server.</div>
+  <p>Good uses are harmless ones: a theme, a language, a draft, a high score. If losing it, or a stranger reading it, would do no harm, it can go in storage.</p>
+  <h3>Storage can vanish, or refuse to work</h3>
+  <p>Data in <code>localStorage</code> lives in one browser on one device: Chrome on your laptop cannot see what your phone saved, or what Edge on the same laptop saved. The user can wipe it with <i>Clear browsing data</i>, and a browser short of disk space may clear it for sites not visited lately. In a private (incognito) window it usually works, but everything is thrown away when the last private window closes. And when the user has blocked site data, some browsers throw an error the moment your code touches <code>localStorage</code>.</p>
+  <p>So treat storage as a <i>nice extra</i>, not a guarantee, and wrap the risky calls so that if storage fails the page still works &mdash; it just forgets:</p>
+  <pre class="code">// Save if we can; if storage is blocked or full, carry on without it
+function saveSetting(key, value) {
+  try {
+    localStorage.setItem(key, value);
+    return true;
+  } catch (err) {
+    console.warn("Could not save", key, "-", err.name);   // e.g. QuotaExceededError
+    return false;
+  }
+}
+
+// Read if we can; otherwise use the default
+function readSetting(key, fallback) {
+  try {
+    const value = localStorage.getItem(key);
+    return value === null ? fallback : value;
+  } catch (err) {
+    return fallback;
+  }
+}
+
+const theme = readSetting("theme", "light");</pre>
+  <div class="plain">
+    <p>Storage usually remembers, sometimes has been wiped, and occasionally refuses to work. Your page must work in all three cases: a default for "nothing saved", and <code>try...catch</code> round anything that could throw.</p>
+  </div>
+  <h3>How storage differs from cookies</h3>
+  <p>Before Web Storage, sites remembered things with <b>cookies</b> ("This site uses cookies"). A cookie is also a small named piece of text kept by the browser, but the browser <b>sends it to the server automatically with every request</b> to that site. That makes cookies right for things the server must see on every visit, such as "this browser is logged in as Asha", and wrong for things only the page needs.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>Cookies</th><th><code>localStorage</code></th><th><code>sessionStorage</code></th></tr></thead>
+    <tbody>
+      <tr><td>Size</td><td>About 4 KB each</td><td>About 5 MB per origin</td><td>About 5 MB per origin</td></tr>
+      <tr><td>Sent to the server?</td><td>Yes, with every request to that site</td><td>Never, unless your code sends it</td><td>Never, unless your code sends it</td></tr>
+      <tr><td>Expires</td><td>On a date the site chooses (or, without one, usually when the browser closes)</td><td>Never, until deleted</td><td>When the tab closes</td></tr>
+      <tr><td>Read from JavaScript</td><td>With <code>document.cookie</code> &mdash; unless the server marks it <code>HttpOnly</code>, when scripts cannot read it at all</td><td><code>getItem</code></td><td><code>getItem</code></td></tr>
+      <tr><td>Best for</td><td>Login sessions set by the server</td><td>Preferences kept on the device</td><td>Temporary, one-tab data</td></tr>
+    </tbody>
+  </table>
+  <p>That <code>HttpOnly</code> row is why real login systems use cookies, not <code>localStorage</code>: a cookie that JavaScript cannot read is a cookie an XSS attack cannot steal. (For large amounts of data, browsers also offer a much bigger store, IndexedDB, beyond this course.)</p>
+</section>
+
+<section id="s10">
+  <h2>64.10 Build it: the preference saver</h2>
+  <p>The lecture's practice task pulls the chapter together. Try it for 15&ndash;20 minutes before reading the solution. The page must:</p>
+  <ul>
+    <li>let a student enter a name;</li>
+    <li>let them choose a favourite programming language from a <code>&lt;select&gt;</code>;</li>
+    <li>save both in <code>localStorage</code> &mdash; as <b>one</b> object, with <code>JSON.stringify({ name, lang })</code>;</li>
+    <li>show the saved information again when the page loads;</li>
+    <li>offer a <b>Clear Data</b> button.</li>
+  </ul>
+  <pre class="code" data-run data-title="Practice task solution: the Student Preference Saver" data-h="290">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  label { display: block; margin: 8px 0; }
+  button { margin: 6px 6px 0 0; padding: 7px 12px; cursor: pointer; }
+  #saved { background: #F0FDF4; border-left: 4px solid #138808; padding: 8px 12px; }
+&lt;/style&gt;
+&lt;h3&gt;My Preferences&lt;/h3&gt;
+&lt;label&gt;Name &lt;input id="who" type="text" placeholder="Your name"&gt;&lt;/label&gt;
+&lt;label&gt;Favourite language
+  &lt;select id="langBox"&gt;
+    &lt;option&gt;JavaScript&lt;/option&gt;
+    &lt;option&gt;Python&lt;/option&gt;
+    &lt;option&gt;C++&lt;/option&gt;
+    &lt;option&gt;Java&lt;/option&gt;
+  &lt;/select&gt;
+&lt;/label&gt;
+&lt;button id="save"&gt;Save&lt;/button&gt;
+&lt;button id="clear"&gt;Clear Data&lt;/button&gt;
+&lt;p id="saved"&gt;Nothing saved yet.&lt;/p&gt;
+
+&lt;script&gt;
+  const KEY = "prefs";                    // one key holds the whole object
+  const who = document.getElementById("who");
+  const langBox = document.getElementById("langBox");
+  const out = document.getElementById("saved");
+
+  // Read the object back; null if nothing saved or the text is broken
+  function loadPrefs() {
+    try {
+      return JSON.parse(localStorage.getItem(KEY));
+    } catch (err) {
+      return null;
+    }
+  }
+
+  // Steps 4-5: show what is saved, and put it back into the form
+  function showPrefs() {
+    const prefs = loadPrefs();
+    if (prefs) {
+      out.textContent = `Saved: ${prefs.name} likes ${prefs.lang}`;
+      who.value = prefs.name;
+      langBox.value = prefs.lang;
+    } else {
+      out.textContent = "Nothing saved yet.";
+    }
+    console.log("In storage:", localStorage.getItem(KEY));
+  }
+
+  // Steps 1-3: the user saves
+  document.getElementById("save").addEventListener("click", () =&gt; {
+    const name = who.value.trim();
+    const lang = langBox.value;
+    if (name === "") {
+      out.textContent = "Please type your name first.";
+      return;
+    }
+    const prefs = { name, lang };         // short for { name: name, lang: lang }
+    localStorage.setItem(KEY, JSON.stringify(prefs));
+    showPrefs();
+  });
+
+  document.getElementById("clear").addEventListener("click", () =&gt; {
+    localStorage.removeItem(KEY);
+    who.value = "";
+    showPrefs();
+  });
+
+  showPrefs();                            // on every page load
+&lt;/script&gt;</pre>
+  <p>Run it: <code>In storage: null</code>. Type <i>Riya</i>, choose JavaScript, press Save, and the page says <b>Saved: Riya likes JavaScript</b> while the Console shows <code>In storage: {"name":"Riya","lang":"JavaScript"}</code> &mdash; one key, one JSON string, two values inside. Clear Data takes it back to <code>null</code>.</p>
+  <p><code>loadPrefs()</code> is the safe reader from 64.6: <code>JSON.parse(null)</code> gives <code>null</code> on a first visit, and the <code>catch</code> gives <code>null</code> for broken text, so <code>showPrefs()</code> has only one "nothing saved" case. Putting the saved values back <i>into the form</i> (<code>who.value</code>, <code>langBox.value</code>) means a returning student sees their own choices. And the last line restores everything on load &mdash; steps 4 and 5.</p>
+  <p><b>The task's discussion question: would <code>sessionStorage</code> work here?</b> Technically, yes &mdash; swap the object's name in its four places and the page behaves identically while the tab is open. But Riya would have to enter her preferences again in every new tab and after every browser restart. Preferences are meant to last, so <code>localStorage</code> is right: ask the "tomorrow" question from 64.3.</p>
+</section>
+
+<section id="mistakes">
+  <h2>64.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "getItem gives undefined for a key that was never saved."</b><br>That is what a missing object property gives.</div>
+    <div class="r"><b>&#10003; "getItem gives null for a missing key."</b><br>Test for it with <code>=== null</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "setItem("age", 19) saves the number 19."</b><br>It saves the two characters "19".</div>
+    <div class="r"><b>&#10003; "Everything is stored as a string."</b><br><code>Number()</code> before maths, <code>=== "true"</code> for yes/no, JSON for objects and arrays.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I can put an object straight into storage."</b><br>It becomes the text "[object Object]" and the data is gone.</div>
+    <div class="r"><b>&#10003; "JSON.stringify on the way in, JSON.parse on the way out."</b><br>And wrap the parse in <code>try...catch</code> in case the text is broken.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "sessionStorage is wiped when I reload the page."</b><br>A reload keeps it.</div>
+    <div class="r"><b>&#10003; "sessionStorage survives reloads and is lost when the tab closes; every tab has its own."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "It is on my own computer, so a password in localStorage is safe."</b><br>Every script on the page can read it, including an attacker's injected one.</div>
+    <div class="r"><b>&#10003; "Storage is for harmless preferences only."</b><br>Secrets stay on the server; login sessions use HttpOnly cookies.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "localStorage.clear() wipes the whole browser."</b><br>It cannot reach other websites at all.</div>
+    <div class="r"><b>&#10003; "clear() removes only this origin's keys, in this one storage object."</b><br>Other sites, sessionStorage and cookies are untouched.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary>Which storage keeps its data after the browser is closed and opened again?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. sessionStorage</li><li>B. localStorage</li><li>C. Both</li><li>D. Neither</li></ul>
+    <p><b>Answer: B.</b> <code>localStorage</code> lasts until it is deleted. <code>sessionStorage</code> survives a reload but ends when the tab closes, so C is the tempting wrong answer.</p></div></details>
+  <details class="q"><summary><code>localStorage.getItem("missing")</code>, for a key that was never saved, returns:<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. undefined</li><li>B. "" (an empty string)</li><li>C. false</li><li>D. null</li></ul>
+    <p><b>Answer: D.</b> Storage reports "no such key" with <code>null</code>. A is what a missing object <i>property</i> gives, which is why it tempts people.</p></div></details>
+  <details class="q"><summary><code>JSON.stringify({ x: 1 })</code> gives:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The string '{"x":1}'</li><li>B. An object with a property x</li><li>C. The array [x, 1]</li><li>D. An error</li></ul>
+    <p><b>Answer: A.</b> <code>stringify</code> always produces text, with the property name in double quotes. Turning that text back into an object (B) is the job of <code>JSON.parse</code>.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>localStorage.setItem("count", 5); const c = localStorage.getItem("count"); console.log(c + 1);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 51.</b> <code>getItem</code> returns the <i>string</i> <code>"5"</code>, and <code>"5" + 1</code> joins the two as text. To get 6, write <code>Number(c) + 1</code>.</p></div></details>
+  <details class="q"><summary>What happens when this line runs? <code>localStorage.saveItem("theme", "dark");</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The theme is saved normally</li><li>B. A key called "saveItem" is created</li><li>C. TypeError: localStorage.saveItem is not a function</li><li>D. It returns null and nothing else happens</li></ul>
+    <p><b>Answer: C.</b> There is no <code>saveItem</code> method, so the name gives <code>undefined</code>, and calling <code>undefined</code> throws a TypeError. The method is <code>setItem</code>: <i>set</i>, not <i>save</i>.</p></div></details>
+  <details class="q"><summary><span>What does this print, and how do you fix it? <code>localStorage.setItem("user", JSON.stringify({ name: "Riya" })); const u = localStorage.getItem("user"); console.log(u.name);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: undefined.</b> <code>u</code> is the <i>text</i> <code>{"name":"Riya"}</code>, and a string has no <code>name</code> property. Fix: <code>const u = JSON.parse(localStorage.getItem("user"));</code> &mdash; then <code>u.name</code> prints <code>Riya</code>.</p></div></details>
+  <details class="q"><summary>Which statement about <code>sessionStorage</code> is true?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is shared by all tabs of the same origin</li><li>B. It is cleared every time the page reloads</li><li>C. It survives a reload but is cleared when the tab is closed</li><li>D. It is sent to the server with every request</li></ul>
+    <p><b>Answer: C.</b> A describes <code>localStorage</code>, D describes cookies, and B is the most common misbelief &mdash; a reload keeps the session.</p></div></details>
+  <details class="q"><summary>A page at <code>https://lpu.in</code> saved a key in localStorage. Which of these pages can read it?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. http://lpu.in</li><li>B. https://ums.lpu.in</li><li>C. https://lpu.in:8443</li><li>D. https://lpu.in/exam/results.html</li></ul>
+    <p><b>Answer: D.</b> Only the path differs, and the path is not part of the origin. A changes the protocol, B the host and C the port, so each is a different origin with separate storage.</p></div></details>
+  <details class="q"><summary>After <code>localStorage.setItem("student", { name: "Rahul" })</code>, what does <code>localStorage.getItem("student")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. "[object Object]"</li><li>B. { name: "Rahul" }</li><li>C. "Rahul"</li><li>D. null</li></ul>
+    <p><b>Answer: A.</b> The object is turned into text the default way, which loses everything; it needed <code>JSON.stringify</code> first. D is wrong because a value <i>was</i> saved &mdash; just a useless one.</p></div></details>
+  <details class="q"><summary>Why must a password or login token never be kept in localStorage?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Storage is too small to hold one</li><li>B. Any script running on the page can read it</li><li>C. It is deleted on every reload</li><li>D. It is shared with every other website</li></ul>
+    <p><b>Answer: B.</b> Your own scripts, third-party scripts and any script injected through an XSS bug can all read every key. A and C are false; D is false because storage is per origin &mdash; the danger is scripts <i>on your own page</i>.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>localStorage.setItem("seen", false); if (localStorage.getItem("seen")) { console.log("yes"); } else { console.log("no"); }</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: yes.</b> The stored value is the five-letter text <code>"false"</code>, and any non-empty string counts as true. The correct test is <code>localStorage.getItem("seen") === "true"</code>, which would make it print <code>no</code>.</p></div></details>
+  <details class="q"><summary>What does <code>localStorage.clear()</code> delete?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Every website's saved data in the browser</li><li>B. Only the key that was saved last</li><li>C. This site's localStorage and its cookies</li><li>D. Every localStorage key of this origin, and nothing else</li></ul>
+    <p><b>Answer: D.</b> It cannot reach other origins (A), it removes all keys rather than one (B), and it does not touch cookies or <code>sessionStorage</code> (C). To delete one key, use <code>removeItem</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A reload wipes every variable. Web Storage keeps small pieces of text in the user's browser, separately for each origin (protocol + host + port; not the path).</li>
+    <li><code>localStorage</code>: shared by all tabs of the origin, survives a browser restart. <code>sessionStorage</code>: one tab, survives reloads, gone when the tab closes.</li>
+    <li><code>getItem</code> gives <b><code>null</code></b> for a missing key; <code>setItem</code> on an existing key replaces it; <code>clear()</code> deletes only this origin's keys.</li>
+    <li>Everything is stored as a string: <code>"5" + 1</code> is <code>"51"</code>, and <code>"false"</code> counts as true. Use <code>Number()</code> and <code>=== "true"</code>.</li>
+    <li>Objects and arrays: <code>JSON.stringify</code> in, <code>JSON.parse</code> out; <code>|| []</code> for a default, <code>try...catch</code> for broken text.</li>
+    <li>Persistence has two halves: save when the user acts, and <b>restore when the page loads</b>.</li>
+    <li>About 5 MB, synchronous, readable by every script on the page, liable to vanish: never secrets, always a default.</li>
+    <li>Cookies are tiny, travel to the server with every request and can be hidden from JavaScript (<code>HttpOnly</code>); Web Storage stays in the browser.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>localStorage.setItem("theme", "dark")</code></td><td>Save, or replace, a value under a key</td></tr>
+      <tr><td><code>localStorage.getItem("theme")</code></td><td>Read it back &mdash; <code>null</code> if missing</td></tr>
+      <tr><td><code>localStorage.removeItem("theme")</code></td><td>Delete one key</td></tr>
+      <tr><td><code>localStorage.clear()</code></td><td>Delete every key of this origin</td></tr>
+      <tr><td><code>localStorage.key(i)</code>, <code>localStorage.length</code></td><td>Name of the i-th key; how many keys there are</td></tr>
+      <tr><td><code>sessionStorage.setItem("step", "2")</code></td><td>Same methods, but for this tab only</td></tr>
+      <tr><td><code>Number(localStorage.getItem("visits"))</code></td><td>Stored text back to a number (<code>null</code> becomes 0)</td></tr>
+      <tr><td><code>localStorage.setItem("cart", JSON.stringify(cart))</code></td><td>Save an array or object as JSON text</td></tr>
+      <tr><td><code>JSON.parse(localStorage.getItem("cart")) || []</code></td><td>Read it back, with an empty-list default</td></tr>
+      <tr><td><code>try { ... } catch (err) { ... }</code></td><td>Carry on with a default if parsing or saving throws</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Web_Storage_API" target="_blank" rel="noopener noreferrer">MDN &mdash; Web Storage API<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Both storage objects, their methods and the per-origin rule, with links to every detail.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage" target="_blank" rel="noopener noreferrer">MDN &mdash; Window.localStorage<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact behaviour: strings only, private windows, and the errors it can throw.</span></li>
+    <li><a href="https://javascript.info/localstorage" target="_blank" rel="noopener noreferrer">javascript.info &mdash; LocalStorage, sessionStorage<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A friendly second explanation, plus the "storage" event that tells other tabs something changed.</span></li>
+    <li><a href="https://web.dev/articles/storage-for-the-web" target="_blank" rel="noopener noreferrer">web.dev &mdash; Storage for the web<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every kind of browser storage compared, for when 5 MB of text is no longer enough.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

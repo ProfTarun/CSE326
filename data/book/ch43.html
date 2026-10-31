@@ -1,0 +1,569 @@
+<article class="chapter" data-ch="43">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 43 &middot; Data Types</p>
+  <h1>Data Types</h1>
+  <p class="lead">To you, 25 and "25" are the same thing. To JavaScript they are two different kinds of value: one is a number you can do sums with, the other is a piece of text that happens to contain a 2 and a 5. Every value has a kind like this, called its data type, and the type decides what the value can do. This chapter introduces the eight types, shows you how to ask any value what type it is, and explains what happens when JavaScript quietly turns one type into another.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>console.log(a, b)</code> prints its values, separated by spaces, in the Console panel under every Run (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li><code>let</code> makes a variable you can change; <code>const</code> makes one you cannot reassign (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>A variable declared without a value holds <code>undefined</code>, and a <code>const</code> object can still change inside (<a href="book.html?ch=42">Chapter 42</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name JavaScript's seven primitive types and its object type, with an example value of each.</li>
+      <li>Use <code>typeof</code> to find a value's type, and explain its three quirks: <code>null</code>, arrays and functions.</li>
+      <li>Say when a value is <code>undefined</code> and when you should write <code>null</code>.</li>
+      <li>Explain dynamic typing: one variable can hold a number now and a string later.</li>
+      <li>Predict whether copying a variable copies the value or shares an object.</li>
+      <li>Predict automatic conversions such as <code>"5" + 1</code>, <code>"5" - 1</code> and <code>true + 1</code>, and convert on purpose with <code>String()</code>, <code>Number()</code> and <code>Boolean()</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>43.1 Every value has a type</h2>
+  <p>Work these out in your head. <code>25 + 5</code> is 30. <code>"25" + 5</code> is <code>"255"</code>. The digits are the same; the answers are not. The difference is the quotes. <code>25</code> is a number, <code>"25"</code> is text, and JavaScript treats them differently because they are different <b>data types</b>.</p>
+  <p>A data type is the <i>kind</i> of a value. The kind decides what you can do with the value (you can multiply marks, but not names), how JavaScript stores it, and what an operator such as <code>+</code> does when it meets it. Every value in a program, from <code>3.14</code> to a whole student record, has exactly one type.</p>
+  <div class="plain"><p>A type is the answer to "what kind of thing is this?" Marks are numbers. A name is text. "Has she paid the fee?" is a yes-or-no. JavaScript keeps track of the kind of every value, and the kind decides what happens to it.</p></div>
+  <p>JavaScript has eight types. Seven are <span class="jw" data-def="A simple, single value such as 25, &quot;Asha&quot; or true. It is not built out of other values, and it can never be changed in place.">primitive</span> types: each value is one simple thing. The eighth, <b>object</b>, is for values that are collections of other values, such as a student record or a list of marks. Arrays and functions are kinds of object.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 276" role="img" aria-label="Every value is either one of seven primitive types or the object type; arrays and functions are objects">
+      <rect x="210" y="12" width="200" height="36" rx="10" class="box ink"/>
+      <text x="310" y="35" class="t c w b">every value in JavaScript</text>
+      <path d="M270 48 L220 76" class="edge" marker-end="url(#arr)"/>
+      <path d="M350 48 L520 76" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="80" width="400" height="34" rx="8" class="box saf"/>
+      <text x="220" y="102" class="t c b">PRIMITIVE TYPES (7): one simple value</text>
+      <rect x="440" y="80" width="160" height="34" rx="8" class="box blu"/>
+      <text x="520" y="102" class="t c b">OBJECT TYPE (1)</text>
+      <rect x="20" y="126" width="91" height="50" rx="8" class="box"/>
+      <text x="65" y="146" class="t c b">string</text><text x="65" y="165" class="t c s mono">"Asha"</text>
+      <rect x="123" y="126" width="91" height="50" rx="8" class="box"/>
+      <text x="168" y="146" class="t c b">number</text><text x="168" y="165" class="t c s mono">25, 3.14</text>
+      <rect x="226" y="126" width="91" height="50" rx="8" class="box"/>
+      <text x="271" y="146" class="t c b">bigint</text><text x="271" y="165" class="t c s mono">25n</text>
+      <rect x="329" y="126" width="91" height="50" rx="8" class="box"/>
+      <text x="374" y="146" class="t c b">boolean</text><text x="374" y="165" class="t c s mono">true, false</text>
+      <rect x="72" y="188" width="91" height="50" rx="8" class="box"/>
+      <text x="117" y="208" class="t c b">undefined</text><text x="117" y="227" class="t c s mono">undefined</text>
+      <rect x="175" y="188" width="91" height="50" rx="8" class="box"/>
+      <text x="220" y="208" class="t c b">null</text><text x="220" y="227" class="t c s mono">null</text>
+      <rect x="278" y="188" width="91" height="50" rx="8" class="box"/>
+      <text x="323" y="208" class="t c b">symbol</text><text x="323" y="227" class="t c s mono">Symbol("id")</text>
+      <rect x="440" y="126" width="160" height="36" rx="8" class="box"/>
+      <text x="520" y="141" class="t c b">plain object</text><text x="520" y="156" class="t c s mono">{ name: "Asha" }</text>
+      <rect x="440" y="168" width="160" height="36" rx="8" class="box"/>
+      <text x="520" y="183" class="t c b">array</text><text x="520" y="198" class="t c s mono">[1, "banana"]</text>
+      <rect x="440" y="210" width="160" height="36" rx="8" class="box"/>
+      <text x="520" y="225" class="t c b">function</text><text x="520" y="240" class="t c s mono">function add()</text>
+      <text x="220" y="264" class="t c s">copied when you assign them (43.8)</text>
+      <text x="520" y="264" class="t c s">shared, not copied (43.8)</text>
+    </svg>
+    <figcaption><b>Figure 43.1</b> Seven primitive types hold one simple value each. Everything else is an object, and that includes arrays and functions.</figcaption>
+  </figure>
+  <h3>Asking a value its type: typeof</h3>
+  <p>You never have to guess. Write <code>typeof</code> in front of any value and JavaScript answers with a string naming its type: <code>typeof 25</code> is <code>"number"</code> and <code>typeof "25"</code> is <code>"string"</code>. The lecture writes it with brackets, <code>typeof(exampleVar)</code>, which also works; <code>typeof</code> is an operator, so the brackets are optional (Chapter 44). Here are the lecture's example values, each with its type:</p>
+  <pre class="code" data-run data-title="The values from the slides, and what typeof says about each" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let name = "John";
+  let age = 25;
+  let pi = 3.14;
+  let isStudent = true;
+  let undefinedVar;
+  let nullVar = null;
+  let person = { name: "Alice", age: 30, isStudent: false };
+  let fruits = [1, "banana", "orange"];
+  function add(a, b) {
+    return a + b;
+  }
+
+  console.log(name, "is a", typeof name);              // John is a string
+  console.log(age, "is a", typeof age);                // 25 is a number
+  console.log(pi, "is a", typeof pi);                  // 3.14 is a number
+  console.log(isStudent, "is a", typeof isStudent);    // true is a boolean
+  console.log(undefinedVar, "is", typeof undefinedVar);   // undefined is undefined
+  console.log(nullVar, "is", typeof nullVar);          // null is object   (a quirk: 43.6)
+  console.log(typeof person, "-", person.name);        // object - Alice
+  console.log(typeof fruits, "-", fruits[0]);          // object - 1       (another quirk)
+  console.log(typeof add, "-", add(2, 3));             // function - 5
+&lt;/script&gt;</pre>
+  <p>Two lines are surprising: <code>null</code> says it is an object, and so does the array. Both are famous quirks, explained in 43.6. Put quotes around the 25 and run it again: <code>age</code> becomes a string.</p>
+</section>
+
+<section id="s2">
+  <h2>43.2 Text, numbers and true/false</h2>
+  <h3>string: text</h3>
+  <p>A <b>string</b> is text: a name, a message, a single letter, or even no letters at all. You write it inside quotes. Single and double quotes do exactly the same job, as long as both ends match. Backticks are a third way to write a string, the template literal, which Chapter 45 teaches.</p>
+  <pre class="code">let name = "John";        // the slide example: double quotes
+let city = 'Phagwara';    // single quotes: the same type
+let roll = "12302457";    // digits inside quotes are still text
+let empty = "";           // the empty string: a string with nothing in it</pre>
+  <p>The quotes are not part of the text; they only mark where it starts and ends. Anything between them is text, even if it looks like a number. Roll numbers and phone numbers are best kept as strings: you never add two phone numbers, and stored as a number, 09876 would become plain 9876 and lose its leading zero.</p>
+  <h3>number: every kind of number</h3>
+  <p>A <b>number</b> is any numeric value: whole numbers like <code>25</code> and <code>-7</code>, and decimals like <code>3.14</code> (the slides call these floating-point numbers). Many languages keep whole numbers and decimals as separate types. JavaScript has one: <code>typeof 25</code> and <code>typeof 3.14</code> are both <code>"number"</code>. Write numbers without quotes and without commas: one lakh is <code>100000</code>, not <code>1,00,000</code>.</p>
+  <p>The number type also holds three special values. <code>Infinity</code> and <code>-Infinity</code> come, for example, from dividing a non-zero number by zero (<code>1 / 0</code> is <code>Infinity</code>), and <span class="jw" data-def="Not a Number: the special number-type value JavaScript gives when a sum has no sensible numeric answer, such as &quot;abc&quot; * 2.">NaN</span> is the answer to a sum that has no numeric answer, such as <code>"abc" * 2</code>. All three are of type <code>"number"</code>. Chapter 46 explains them.</p>
+  <h3>boolean: true or false</h3>
+  <p>A <b>boolean</b> has exactly two possible values, <code>true</code> and <code>false</code>, written without quotes. It answers a yes-or-no question: is she a student? has the fee been paid? Comparisons produce booleans (Chapter 44), and the decisions of Chapter 47 run on them.</p>
+  <pre class="code">let isStudent = true;      // the slide example
+let feePaid = false;
+let passed = 72 &gt;= 40;     // true: a comparison gives a boolean</pre>
+  <div class="callout warn"><b>Quotes change the type.</b> <code>true</code> is a boolean; <code>"true"</code> is a four-letter string. <code>25</code> is a number; <code>"25"</code> is a string. If you see quotes, you are looking at text.</div>
+  <details class="qc"><summary>Quick check: what are the types of <code>3.0</code>, <code>"3"</code>, <code>false</code> and <code>"false"</code>?</summary><p>Number, string, boolean, string. <code>3.0</code> is just the number 3 written with a decimal point. The two with quotes are text, whatever letters or digits are inside.</p></details>
+</section>
+
+<section id="s3">
+  <h2>43.3 Nothing, two ways: undefined and null</h2>
+  <p>Sometimes there is no real value yet. JavaScript has two different values for "nothing", and each is the only value of its own type.</p>
+  <p><b><code>undefined</code></b> means <i>no value has been given</i>. JavaScript puts it there itself. You met it in Chapter 42: a variable declared but never assigned holds <code>undefined</code>. You also get it when you ask an object for a <span class="jw" data-def="One named value inside an object, such as name: &quot;Alice&quot;. The name before the colon is called the key.">property</span> it does not have, and from a function that finishes without handing back an answer.</p>
+  <pre class="code">let undefinedVar;                // the slide example: declared, never assigned
+console.log(undefinedVar);       // undefined
+
+let person = { name: "Alice" };
+console.log(person.email);       // undefined: there is no email property</pre>
+  <p><b><code>null</code></b> means <i>empty on purpose</i>. A programmer writes it to say "I know about this, and there is deliberately nothing here". A few built-in tools also return it to mean "nothing found": <code>prompt()</code> gives <code>null</code> when the user presses Cancel.</p>
+  <pre class="code">let nullVar = null;     // the slide example
+let winner = null;      // no winner yet: the match has not been played
+winner = "Asha";        // later, a real value</pre>
+  <div class="plain"><p>Think of a printed admission form. A box nobody has filled in yet is <code>undefined</code>. A box where the student has written "None", as in "Previous college: None", is <code>null</code>: someone read the question and recorded, on purpose, that the answer is nothing.</p></div>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>undefined</code></th><th><code>null</code></th></tr></thead>
+    <tbody>
+      <tr><td>Means</td><td>No value has been given yet</td><td>Empty on purpose</td></tr>
+      <tr><td>Who puts it there</td><td>JavaScript, automatically</td><td>You (or a tool saying "nothing found")</td></tr>
+      <tr><td><code>typeof</code> says</td><td><code>"undefined"</code></td><td><code>"object"</code> &mdash; a quirk (43.6)</td></tr>
+      <tr><td>As a number</td><td><code>NaN</code></td><td><code>0</code></td></tr>
+    </tbody>
+  </table>
+  <p>They are two different values, so <code>null === undefined</code> is <code>false</code>. The rule for your own code: leave <code>undefined</code> to JavaScript, and write <code>null</code> when you mean "nothing, on purpose".</p>
+  <details class="qc"><summary>Quick check: after <code>let seat;</code> what does <code>seat</code> hold? And when the student leaves, what should you store in it?</summary><p>It holds <code>undefined</code>, because no value was given. When the student leaves, write <code>seat = null;</code> to record that the seat is empty on purpose.</p></details>
+</section>
+
+<section id="s4">
+  <h2>43.4 The two rare primitives: bigint and symbol</h2>
+  <p>The last two primitives were added to the language later: symbol in 2015 and bigint in 2020. You will hardly need them in this course, but you must be able to name them.</p>
+  <h3>bigint: whole numbers of any size</h3>
+  <p>The number type stores whole numbers exactly only up to 9,007,199,254,740,991, about nine thousand trillion (JavaScript calls this <code>Number.MAX_SAFE_INTEGER</code>). Beyond that it starts rounding. A <b>bigint</b> stores a whole number of any size exactly. You make one by putting <code>n</code> after the digits.</p>
+  <pre class="code">console.log(9007199254740993);    // 9007199254740992   - rounded!
+console.log(9007199254740993n);   // 9007199254740993n  - exact
+console.log(typeof 25n);          // bigint
+console.log(10n + 20n);           // 30n
+console.log(7n / 2n);             // 3n   whole numbers only: the .5 is dropped
+console.log(10n + 1);             // TypeError: Cannot mix BigInt and other types</pre>
+  <p>Bigints only do arithmetic with other bigints. Mixing one with an ordinary number in a sum throws a TypeError, so you convert one side first with <code>BigInt()</code> or <code>Number()</code>. They are used for very large ID numbers and for cryptography.</p>
+  <h3>symbol: a label that is guaranteed unique</h3>
+  <p>A <b>symbol</b> is a value whose only job is to be unique. You make one with <code>Symbol()</code>, optionally passing a description that helps when debugging. Every call to <code>Symbol()</code> makes a new symbol, never equal to any other, even one with the same description:</p>
+  <pre class="code">const id1 = Symbol("id");
+const id2 = Symbol("id");
+console.log(typeof id1);     // symbol
+console.log(id1 === id2);    // false: every symbol is one of a kind</pre>
+  <p>Symbols serve as special property names inside objects, so that code written by different people can never overwrite each other's properties by accident. Libraries use them; beginners rarely need to.</p>
+</section>
+
+<section id="s5">
+  <h2>43.5 The object type: objects, arrays and functions</h2>
+  <p>Every value that is not one of the seven primitives is an <b>object</b>. A primitive is one value; an object is a container that groups many values. The slides show the three kinds you will use most.</p>
+  <p>An <b>object</b> is a collection of key-value pairs inside curly braces. Each key is a name, and each value can be of any type, even another object. You read a property with a dot.</p>
+  <pre class="code">let person = {
+  name: "Alice",      // key: name,      value: a string
+  age: 30,            // key: age,       value: a number
+  isStudent: false    // key: isStudent, value: a boolean
+};
+console.log(person.name);   // Alice</pre>
+  <p>An <b>array</b> is an ordered list inside square brackets. Each item has a position number, its index, counted from 0, so the first item is <code>fruits[0]</code>. The slide's array mixes a number with two strings, which JavaScript allows.</p>
+  <pre class="code">let fruits = [1, "banana", "orange"];
+console.log(fruits[0]);     // 1        the first item is at index 0
+console.log(fruits[1]);     // banana</pre>
+  <p>A <b>function</b> is a named, reusable block of code. You give it inputs, it runs, and it can hand back a result. A function is a value too: you can store it in a variable, and its type is object, though <code>typeof</code> gives it a special answer.</p>
+  <pre class="code">function add(a, b) {
+  return a + b;
+}
+let sum = add(2, 3);    // the slide writes var a = add(2, 3)
+console.log(sum);       // 5</pre>
+  <p>Chapters 48, 50 and 51 give functions, arrays and objects a chapter each. For now one fact matters: all three are objects, and objects behave differently from primitives when you copy them (43.8).</p>
+</section>
+
+<section id="s6">
+  <h2>43.6 typeof and its quirks</h2>
+  <p><code>typeof</code> always answers with one of eight strings. This table is examined often:</p>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th><code>typeof</code> gives</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td><code>"Asha"</code>, <code>""</code></td><td><code>"string"</code></td><td></td></tr>
+      <tr><td><code>25</code>, <code>3.14</code>, <code>NaN</code>, <code>Infinity</code></td><td><code>"number"</code></td><td>Yes, even <code>NaN</code></td></tr>
+      <tr><td><code>25n</code></td><td><code>"bigint"</code></td><td></td></tr>
+      <tr><td><code>true</code>, <code>false</code></td><td><code>"boolean"</code></td><td></td></tr>
+      <tr><td><code>undefined</code></td><td><code>"undefined"</code></td><td>Also for a name never declared at all</td></tr>
+      <tr><td><code>Symbol("id")</code></td><td><code>"symbol"</code></td><td></td></tr>
+      <tr><td><code>null</code></td><td><code>"object"</code></td><td><b>Quirk 1</b>: an old bug, kept on purpose</td></tr>
+      <tr><td><code>{ name: "Alice" }</code></td><td><code>"object"</code></td><td></td></tr>
+      <tr><td><code>[1, 2, 3]</code></td><td><code>"object"</code></td><td><b>Quirk 2</b>: arrays are objects</td></tr>
+      <tr><td><code>function add() {}</code></td><td><code>"function"</code></td><td><b>Quirk 3</b>: an object with its own answer</td></tr>
+    </tbody>
+  </table>
+  <p><b>Quirk 1: <code>typeof null</code> is <code>"object"</code>.</b> The first version of JavaScript, written in ten days in 1995, stored every value with a small type tag, and the tag for objects was 0. <code>null</code> was stored as zero, so <code>typeof</code> read it as an object. By the time anyone noticed, thousands of websites depended on that answer. A later proposal to fix it was turned down because it would have broken them, a choice made for <span class="jw" data-def="Keeping old behaviour working, even when it is a mistake, so that websites written years ago do not break.">backward compatibility</span>. <code>null</code> really is a primitive; <code>typeof</code> is simply wrong about it. To test for it, compare directly: <code>value === null</code>.</p>
+  <p><b>Quirk 2: arrays say <code>"object"</code>.</b> That is true, since arrays are objects, but it means <code>typeof</code> cannot tell a list from a plain object. Use <code>Array.isArray(value)</code>, which is <code>true</code> only for arrays.</p>
+  <p><b>Quirk 3: functions say <code>"function"</code>.</b> Functions are objects too, but <code>typeof</code> gives them their own answer. That is handy: it tells you whether a value can be called.</p>
+  <div class="plain"><p><code>typeof</code> is right about every primitive except <code>null</code>, and it lumps every object together except functions. So: for <code>null</code>, test <code>value === null</code>; for arrays, use <code>Array.isArray(value)</code>.</p></div>
+  <pre class="code" data-run data-title="typeof for every type, its three quirks, and the right tests" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  console.log(typeof "hello");                    // string
+  console.log(typeof 42, typeof 4.2, typeof NaN); // number number number
+  console.log(typeof 42n);                        // bigint
+  console.log(typeof true);                       // boolean
+  console.log(typeof undefined);                  // undefined
+  console.log(typeof Symbol("id"));               // symbol
+  console.log(typeof { a: 1 });                   // object
+
+  // the three quirks
+  console.log(typeof null);                       // object    (quirk 1)
+  console.log(typeof [1, 2, 3]);                  // object    (quirk 2)
+  console.log(typeof function () {});             // function  (quirk 3)
+
+  // typeof always answers with a string, and never crashes on an unknown name
+  console.log(typeof typeof 42);                  // string
+  console.log(typeof neverDeclaredAnywhere);      // undefined
+
+  // the right tests
+  let seat = null;
+  let marks = [80, 64, 51];
+  console.log("seat is null?", seat === null);              // seat is null? true
+  console.log("marks is an array?", Array.isArray(marks));  // marks is an array? true
+  console.log("{} is an array?", Array.isArray({}));        // {} is an array? false
+&lt;/script&gt;</pre>
+  <div class="callout exam"><b>Exam tip.</b> The two favourite <code>typeof</code> questions are <code>typeof null</code> (answer <code>"object"</code>, not <code>"null"</code>) and <code>typeof []</code> (answer <code>"object"</code>, not <code>"array"</code>). <code>typeof</code> never answers <code>"null"</code> or <code>"array"</code>.</div>
+</section>
+
+<section id="s7">
+  <h2>43.7 Dynamic typing: values have types, variables do not</h2>
+  <p>A variable is a name for a box (Chapter 42). In JavaScript the box itself has no type; only the value inside it does. So the same variable can hold a number now and a string a moment later. The slide example:</p>
+  <pre class="code">let dynamicVar = 10;        // dynamicVar holds a number
+dynamicVar = "Hello";       // now it holds a string
+dynamicVar = true;          // and now a boolean
+console.log(typeof dynamicVar);   // boolean</pre>
+  <p>This is called <b>dynamic typing</b>: the type is worked out at <span class="jw" data-def="The moment the program is actually running in the browser, as opposed to the time when you are writing it.">run time</span>, from whatever value is in the box at that moment. Languages such as C and Java are <b>statically typed</b>: you state the type when you declare the variable, as in <code>int marks = 10;</code>, and putting text in <code>marks</code> later is an error caught before the program even runs. (A <code>const</code> cannot be reassigned at all, so it keeps the type of its first value.)</p>
+  <p>Dynamic typing makes JavaScript quick to write. The price is that a type mistake shows up only when the code runs, and often not as an error at all, just a wrong answer such as <code>"255"</code>. Careful programmers therefore keep each variable to one type. TypeScript, a popular add-on to JavaScript, adds static types for exactly this reason.</p>
+  <div class="plain"><p>In JavaScript the label on a box does not say what may go inside. You can keep marks in it today and a name tomorrow. JavaScript looks at the kind of thing only when it uses it.</p></div>
+</section>
+
+<section id="s8">
+  <h2>43.8 Copied or shared: primitives and objects</h2>
+  <p>What happens when you copy one variable into another? The answer depends on the type, and it surprises almost everyone the first time. This section is a preview; Chapters 50 and 51 return to it.</p>
+  <p>With a <b>primitive</b>, the value itself is copied:</p>
+  <pre class="code">let a = 10;
+let b = a;      // b gets its own copy of 10
+b = 20;
+console.log(a, b);   // 10 20</pre>
+  <p>The two boxes are independent, so changing <code>b</code> leaves <code>a</code> alone.</p>
+  <p>With an <b>object</b>, the variable never holds the object itself. The object lives somewhere in the computer's memory, and the variable holds a <span class="jw" data-def="Directions to where an object lives in memory. Copying a reference gives a second set of directions to the same object, not a second object.">reference</span> to it: directions to where it lives. Copying the variable copies the directions, not the object:</p>
+  <pre class="code">const asha = { name: "Asha", maths: 80 };
+const copy = asha;      // copies the reference: still ONE object
+copy.maths = 95;
+console.log(asha.maths);   // 95</pre>
+  <p>There was only ever one object. <code>asha</code> and <code>copy</code> are two names for it, so a change made through either name is seen through both.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 232" role="img" aria-label="Copying a primitive gives two separate values; copying an object gives two names pointing at one object">
+      <text x="155" y="24" class="t c b">Primitive: the value is copied</text>
+      <text x="155" y="46" class="t c s mono">let a = 10;  let b = a;  b = 20;</text>
+      <path d="M310 14 L310 222" class="edge dash"/>
+      <text x="74" y="104" class="t b mono">a</text>
+      <rect x="90" y="80" width="70" height="40" rx="8" class="box saf"/>
+      <text x="125" y="105" class="t c b mono">10</text>
+      <text x="172" y="105" class="t s">still 10</text>
+      <text x="74" y="164" class="t b mono">b</text>
+      <rect x="90" y="140" width="70" height="40" rx="8" class="box saf"/>
+      <text x="125" y="165" class="t c b mono">20</text>
+      <text x="172" y="165" class="t s">its own copy, now 20</text>
+      <text x="155" y="210" class="t c s">two boxes, two separate values</text>
+      <text x="465" y="24" class="t c b">Object: two names, one object</text>
+      <text x="465" y="46" class="t c s mono">const copy = asha;  copy.maths = 95;</text>
+      <rect x="330" y="80" width="70" height="34" rx="8" class="box gry"/>
+      <text x="365" y="102" class="t c mono">asha</text>
+      <rect x="330" y="146" width="70" height="34" rx="8" class="box gry"/>
+      <text x="365" y="168" class="t c mono">copy</text>
+      <path d="M402 97 L466 112" class="edge" marker-end="url(#arr)"/>
+      <path d="M402 163 L466 148" class="edge" marker-end="url(#arr)"/>
+      <rect x="470" y="86" width="130" height="84" rx="10" class="box blu"/>
+      <text x="535" y="110" class="t c s mono">name: "Asha"</text>
+      <text x="535" y="132" class="t c b mono">maths: 95</text>
+      <text x="535" y="156" class="t c s">ONE object</text>
+      <text x="465" y="210" class="t c s">change it through either name: both see 95</text>
+    </svg>
+    <figcaption><b>Figure 43.2</b> Copying a primitive makes a second, independent value. Copying an object copies only the reference, so both names lead to the same single object.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> Asha photocopies her marksheet and gives the copy to Rahul. Rahul scribbles all over it, and Asha's original is untouched: that is a primitive. Now suppose Asha instead gives Rahul a duplicate key to her hostel room. Rahul goes in and moves the desk, and when Asha comes back the desk has moved, because there was only ever one room. A variable holding an object is the key, not the room.</div>
+  <p>Two consequences follow. First, <code>===</code> on objects asks "is this the <i>same</i> object?", not "do they look alike?". <code>asha === copy</code> is <code>true</code>, but two separately written <code>{ maths: 80 }</code> objects are not equal. Second, this is why a <code>const</code> object can still change inside, as Chapter 42 showed: <code>const</code> fixes which object the name leads to, not what is inside it.</p>
+  <pre class="code" data-run data-title="Primitives are copied, objects are shared - predict each line first" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // a primitive: the VALUE is copied
+  let a = 10;
+  let b = a;
+  b = 20;
+  console.log("a:", a, "b:", b);                 // a: 10 b: 20
+
+  // an object: the REFERENCE is copied, so both names share ONE object
+  const asha = { name: "Asha", maths: 80 };
+  const copy = asha;
+  copy.maths = 95;
+  console.log("asha.maths:", asha.maths);        // asha.maths: 95
+  console.log("same object?", asha === copy);    // same object? true
+
+  // two objects that look identical are still two objects
+  const one = { maths: 80 };
+  const two = { maths: 80 };
+  console.log("one === two?", one === two);      // one === two? false
+
+  // arrays are objects, so they are shared too
+  const bag = ["pen"];
+  const sameBag = bag;
+  sameBag[1] = "pencil";
+  console.log(bag);                              // ['pen', 'pencil']
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: <code>const list = ["tea"]; const other = list; other[0] = "coffee";</code> What is <code>list[0]</code> now?</summary><p><code>"coffee"</code>. An array is an object, so <code>other = list</code> copied only the reference. There is one array with two names, and the change made through <code>other</code> shows up through <code>list</code>.</p></details>
+</section>
+
+<section id="s9">
+  <h2>43.9 Automatic conversion: type coercion</h2>
+  <p>What should <code>"5" + 1</code> be? Text plus a number makes no obvious sense, but JavaScript tries to be helpful: instead of stopping with an error, it quietly converts one of the values to another type and carries on. This automatic conversion is called type <span class="jw" data-def="JavaScript quietly changing a value from one type to another, such as the text &quot;5&quot; into the number 5, without being asked.">coercion</span>. The slide's example is <code>5 + "5"</code>, which gives the string <code>"55"</code>.</p>
+  <p>For the strings, numbers, booleans, <code>null</code> and <code>undefined</code> of this chapter, two rules explain nearly everything:</p>
+  <ol>
+    <li><b><code>+</code> with a string on either side joins.</b> The other value is turned into text and the two are joined end to end: <code>"5" + 1</code> is <code>"51"</code>, and <code>5 + "5"</code> is <code>"55"</code>.</li>
+    <li><b>Every other arithmetic operator works only with numbers.</b> <code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> and <code>**</code> turn both sides into numbers first: <code>"5" - 1</code> is <code>4</code> and <code>"5" * "2"</code> is <code>10</code>. If a value cannot be read as a number, the answer is <code>NaN</code>: <code>"abc" - 1</code> is <code>NaN</code>.</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 222" role="img" aria-label="Plus joins as text when either side is a string, otherwise adds numbers; minus, times and divide always convert to numbers">
+      <rect x="20" y="20" width="150" height="44" rx="10" class="box"/>
+      <text x="95" y="47" class="t c b mono">a + b</text>
+      <path d="M170 42 L206 42" class="edge" marker-end="url(#arr)"/>
+      <rect x="210" y="20" width="200" height="44" rx="10" class="box saf"/>
+      <text x="310" y="47" class="t c b">Is either side a string?</text>
+      <path d="M410 42 L446 42" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="428" y="34" class="t c s">yes</text>
+      <rect x="450" y="20" width="150" height="44" rx="10" class="box grn"/>
+      <text x="525" y="38" class="t c b">JOIN as text</text>
+      <text x="525" y="55" class="t c s mono">"5" + 1 &#8594; "51"</text>
+      <path d="M310 64 L310 92" class="edge" marker-end="url(#arr)"/>
+      <text x="322" y="83" class="t s">no</text>
+      <rect x="210" y="96" width="200" height="44" rx="10" class="box blu"/>
+      <text x="310" y="115" class="t c b">turn both into numbers</text>
+      <text x="310" y="132" class="t c s">true is 1, false and null are 0</text>
+      <path d="M410 118 L446 118" class="edge" marker-end="url(#arr)"/>
+      <rect x="450" y="96" width="150" height="44" rx="10" class="box grn"/>
+      <text x="525" y="115" class="t c b">ADD</text>
+      <text x="525" y="132" class="t c s mono">true + 1 &#8594; 2</text>
+      <path d="M20 154 L600 154" class="edge dash"/>
+      <rect x="20" y="166" width="150" height="44" rx="10" class="box"/>
+      <text x="95" y="193" class="t c b mono">-  *  /  %  **</text>
+      <path d="M170 188 L206 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="210" y="166" width="200" height="44" rx="10" class="box blu"/>
+      <text x="310" y="185" class="t c b">always convert to numbers</text>
+      <text x="310" y="202" class="t c s">they have no joining job</text>
+      <path d="M410 188 L446 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="450" y="166" width="150" height="44" rx="10" class="box grn"/>
+      <text x="525" y="184" class="t c s mono">"5" - 1 &#8594; 4</text>
+      <text x="525" y="201" class="t c s mono">"abc" - 1 &#8594; NaN</text>
+    </svg>
+    <figcaption><b>Figure 43.3</b> <code>+</code> asks one question first: is a string involved? If so it joins. Every other arithmetic operator only does maths, so it converts both sides to numbers.</figcaption>
+  </figure>
+  <p>When neither side of <code>+</code> is a string, it adds, turning booleans, <code>null</code> and <code>undefined</code> into numbers on the way: <code>true</code> becomes 1, <code>false</code> and <code>null</code> become 0, and <code>undefined</code> becomes <code>NaN</code>.</p>
+  <pre class="code">true + 1         // 2
+false + 1        // 1
+null + 1         // 1
+undefined + 1    // NaN
+true + "1"       // "true1"   a string is involved, so it joins</pre>
+  <div class="plain"><p><code>+</code> has two jobs, adding and joining, and a string on either side switches it to joining. The other operators only know maths, so they turn everything into numbers, and answer <code>NaN</code> when they cannot.</p></div>
+  <p>Coercion happens in two more places. <b>Comparisons</b> with a number convert: <code>"10" &gt; 9</code> is <code>true</code>, because <code>"10"</code> becomes 10. (Two strings are compared as text, letter by letter, so <code>"10" &gt; "9"</code> is <code>false</code>.) And the loose equality operator <code>==</code> converts, which is why <code>5 == "5"</code> is <code>true</code>. The strict operator <code>===</code> never converts, so <code>5 === "5"</code> is <code>false</code>: different types, different values. That is the main reason to always compare with <code>===</code>; Chapter 44 lists the stranger results <code>==</code> produces. Finally, wherever JavaScript needs a yes or a no, as in an <code>if</code> (Chapter 47), it converts the value to a boolean by the <code>Boolean()</code> rules of 43.10.</p>
+  <pre class="code" data-run data-title="Coercion - predict every line before you press Run" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // + with a string: JOIN
+  console.log("'5' + 1 =", "5" + 1);             // '5' + 1 = 51
+  console.log("5 + '5' =", 5 + "5");             // 5 + '5' = 55    (the slide example)
+  console.log(typeof ("5" + 1));                 // string
+
+  // - * / with a string: turn it into a number first
+  console.log("'5' - 1 =", "5" - 1);             // '5' - 1 = 4
+  console.log("'5' * '2' =", "5" * "2");         // '5' * '2' = 10
+  console.log("'abc' - 1 =", "abc" - 1);         // 'abc' - 1 = NaN
+
+  // booleans, null and undefined become numbers
+  console.log("true + 1 =", true + 1);           // true + 1 = 2
+  console.log("null + 1 =", null + 1);           // null + 1 = 1
+  console.log("undefined + 1 =", undefined + 1); // undefined + 1 = NaN
+
+  // comparisons convert too, and == converts, but === never does
+  console.log("'10' &gt; 9:", "10" &gt; 9);           // '10' &gt; 9: true
+  console.log("5 == '5':", 5 == "5");            // 5 == '5': true
+  console.log("5 === '5':", 5 === "5");          // 5 === '5': false
+
+  // the classic bug: marks that came from a form are text
+  let maths = "40";
+  let bonus = 5;
+  console.log("Total:", maths + bonus);          // Total: 405   (joined, not added!)
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: what do <code>"8" - 3</code> and <code>"8" + 3</code> give, and of what type?</summary><p><code>"8" - 3</code> is the number 5, because <code>-</code> only does maths. <code>"8" + 3</code> is the string <code>"83"</code>, because <code>+</code> joins when a string is involved.</p></details>
+</section>
+
+<section id="s10">
+  <h2>43.10 Converting on purpose: String(), Number(), Boolean()</h2>
+  <p>Coercion is JavaScript guessing what you meant. <b>Explicit conversion</b> is you saying it. Three built-in functions, named after the types they produce, turn a value into a string, a number or a boolean.</p>
+  <p><b><code>String(value)</code></b> gives the text form of anything: <code>String(42)</code> is <code>"42"</code>, <code>String(true)</code> is <code>"true"</code> and <code>String(null)</code> is <code>"null"</code>. It works for a value of every type in this chapter.</p>
+  <p><b><code>Number(value)</code></b> reads a value as a number. A string converts only if it is a clean number; anything else gives <code>NaN</code>.</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>Number("42")</code></td><td><code>42</code></td><td>A clean number</td></tr>
+      <tr><td><code>Number(" 4.5 ")</code></td><td><code>4.5</code></td><td>Spaces at the ends are ignored</td></tr>
+      <tr><td><code>Number("")</code></td><td><code>0</code></td><td>An empty string counts as 0</td></tr>
+      <tr><td><code>Number("42px")</code></td><td><code>NaN</code></td><td>Not a clean number (Chapter 46's <code>parseInt()</code> can read it)</td></tr>
+      <tr><td><code>Number("abc")</code></td><td><code>NaN</code></td><td>Not a number at all</td></tr>
+      <tr><td><code>Number(true)</code>, <code>Number(false)</code></td><td><code>1</code>, <code>0</code></td><td></td></tr>
+      <tr><td><code>Number(null)</code></td><td><code>0</code></td><td></td></tr>
+      <tr><td><code>Number(undefined)</code></td><td><code>NaN</code></td><td></td></tr>
+    </tbody>
+  </table>
+  <p><b><code>Boolean(value)</code></b> answers "is there something here?". Six common values give <code>false</code>: <code>false</code>, <code>0</code>, <code>""</code> (the empty string), <code>null</code>, <code>undefined</code> and <code>NaN</code>. Apart from two rare relatives of 0 (<code>-0</code> and the bigint <code>0n</code>), everything else gives <code>true</code>, including <code>"0"</code>, <code>"false"</code>, <code>" "</code> (a single space) and every object and array, even an empty one. The two groups are called falsy and truthy, and Chapter 46 gives the complete list.</p>
+  <div class="callout warn"><b>Everything typed is a string.</b> The value in a form box, and whatever the user types into <code>prompt()</code>, is always text, even when it is digits (Cancel on a <code>prompt()</code> gives <code>null</code>). <code>"1500" + 250</code> is <code>"1500250"</code>. Convert first: <code>Number("1500") + 250</code> is 1750. And call the three without <code>new</code>: <code>new Number("42")</code> makes a wrapper object (<code>typeof</code> says <code>"object"</code>), which is almost never what you want.</div>
+  <p>Explicit conversion also means you never need <code>==</code>. Instead of <code>typed == 40</code>, write <code>Number(typed) === 40</code>, which says exactly what you mean.</p>
+  <pre class="code" data-run data-title="Converting on purpose - then try 1500, abc and an empty box" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px 16px; color: #3C4A60; }
+  input, button { font: inherit; padding: 6px 10px; }
+  input { width: 110px; }
+  #out { font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;p&gt;&lt;label&gt;Fee typed by the student: &lt;input id="fee" value="1500"&gt;&lt;/label&gt;
+   &lt;button id="go"&gt;Add the Rs 250 late fine&lt;/button&gt;&lt;/p&gt;
+&lt;p id="out"&gt;Press the button.&lt;/p&gt;
+&lt;script&gt;
+  console.log("String(42) gives", String(42), "of type", typeof String(42));   // String(42) gives 42 of type string
+  console.log(Number("42"), Number(" 4.5 "), Number(""));         // 42 4.5 0
+  console.log(Number("42px"), Number("abc"));                     // NaN NaN
+  console.log(Number(true), Number(null), Number(undefined));     // 1 0 NaN
+  console.log(Boolean(0), Boolean(""), Boolean(null));            // false false false
+  console.log(Boolean("0"), Boolean(" "), Boolean("false"));      // true true true
+
+  // how the button works is Chapter 57; here, watch the types
+  const fee = document.getElementById("fee");
+  const out = document.getElementById("out");
+  document.getElementById("go").addEventListener("click", () =&gt; {
+    const typed = fee.value;          // whatever is in the box: ALWAYS a string
+    const amount = Number(typed);     // converted on purpose
+    console.log("typed:", typed, "| typeof:", typeof typed);
+    console.log("Without Number():", typed + 250);
+    console.log("With Number():", amount + 250);
+    out.textContent = "Total payable: Rs " + (amount + 250);
+  });
+&lt;/script&gt;</pre>
+  <p>With 1500 in the box, the Console shows 1500250 without conversion and 1750 with it, and the page shows "Total payable: Rs 1750". Type <code>abc</code> and press again: <code>Number()</code> gives <code>NaN</code>, JavaScript's way of saying "that was not a number" (Chapter 46 shows how to test for it and warn the user). Empty the box and press: <code>Number("")</code> is 0, so the total is a misleading Rs 250.</p>
+</section>
+
+<section id="mistakes">
+  <h2>43.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A variable has a type, fixed when it is declared."</b><br>That is true in C and Java, not in JavaScript.</div>
+    <div class="r"><b>&#10003; "Values have types; a variable can hold any type over time."</b><br><code>let x = 10; x = "ten";</code> is legal, and <code>typeof x</code> is then <code>"string"</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>typeof null</code> is <code>"null"</code>, and <code>typeof []</code> is <code>"array"</code>."</b><br><code>typeof</code> never gives either answer.</div>
+    <div class="r"><b>&#10003; "Both give <code>"object"</code>."</b><br>Test with <code>value === null</code> and <code>Array.isArray(value)</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>null</code> and <code>undefined</code> mean the same thing."</b><br>They are different values of different types, and <code>null === undefined</code> is false.</div>
+    <div class="r"><b>&#10003; "<code>undefined</code>: no value given yet. <code>null</code>: empty on purpose."</b><br>JavaScript supplies <code>undefined</code>; you write <code>null</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>const copy = asha;</code> makes a copy of the object."</b><br>It copies only the reference.</div>
+    <div class="r"><b>&#10003; "Both names now lead to one object."</b><br>A change through <code>copy</code> is seen through <code>asha</code>. Primitives, by contrast, really are copied.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>Boolean("0")</code> and <code>Boolean("false")</code> are false."</b><br>They are non-empty strings.</div>
+    <div class="r"><b>&#10003; "The only string that converts to false is <code>""</code>."</b><br>Any text at all, even one space, is <code>true</code>.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which of these is NOT one of JavaScript's seven primitive types?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. string</li><li>B. bigint</li><li>C. symbol</li><li>D. array</li></ul>
+    <p><b>Answer: D.</b> An array is an object, which is why <code>typeof [1, 2]</code> is <code>"object"</code>. The seven primitives are string, number, bigint, boolean, undefined, null and symbol; bigint and symbol are the two that students forget.</p></div></details>
+  <details class="q"><summary>What does <code>typeof null</code> return?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>"object"</code></li><li>B. <code>"null"</code></li><li>C. <code>"undefined"</code></li><li>D. It throws an error</li></ul>
+    <p><b>Answer: A.</b> A bug from the first version of JavaScript, kept so that old websites keep working. <code>null</code> is really a primitive; <code>typeof</code> never answers <code>"null"</code>. To test for it, write <code>value === null</code>.</p></div></details>
+  <details class="q"><summary>Which list contains only primitive types?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. string, number, object</li><li>B. array, function, string</li><li>C. undefined, object, bigint</li><li>D. boolean, null, symbol</li></ul>
+    <p><b>Answer: D.</b> All three are primitives. Every other list includes object, array or function, and arrays and functions are objects.</p></div></details>
+  <details class="q"><summary>A program must record that a match has no winner yet, on purpose. Which value is the right choice for <code>winner</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>undefined</code></li><li>B. <code>null</code></li><li>C. <code>0</code></li><li>D. <code>""</code></li></ul>
+    <p><b>Answer: B.</b> <code>null</code> means "empty on purpose" and is the value programmers write themselves. <code>undefined</code> is what JavaScript leaves when no value was ever given, and <code>0</code> and <code>""</code> are real values of other types.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let x = 10; x = "ten"; console.log(typeof x);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. number</li><li>B. TypeError</li><li>C. string</li><li>D. undefined</li></ul>
+    <p><b>Answer: C.</b> JavaScript is dynamically typed: the variable has no type of its own, and <code>typeof</code> reports the type of the value it holds now, the string <code>"ten"</code>. There is no error, because a <code>let</code> variable may be given a value of any type.</p></div></details>
+  <details class="q"><summary>Which is the correct way to check whether <code>marks</code> holds an array?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>typeof marks === "array"</code></li><li>B. <code>Array.isArray(marks)</code></li><li>C. <code>typeof marks === "object"</code></li><li>D. <code>marks === []</code></li></ul>
+    <p><b>Answer: B.</b> A is never true, because <code>typeof</code> never says <code>"array"</code>. C is also true for plain objects and for <code>null</code>. D compares references, so it is false even when <code>marks</code> is an empty array: <code>[]</code> creates a brand-new array.</p></div></details>
+  <details class="q"><summary>What does <code>console.log("5" - 1, "5" + 1, true + 1);</code> print?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 4 51 2</li><li>B. 4 6 2</li><li>C. 51 51 true1</li><li>D. NaN 51 2</li></ul>
+    <p><b>Answer: A.</b> <code>-</code> only does maths, so <code>"5"</code> becomes 5 and the answer is 4. <code>+</code> with a string joins, giving <code>"51"</code>. With no string involved, <code>+</code> adds, and <code>true</code> becomes 1, giving 2. Option B forgets that <code>+</code> joins strings.</p></div></details>
+  <details class="q"><summary>What does this print, and why? <code>let a = { score: 50 }; let b = a; b.score = 90; console.log(a.score);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 90.</b> An object is not copied when you assign it. <code>b = a</code> copies the reference, so <code>a</code> and <code>b</code> are two names for one object, and the change made through <code>b</code> is seen through <code>a</code>. With a primitive (<code>let a = 50; let b = a; b = 90;</code>) <code>a</code> would still be 50.</p></div></details>
+  <details class="q"><summary>What are <code>Number("")</code>, <code>Number("42px")</code> and <code>Number(null)</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. NaN, NaN, NaN</li><li>B. 0, 42, 0</li><li>C. 0, NaN, 0</li><li>D. undefined, NaN, null</li></ul>
+    <p><b>Answer: C.</b> An empty string counts as 0, <code>"42px"</code> is not a clean number so it gives <code>NaN</code>, and <code>null</code> converts to 0. Option B is what <code>parseInt("42px")</code> would give for the middle value, but <code>Number()</code> is stricter.</p></div></details>
+  <details class="q"><summary>Which of these gives <code>true</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>Boolean(0)</code></li><li>B. <code>Boolean("")</code></li><li>C. <code>Boolean(null)</code></li><li>D. <code>Boolean("0")</code></li></ul>
+    <p><b>Answer: D.</b> <code>"0"</code> is a non-empty string, and every non-empty string converts to <code>true</code>. The number 0, the empty string and <code>null</code> are all on the short list of values that convert to <code>false</code>.</p></div></details>
+  <details class="q"><summary>What happens when this line runs? <code>console.log(10n + 1);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It prints 11</li><li>B. It throws a TypeError</li><li>C. It prints 11n</li><li>D. It prints 10n1</li></ul>
+    <p><b>Answer: B.</b> A bigint cannot be mixed with an ordinary number in a sum: "Cannot mix BigInt and other types". Convert one side first: <code>10n + 1n</code> is <code>11n</code>, and <code>Number(10n) + 1</code> is 11.</p></div></details>
+  <details class="q"><summary>A form field holds the fee <code>"1500"</code>. The code <code>fee + 250</code> shows 1500250. Explain why, and fix it.<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> everything read from a form is a string, so <code>fee</code> is the text <code>"1500"</code>. With a string on one side, <code>+</code> joins instead of adding: <code>"1500" + 250</code> is <code>"1500250"</code>. Convert on purpose first: <code>Number(fee) + 250</code> is 1750.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Every value has a type. JavaScript has eight: seven primitives (string, number, bigint, boolean, undefined, null, symbol) and object. Arrays and functions are objects.</li>
+    <li><code>typeof</code> answers with a string. Its quirks: <code>typeof null</code> is <code>"object"</code>, <code>typeof []</code> is <code>"object"</code> (use <code>Array.isArray</code>), and a function gives <code>"function"</code>.</li>
+    <li><code>undefined</code> means no value has been given yet (JavaScript's default); <code>null</code> means empty on purpose (you write it).</li>
+    <li>JavaScript is dynamically typed: values have types, variables do not, so one <code>let</code> can hold any type over time.</li>
+    <li>Primitives are copied when assigned; objects are shared through a reference. <code>===</code> on objects asks "the same object?".</li>
+    <li>Coercion: <code>+</code> with a string joins; <code>- * / % **</code> convert to numbers; <code>true</code> is 1, <code>null</code> is 0, <code>undefined</code> is <code>NaN</code>.</li>
+    <li>Convert on purpose with <code>String()</code>, <code>Number()</code> and <code>Boolean()</code>, and compare with <code>===</code> so nothing is converted behind your back.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>typeof "Asha"</code></td><td><code>"string"</code></td></tr>
+      <tr><td><code>typeof 3.14</code>, <code>typeof NaN</code></td><td><code>"number"</code></td></tr>
+      <tr><td><code>typeof 25n</code></td><td><code>"bigint"</code></td></tr>
+      <tr><td><code>typeof true</code></td><td><code>"boolean"</code></td></tr>
+      <tr><td><code>typeof undefined</code></td><td><code>"undefined"</code></td></tr>
+      <tr><td><code>typeof Symbol("id")</code></td><td><code>"symbol"</code></td></tr>
+      <tr><td><code>typeof null</code></td><td><code>"object"</code> &mdash; the famous quirk</td></tr>
+      <tr><td><code>typeof [1, 2]</code> / <code>Array.isArray([1, 2])</code></td><td><code>"object"</code> / <code>true</code></td></tr>
+      <tr><td><code>typeof function () {}</code></td><td><code>"function"</code></td></tr>
+      <tr><td><code>"5" + 1</code></td><td><code>"51"</code> &mdash; joins</td></tr>
+      <tr><td><code>"5" - 1</code></td><td><code>4</code> &mdash; converts to a number</td></tr>
+      <tr><td><code>true + 1</code></td><td><code>2</code></td></tr>
+      <tr><td><code>Number("")</code> / <code>Number("42px")</code></td><td><code>0</code> / <code>NaN</code></td></tr>
+      <tr><td><code>Boolean("0")</code> / <code>Boolean("")</code></td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td><code>5 === "5"</code></td><td><code>false</code> &mdash; no conversion</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Data_structures" target="_blank" rel="noopener noreferrer">MDN &mdash; JavaScript data types and data structures<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">All eight types in one page, with the exact rules for each.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/typeof" target="_blank" rel="noopener noreferrer">MDN &mdash; typeof<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full table of answers, and the history of <code>typeof null</code>.</span></li>
+    <li><a href="https://javascript.info/types" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Data types<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a second voice, with small tasks at the end.</span></li>
+    <li><a href="https://javascript.info/type-conversions" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Type conversions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The String, Number and Boolean conversion rules, laid out as tables.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

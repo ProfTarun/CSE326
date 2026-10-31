@@ -1,0 +1,809 @@
+<article class="chapter" data-ch="72">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 72 &middot; Client-Side Application Design</p>
+  <h1>Client-Side Application Design</h1>
+  <p class="lead">So far you have built features one at a time: a counter, a live search, a form that checks itself. An application is many such features sharing one screen and one set of data without tripping over each other. This chapter is about the thinking you do before the first line of code: what the browser should be responsible for, how to split the work into layers, what to sketch on paper, which screens nobody remembers to design, and how one state object keeps the whole page telling the same story.</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The viewport meta tag and <code>min-width</code> media queries let one page fit every screen, starting from the phone (<a href="book.html?ch=21">Chapter 21</a>).</li>
+      <li>A <code>render()</code> function can redraw a list from an array of objects, and <code>textContent</code> is the safe way to put text on the page (<a href="book.html?ch=58">Chapter 58</a>).</li>
+      <li><code>localStorage</code> keeps only strings, so objects go in with <code>JSON.stringify</code> and come out with <code>JSON.parse</code> (<a href="book.html?ch=64">Chapter 64</a>).</li>
+      <li>An interactive page waits for an event, reacts to it, and updates what the user sees (<a href="book.html?ch=71">Chapter 71</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say which jobs belong in the browser and which must stay on the server, and explain why the browser cannot be trusted for security.</li>
+      <li>Name the four layers of a client-side application and what each one is allowed to touch.</li>
+      <li>Turn a user goal into a user journey and a low-fidelity wireframe before writing code.</li>
+      <li>Write mobile-first CSS and apply an accessibility checklist from the first day.</li>
+      <li>List the states a data screen needs &mdash; loading, success, empty, error, partial, disabled, validation &mdash; and design each one.</li>
+      <li>Build a page around one state object: events change the state, <code>render()</code> redraws, and <code>localStorage</code> remembers what should survive a reload.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>72.1 What the browser is responsible for</h2>
+  <p>Every web application is split between two places. The <span class="jw" data-def="The program on the user's own device that asks for things and shows the answers. On the web, that is the browser.">client</span> is the browser on the user's phone or laptop. The <b>server</b> is a computer the college or company runs somewhere else, which every user's browser talks to. <b>Client-side application design</b> means deciding, before you build, what the browser part will do and how its code will be arranged.</p>
+  <p>The browser has four jobs:</p>
+  <table class="tbl">
+    <thead><tr><th>Job</th><th>What it means</th><th>Dashboard example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Presents information</b></td><td>Turns data into readable, accessible screens</td><td>Assignment cards with titles and due dates</td></tr>
+      <tr><td><b>Responds to actions</b></td><td>Clicks, typing and swipes get immediate feedback</td><td>Typing "DBMS" narrows the list at once</td></tr>
+      <tr><td><b>Validates input</b></td><td>Catches mistakes early, before anything is sent</td><td>"Enter a complete email" appears under the box</td></tr>
+      <tr><td><b>Manages UI state</b></td><td>Remembers which tab is open, what is filtered, what is loading</td><td>The "Due soon" filter stays selected</td></tr>
+    </tbody>
+  </table>
+  <p>Everything else belongs to the server:</p>
+  <table class="tbl">
+    <thead><tr><th>Client side (browser)</th><th>Server side</th></tr></thead>
+    <tbody>
+      <tr><td>Layout, styling, animation</td><td>Storing data for all users</td></tr>
+      <tr><td>Show / hide, filter, sort</td><td>Authentication (who you are) and permissions (what you may do)</td></tr>
+      <tr><td>Instant input checks</td><td>Final, trusted validation</td></tr>
+      <tr><td>Remembering UI preferences</td><td>Payments, secrets, API keys</td></tr>
+      <tr><td>Calling APIs and showing the results</td><td>Sending email, running scheduled jobs</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>The design rule.</b> Anything a user could change in their own browser &mdash; your JavaScript, <code>localStorage</code>, form values, even a <code>disabled</code> attribute &mdash; <b>cannot be trusted for security</b>. Every file you send is readable with View Source, and every line can be edited in DevTools before it runs. Keep trust decisions on the server.</div>
+  <p>That is why a form checks the email in the browser <i>and</i> the server checks it again. The browser check is a courtesy: the user hears about the mistake in a split second instead of after a round trip. The server check is the lock on the door. Someone who switches off JavaScript skips your JavaScript check, and someone who sends a request straight to the server without your page at all skips every browser check &mdash; but neither can skip the server's.</p>
+  <div class="plain"><p>The browser is the <b>shop window</b> part of the app: it shows things, reacts and helps. The server is the part that <b>decides</b>: who is allowed in, what is true, what gets saved for everybody. If a fact must be trusted or shared between users, it lives on the server.</p></div>
+  <details class="qc"><summary>Quick check: a quiz page checks the answers in JavaScript and shows the score. Can the teacher use that score as the official mark?</summary><p>No. The correct answers had to be sent to the browser for JavaScript to compare them, so a student can read them in the page source, or simply edit the score in DevTools. Official marking must happen on the server.</p></details>
+</section>
+
+<section id="s2">
+  <h2>72.2 The layers of a client-side application</h2>
+  <p>You already know three jobs by their file types: <b>HTML</b> gives structure, <b>CSS</b> gives presentation, <b>JavaScript</b> gives behaviour. An application adds a fourth thing that a plain page barely has: <b>data that changes while you watch</b> &mdash; which assignments exist, which ones are done, what the user has typed in the search box. Organised properly, a student dashboard has four layers:</p>
+  <table class="tbl">
+    <thead><tr><th>Layer</th><th>Made of</th><th>In the dashboard</th></tr></thead>
+    <tbody>
+      <tr><td><b>1. Presentation</b></td><td>HTML + CSS</td><td>The header, the assignment cards, the progress bar</td></tr>
+      <tr><td><b>2. UI interaction and state</b></td><td>Event handlers, one state object, <code>render()</code></td><td><code>state = { student, assignments, filter }</code></td></tr>
+      <tr><td><b>3. Data access and API communication</b></td><td>A file such as <code>api.js</code></td><td><code>fetchAssignments()</code> returns JSON and handles loading and errors</td></tr>
+      <tr><td><b>4. Backend services</b> (where there is one)</td><td>Server + database</td><td>The REST API, logging in, the stored submissions</td></tr>
+    </tbody>
+  </table>
+  <p>Layer 3 talks to an <span class="jw" data-def="A web address that answers programs with data, usually JSON, instead of answering people with a web page.">API</span>; layer 4 is whatever answers it. When you publish on GitHub Pages (Chapter 76) you have no server of your own, so the bottom layer is somebody else's API or a static JSON file sitting next to your HTML.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 620 300" role="img" aria-label="Four stacked layers - presentation, UI interaction and state, data access, backend - each talking only to the layer next to it, beside a phone screen showing the dashboard they produce">
+      <rect x="20" y="20" width="360" height="52" rx="10" class="box blu"/>
+      <text x="200" y="42" class="t c b">1. Presentation (HTML + CSS)</text>
+      <text x="200" y="60" class="t c s">header, assignment cards, progress bar</text>
+      <path d="M180 74 L180 90" class="edge" marker-end="url(#arr)"/>
+      <path d="M220 90 L220 74" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="92" width="360" height="52" rx="10" class="box saf"/>
+      <text x="200" y="114" class="t c b">2. UI interaction &amp; state (JavaScript)</text>
+      <text x="200" y="132" class="t c s">event handlers &#183; state object &#183; render()</text>
+      <path d="M180 146 L180 162" class="edge" marker-end="url(#arr)"/>
+      <path d="M220 162 L220 146" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="164" width="360" height="52" rx="10" class="box grn"/>
+      <text x="200" y="186" class="t c b">3. Data access (api.js)</text>
+      <text x="200" y="204" class="t c s">fetchAssignments() &#8594; JSON, loading and errors</text>
+      <path d="M180 218 L180 234" class="edge" marker-end="url(#arr)"/>
+      <path d="M220 234 L220 218" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="236" width="360" height="52" rx="10" class="box gry"/>
+      <text x="200" y="258" class="t c b">4. Backend services</text>
+      <text x="200" y="276" class="t c s">server + database (none of your own on GitHub Pages)</text>
+      <rect x="420" y="20" width="180" height="268" rx="16" class="box"/>
+      <text x="510" y="48" class="t c s">dashboard</text>
+      <text x="510" y="72" class="t c b">Hi, Ananya</text>
+      <rect x="436" y="88" width="148" height="40" rx="8" class="box gry"/>
+      <text x="510" y="113" class="t c">DBMS Lab 4</text>
+      <rect x="436" y="138" width="148" height="40" rx="8" class="box gry"/>
+      <text x="510" y="163" class="t c">Web Project</text>
+      <rect x="436" y="188" width="148" height="40" rx="8" class="box gry"/>
+      <text x="510" y="213" class="t c">OS Quiz</text>
+      <text x="510" y="252" class="t c s">same screen,</text>
+      <text x="510" y="268" class="t c s">four layers behind it</text>
+    </svg>
+    <figcaption><b>Figure 72.1</b> Each layer talks only to the layer next to it, so a change in one stays in one.</figcaption>
+  </figure>
+  <p>The arrows are the whole point. The presentation layer never fetches anything; the data layer never touches the page. That buys you two promises:</p>
+  <ul>
+    <li><b>If the API changes</b> &mdash; a new address, a renamed field &mdash; only the data layer changes.</li>
+    <li><b>If the design changes</b> &mdash; cards become a table &mdash; only the presentation layer and <code>render()</code> change. The data code does not know or care.</li>
+  </ul>
+  <div class="plain"><p>HTML says <b>what is on the page</b>. CSS says <b>how it looks</b>. JavaScript says <b>what happens</b>. The state says <b>what is true right now</b>. Keep those four apart and you can change any one of them without breaking the other three.</p></div>
+</section>
+
+<section id="s3">
+  <h2>72.3 Plan before coding: goals, journeys and wireframes</h2>
+  <p>The most expensive way to design a screen is to code it, show it to someone, and code it again. The cheap way is to answer three questions on paper first.</p>
+  <ol>
+    <li><b>What is the user's goal?</b> Not "use the dashboard", but something they actually want done: <i>Ananya wants to see what is due this week and submit her DBMS lab.</i></li>
+    <li><b>What is the user journey?</b> The steps from opening the app to finishing that goal:<br>
+      <i>Open dashboard &rarr; search "DBMS" &rarr; open the assignment &rarr; upload the file &rarr; see "Submitted &#10003;".</i></li>
+    <li><b>What does each screen look like?</b> A rough sketch of every screen on that journey.</li>
+  </ol>
+  <p>A journey with its branches is a <b>user flow</b>: what happens if the search finds nothing, or the upload fails? Each branch is a screen you will have to design (section 72.5 lists them), so you want to find them now, not after the code is written.</p>
+  <p>The sketch is a <span class="jw" data-def="A quick black-and-white sketch of a screen: boxes for where things go, lines for text, no colours or real pictures.">wireframe</span>. A <b>low-fidelity</b> wireframe is deliberately rough &mdash; grey boxes, squiggles for text, no colours, no fonts, no real images &mdash; because it is meant to be argued over and redrawn in a minute. It decides four things:</p>
+  <table class="tbl">
+    <thead><tr><th>Decision</th><th>Question it answers</th></tr></thead>
+    <tbody>
+      <tr><td><b>Layout</b></td><td>Where does each block sit?</td></tr>
+      <tr><td><b>Navigation</b></td><td>How does the user move between pages?</td></tr>
+      <tr><td><b>Hierarchy</b></td><td>What is most important &mdash; biggest, first, highest on the screen?</td></tr>
+      <tr><td><b>User journey</b></td><td>Which steps finish the task, and is each step easy to find?</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig">
+    <svg viewBox="0 0 620 280" role="img" aria-label="A grey low-fidelity wireframe beside the polished dashboard built from it: the same blocks in the same order">
+      <text x="155" y="20" class="t c b">Low-fidelity wireframe</text>
+      <rect x="20" y="30" width="270" height="240" rx="12" class="box"/>
+      <rect x="34" y="42" width="242" height="26" rx="4" class="box gry"/>
+      <text x="44" y="59" class="t s">LOGO      Home   Courses   Profile</text>
+      <rect x="34" y="76" width="242" height="34" rx="4" class="box gry"/>
+      <text x="155" y="97" class="t c s">Welcome + progress summary</text>
+      <rect x="34" y="118" width="242" height="24" rx="12" class="box"/>
+      <text x="155" y="134" class="t c s">[ Search assignments ]</text>
+      <rect x="34" y="150" width="242" height="30" rx="4" class="box gry"/>
+      <text x="44" y="169" class="t s">Card title    &#8212; &#8212; &#8212;</text>
+      <rect x="34" y="190" width="242" height="30" rx="4" class="box gry"/>
+      <text x="44" y="209" class="t s">Card title    &#8212; &#8212; &#8212;</text>
+      <rect x="34" y="230" width="242" height="30" rx="4" class="box gry"/>
+      <text x="44" y="249" class="t s">Card title    &#8212; &#8212; &#8212;</text>
+      <text x="465" y="20" class="t c b">Polished interface</text>
+      <rect x="330" y="30" width="270" height="240" rx="12" class="box"/>
+      <rect x="344" y="42" width="242" height="26" rx="4" class="box ink"/>
+      <text x="354" y="59" class="t s w">EduTrack     Home   Courses   Profile</text>
+      <rect x="344" y="76" width="242" height="34" rx="4" class="box saf"/>
+      <text x="465" y="97" class="t c s">Good morning, Ananya &#8212; 3 due this week</text>
+      <rect x="344" y="118" width="242" height="24" rx="12" class="box"/>
+      <text x="465" y="134" class="t c s">Search assignments&#8230;</text>
+      <rect x="344" y="150" width="242" height="30" rx="4" class="box blu"/>
+      <text x="354" y="169" class="t s">DBMS Lab &#183; Due Fri</text>
+      <rect x="344" y="190" width="242" height="30" rx="4" class="box blu"/>
+      <text x="354" y="209" class="t s">Web Lab &#183; Due Fri</text>
+      <rect x="344" y="230" width="242" height="30" rx="4" class="box blu"/>
+      <text x="354" y="249" class="t s">OS Lab &#183; Due Fri</text>
+    </svg>
+    <figcaption><b>Figure 72.2</b> Same structure, same order: the polished screen only adds visual design on top of decisions the wireframe already made.</figcaption>
+  </figure>
+  <p>Agree on the wireframe first, then build. Moving a box on paper takes seconds; moving it in finished HTML, CSS and JavaScript takes an afternoon.</p>
+  <details class="qc"><summary>Quick check: why is a wireframe drawn without colours or real images?</summary><p>So that everyone discusses layout, navigation, hierarchy and the journey &mdash; the decisions that are expensive to change later &mdash; instead of arguing about shades of blue. It also keeps the sketch cheap enough to throw away and redraw.</p></details>
+</section>
+
+<section id="s4">
+  <h2>72.4 Responsive and accessible from the start</h2>
+  <p>Two decisions belong in the plan, not in a "fix it later" list: how the layout changes with screen size, and how people who do not use a mouse or cannot see the screen will use it. Both are cheap on day one and expensive afterwards.</p>
+  <h3>Mobile-first layout</h3>
+  <p><b>Mobile-first</b> means the plain CSS, with no media query around it, is the phone layout: one column. Then each <code>min-width</code> media query <i>adds</i> columns once the screen is wide enough. The width where the layout changes is called a <span class="jw" data-def="The screen width at which the layout switches, such as 600px: narrower gets one design, wider gets another.">breakpoint</span>.</p>
+  <pre class="code">/* styles.css - mobile-first */
+.cards { display: grid; gap: 16px; grid-template-columns: 1fr; }   /* mobile: one column */
+
+@media (min-width: 600px) {                                     /* tablet */
+  .cards { grid-template-columns: 1fr 1fr; }
+}
+@media (min-width: 1000px) {                                    /* desktop */
+  .cards { grid-template-columns: repeat(3, 1fr); }
+}</pre>
+  <p>Read it as a staircase: under 600px, one column; from 600px, two; from 1000px, three. <code>min-width: 600px</code> is true when the width is 600px <i>or more</i>, so exactly 600px already gets two columns. The phone layout is the simplest one, so starting there means each step only adds; you never have to undo a desktop layout to squeeze it onto a phone.</p>
+  <pre class="code" data-run data-title="Mobile-first cards - widen or narrow the window and watch the count" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; }
+  .cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 600px)  { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1000px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+  .card { border: 1px solid #94A3B8; border-radius: 10px; padding: 12px; }
+  #info { font-weight: 700; }
+&lt;/style&gt;
+&lt;p id="info"&gt;&lt;/p&gt;
+&lt;div class="cards"&gt;
+  &lt;div class="card"&gt;DBMS Lab 4&lt;/div&gt;
+  &lt;div class="card"&gt;Web Project&lt;/div&gt;
+  &lt;div class="card"&gt;OS Quiz 2&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  const grid = document.querySelector(".cards");
+  function report() {
+    // the browser tells us the column widths it chose, e.g. "300px 300px"
+    const columns = getComputedStyle(grid).gridTemplateColumns.split(" ").length;
+    const text = `Frame width: ${window.innerWidth}px - ${columns} column(s)`;
+    document.querySelector("#info").textContent = text;
+    console.log(text);
+  }
+  report();
+  window.addEventListener("resize", report);
+&lt;/script&gt;</pre>
+  <p>The numbers depend on how wide the preview is on your screen. Whatever it prints, check it against the staircase: under 600 means one column, 600 to 999 means two, 1000 or more means three. Resize the browser window and a new line appears each time the frame's width changes.</p>
+  <h3>The accessibility checklist</h3>
+  <p>Accessibility means that keyboard users, <span class="jw" data-def="Software that reads the page aloud for people who cannot see the screen.">screen reader</span> users and people with weak eyesight can use the same app as everyone else. Put this checklist into the plan:</p>
+  <table class="tbl">
+    <thead><tr><th>Check</th><th>What it means in practice</th></tr></thead>
+    <tbody>
+      <tr><td><b>Semantic HTML</b></td><td><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code>, <code>&lt;button&gt;</code> &mdash; not a <code>&lt;div&gt;</code> pretending to be each</td></tr>
+      <tr><td><b>Readable type</b></td><td>Body text 16px or larger, line height about 1.5</td></tr>
+      <tr><td><b>Colour contrast</b></td><td>At least 4.5 : 1 between body text and its background</td></tr>
+      <tr><td><b>Keyboard</b></td><td>The Tab key reaches every link, button and input, in a sensible order</td></tr>
+      <tr><td><b>Visible focus</b></td><td>A clear <code>:focus-visible</code> outline shows where the keyboard is</td></tr>
+      <tr><td><b>Flexible layout</b></td><td><code>%</code>, <code>fr</code>, <code>rem</code> &mdash; no fixed pixel widths on containers</td></tr>
+      <tr><td><b>Labels</b></td><td>Every input has a <code>&lt;label for="..."&gt;</code></td></tr>
+      <tr><td><b>Viewport meta tag</b></td><td><code>&lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;</code> in every page's <code>&lt;head&gt;</code></td></tr>
+    </tbody>
+  </table>
+  <p>Why decide this up front? Because a real <code>&lt;button&gt;</code> is reachable with Tab, works with Enter and Space, and is announced as "button" by a screen reader &mdash; all for free. A clickable <code>&lt;div&gt;</code> chosen on day one has none of that, and adding it later means a <code>tabindex</code>, a <code>role</code> and key handlers on every one of them.</p>
+  <div class="plain"><p>Build the phone version first and widen it. Use the HTML element that already means what you want. Then the app works for small screens, keyboards and screen readers without a rescue job at the end.</p></div>
+</section>
+
+<section id="s5">
+  <h2>72.5 Design every state, not just the happy one</h2>
+  <p>Designers often draw one picture of a screen: the one where the data has arrived and everything is fine. Users meet many more. Take a screen that loads a directory of users from an API. Here are the states it can be in:</p>
+  <table class="tbl">
+    <thead><tr><th>State</th><th>What the user sees</th><th>What they can do next</th></tr></thead>
+    <tbody>
+      <tr><td><b>Loading</b></td><td>Grey placeholder rows ("skeletons") or "Loading&hellip;" while the request travels</td><td>Wait, knowing something is happening</td></tr>
+      <tr><td><b>Success</b></td><td>The list, plus a summary: "10 users loaded"</td><td>Read, search, open one</td></tr>
+      <tr><td><b>Empty</b></td><td>"No users match 'zzz'. Try a different name."</td><td>Change the search</td></tr>
+      <tr><td><b>Error</b></td><td>"Couldn't load users. Check your connection." and a <b>Retry</b> button</td><td>Retry, instead of reloading the whole page</td></tr>
+      <tr><td><b>Partial</b></td><td>Some data arrived and some did not: "Showing 4 of 5 courses. One could not be loaded."</td><td>Use what is there; retry the missing part</td></tr>
+      <tr><td><b>Disabled</b></td><td>The Save button greyed out, saying "Saving&hellip;"</td><td>Nothing yet &mdash; which prevents a double submission</td></tr>
+      <tr><td><b>Validation</b></td><td>"&#9888; Enter a complete email, e.g. name@college.edu" beside the box</td><td>Fix that one field</td></tr>
+    </tbody>
+  </table>
+  <p>Notice the difference between <b>empty</b> and <b>error</b>. Empty means the request worked and the honest answer is "nothing"; error means the request itself failed. A screen that shows a blank white area for both leaves the user guessing which one happened. For every state ask two questions: <b>what does the user see</b>, and <b>what can they do next</b>? If the answer to the second is "nothing" for anything except a brief loading or saving moment, the design is not finished.</p>
+  <p>This is what <b>user feedback</b> means: every action gets a visible response straight away &mdash; a highlighted button, a spinner, a message &mdash; so the user never wonders whether the click registered. Put status messages in an element with <code>role="status"</code> (Chapter 70) so screen readers announce them too.</p>
+  <p>The example keeps the current state in a field called <code>status</code> and lets <code>render()</code> draw whichever state that is. The data layer is a pretend server, so it runs with no internet.</p>
+  <pre class="code" data-run data-title="One screen, five states - load, go offline, retry, search for zzz" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .bar { display: flex; gap: 8px; flex-wrap: wrap; align-items: center; }
+  .skel { height: 14px; width: 70%; background: #E3E9F0; border-radius: 6px; }
+  .err { color: #B91C1C; }
+  .muted { color: #475569; }
+&lt;/style&gt;
+&lt;div class="bar"&gt;
+  &lt;button id="good"&gt;Load users&lt;/button&gt;
+  &lt;button id="bad"&gt;Load while offline&lt;/button&gt;
+  &lt;label for="q"&gt;Search&lt;/label&gt; &lt;input id="q" type="search"&gt;
+&lt;/div&gt;
+&lt;div id="out" role="status"&gt;&lt;/div&gt;
+&lt;script&gt;
+  // ---- data layer: a pretend server, so this runs with no internet ----
+  const names = ["Leanne Graham", "Ervin Howell", "Clementine Bauch",
+                 "Patricia Lebsack", "Chelsey Dietrich"];
+  const goodUrl = URL.createObjectURL(
+    new Blob([JSON.stringify(names)], { type: "application/json" }));
+  const deadUrl = URL.createObjectURL(new Blob(["gone"]));
+  URL.revokeObjectURL(deadUrl);              // fetching it now fails, like having no Wi-Fi
+  const wait = (ms) =&gt; new Promise((resolve) =&gt; setTimeout(resolve, ms));
+
+  async function fetchUsers(offline) {
+    await wait(800);                         // a real network takes time too
+    const response = await fetch(offline ? deadUrl : goodUrl);
+    if (!response.ok) throw new Error("HTTP " + response.status);
+    return response.json();
+  }
+
+  // ---- state: what is true right now ----
+  const state = { status: "idle", users: [], query: "" };
+
+  // ---- presentation: draw the screen from the state, nothing else ----
+  const out = document.querySelector("#out");
+  const goodBtn = document.querySelector("#good");
+  const badBtn = document.querySelector("#bad");
+
+  function line(text, cls) {
+    const p = document.createElement("p");
+    p.textContent = text;
+    p.className = cls;
+    return p;
+  }
+
+  function render() {
+    const shown = state.users.filter((u) =&gt; u.toLowerCase().includes(state.query));
+    const screen = state.status === "success" &amp;&amp; shown.length === 0 ? "empty" : state.status;
+    goodBtn.disabled = badBtn.disabled = state.status === "loading";   // disabled state
+    out.replaceChildren();
+    if (screen === "idle") {
+      out.append(line("Press a button to load the directory.", "muted"));
+    } else if (screen === "loading") {
+      for (let i = 0; i &lt; 3; i++) out.append(line("", "skel"));
+    } else if (screen === "error") {
+      out.append(line("Couldn't load users. Check your connection.", "err"));
+      const retry = document.createElement("button");
+      retry.textContent = "Retry";
+      retry.addEventListener("click", () =&gt; load(false));
+      out.append(retry);
+    } else if (screen === "empty") {
+      out.append(line(`No users match "${state.query}". Try a different name.`, "muted"));
+    } else {
+      shown.forEach((name) =&gt; out.append(line("● " + name, "")));
+      out.append(line(`${shown.length} of ${state.users.length} users shown`, "muted"));
+    }
+    console.log("render() drew the", screen, "state");
+  }
+
+  // ---- events: change the state, then render ----
+  async function load(offline) {
+    state.status = "loading";
+    render();
+    try {
+      state.users = await fetchUsers(offline);
+      state.status = "success";
+    } catch (err) {
+      console.error("Load failed:", err.message);
+      state.status = "error";
+    }
+    render();
+  }
+  goodBtn.addEventListener("click", () =&gt; load(false));
+  badBtn.addEventListener("click", () =&gt; load(true));
+  document.querySelector("#q").addEventListener("input", (e) =&gt; {
+    state.query = e.target.value.trim().toLowerCase();
+    render();
+  });
+  render();
+&lt;/script&gt;</pre>
+  <p>Run it and the console says <b>render() drew the idle state</b>. Press <b>Load users</b>: <b>loading</b> appears at once, with both buttons disabled so a second click cannot start a second request, then <b>success</b> 0.8 seconds later. Type <code>zzz</code> and every keystroke draws the <b>empty</b> state. Press <b>Load while offline</b> and you get a red <b>Load failed:</b> line (the browser's own wording follows it, such as "Failed to fetch" in Chrome), then the <b>error</b> state with a Retry button.</p>
+  <div class="plain"><p>The code never "shows the spinner" or "hides the error" by hand. It only sets <code>state.status</code> and calls <code>render()</code>, and <code>render()</code> draws whichever state is true. That is how every state gets designed: it has to appear in <code>render()</code>, or it cannot appear at all.</p></div>
+</section>
+
+<section id="s6">
+  <h2>72.6 State: one source of truth</h2>
+  <p><b>State</b> is the data that describes what the screen should show right now: the list of assignments, which ones are submitted, the word in the search box, the chosen filter, whether something is loading. A well-designed app keeps all of it in <b>one object</b>, which is the app's <span class="jw" data-def="The one agreed place where a fact is kept. Every other copy is read from it, so nothing can disagree with it.">single source of truth</span>. The page on screen is only a picture of that object.</p>
+  <div class="callout analogy"><b>Picture this.</b> At a cricket ground the official scorer writes every ball in the scorebook. The big scoreboard is never changed by someone in the crowd guessing the total; whoever works it copies from the book. If the board and the book ever disagree, the book wins and the board is corrected from it. In your app the state object is the scorebook, the screen is the scoreboard, and <code>render()</code> is the person copying from one to the other.</div>
+  <p>Three rules turn that idea into code:</p>
+  <ol>
+    <li><b>Every fact lives in the state.</b> Not in a CSS class you read back, not in the text of a badge, not in a second variable that has to be kept in step with the first.</li>
+    <li><b>Only <code>render()</code> draws.</b> It reads the state and rebuilds the screen from it.</li>
+    <li><b>Every event does two things: update the state, then call <code>render()</code>.</b></li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="A loop: user input, update state, render rebuilds the list, display result, then back to the next user input">
+      <rect x="10" y="40" width="135" height="70" rx="10" class="box blu"/>
+      <text x="77" y="66" class="t c b">1 User input</text>
+      <text x="77" y="88" class="t c s">types &#8220;Lab&#8221; in search</text>
+      <rect x="165" y="40" width="135" height="70" rx="10" class="box saf"/>
+      <text x="232" y="66" class="t c b">2 Update state</text>
+      <text x="232" y="88" class="t c s mono">state.filter="lab"</text>
+      <rect x="320" y="40" width="135" height="70" rx="10" class="box grn"/>
+      <text x="387" y="66" class="t c b">3 render()</text>
+      <text x="387" y="88" class="t c s">rebuilds the list</text>
+      <rect x="475" y="40" width="135" height="70" rx="10" class="box"/>
+      <text x="542" y="66" class="t c b">4 Display</text>
+      <text x="542" y="88" class="t c s">only matching cards</text>
+      <path d="M145 75 L163 75" class="edge" marker-end="url(#arr)"/>
+      <path d="M300 75 L318 75" class="edge" marker-end="url(#arr)"/>
+      <path d="M455 75 L473 75" class="edge" marker-end="url(#arr)"/>
+      <path d="M542 112 L542 156 L77 156 L77 114" class="edge dash" marker-end="url(#arr)"/>
+      <text x="310" y="178" class="t c s">the next event goes round the same loop</text>
+    </svg>
+    <figcaption><b>Figure 72.3</b> Data flows one way: event, then state, then screen. The screen is never edited directly.</figcaption>
+  </figure>
+  <p>Here is the dashboard's version of that loop:</p>
+  <pre class="code">// dashboard.js
+const state = { assignments: [], filter: "" };
+
+function render() {
+  const visible = state.assignments.filter((a) =&gt;
+    a.title.toLowerCase().includes(state.filter));
+  list.replaceChildren();                      // empty the list
+  visible.forEach((a) =&gt; list.append(makeCard(a)));
+}
+
+search.addEventListener("input", () =&gt; {
+  state.filter = search.value.toLowerCase();   // 1. update the state
+  render();                                    // 2. redraw from it
+});</pre>
+  <p>Now predict: somewhere else in the code, a new task arrives and this line runs, with no <code>render()</code> after it. What does the user see?</p>
+  <pre class="code">state.assignments.push(newTask);   // no render() call</pre>
+  <p><b>Nothing changes on screen.</b> The data has the new task, but the page is only rebuilt when <code>render()</code> runs. This is the most common bug in hand-written state code. Try both versions:</p>
+  <pre class="code" data-run data-title="The forgotten render() - compare the two buttons, then search for lab" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .card { border: 1px solid #94A3B8; border-radius: 8px; padding: 6px 12px; margin: 6px 0; }
+&lt;/style&gt;
+&lt;label for="search"&gt;Search&lt;/label&gt; &lt;input id="search" type="search"&gt;
+&lt;button id="bad"&gt;Add task, forget render()&lt;/button&gt;
+&lt;button id="good"&gt;Add task, then render()&lt;/button&gt;
+&lt;div id="list"&gt;&lt;/div&gt;
+&lt;script&gt;
+  const state = {
+    assignments: [{ title: "DBMS Lab 4" }, { title: "Web Lab 6" }, { title: "OS Quiz 2" }],
+    filter: ""
+  };
+  const list = document.querySelector("#list");
+  const search = document.querySelector("#search");
+
+  function makeCard(a) {
+    const div = document.createElement("div");
+    div.className = "card";
+    div.textContent = a.title;
+    return div;
+  }
+  function render() {
+    const visible = state.assignments.filter((a) =&gt;
+      a.title.toLowerCase().includes(state.filter));
+    list.replaceChildren();
+    visible.forEach((a) =&gt; list.append(makeCard(a)));
+  }
+  function report(label) {
+    console.log(label, "- in state:", state.assignments.length,
+                "| on screen:", list.children.length);
+  }
+
+  search.addEventListener("input", () =&gt; {
+    state.filter = search.value.toLowerCase();
+    render();
+    report("Searched");
+  });
+  let n = 1;
+  document.querySelector("#bad").addEventListener("click", () =&gt; {
+    state.assignments.push({ title: "New Lab " + n++ });
+    report("Pushed, no render()");
+  });
+  document.querySelector("#good").addEventListener("click", () =&gt; {
+    state.assignments.push({ title: "New Lab " + n++ });
+    render();
+    report("Pushed, then render()");
+  });
+
+  render();
+  report("Start");
+&lt;/script&gt;</pre>
+  <p>It starts with <b>Start - in state: 3 | on screen: 3</b>. Press the first button and you get <b>Pushed, no render() - in state: 4 | on screen: 3</b>: the data and the screen now disagree. Press the second and both catch up: <b>Pushed, then render() - in state: 5 | on screen: 5</b>, because <code>render()</code> draws everything in the state, including the task the first button added. Type <code>lab</code> in the search and the quiz disappears while every "Lab" card stays.</p>
+  <p>Libraries such as React and Vue are built around exactly this loop; their main job is to call the re-render for you whenever the state changes. In plain JavaScript you call <code>render()</code> yourself, which is why you must never forget it.</p>
+  <details class="qc"><summary>Quick check: the dashboard shows "4 of 6 submitted". Where does the true number of submitted assignments live &mdash; in that text, or somewhere else?</summary><p>In the state. The text is a picture drawn by <code>render()</code>, which counts the assignments whose <code>submitted</code> is <code>true</code>. Nobody reads the number back from the page; if the two disagree, the state is right and the screen is out of date.</p></details>
+</section>
+
+<section id="s7">
+  <h2>72.7 Remembering state with localStorage</h2>
+  <p>Because everything lives in one object, making some of it <span class="jw" data-def="To keep data after the page is closed, so it is still there the next time it opens.">persist</span> across a reload needs just two small functions. <code>save()</code> writes the part worth keeping to <code>localStorage</code> after each change; <code>load()</code> reads it back once, when the page starts.</p>
+  <pre class="code">const KEY = "edutrack-v1";
+
+function save() {
+  localStorage.setItem(KEY, JSON.stringify({ filter: state.filter }));
+}
+
+function load() {
+  try {
+    const saved = JSON.parse(localStorage.getItem(KEY));   // null if nothing saved yet
+    if (saved) state.filter = saved.filter;
+  } catch (err) {
+    console.warn("Saved data was damaged, starting fresh");  // never let bad data crash the app
+  }
+}
+
+// every event now: update the state, save, render
+function setFilter(value) {
+  state.filter = value;
+  save();
+  render();
+}
+
+load();     // once, at start-up
+render();</pre>
+  <p>Two details are worth slowing down for. <code>getItem</code> returns <code>null</code> when nothing has been saved yet, and <code>JSON.parse(null)</code> quietly returns <code>null</code>, so the <code>if (saved)</code> line covers a first visit. And if someone has left a broken string under that key, <code>JSON.parse</code> throws a <code>SyntaxError</code>, and the <code>try...catch</code> (Chapter 70) means the app simply starts with its defaults instead of showing a blank page.</p>
+  <p>Deciding <b>what</b> to save is a design decision, and section 72.1 already gave you the rule:</p>
+  <table class="tbl">
+    <thead><tr><th>Save in localStorage</th><th>Do not save there</th></tr></thead>
+    <tbody>
+      <tr><td>UI preferences: the chosen filter, the open tab, dark mode</td><td>Short-lived flags such as <code>status: "loading"</code> &mdash; after a reload nothing is loading</td></tr>
+      <tr><td>An unsent draft the user would hate to lose</td><td>Data the server owns, such as which assignments are submitted; fetch it fresh</td></tr>
+      <tr><td></td><td>Passwords, tokens, or anything the app must be able to trust</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p>Every change follows the same three steps: <b>change the state, save it, draw it</b>. Only the pieces that are the user's own choices get saved; facts come back from the server each time.</p></div>
+  <div class="callout warn"><b>About the Run button in this book.</b> The preview frames have no web address of their own, so their <code>localStorage</code> is a temporary stand-in: it works while you click, but <b>Run again starts it empty</b>. On a real site, such as your own page opened with VS Code Live Server, the saved data survives reloads and browser restarts.</div>
+</section>
+
+<section id="s8">
+  <h2>72.8 The design exercise: a student dashboard, from wireframe to code</h2>
+  <p>This is the hands-on exercise from the lecture. It takes about 15 minutes, on paper or in a design tool such as Figma.</p>
+  <ol>
+    <li><b>Sketch (5 minutes).</b> Draw a low-fidelity wireframe of a student dashboard, phone first and then desktop.</li>
+    <li><b>Swap and score (10 minutes).</b> Exchange sketches with a neighbour and score each other 1&ndash;3 on each point of the checklist below.</li>
+  </ol>
+  <table class="tbl">
+    <thead><tr><th>The sketch must include</th><th>Peer evaluation (score 1&ndash;3 each)</th></tr></thead>
+    <tbody>
+      <tr><td>Header and navigation (a &#9776; menu on mobile)</td><td>The most urgent item is obvious</td></tr>
+      <tr><td>Student information: photo, name, roll number, semester</td><td>Clear visual hierarchy</td></tr>
+      <tr><td>Assignment cards: title, due date, status badge</td><td>Works in one column on mobile</td></tr>
+      <tr><td>A progress indicator: "7 of 10 assignments"</td><td>Every state considered (empty, error)</td></tr>
+      <tr><td>Search or filter: All &middot; Due soon &middot; Submitted</td><td>Labels and readable text sizes</td></tr>
+      <tr><td>A responsive layout (mobile + desktop)</td><td>Navigation is consistent</td></tr>
+    </tbody>
+  </table>
+  <p>There is no single correct answer. A good design makes the most urgent assignment obvious within two seconds of opening the page.</p>
+  <h3>From the sketch to a state object</h3>
+  <p>Now read your wireframe as a programmer and ask of every box: <b>what in here can change?</b> The answers are the state.</p>
+  <pre class="code">const state = {
+  student: { name: "Ananya", roll: "12215678", semester: 3 },   // student info box
+  assignments: [                                               // the cards
+    { id: 1, title: "DBMS Lab 4", course: "CSE305", dueInDays: 1, submitted: false }
+    // ...one object per card
+  ],
+  filter: "all",    // "all" | "due" | "submitted"   - the filter buttons
+  search: ""        // the search box
+};</pre>
+  <p>Look at what is <b>not</b> in it. The progress figure "3 of 6" is not stored: <code>render()</code> counts it from <code>assignments</code> every time. The most urgent assignment is not stored either: it is the unsubmitted one with the smallest <code>dueInDays</code>. Storing either would create a second copy of a fact that could drift out of step with the first, which is exactly what one source of truth forbids.</p>
+  <h3>From the state to functions</h3>
+  <table class="tbl">
+    <thead><tr><th>Function</th><th>Layer</th><th>Its one job</th></tr></thead>
+    <tbody>
+      <tr><td><code>render()</code></td><td>Presentation</td><td>Draw the greeting, progress and cards from the state</td></tr>
+      <tr><td><code>visibleAssignments()</code></td><td>State</td><td>Apply the filter and search, most urgent first</td></tr>
+      <tr><td><code>mostUrgent()</code></td><td>State</td><td>Find the unsubmitted assignment due soonest</td></tr>
+      <tr><td><code>setFilter(value)</code>, <code>toggleSubmitted(id)</code></td><td>Interaction</td><td>Change the state, then render</td></tr>
+      <tr><td><code>save()</code>, <code>load()</code></td><td>Data</td><td>Keep the user's filter in <code>localStorage</code></td></tr>
+    </tbody>
+  </table>
+  <p>Here is all of it working. In a real app the assignments would come from <code>fetchAssignments()</code> and "Mark submitted" would upload a file; here they are written into the page so the example runs anywhere.</p>
+  <pre class="code" data-run data-title="The student dashboard - filter, search, mark submitted, then simulate a reload" data-h="420" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px;
+         font-size: 16px; line-height: 1.5; color: #1E293B; }
+  header { display: flex; justify-content: space-between; flex-wrap: wrap; gap: 8px; }
+  nav a { margin-left: 12px; color: #1D4ED8; }
+  .filters button { font: inherit; padding: 2px 12px; border: 1px solid #64748B;
+                    border-radius: 999px; background: #fff; }
+  .filters button[aria-pressed="true"] { background: #0B2545; color: #fff; }
+  .cards { display: grid; gap: 12px; grid-template-columns: 1fr; }
+  @media (min-width: 600px)  { .cards { grid-template-columns: 1fr 1fr; } }
+  @media (min-width: 1000px) { .cards { grid-template-columns: repeat(3, 1fr); } }
+  .card { border: 1px solid #94A3B8; border-radius: 10px; padding: 10px 12px; }
+  .card.urgent { border: 3px solid #C2410C; }
+  .card h3 { margin: 0; font-size: 17px; }
+  .card p { margin: 2px 0 8px; }
+  .badge { color: #C2410C; font-weight: 700; }
+  button:focus-visible, input:focus-visible, a:focus-visible {
+    outline: 3px solid #FF9933; outline-offset: 2px; }
+&lt;/style&gt;
+&lt;header&gt;
+  &lt;b&gt;EduTrack&lt;/b&gt;
+  &lt;nav&gt;&lt;a href="#"&gt;Home&lt;/a&gt;&lt;a href="#"&gt;Courses&lt;/a&gt;&lt;a href="#"&gt;Profile&lt;/a&gt;&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;p id="hello"&gt;&lt;/p&gt;
+  &lt;p&gt;&lt;label for="bar"&gt;Progress&lt;/label&gt; &lt;progress id="bar"&gt;&lt;/progress&gt; &lt;span id="count"&gt;&lt;/span&gt;&lt;/p&gt;
+  &lt;p class="filters"&gt;
+    &lt;label for="search"&gt;Search&lt;/label&gt; &lt;input id="search" type="search"&gt;
+    &lt;button data-filter="all"&gt;All&lt;/button&gt;
+    &lt;button data-filter="due"&gt;Due soon&lt;/button&gt;
+    &lt;button data-filter="submitted"&gt;Submitted&lt;/button&gt;
+  &lt;/p&gt;
+  &lt;div id="cards" class="cards"&gt;&lt;/div&gt;
+  &lt;p&gt;&lt;button id="reload"&gt;Simulate a page reload&lt;/button&gt;&lt;/p&gt;
+&lt;/main&gt;
+&lt;script&gt;
+  const KEY = "edutrack-v1";
+  const $ = (sel) =&gt; document.querySelector(sel);
+
+  // ---- state: in a real app, assignments come from fetchAssignments() ----
+  function freshState() {
+    return {
+      student: { name: "Ananya", roll: "12215678", semester: 3 },
+      assignments: [
+        { id: 1, title: "DBMS Lab 4",  course: "CSE305", dueInDays: 1, submitted: false },
+        { id: 2, title: "Web Project", course: "CSE326", dueInDays: 3, submitted: false },
+        { id: 3, title: "OS Quiz 2",   course: "CSE316", dueInDays: 6, submitted: false },
+        { id: 4, title: "Web Lab 5",   course: "CSE326", dueInDays: 0, submitted: true },
+        { id: 5, title: "Maths Sheet", course: "MTH166", dueInDays: 2, submitted: true },
+        { id: 6, title: "DBMS Lab 3",  course: "CSE305", dueInDays: 0, submitted: true }
+      ],
+      filter: "all",
+      search: ""
+    };
+  }
+  let state = freshState();
+
+  // ---- data: keep only the user's own choice ----
+  function save() {
+    localStorage.setItem(KEY, JSON.stringify({ filter: state.filter }));
+  }
+  function load() {
+    try {
+      const saved = JSON.parse(localStorage.getItem(KEY));
+      if (saved) state.filter = saved.filter;
+    } catch (err) {
+      console.warn("Saved data was damaged, starting fresh");
+    }
+  }
+
+  // ---- values worked out from the state, never stored ----
+  function matchesFilter(a) {
+    if (state.filter === "due") return !a.submitted &amp;&amp; a.dueInDays &lt;= 3;
+    if (state.filter === "submitted") return a.submitted;
+    return true;                                     // "all"
+  }
+  function visibleAssignments() {
+    const words = state.search.trim().toLowerCase();
+    return state.assignments
+      .filter(matchesFilter)
+      .filter((a) =&gt; a.title.toLowerCase().includes(words))
+      .sort((a, b) =&gt; a.submitted - b.submitted || a.dueInDays - b.dueInDays);
+  }
+  function mostUrgent() {
+    const open = state.assignments.filter((a) =&gt; !a.submitted);
+    open.sort((a, b) =&gt; a.dueInDays - b.dueInDays);
+    return open[0];                                  // undefined once all are submitted
+  }
+  function dueText(days) {
+    if (days === 0) return "Due today";
+    if (days === 1) return "Due tomorrow";
+    return `Due in ${days} days`;
+  }
+
+  // ---- presentation ----
+  function renderCards() {
+    const box = $("#cards");
+    const list = visibleAssignments();
+    const urgent = mostUrgent();
+    box.replaceChildren();
+    if (list.length === 0) {                         // the empty state
+      const p = document.createElement("p");
+      p.textContent = "Nothing here. Try another filter or search.";
+      box.append(p);
+      return;
+    }
+    list.forEach((a) =&gt; {
+      const card = document.createElement("article");
+      card.className = a === urgent ? "card urgent" : "card";
+      const h = document.createElement("h3");
+      h.textContent = a.title;
+      const info = document.createElement("p");
+      info.textContent = a.course + " · " + (a.submitted ? "Submitted ✓" : dueText(a.dueInDays));
+      const btn = document.createElement("button");
+      btn.textContent = a.submitted ? "Undo" : "Mark submitted";
+      btn.addEventListener("click", () =&gt; toggleSubmitted(a.id));
+      if (a === urgent) {
+        const badge = document.createElement("p");
+        badge.className = "badge";
+        badge.textContent = "Most urgent";
+        card.append(badge);
+      }
+      card.append(h, info, btn);
+      box.append(card);
+    });
+  }
+  function render() {
+    const s = state.student;
+    const done = state.assignments.filter((a) =&gt; a.submitted).length;
+    const total = state.assignments.length;
+    $("#hello").textContent = `Hi, ${s.name} (roll ${s.roll}, semester ${s.semester})`;
+    $("#bar").max = total;
+    $("#bar").value = done;
+    $("#count").textContent = `${done} of ${total} submitted`;
+    if ($("#search").value !== state.search) $("#search").value = state.search;
+    document.querySelectorAll("[data-filter]").forEach((b) =&gt; {
+      b.setAttribute("aria-pressed", b.dataset.filter === state.filter);
+    });
+    renderCards();
+    console.log(`render(): filter=${state.filter}, ${done} of ${total} submitted`);
+  }
+
+  // ---- interaction: update the state, save if needed, render ----
+  function setFilter(value) {
+    state.filter = value;
+    save();
+    render();
+  }
+  function toggleSubmitted(id) {
+    const a = state.assignments.find((x) =&gt; x.id === id);
+    a.submitted = !a.submitted;                      // a real app would tell the server
+    render();
+  }
+  document.querySelectorAll("[data-filter]").forEach((b) =&gt; {
+    b.addEventListener("click", () =&gt; setFilter(b.dataset.filter));
+  });
+  $("#search").addEventListener("input", (e) =&gt; {
+    state.search = e.target.value;
+    render();
+  });
+  $("#reload").addEventListener("click", () =&gt; {
+    console.log("--- pretend reload: state rebuilt from scratch ---");
+    state = freshState();
+    load();
+    render();
+  });
+
+  load();
+  render();
+&lt;/script&gt;</pre>
+  <p>Trace it once. The console starts with <b>render(): filter=all, 3 of 6 submitted</b>, and DBMS Lab 4 carries the "Most urgent" badge because it is the open assignment due soonest. Press <b>Due soon</b>: <b>render(): filter=due, 3 of 6 submitted</b>, and only DBMS Lab 4 and the Web Project remain. Mark DBMS Lab 4 submitted: <b>render(): filter=due, 4 of 6 submitted</b>; it leaves the list, the progress bar grows, and the badge moves to the Web Project. Nobody wrote code to move the badge &mdash; <code>render()</code> simply worked it out again.</p>
+  <p>Now press <b>Simulate a page reload</b>. After <b>--- pretend reload: state rebuilt from scratch ---</b> comes <b>render(): filter=due, 3 of 6 submitted</b>. The filter survived because it was saved; the tick did not, because submissions belong to the server (section 72.1), and in the real app the fresh data from the server would already include it. That is the whole chapter in one button: the user's choices in <code>localStorage</code>, the facts from the server, and one <code>render()</code> drawing the result.</p>
+</section>
+
+<section id="mistakes">
+  <h2>72.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "My JavaScript checks it, so it is safe."</b><br>Anyone can read, edit or skip your JavaScript, or send a request to the server without your page at all.</div>
+    <div class="r"><b>&#10003; "The browser checks for convenience; the server checks for security."</b><br>Validate in both places; trust only the server.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "When I change the data, the page updates itself."</b><br>In plain JavaScript the page changes only when your code changes it. A <code>push</code> with no <code>render()</code> leaves the screen out of date.</div>
+    <div class="r"><b>&#10003; "Update the state, then call render() &mdash; every time."</b><br>Libraries such as React automate that second step; the idea is the same.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I will design the screen with the data on it. The other states can wait."</b><br>Users meet loading, empty and error screens every day, often before they ever see the success screen.</div>
+    <div class="r"><b>&#10003; "For each state: what does the user see, and what can they do next?"</b><br>If a state is not in <code>render()</code>, it cannot appear at all.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Mobile-first means designing only for phones."</b><br>It is about the order you write the CSS in, not about which devices you support.</div>
+    <div class="r"><b>&#10003; "The phone layout is the default; min-width queries add to it for wider screens."</b><br>Every screen size is designed; the simplest one comes first.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary><span>Which of these jobs must be done on the server rather than in the browser?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Hiding a panel when a button is clicked</li><li>B. Warning instantly that an email address has no @</li><li>C. Deciding whether a student is allowed to submit after the deadline</li><li>D. Remembering that the user chose dark mode</li></ul>
+    <p><b>Answer: C.</b> It is a permission decision, and anything decided in the browser can be changed by the user. The instant email warning (B) is fine in the browser as a convenience, but the server must check the email again before trusting it.</p></div></details>
+  <details class="q"><summary><span>In the four-layer dashboard, which layer contains <code>fetchAssignments()</code>?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Data access and API communication</li><li>B. UI interaction and state</li><li>C. Presentation</li><li>D. Backend services</li></ul>
+    <p><b>Answer: A.</b> The data layer talks to the API, returns JSON and handles loading and errors. It is not the backend (D): the backend is the server that <i>answers</i> the request, which on GitHub Pages is not yours at all.</p></div></details>
+  <details class="q"><summary><span>What is a low-fidelity wireframe?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The finished design, with the real colours and fonts</li><li>B. A quick sketch of layout and hierarchy, with no colours or real images</li><li>C. The HTML skeleton of the page, without CSS</li><li>D. A diagram of the server's database tables</li></ul>
+    <p><b>Answer: B.</b> It is drawn before any code, to agree on layout, navigation, hierarchy and the user journey while changes are still cheap. HTML without CSS (C) is already code.</p></div></details>
+  <details class="q"><summary><span>With the mobile-first CSS of section 72.4 (one column; two from <code>min-width: 600px</code>; three from <code>min-width: 1000px</code>), how many columns are shown at a width of 400px, 800px and exactly 1000px?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>1, 2 and 3.</b> At 400px neither query matches, so the default single column applies. At 800px only the 600px query matches. At exactly 1000px both match, because <code>min-width</code> includes the value itself, and the later rule wins: three columns.</p></div></details>
+  <details class="q"><summary><span>A user searches the directory for "zzz". The request worked, but no names match. Which state should the screen show?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Error</li><li>B. Loading</li><li>C. Disabled</li><li>D. Empty</li></ul>
+    <p><b>Answer: D.</b> Nothing failed; the honest answer is simply "no matches", with a next step such as "Try a different name". Showing the error state (A) would wrongly suggest something broke.</p></div></details>
+  <details class="q"><summary><span>Why is a Save button disabled and relabelled "Saving&hellip;" while its request is in flight?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. To prevent a second click sending the same data twice, and to show that the click registered</li><li>B. Because a browser cannot send two requests at once</li><li>C. To stop the server from validating the data</li><li>D. Because the button cannot keep its focus outline while saving</li></ul>
+    <p><b>Answer: A.</b> It is user feedback and protection against double submission. Browsers can send several requests at once (B is false), which is exactly why the second click must be blocked.</p></div></details>
+  <details class="q"><summary><span>The dashboard's search handler is shown in section 72.6. Elsewhere, <code>state.assignments.push(newTask);</code> runs with no <code>render()</code> after it. What does the user see?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>No change on screen.</b> The state now holds the new task, but the page is rebuilt only when <code>render()</code> runs. The task appears the next time something calls <code>render()</code> &mdash; for example the user typing in the search box. The fix is to call <code>render()</code> after every state change.</p></div></details>
+  <details class="q"><summary><span>What does this code print?</span><span class="lvl">L3</span></summary><div class="a">
+    <pre class="code">const state = { done: 1, total: 4 };
+function render() {
+  console.log(`${state.done} of ${state.total} submitted`);
+}
+render();
+state.done = state.done + 2;
+state.total++;
+render();</pre>
+    <p><b><code>1 of 4 submitted</code>, then <code>3 of 5 submitted</code>.</b> The first <code>render()</code> runs before any change. Then <code>done</code> becomes 3 and <code>total</code> becomes 5, and the second <code>render()</code> draws the new state. The screen (here, the console) shows only what <code>render()</code> drew.</p></div></details>
+  <details class="q"><summary><span>What does "single source of truth" mean in a client-side app?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. All the code is kept in a single file</li><li>B. Every fact is stored once, in the state object, and the screen is drawn from it</li><li>C. Only one user may use the app at a time</li><li>D. The DOM is the master copy and the state is read back from it</li></ul>
+    <p><b>Answer: B.</b> One place holds each fact; everything else, including the screen, is derived from it. D is exactly backwards: reading facts back out of the page is what this rule exists to prevent.</p></div></details>
+  <details class="q"><summary><span>On a first visit, nothing has been saved yet. What does <code>JSON.parse(localStorage.getItem("edutrack-v1"))</code> return?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>undefined</code></li><li>B. An empty object <code>{}</code></li><li>C. <code>null</code></li><li>D. It throws a SyntaxError</li></ul>
+    <p><b>Answer: C.</b> <code>getItem</code> returns <code>null</code> for a missing key, and <code>JSON.parse(null)</code> turns it into the text <code>"null"</code>, which parses to <code>null</code>. That is why <code>load()</code> checks <code>if (saved)</code>. A SyntaxError (D) happens only when a string that is not valid JSON was saved.</p></div></details>
+  <details class="q"><summary><span>The accessibility checklist sets a minimum contrast ratio between body text and its background. What is it?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 2 : 1</li><li>B. 3 : 1</li><li>C. 3.5 : 1</li><li>D. 4.5 : 1</li></ul>
+    <p><b>Answer: D.</b> 4.5 : 1 is the WCAG level AA minimum for normal-sized text. For text, the lower 3 : 1 (B) is allowed only when it is large, such as big headings.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>The browser presents, responds, validates early and manages UI state. Anything that must be trusted or shared &mdash; permissions, final validation, payments, secrets &mdash; stays on the server.</li>
+    <li>Four layers: presentation (HTML + CSS), UI interaction and state (JavaScript), data access (the API calls), backend. Each talks only to its neighbour.</li>
+    <li>Plan first: the user's goal, the journey that reaches it, and a low-fidelity wireframe that settles layout, navigation and hierarchy.</li>
+    <li>Mobile-first CSS: one column by default, <code>min-width</code> queries add columns. Decide semantic HTML, labels, contrast, keyboard access and visible focus at the start.</li>
+    <li>Design every state &mdash; loading, success, empty, error, partial, disabled, validation &mdash; and for each, what the user sees and can do next.</li>
+    <li>One state object is the single source of truth. Every event: update the state, then call <code>render()</code>. Forget <code>render()</code> and the screen goes stale.</li>
+    <li>Persist only the user's own choices with <code>save()</code> after each change and <code>load()</code> at start-up, wrapped in <code>try...catch</code>.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>const state = { assignments: [], filter: "" };</code></td><td>Every changing fact in one object</td></tr>
+      <tr><td><code>state.filter = value; render();</code></td><td>The event pattern: update the state, then redraw</td></tr>
+      <tr><td><code>list.replaceChildren();</code></td><td>Empty an element before <code>render()</code> rebuilds it</td></tr>
+      <tr><td><code>btn.disabled = state.status === "loading";</code></td><td>A disabled state drawn from the state</td></tr>
+      <tr><td><code>localStorage.setItem(KEY, JSON.stringify({ filter: state.filter }));</code></td><td><code>save()</code>: keep the user's choice</td></tr>
+      <tr><td><code>JSON.parse(localStorage.getItem(KEY))</code></td><td><code>load()</code>: <code>null</code> on a first visit</td></tr>
+      <tr><td><code>@media (min-width: 600px) { ... }</code></td><td>Mobile-first: add columns from 600px up</td></tr>
+      <tr><td><code>&lt;div role="status"&gt;</code></td><td>Status messages that screen readers announce</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://web.dev/articles/responsive-web-design-basics" target="_blank" rel="noopener noreferrer">web.dev &mdash; Responsive web design basics<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The viewport tag, breakpoints and flexible layouts, with pictures of each step.</span></li>
+    <li><a href="https://web.dev/learn/accessibility" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn Accessibility<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A short course on semantic HTML, keyboard focus, colour contrast and screen readers.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility" target="_blank" rel="noopener noreferrer">MDN &mdash; Accessibility<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">MDN's starting point for accessible pages, with guides for each checklist item.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/localStorage" target="_blank" rel="noopener noreferrer">MDN &mdash; Window.localStorage<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact behaviour of setItem and getItem, including the null for a missing key.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

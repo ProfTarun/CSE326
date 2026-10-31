@@ -1,0 +1,1032 @@
+<article class="chapter" data-ch="67">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 67 &middot; Drag and Drop API</p>
+  <h1>Drag and Drop API</h1>
+  <p class="lead">Trello boards, &ldquo;drop your file here&rdquo; boxes, playlists you can re-order and matching games all let you pick something up with the mouse and put it down somewhere else. The browser has this built in. Seven events, one small bag of data and one line that says &ldquo;yes, you may drop here&rdquo; are all it takes. This chapter builds each piece in order, then closes Unit 5 by putting all four browser APIs side by side.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>getElementById</code>, <code>querySelectorAll</code> with <code>forEach</code>, <code>classList.add/remove</code> and <code>appendChild</code> find and change elements (<a href="book.html?ch=56">Chapter 56</a>).</li>
+      <li><code>addEventListener</code>, the event object, <code>event.preventDefault()</code>, and <code>event.target</code> versus <code>event.currentTarget</code> (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li>Every action must also work from the keyboard; <code>element.focus()</code> and <code>aria-live</code> keep keyboard and screen-reader users informed (<a href="book.html?ch=59">Chapter 59</a>).</li>
+      <li>Web Storage, Fetch and Geolocation were Chapters 64&ndash;66; section 67.9 puts them next to drag and drop (<a href="book.html?ch=64">Chapter 64</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Make any element draggable, and say which elements are draggable already.</li>
+      <li>Name the seven drag events, say which fire on the dragged item and which on the drop zone, and put them in order.</li>
+      <li>Explain why <code>dragover</code> must call <code>preventDefault()</code>, and predict what happens when it does not.</li>
+      <li>Carry an id from <code>dragstart</code> to <code>drop</code> with <code>dataTransfer.setData()</code> and <code>getData()</code>, and move the element with <code>appendChild()</code>.</li>
+      <li>Build a three-column task board with highlight feedback, and check whether a drop should be allowed.</li>
+      <li>Give every drag action a keyboard and touch alternative.</li>
+      <li>Compare Web Storage, Fetch, Geolocation and Drag and Drop: purpose, key methods, asynchronous or not, permission or not.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>67.1 Grab it, move it, drop it</h2>
+  <p>You have used drag and drop all your life: a file into the Recycle Bin, a photo into a WhatsApp Web chat, a card across a Trello board. On a web page the gesture is handled by the <b>HTML Drag and Drop <span class="jw" data-def="Application Programming Interface: a set of ready-made commands that a system offers to your code. Here, the browser offers the commands for dragging.">API</span></b>: attributes, events and one helper object that every browser provides ready-made, so no library is needed. It lets a user <b>pick up an element with the mouse, carry some data with it, and drop it onto a place that accepts it</b>: task boards, &ldquo;drag your assignment PDF here&rdquo; boxes, re-orderable playlists and learning games.</p>
+
+  <h3>Three roles in every drag</h3>
+  <ul>
+    <li><b>The source element</b> &mdash; the thing being dragged. It must be draggable.</li>
+    <li><b>The dragged data</b> &mdash; a short piece of text that travels with the drag inside <code>event.dataTransfer</code>. Usually it is the element's <code>id</code>.</li>
+    <li><b>The drop target</b> &mdash; an element that agrees to accept the drop. Until it agrees, nothing can land on it.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Three roles in a drag: the source element, the dataTransfer bag carrying an id, and the drop target that accepts it">
+      <rect x="20" y="40" width="150" height="100" rx="12" class="box saf"/>
+      <text x="95" y="66" class="t c b">SOURCE</text>
+      <text x="95" y="88" class="t c s">the element you drag</text>
+      <text x="95" y="112" class="t c s mono">draggable="true"</text>
+      <rect x="235" y="40" width="150" height="100" rx="12" class="box blu"/>
+      <text x="310" y="66" class="t c b">dataTransfer</text>
+      <text x="310" y="88" class="t c s">the bag: a short string</text>
+      <text x="310" y="112" class="t c s mono">"t2"</text>
+      <rect x="450" y="40" width="150" height="100" rx="12" class="box grn"/>
+      <text x="525" y="66" class="t c b">DROP TARGET</text>
+      <text x="525" y="88" class="t c s">the zone that accepts</text>
+      <text x="525" y="112" class="t c s mono">preventDefault()</text>
+      <text x="525" y="128" class="t c s">in dragover</text>
+      <path d="M172 90 L231 90" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M387 90 L446 90" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="190" y="166" class="t c s">1. dragstart: setData() puts the id in</text>
+      <text x="430" y="166" class="t c s">2. drop: getData() takes it out</text>
+      <text x="310" y="200" class="t c b" style="font-size:12px">3. appendChild() moves the REAL element into the target</text>
+    </svg>
+    <figcaption><b>Figure 67.1</b> Only a short string travels with the drag. The drop target reads it, finds the real element by its id and moves that element in.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> A railway parcel office. You never carry the heavy trunk from counter to counter; you carry a small slip with its number on it (<code>setData</code>). Every counter is closed unless the clerk holds up an &ldquo;OPEN&rdquo; board, and keeps holding it up for as long as you stand there (<code>dragover</code>, cancelled every time). You hand your slip to an open counter (<code>drop</code>); the clerk reads the number (<code>getData</code>) and has the real trunk wheeled onto their shelf (<code>appendChild</code>). Finally you tidy up your own things (<code>dragend</code>), whether or not any counter took your slip.</div>
+
+  <h3>draggable="true"</h3>
+  <p>Most elements cannot be picked up. Press on a paragraph and drag, and you select text instead. To make an element draggable, give it one attribute:</p>
+  <pre class="code">&lt;!-- any element can be made draggable --&gt;
+&lt;div id="box" draggable="true"&gt;Drag me&lt;/div&gt;
+
+&lt;!-- links and images drag by default; you can switch that off --&gt;
+&lt;img src="logo.png" alt="Logo" draggable="false"&gt;</pre>
+  <p>Three kinds of thing are draggable without being asked: <b>images</b> (<code>&lt;img&gt;</code>), <b>links</b> (<code>&lt;a&gt;</code> with an <code>href</code>) and <b>text you have selected</b>. Everything else needs <code>draggable="true"</code>. From JavaScript the same switch is a property: <code>box.draggable = true;</code></p>
+  <div class="callout warn"><b>Write the word true.</b> <code>draggable</code> is not an on/off attribute like <code>required</code> or <code>checked</code>. It takes the words <code>"true"</code> or <code>"false"</code>. A bare <code>&lt;div draggable&gt;</code> is read as &ldquo;auto&rdquo;, the browser's own default, and for a <code>div</code> that means <i>not</i> draggable. Always write <code>draggable="true"</code> in full.</div>
+</section>
+
+  <details class="qc">
+    <summary>Quick check: does an &lt;img&gt; need draggable="true" before you can drag it?</summary>
+    <p>No. Images, links and selected text are draggable by default. You only write <code>draggable="false"</code> if you want to <i>stop</i> an image or link being dragged.</p>
+  </details>
+
+<section id="s2">
+  <h2>67.2 Seven events on two sides</h2>
+  <p>Making something draggable only lets the user pick it up. Everything useful happens in <b>events</b>, and the browser fires seven of them during one drag. The way to remember them is to split them by <i>where</i> they fire: <b>three on the item being dragged</b> and <b>four on the drop zone</b>.</p>
+  <table class="tbl">
+    <thead><tr><th>Event</th><th>Fires on</th><th>When it happens</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>dragstart</code></td><td>Dragged element</td><td>The user starts dragging</td><td><code>setData()</code>, add a &ldquo;dragging&rdquo; style</td></tr>
+      <tr><td><code>drag</code></td><td>Dragged element</td><td>Again and again while dragging</td><td>Rarely needed</td></tr>
+      <tr><td><code>dragenter</code></td><td>Drop target</td><td>The dragged item enters the target</td><td>Highlight the drop zone</td></tr>
+      <tr><td><code>dragover</code></td><td>Drop target</td><td>Again and again while over the target</td><td><code>preventDefault()</code> to <b>allow</b> dropping</td></tr>
+      <tr><td><code>dragleave</code></td><td>Drop target</td><td>The dragged item leaves the target</td><td>Remove the highlight</td></tr>
+      <tr><td><code>drop</code></td><td>Drop target</td><td>The item is released on a target that accepts it</td><td><code>getData()</code>, move the element</td></tr>
+      <tr><td><code>dragend</code></td><td>Dragged element</td><td>The drag finishes (dropped <i>or</i> cancelled)</td><td>Clean up styles</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Three things happen to the thing you carry: you <b>pick it up</b> (<code>dragstart</code>), you <b>are carrying it</b> (<code>drag</code>), you <b>put it down or give up</b> (<code>dragend</code>).</p>
+    <p>Four things happen to the place: something <b>arrives</b> (<code>dragenter</code>), it <b>hovers</b> (<code>dragover</code>), it <b>goes away</b> (<code>dragleave</code>), or it <b>lands</b> (<code>drop</code>).</p>
+  </div>
+  <figure class="fig">
+    <svg viewBox="0 0 720 260" role="img" aria-label="Timeline: on the dragged item, dragstart, many drag events, then dragend; on the drop zone, dragenter, many dragover events, then drop or dragleave">
+      <rect x="16" y="45" width="104" height="50" rx="10" class="box saf"/>
+      <text x="68" y="66" class="t c b">DRAGGED</text>
+      <text x="68" y="83" class="t c b">ITEM</text>
+      <rect x="16" y="145" width="104" height="50" rx="10" class="box grn"/>
+      <text x="68" y="166" class="t c b">DROP</text>
+      <text x="68" y="183" class="t c b">ZONE</text>
+      <path d="M126 70 L705 70" class="edge dash"/>
+      <path d="M126 170 L705 170" class="edge dash"/>
+      <rect x="135" y="55" width="92" height="30" rx="8" class="box saf"/>
+      <text x="181" y="75" class="t c b mono" style="font-size:12px">dragstart</text>
+      <text x="400" y="48" class="t c s">drag, drag, drag ... many times a second</text>
+      <circle cx="250" cy="70" r="4" class="box gry"/><circle cx="280" cy="70" r="4" class="box gry"/>
+      <circle cx="310" cy="70" r="4" class="box gry"/><circle cx="340" cy="70" r="4" class="box gry"/>
+      <circle cx="370" cy="70" r="4" class="box gry"/><circle cx="400" cy="70" r="4" class="box gry"/>
+      <circle cx="430" cy="70" r="4" class="box gry"/><circle cx="460" cy="70" r="4" class="box gry"/>
+      <circle cx="490" cy="70" r="4" class="box gry"/><circle cx="520" cy="70" r="4" class="box gry"/>
+      <circle cx="550" cy="70" r="4" class="box gry"/>
+      <rect x="605" y="55" width="92" height="30" rx="8" class="box saf"/>
+      <text x="651" y="75" class="t c b mono" style="font-size:12px">dragend</text>
+      <text x="651" y="46" class="t c s">always last: tidy up</text>
+      <rect x="240" y="155" width="100" height="30" rx="8" class="box grn"/>
+      <text x="290" y="175" class="t c b mono" style="font-size:12px">dragenter</text>
+      <text x="290" y="204" class="t c s">add highlight</text>
+      <text x="420" y="148" class="t c s">dragover, again and again</text>
+      <circle cx="360" cy="170" r="4" class="box grn"/><circle cx="384" cy="170" r="4" class="box grn"/>
+      <circle cx="408" cy="170" r="4" class="box grn"/><circle cx="432" cy="170" r="4" class="box grn"/>
+      <circle cx="456" cy="170" r="4" class="box grn"/><circle cx="480" cy="170" r="4" class="box grn"/>
+      <text x="420" y="204" class="t c s mono">preventDefault()</text>
+      <rect x="505" y="155" width="80" height="30" rx="8" class="box grn"/>
+      <text x="545" y="175" class="t c b mono" style="font-size:12px">drop</text>
+      <text x="545" y="204" class="t c s">getData(), move it</text>
+      <text x="545" y="219" class="t c s">(or dragleave, if refused)</text>
+      <path d="M586 162 C625 150 650 125 651 90" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M135 236 L700 236" class="edge" marker-end="url(#arr)"/>
+      <text x="135" y="252" class="t s">time &#8594;</text>
+    </svg>
+    <figcaption><b>Figure 67.2</b> Three events belong to the dragged item and four to the drop zone. <code>drag</code> and <code>dragover</code> repeat; the drag ends in <code>drop</code> (accepted) or <code>dragleave</code> (refused or cancelled), and <code>dragend</code> always comes last.</figcaption>
+  </figure>
+  <p>A drag ends in one of two ways: the zone receives <code>drop</code>, or (if the user lets go somewhere that refuses, or presses <kbd>Esc</kbd>) it receives <code>dragleave</code>. Either way <code>dragend</code> comes last, on the source, which makes it the right place to tidy up the dragged item.</p>
+  <p>Do not take the order on trust. The example below only <i>listens</i>; it moves nothing. It prints each event, and just counts the repeating <code>drag</code> and <code>dragover</code>, which would otherwise flood the Console.</p>
+  <pre class="code" data-run data-title="Watch the seven events fire - drag the card into the zone and let go" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #1E293B; }
+  #card { width: 160px; padding: 12px; background: #FFF1E0; border: 2px solid #E07B1E;
+          border-radius: 8px; cursor: grab; font-weight: 700; }
+  #zone { margin-top: 18px; height: 110px; border: 3px dashed #94A3B8; border-radius: 10px;
+          display: flex; align-items: center; justify-content: center; color: #64748B; }
+&lt;/style&gt;
+&lt;div id="card" draggable="true"&gt;Drag me slowly&lt;/div&gt;
+&lt;div id="zone"&gt;Drop zone&lt;/div&gt;
+&lt;script&gt;
+  const card = document.getElementById("card");
+  const zone = document.getElementById("zone");
+  let drags = 0;          // how many times "drag" fired
+  let overs = 0;          // how many times "dragover" fired
+  let dropped = false;
+
+  // ---- three events on the DRAGGED card ----
+  card.addEventListener("dragstart", (event) =&gt; {
+    drags = 0;
+    overs = 0;
+    dropped = false;
+    event.dataTransfer.setData("text/plain", card.id);
+    console.log("1. dragstart on the card");
+  });
+  card.addEventListener("drag", () =&gt; {
+    drags++;              // far too many to print one by one
+  });
+  card.addEventListener("dragend", () =&gt; {
+    console.log("4. dragend on the card. Dropped?", dropped);
+    console.log("drag fired", drags, "times, dragover fired", overs, "times");
+  });
+
+  // ---- four events on the DROP ZONE ----
+  zone.addEventListener("dragenter", () =&gt; {
+    console.log("2. dragenter on the zone");
+  });
+  zone.addEventListener("dragover", (event) =&gt; {
+    event.preventDefault();   // "yes, you may drop here" (section 67.3)
+    overs++;
+  });
+  zone.addEventListener("dragleave", () =&gt; {
+    console.log("dragleave on the zone (you left without dropping)");
+  });
+  zone.addEventListener("drop", (event) =&gt; {
+    event.preventDefault();
+    dropped = true;
+    console.log("3. drop on the zone. The bag holds:", event.dataTransfer.getData("text/plain"));
+  });
+&lt;/script&gt;</pre>
+  <p>A straight drag into the zone prints something like this (your two counts will differ; they depend on how long you hold and how much you move):</p>
+  <pre class="code">1. dragstart on the card
+2. dragenter on the zone
+3. drop on the zone. The bag holds: card
+4. dragend on the card. Dropped? true
+drag fired 52 times, dragover fired 23 times</pre>
+  <p>Now try the other endings: drag in, back out, and let go outside; or drag in and press <kbd>Esc</kbd>. Both give <code>dragleave</code> and <code>Dropped? false</code>. And notice that a successful drop prints <b>no</b> <code>dragleave</code>; that matters in section 67.5.</p>
+</section>
+
+  <details class="qc">
+    <summary>Quick check: which of the seven events fire on the element being dragged?</summary>
+    <p><code>dragstart</code>, <code>drag</code> and <code>dragend</code>. The other four (<code>dragenter</code>, <code>dragover</code>, <code>dragleave</code>, <code>drop</code>) fire on the drop target.</p>
+  </details>
+
+<section id="s3">
+  <h2>67.3 The one line that allows a drop</h2>
+  <p>Here is the rule that catches almost everyone the first time: <b>by default, no element accepts a drop</b>. Every event has a <span class="jw" data-def="What the browser does on its own when an event happens, such as following a link, unless your code calls preventDefault() to stop it.">default action</span>, and the default action of <code>dragover</code> is to answer &ldquo;you cannot drop here&rdquo;. The cursor usually shows a &ldquo;not allowed&rdquo; sign, and when the user lets go, <code>drop</code> never fires; the zone gets <code>dragleave</code> instead.</p>
+  <p>Calling <code>event.preventDefault()</code> inside <code>dragover</code> cancels that refusal. It is how an element says &ldquo;drops are welcome here&rdquo;:</p>
+  <pre class="code">zone.addEventListener("dragover", (event) =&gt; {
+  event.preventDefault();      // "yes, you may drop here"
+});</pre>
+  <div class="plain">
+    <p><code>preventDefault()</code> always means &ldquo;stop the browser doing its usual thing&rdquo;. On a link it stops the page changing; on a form it stops the submit (Chapter 57). In <code>dragover</code>, the usual thing is <b>refusing</b> the drop, so preventing it means <b>accepting</b>. You are cancelling the &ldquo;no&rdquo;.</p>
+  </div>
+  <p>Why in <code>dragover</code>, and not once at the start? Because <code>dragover</code> fires again and again while the item hovers, and the browser asks afresh each time; any event left uncancelled is a refusal at that moment. So the safe habit is: <b>make <code>event.preventDefault()</code> the first line of the <code>dragover</code> handler</b>. That is the clerk keeping the &ldquo;OPEN&rdquo; board up.</p>
+  <h3>Two more preventDefault() calls you will see</h3>
+  <ul>
+    <li><b>In <code>drop</code>.</b> Some browsers have their own default for a drop: Firefox, for example, may treat dropped text or a link as an address and navigate away from your page. Cancelling it keeps the user where they are.</li>
+    <li><b>In <code>dragenter</code>.</b> The HTML standard's own example cancels this one too. The major browsers accept a drop with <code>dragover</code> alone, which is why the deck's code (and MDN's introductory example) cancels only <code>dragover</code>; adding <code>dragenter</code> does no harm.</li>
+  </ul>
+  <div class="callout exam"><b>Exam tip.</b> &ldquo;Why call <code>event.preventDefault()</code> in <code>dragover</code>?&rdquo; has one answer: <b>to allow the drop</b>. The matching bug, &ldquo;my <code>drop</code> handler never runs&rdquo;, almost always means a <code>dragover</code> handler with no <code>preventDefault()</code>, or none at all.</div>
+</section>
+
+  <details class="qc">
+    <summary>Quick check: you forgot preventDefault() in the zone's dragover. The user lets go over the zone. Which event fires on the zone, and which never does?</summary>
+    <p>The zone gets <code>dragleave</code>; <code>drop</code> never fires, so nothing moves. <code>dragend</code> still fires on the dragged item, because it fires however the drag ends.</p>
+  </details>
+
+<section id="s4">
+  <h2>67.4 dataTransfer: the bag that carries the id</h2>
+  <p>When the drop finally happens, the zone has a question: <i>what was dropped on me?</i> The answer travels with the drag in <code>event.dataTransfer</code>, an object that every drag event carries. Think of it as a small bag. You put something in at <code>dragstart</code>, and you take it out at <code>drop</code>.</p>
+  <pre class="code">// at dragstart, on the item: put its id in the bag
+item.addEventListener("dragstart", (event) =&gt; {
+  event.dataTransfer.setData("text/plain", item.id);
+});
+
+// at drop, on the zone: take the id out and find the element
+zone.addEventListener("drop", (event) =&gt; {
+  event.preventDefault();
+  const id = event.dataTransfer.getData("text/plain");   // for example "t2"
+  const card = document.getElementById(id);
+  zone.appendChild(card);
+});</pre>
+  <p><code>setData(format, value)</code> takes two strings. The first, <code>"text/plain"</code>, is the <span class="jw" data-def="A label such as text/plain that names the kind of data in the bag, so the receiver can ask for it back by the same name.">format</span>: a label saying what kind of data is in the bag. <code>getData(format)</code> must use the same label to get it back. The value is always a <b>string</b>, which is why we carry the <code>id</code> and not the element itself.</p>
+  <div class="plain">
+    <p>You cannot put the box itself in the bag &mdash; only a short text, like a name tag. The drop handler reads the tag and goes and fetches the real box by its id.</p>
+  </div>
+  <p>Then <code>appendChild(card)</code> does the moving. Recall from Chapter 56 that <code>appendChild</code> with an element <b>already on the page</b> does not copy it: it takes it out of its old parent and puts it into the new one, because an element can only be in one place at a time. That is why a drag-and-drop &ldquo;move&rdquo; needs no deleting code at all. (One more reason always to call <code>setData()</code> in <code>dragstart</code>: older versions of Firefox will not start the drag without it.)</p>
+
+  <h3>The bag is sealed until the drop</h3>
+  <p>During <code>dragenter</code>, <code>dragover</code> and <code>dragleave</code> the bag is sealed: by the standard, and in Chrome and Edge, <code>getData()</code> there returns an <b>empty string</b>. The drag might have come from another website or program, and a page should not peek at it just because the pointer passed over. You may read the labels (<code>event.dataTransfer.types</code>, such as <code>["text/plain"]</code>) but not the values.</p>
+  <p>So when you need to decide whether a drop is acceptable, either decide <b>inside <code>drop</code></b>, where <code>getData()</code> works, or remember the dragged element in an ordinary variable at <code>dragstart</code>:</p>
+  <pre class="code">let dragged = null;                          // the card being carried
+card.addEventListener("dragstart", () =&gt; { dragged = card; });
+
+zone.addEventListener("dragover", (event) =&gt; {
+  if (dragged &amp;&amp; dragged.dataset.category === zone.dataset.accept) {
+    event.preventDefault();                  // accept only the right kind
+  }
+});</pre>
+
+  <h3>Everything in the bag</h3>
+  <table class="tbl">
+    <thead><tr><th>Member</th><th>What it does</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr><td><code>setData("text/plain", id)</code></td><td>Puts a string in the bag</td><td><code>dragstart</code></td></tr>
+      <tr><td><code>getData("text/plain")</code></td><td>Takes it out; <code>""</code> if it is missing or the bag is still sealed</td><td><code>drop</code></td></tr>
+      <tr><td><code>types</code></td><td>The list of formats in the bag, such as <code>["text/plain"]</code></td><td>any drag event</td></tr>
+      <tr><td><code>effectAllowed = "move"</code></td><td>Optional polish: the source says this is a move, not a copy</td><td><code>dragstart</code></td></tr>
+      <tr><td><code>dropEffect = "move"</code></td><td>Optional polish: the zone shows the &ldquo;move&rdquo; cursor. It must agree with <code>effectAllowed</code>, or the drop is refused</td><td><code>dragover</code></td></tr>
+      <tr><td><code>files</code></td><td>The files dragged in from the computer</td><td><code>drop</code></td></tr>
+      <tr><td><code>setDragImage(img, x, y)</code></td><td>A custom picture under the pointer while dragging</td><td><code>dragstart</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>The bag can carry files too</h3>
+  <p>Drag a file from your desktop onto a page and the four drop-zone events fire as before (<code>dragstart</code>, <code>drag</code> and <code>dragend</code> do not, because the drag did not start on your page); this time <code>dataTransfer.files</code> holds the files, in a <span class="jw" data-def="A list of File objects. It has a length and can be looped over with for...of like an array, and each File has a name, size and type.">FileList</span>. That is how every &ldquo;drop your file here&rdquo; box works. Nothing below is uploaded: the page only reads each file's name, size and type (sending it to a server would be a job for <code>fetch()</code>, Chapter 65).</p>
+  <pre class="code" data-run data-title="A file drop zone - drag any file from your computer onto the dashed box" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #drop { border: 3px dashed #7c3aed; border-radius: 12px; padding: 34px 12px;
+          text-align: center; color: #5b21b6; }
+  #drop.over { background: #ede9fe; }
+&lt;/style&gt;
+&lt;div id="drop"&gt;Drag a file from your computer and drop it here&lt;/div&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;script&gt;
+  const drop = document.getElementById("drop");
+  const list = document.getElementById("list");
+
+  // a file that misses the box must not be opened by the browser
+  window.addEventListener("dragover", (event) =&gt; event.preventDefault());
+  window.addEventListener("drop", (event) =&gt; event.preventDefault());
+
+  drop.addEventListener("dragover", (event) =&gt; {
+    event.preventDefault();
+    drop.classList.add("over");
+  });
+  drop.addEventListener("dragleave", () =&gt; drop.classList.remove("over"));
+  drop.addEventListener("drop", (event) =&gt; {
+    event.preventDefault();
+    drop.classList.remove("over");
+    const files = event.dataTransfer.files;          // a FileList
+    console.log("Files dropped:", files.length);
+    for (const file of files) {
+      const kb = (file.size / 1024).toFixed(1);
+      const li = document.createElement("li");
+      li.textContent = `${file.name}: ${kb} KB, type "${file.type || "unknown"}"`;
+      list.appendChild(li);
+      console.log(file.name, kb, "KB");
+    }
+  });
+&lt;/script&gt;</pre>
+  <p>The two lines on <code>window</code> are new. A browser normally <i>opens</i> a file dropped on a page that does not handle it, replacing the page; cancelling <code>dragover</code> and <code>drop</code> on the whole window stops a near-miss from doing that. (Some browsers will not hand files to a practice frame like this one; if nothing appears, Copy the code into a <code>.html</code> file and open that.)</p>
+</section>
+
+<section id="s5">
+  <h2>67.5 Build it: drag a box</h2>
+  <p>Now the deck's first complete example. The CSS prepares two looks in advance: <code>.dragging</code> fades the box while it is carried, and <code>.over</code> tints the zone while something hovers above it. The JavaScript only adds and removes those classes: CSS decides how it looks, JavaScript decides when.</p>
+  <pre class="code" data-run data-title="The deck's Drag a Box - then try deleting preventDefault() in dragover" data-h="340">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #box { width: 100px; height: 100px; cursor: grab; background: #f97316; color: white;
+         display: flex; align-items: center; justify-content: center; border-radius: 8px; }
+  #box.dragging { opacity: 0.4; }
+  #dropZone { width: 220px; height: 160px; margin-top: 20px; padding: 8px;
+              border: 3px dashed #7c3aed; border-radius: 10px; box-sizing: border-box; }
+  #dropZone.over { background: #ede9fe; }
+&lt;/style&gt;
+&lt;div id="box" draggable="true"&gt;Drag me&lt;/div&gt;
+&lt;div id="dropZone"&gt;Drop here&lt;/div&gt;
+&lt;p id="message"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const box = document.getElementById("box");
+  const dropZone = document.getElementById("dropZone");
+
+  box.addEventListener("dragstart", (event) =&gt; {
+    event.dataTransfer.setData("text/plain", box.id);    // 1. put the id in the bag
+    box.classList.add("dragging");                        //    and fade the box
+  });
+
+  box.addEventListener("dragend", () =&gt; {
+    box.classList.remove("dragging");                     // 5. full colour again
+  });
+
+  dropZone.addEventListener("dragover", (event) =&gt; {
+    event.preventDefault();                               // 2. allow the drop
+    dropZone.classList.add("over");                       //    and highlight the zone
+  });
+
+  dropZone.addEventListener("dragleave", () =&gt; {
+    dropZone.classList.remove("over");                    // 3. remove the highlight
+  });
+
+  dropZone.addEventListener("drop", (event) =&gt; {
+    event.preventDefault();
+    const id = event.dataTransfer.getData("text/plain");  // 4. take the id out,
+    dropZone.appendChild(document.getElementById(id));    //    move the real box
+    dropZone.classList.remove("over");
+    document.getElementById("message").textContent = "Done!";
+    console.log("Dropped:", id);
+  });
+&lt;/script&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th>Event</th><th>What the code does</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>dragstart</code> on the box</td><td>Saves the box's id in the bag; fades the box (<code>.dragging</code>)</td></tr>
+      <tr><td>2</td><td><code>dragover</code> on the zone</td><td><code>preventDefault()</code> allows dropping; highlights the zone</td></tr>
+      <tr><td>3</td><td><code>dragleave</code> on the zone</td><td>Removes the highlight</td></tr>
+      <tr><td>4</td><td><code>drop</code> on the zone</td><td>Reads the id, <code>appendChild</code> moves the box, shows &ldquo;Done!&rdquo;</td></tr>
+      <tr><td>5</td><td><code>dragend</code> on the box</td><td>Restores full opacity</td></tr>
+    </tbody>
+  </table>
+  <p><b>Try it.</b></p>
+  <ol>
+    <li>Delete <code>event.preventDefault();</code> in the <code>dragover</code> handler and Run again. Can you still drop? (No. The zone still lights up, because the class is added in the same handler, but letting go does nothing and &ldquo;Done!&rdquo; never appears.) Put the line back.</li>
+    <li>Double-click the word <i>here</i> in the zone to select it, then drag the selected word into the zone. A red <b>TypeError</b> appears in the Console: the bag held <code>"here"</code>, <code>getElementById("here")</code> returned <code>null</code>, and <code>appendChild(null)</code> failed. Section 67.6 adds the guard.</li>
+  </ol>
+
+  <h3>Why the highlight is added in dragover, and removed twice</h3>
+  <p>The natural pair for a highlight is <code>dragenter</code> to add it and <code>dragleave</code> to remove it. The deck adds it in <code>dragover</code> instead, for a good reason: <b>child elements</b>. When the pointer moves from the zone onto something <i>inside</i> it (a heading, a card), the browser fires <code>dragenter</code> on the child and <code>dragleave</code> on the zone, so the highlight is removed although you never left. Because <code>dragover</code> keeps firing, adding the class there puts it straight back.</p>
+  <p>And the class is removed in <b>two</b> places because a successful drop does <b>not</b> fire <code>dragleave</code> (you saw this in the logger). Forget the line in <code>drop</code> and the zone stays purple after every drop.</p>
+  <div class="plain">
+    <p>Add the highlight in the event that keeps repeating (<code>dragover</code>), so it heals itself. Remove it both when the item leaves (<code>dragleave</code>) and when it lands (<code>drop</code>), because landing is not leaving. And tidy the dragged item in <code>dragend</code>, which comes last whatever happened.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>67.6 The task board</h2>
+  <p>A real board has many cards and several columns, but you do not write separate listeners for each one. <code>querySelectorAll</code> finds them all and <code>forEach</code> attaches the same listeners to every one (Chapter 56). Each card puts <b>its own</b> id in the bag; each column accepts drops. Here is the deck's board, as one page:</p>
+  <pre class="code" data-run data-title="The deck's task board - drag cards between the three columns" data-h="280">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .board { display: flex; gap: 12px; }
+  .column { flex: 1; min-height: 220px; padding: 8px; background: #f1f5f9; border-radius: 8px; }
+  .column h3 { margin: 4px 0 8px; font-size: 15px; }
+  .column.over { background: #ede9fe; }
+  .task { background: white; padding: 8px; margin: 6px 0; border-radius: 6px; cursor: grab;
+          box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+&lt;/style&gt;
+&lt;div class="board"&gt;
+  &lt;div class="column" id="todo"&gt;&lt;h3&gt;To Do&lt;/h3&gt;
+    &lt;div class="task" id="t1" draggable="true"&gt;Learn localStorage&lt;/div&gt;
+    &lt;div class="task" id="t2" draggable="true"&gt;Practice fetch()&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="column" id="progress"&gt;&lt;h3&gt;In Progress&lt;/h3&gt;
+    &lt;div class="task" id="t3" draggable="true"&gt;Geolocation demo&lt;/div&gt;
+  &lt;/div&gt;
+  &lt;div class="column" id="done"&gt;&lt;h3&gt;Completed&lt;/h3&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  const tasks = document.querySelectorAll(".task");
+  const columns = document.querySelectorAll(".column");
+
+  // every task puts its OWN id in the bag
+  tasks.forEach((task) =&gt; {
+    task.addEventListener("dragstart", (event) =&gt; {
+      event.dataTransfer.setData("text/plain", task.id);
+    });
+  });
+
+  // every column accepts drops
+  columns.forEach((column) =&gt; {
+    column.addEventListener("dragover", (event) =&gt; {
+      event.preventDefault();
+      column.classList.add("over");
+    });
+    column.addEventListener("dragleave", () =&gt; {
+      column.classList.remove("over");
+    });
+    column.addEventListener("drop", (event) =&gt; {
+      event.preventDefault();
+      column.classList.remove("over");
+      const id = event.dataTransfer.getData("text/plain");
+      const card = document.getElementById(id);
+      if (!card || !card.classList.contains("task")) return;   // not one of our cards
+      column.appendChild(card);
+      console.log(`Moved "${card.textContent}" to ${column.querySelector("h3").textContent}`);
+    });
+  });
+&lt;/script&gt;</pre>
+  <p>Drag &ldquo;Practice fetch()&rdquo; into In Progress and the Console prints <code>Moved "Practice fetch()" to In Progress</code>. Three details in this code are worth slowing down for.</p>
+  <p><b>1. Each listener remembers its own card.</b> Inside <code>forEach</code>, the arrow function for card t2 is created while <code>task</code> is t2, and it keeps that value. A function that remembers the variables around it like this is a <span class="jw" data-def="A function that remembers the variables that were around it when it was created, even when it runs much later.">closure</span>. That is also why <b>every card needs <code>draggable="true"</code> and a unique id</b>: if two cards shared an id, <code>getElementById</code> would always find the first, and you would drag one card and watch the other move.</p>
+  <p><b>2. It says <code>column</code>, not <code>event.target</code>.</b> Drop on top of another card and <code>event.target</code> is that card, the innermost element under the pointer (Chapter 57). <code>event.target.appendChild(card)</code> would put the dropped card <i>inside</i> the other card, and dropping a card on its own old position would throw an error, because an element cannot contain itself. <code>column</code> (or <code>event.currentTarget</code>, which the deck's syntax slide uses) is always the column whose listener is running.</p>
+  <p><b>3. The guard line.</b> Someone may drag selected text, a link or an image onto the board. Then <code>getElementById</code> finds nothing (<code>null</code>), or something that is not a card (drag in the selected word <i>todo</i> and it finds the To Do column). The <code>if (...) return;</code> line leaves quietly: the deck's &ldquo;check the data in drop&rdquo;.</p>
+  <div class="callout why"><b>Key idea.</b> Because the listeners are attached by <code>querySelectorAll</code>, adding a fourth column called &ldquo;Review&rdquo; means adding one <code>div class="column"</code> to the HTML. It works at once, with no new JavaScript.</div>
+</section>
+
+<section id="s7">
+  <h2>67.7 Checking the drop: a sorting game</h2>
+  <p>The deck's practice task: columns for <b>Programming Languages</b> and <b>Web Browsers</b>, and four items, JavaScript, Python, Chrome and Firefox. A right drop shows a green &ldquo;Correct!&rdquo; and the item moves in; a wrong drop shows a red &ldquo;Try again&rdquo; and the item stays put. The answers live in the HTML as <code>data-*</code> attributes (Chapter 56): each item says what it is (<code>data-category="language"</code>), each zone what it accepts (<code>data-accept="language"</code>), and the drop handler compares the two through <code>dataset</code>.</p>
+  <pre class="code" data-run data-title="The sorting game - drag each item to its column, try a wrong one too" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  #tray { display: flex; gap: 8px; flex-wrap: wrap; min-height: 44px; padding: 8px;
+          background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 8px; }
+  .item { background: #fff; border: 2px solid #94a3b8; border-radius: 6px;
+          padding: 6px 12px; cursor: grab; }
+  .item.correct { border-color: #16a34a; background: #dcfce7; cursor: default; }
+  .zones { display: flex; gap: 12px; margin-top: 12px; }
+  .zone { flex: 1; min-height: 120px; padding: 8px; border: 3px dashed #7c3aed;
+          border-radius: 10px; }
+  .zone h3 { margin: 0 0 8px; font-size: 14px; }
+  .zone .item { display: inline-block; margin: 3px; }
+  .zone.over { background: #ede9fe; }
+  #msg { font-weight: 700; min-height: 1.4em; }
+  #msg.good { color: #15803d; }
+  #msg.bad { color: #b91c1c; }
+&lt;/style&gt;
+&lt;div id="tray"&gt;
+  &lt;div class="item" id="i1" draggable="true" data-category="language"&gt;JavaScript&lt;/div&gt;
+  &lt;div class="item" id="i2" draggable="true" data-category="browser"&gt;Chrome&lt;/div&gt;
+  &lt;div class="item" id="i3" draggable="true" data-category="language"&gt;Python&lt;/div&gt;
+  &lt;div class="item" id="i4" draggable="true" data-category="browser"&gt;Firefox&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="zones"&gt;
+  &lt;div class="zone" data-accept="language"&gt;&lt;h3&gt;Programming Languages&lt;/h3&gt;&lt;/div&gt;
+  &lt;div class="zone" data-accept="browser"&gt;&lt;h3&gt;Web Browsers&lt;/h3&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;p id="msg" role="status"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const msg = document.getElementById("msg");
+  const label = { language: "a programming language", browser: "a web browser" };
+  let placed = 0;
+  let wrong = 0;
+
+  document.querySelectorAll(".item").forEach((item) =&gt; {
+    item.addEventListener("dragstart", (event) =&gt; {
+      event.dataTransfer.setData("text/plain", item.id);
+    });
+  });
+
+  document.querySelectorAll(".zone").forEach((zone) =&gt; {
+    zone.addEventListener("dragover", (event) =&gt; {
+      event.preventDefault();               // accept every drop, judge it in "drop"
+      zone.classList.add("over");
+    });
+    zone.addEventListener("dragleave", () =&gt; zone.classList.remove("over"));
+    zone.addEventListener("drop", (event) =&gt; {
+      event.preventDefault();
+      zone.classList.remove("over");
+      const item = document.getElementById(event.dataTransfer.getData("text/plain"));
+      if (!item || !item.classList.contains("item")) return;
+      if (item.classList.contains("correct")) return;        // already sorted
+
+      const name = item.textContent;
+      const kind = label[item.dataset.category];
+      if (item.dataset.category === zone.dataset.accept) {
+        zone.appendChild(item);
+        item.classList.add("correct");
+        item.draggable = false;                              // sorted: lock it
+        placed++;
+        msg.className = "good";
+        msg.textContent = `Correct! ${name} is ${kind}.`;
+      } else {
+        wrong++;
+        msg.className = "bad";
+        msg.textContent = `Try again: ${name} is ${kind}.`;  // the item stays put
+      }
+      console.log(name, "-&gt;", zone.dataset.accept, "| placed:", placed, "| wrong tries:", wrong);
+      if (placed === 4) {
+        msg.textContent += ` All four sorted, with ${wrong} wrong ${wrong === 1 ? "try" : "tries"}.`;
+      }
+    });
+  });
+&lt;/script&gt;</pre>
+  <p>Make your first move a wrong one: drop Chrome on Programming Languages and the Console prints <code>Chrome -&gt; language | placed: 0 | wrong tries: 1</code> while the message turns red; drop it on Web Browsers and it moves in, turns green and is locked with <code>item.draggable = false</code>. The message paragraph has <code>role="status"</code>, so a screen reader announces each new message (Chapter 59).</p>
+  <h3>Two ways to refuse a drop</h3>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>What the user sees</th><th>Good for</th></tr></thead>
+    <tbody>
+      <tr><td>Refuse in <code>dragover</code>: do not call <code>preventDefault()</code> for the wrong item (remember the item in a variable at <code>dragstart</code>, section 67.4)</td><td>A &ldquo;not allowed&rdquo; cursor; <code>drop</code> never fires, so there is no drop handler to explain the refusal</td><td>Zones that should simply never take that item</td></tr>
+      <tr><td>Accept every drop and judge it in <code>drop</code></td><td>The drop happens; you choose to move the item or leave it, and you can explain why</td><td>Games, quizzes and forms, where the user should learn from a mistake</td></tr>
+    </tbody>
+  </table>
+  <p>The game uses the second way, because a learning game should explain.</p>
+</section>
+
+  <details class="qc">
+    <summary>Quick check: how could a keyboard-only student play this sorting game?</summary>
+    <p>Give every item real buttons, for example &ldquo;Languages&rdquo; and &ldquo;Browsers&rdquo;, that run the same check-and-move code as the drop handler. Buttons can be reached with <kbd>Tab</kbd> and pressed with <kbd>Enter</kbd> or <kbd>Space</kbd>, and they work on a touch screen too. The next section does exactly this for the task board.</p>
+  </details>
+
+<section id="s8">
+  <h2>67.8 Limitations and accessibility</h2>
+  <p>HTML drag and drop was designed for a <b>mouse</b>. That leaves three groups of people stranded:</p>
+  <ul>
+    <li><b>Touch-screen users.</b> On phones and tablets support is limited and behaves differently: some mobile browsers ignore <code>draggable</code>, others need a long press. Test on a real phone.</li>
+    <li><b>Keyboard-only users.</b> No key starts an HTML drag, so someone who cannot use a mouse (a broken wrist, a motor disability) cannot drag at all.</li>
+    <li><b>Screen-reader users.</b> A <span class="jw" data-def="Software that reads the page aloud for people who cannot see it, and is controlled from the keyboard.">screen reader</span> has no way to perform a drag gesture.</li>
+  </ul>
+  <div class="callout why"><b>Key idea.</b> The deck's rule: <b>every drag action should also work by click or keyboard.</b> Offer buttons or a menu that perform the same move.</div>
+  <p>The deck's two other points you have already practised: <b>visual feedback</b> (fade the item, highlight valid zones) and <b>prevent invalid drops</b> (check the data in <code>drop</code>).</p>
+
+  <h3>One function, two doors</h3>
+  <p>The clean way to keep the rule is to write the move <b>once</b>, as a function, and call it from two places: the <code>drop</code> handler for mouse users, and a button for everyone else.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Mouse users reach moveTask through the drop event; keyboard and touch users reach the same moveTask function through a button click">
+      <rect x="20" y="18" width="230" height="72" rx="12" class="box saf"/>
+      <text x="135" y="46" class="t c b">Mouse users</text>
+      <text x="135" y="68" class="t c s mono">drop event on a column</text>
+      <rect x="20" y="110" width="230" height="72" rx="12" class="box blu"/>
+      <text x="135" y="138" class="t c b">Keyboard and touch users</text>
+      <text x="135" y="160" class="t c s mono">click on a Move button</text>
+      <rect x="370" y="54" width="230" height="92" rx="12" class="box grn"/>
+      <text x="485" y="86" class="t c b mono">moveTask(card, column)</text>
+      <text x="485" y="108" class="t c s">appendChild, announce the move,</text>
+      <text x="485" y="126" class="t c s">put keyboard focus back</text>
+      <path d="M252 54 L366 88" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M252 146 L366 112" class="edge" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption><b>Figure 67.3</b> Write the move once and give it two doors: the <code>drop</code> event for mouse users, and a real button for keyboard, touch and screen-reader users.</figcaption>
+  </figure>
+  <p>The deck shows the idea in three lines: a Move button whose click handler calls <code>appendChild</code> and then <code>focus()</code>. Here it is grown into the full board, with an arrow button on each side of every card:</p>
+  <pre class="code" data-run data-title="The accessible board - drag, or Tab to an arrow button and press Enter" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .board { display: flex; gap: 10px; }
+  .column { flex: 1; min-height: 200px; padding: 8px; background: #f1f5f9; border-radius: 8px; }
+  .column h3 { margin: 4px 0 8px; font-size: 15px; }
+  .column.over { background: #ede9fe; }
+  .task { display: flex; align-items: center; gap: 4px; background: #fff; padding: 6px 8px;
+          margin: 6px 0; border-radius: 6px; cursor: grab; box-shadow: 0 1px 3px rgba(0, 0, 0, .12); }
+  .task span { flex: 1; }
+  .task.dragging { opacity: .4; }
+  .task button { font: inherit; padding: 2px 7px; cursor: pointer; }
+  #live { font-size: 14px; color: #334155; }
+&lt;/style&gt;
+&lt;div class="board"&gt;
+  &lt;section class="column"&gt;&lt;h3&gt;To Do&lt;/h3&gt;
+    &lt;div class="task" id="t1" draggable="true"&gt;&lt;span&gt;Learn localStorage&lt;/span&gt;
+      &lt;button class="left"&gt;&larr;&lt;/button&gt;&lt;button class="right"&gt;&rarr;&lt;/button&gt;&lt;/div&gt;
+    &lt;div class="task" id="t2" draggable="true"&gt;&lt;span&gt;Practice fetch()&lt;/span&gt;
+      &lt;button class="left"&gt;&larr;&lt;/button&gt;&lt;button class="right"&gt;&rarr;&lt;/button&gt;&lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class="column"&gt;&lt;h3&gt;In Progress&lt;/h3&gt;
+    &lt;div class="task" id="t3" draggable="true"&gt;&lt;span&gt;Geolocation demo&lt;/span&gt;
+      &lt;button class="left"&gt;&larr;&lt;/button&gt;&lt;button class="right"&gt;&rarr;&lt;/button&gt;&lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class="column"&gt;&lt;h3&gt;Completed&lt;/h3&gt;&lt;/section&gt;
+&lt;/div&gt;
+&lt;p id="live" aria-live="polite"&gt;Drag a card, or use its arrow buttons.&lt;/p&gt;
+&lt;script&gt;
+  const columns = Array.from(document.querySelectorAll(".column"));
+  const live = document.getElementById("live");
+
+  // ONE function does the move, whoever asks for it
+  function moveTask(card, column) {
+    column.appendChild(card);
+    const name = card.querySelector("span").textContent;
+    const where = column.querySelector("h3").textContent;
+    live.textContent = `${name} moved to ${where}.`;
+    console.log("moveTask:", name, "-&gt;", where);
+  }
+
+  // door 1: the buttons (keyboard, touch, screen readers)
+  function step(card, direction) {              // -1 = left, +1 = right
+    const now = columns.indexOf(card.closest(".column"));
+    const next = columns[now + direction];
+    if (next) {
+      moveTask(card, next);
+    } else {
+      live.textContent = "That card is already at the end of the board.";
+    }
+  }
+
+  document.querySelectorAll(".task").forEach((card) =&gt; {
+    const name = card.querySelector("span").textContent;
+    const left = card.querySelector(".left");
+    const right = card.querySelector(".right");
+    left.setAttribute("aria-label", `Move ${name} left`);
+    right.setAttribute("aria-label", `Move ${name} right`);
+    left.addEventListener("click", () =&gt; { step(card, -1); left.focus(); });
+    right.addEventListener("click", () =&gt; { step(card, +1); right.focus(); });
+
+    // door 2: drag and drop (mouse)
+    card.addEventListener("dragstart", (event) =&gt; {
+      event.dataTransfer.setData("text/plain", card.id);
+      event.dataTransfer.effectAllowed = "move";
+      card.classList.add("dragging");
+    });
+    card.addEventListener("dragend", () =&gt; card.classList.remove("dragging"));
+  });
+
+  columns.forEach((column) =&gt; {
+    column.addEventListener("dragover", (event) =&gt; {
+      event.preventDefault();
+      event.dataTransfer.dropEffect = "move";
+      column.classList.add("over");
+    });
+    column.addEventListener("dragleave", () =&gt; column.classList.remove("over"));
+    column.addEventListener("drop", (event) =&gt; {
+      event.preventDefault();
+      column.classList.remove("over");
+      const card = document.getElementById(event.dataTransfer.getData("text/plain"));
+      if (card &amp;&amp; card.classList.contains("task")) moveTask(card, column);
+    });
+  });
+&lt;/script&gt;</pre>
+  <p>Click inside the preview, press <kbd>Tab</kbd> until a card's &rarr; button is outlined, and press <kbd>Enter</kbd>. The card moves, the line under the board says what happened, and the Console prints, for example, <code>moveTask: Learn localStorage -&gt; In Progress</code>. Three details from Chapter 59 make this genuinely usable:</p>
+  <ul>
+    <li><b>Real <code>&lt;button&gt;</code> elements</b>, so <kbd>Tab</kbd>, <kbd>Enter</kbd>, <kbd>Space</kbd> and screen readers work for free. Each gets an <code>aria-label</code> such as &ldquo;Move Practice fetch() right&rdquo;, because an arrow alone means nothing read aloud.</li>
+    <li><b>Focus goes back.</b> <code>appendChild</code> lifts the card out of the page for an instant, so the pressed button loses focus and the keyboard user is thrown back to the top. <code>left.focus()</code> puts focus back on the same button in the card's new home (the deck's <code>task.focus()</code> does the same job, but a plain <code>div</code> card accepts focus only if it has a <code>tabindex</code> attribute, such as <code>tabindex="-1"</code>, Chapter 15; a button needs nothing extra).</li>
+    <li><b>The announcement.</b> Screen readers read out the <code>aria-live="polite"</code> paragraph whenever its text changes: &ldquo;Practice fetch() moved to In Progress.&rdquo;</li>
+  </ul>
+  <div class="plain">
+    <p>Drag and drop is a <b>shortcut</b> for mouse users, never the only way. Build the button way first; the drag is the extra. Because both doors call the same <code>moveTask()</code>, they can never disagree about what a move does.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <h2>67.9 Unit 5 revision: four browser APIs side by side</h2>
+  <p>Chapters 64 to 67 each taught one thing the browser can do for your page. Seen together, as the deck's revision module puts them:</p>
+  <table class="tbl">
+    <thead><tr><th>API</th><th>Main purpose</th><th>Important methods</th><th>Async?</th><th>Permission?</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Web Storage</b> (Ch 64)</td><td>Save small data in the browser</td><td><code>setItem()</code>, <code>getItem()</code></td><td>No (synchronous)</td><td>No</td><td>Save the theme</td></tr>
+      <tr><td><b>Fetch API</b> (Ch 65)</td><td>Communicate with servers and APIs</td><td><code>fetch()</code>, <code>json()</code></td><td>Yes &mdash; a Promise</td><td>No*</td><td>Load users</td></tr>
+      <tr><td><b>Geolocation</b> (Ch 66)</td><td>Ask for the device's location</td><td><code>getCurrentPosition()</code></td><td>Yes &mdash; callbacks</td><td>Yes &mdash; the user must allow</td><td>Location finder</td></tr>
+      <tr><td><b>Drag and Drop</b> (Ch 67)</td><td>Move elements interactively</td><td><code>setData()</code>, <code>getData()</code></td><td>Event-driven</td><td>No</td><td>Task board</td></tr>
+    </tbody>
+  </table>
+  <p style="font-size:.9em">* The server may restrict which websites can call it (CORS, Chapter 65), but the user is never asked.</p>
+  <div class="callout why"><b>Memory hook.</b> Storage <b>REMEMBERS</b> &middot; Fetch <b>TALKS</b> &middot; Geolocation <b>LOCATES</b> &middot; Drag and Drop <b>MOVES</b>.</div>
+  <p><code>localStorage.getItem()</code> answers at once. <code>fetch()</code> and <code>getCurrentPosition()</code> must wait (for a server, or for the user to click Allow), so they are <span class="jw" data-def="The answer arrives later. The rest of your code carries on meanwhile, and a callback or Promise deals with the answer when it comes.">asynchronous</span>: they hand the answer to code that runs later. Drag and drop is <b>event-driven</b>: nothing happens until the user acts.</p>
+  <div class="callout exam"><b>Exam tip.</b> Asynchronous: <b>Fetch</b> (Promise) and <b>Geolocation</b> (callbacks). Synchronous: <b>Web Storage</b>. Needs the user's permission: <b>Geolocation only</b>, because a location is personal; it also needs a secure page (HTTPS, or localhost while testing).</div>
+  <p>The deck's &ldquo;debug the code&rdquo; slide boils down to one rule per API &mdash; say each out loud:</p>
+  <table class="tbl">
+    <thead><tr><th>The bug</th><th>The rule</th></tr></thead>
+    <tbody>
+      <tr><td><code>localStorage.saveItem("theme", "dark")</code> &mdash; no such method</td><td>It is <code>setItem</code>, not <code>saveItem</code></td></tr>
+      <tr><td><code>getItem("user").name</code> is <code>undefined</code></td><td>Parse what you stringify: <code>JSON.parse(localStorage.getItem("user")).name</code></td></tr>
+      <tr><td><code>fetch(url).then(data =&gt; console.log(data.name))</code> prints <code>undefined</code></td><td>Call <code>response.json()</code> before using the data</td></tr>
+      <tr><td>The <code>drop</code> handler never fires</td><td><code>preventDefault()</code> in <code>dragover</code></td></tr>
+    </tbody>
+  </table>
+
+  <h3>The rest of the deck's revision quiz</h3>
+  <p>The deck's &ldquo;predict the output&rdquo; slide has four snippets. Two wait for you in the exam checks; here are the other two, answered in the comments:</p>
+  <pre class="code">const s = { name: "Riya", age: 19 };
+const text = JSON.stringify(s);
+console.log(text);                          // {"name":"Riya","age":19}
+console.log(text.length &gt; 0, typeof text);  // true string
+
+console.log("1");
+navigator.geolocation.getCurrentPosition(
+  (pos) =&gt; console.log("2"),                // runs later, if the user allows
+  (err) =&gt; console.log("3")                 // runs later, if it is blocked
+);
+console.log("4");                           // so: 1, 4, then 2 or 3</pre>
+  <p><code>JSON.stringify()</code> always hands back a <b>string</b>. <code>getCurrentPosition()</code> returns at once, so the script prints 4; only later does the browser call one of the two callbacks. The deck's ten quick-check questions, in one table:</p>
+  <table class="tbl">
+    <thead><tr><th>Question</th><th>Answer</th></tr></thead>
+    <tbody>
+      <tr><td>Which storage keeps data after the browser is restarted?</td><td><code>localStorage</code> (<code>sessionStorage</code> ends with the tab)</td></tr>
+      <tr><td><code>localStorage.getItem("missing")</code> returns&hellip;</td><td><code>null</code></td></tr>
+      <tr><td><code>JSON.stringify({ x: 1 })</code> gives&hellip;</td><td>the string <code>'{"x":1}'</code></td></tr>
+      <tr><td>What does <code>fetch(url)</code> return immediately?</td><td>A Promise</td></tr>
+      <tr><td><code>response.ok</code> is true when the HTTP status is&hellip;</td><td>200&ndash;299</td></tr>
+      <tr><td>Which HTTP method is used to create new data?</td><td><code>POST</code></td></tr>
+      <tr><td>The Geolocation API needs&hellip;</td><td>the user's permission and HTTPS</td></tr>
+      <tr><td>In the error callback, <code>error.code === 1</code> means&hellip;</td><td><code>PERMISSION_DENIED</code></td></tr>
+      <tr><td>Which attribute makes an element draggable?</td><td><code>draggable="true"</code></td></tr>
+      <tr><td>Why call <code>event.preventDefault()</code> in <code>dragover</code>?</td><td>To allow the drop</td></tr>
+    </tbody>
+  </table>
+
+  <h3>The combined project: a student dashboard</h3>
+  <p>The deck's combined project puts one tile per API on a single page: users loaded with <code>fetch()</code> and <code>response.json()</code>; the user's location from <code>getCurrentPosition()</code> after they click; tasks re-ordered with <code>dragstart</code>, <code>dragover</code> and <code>drop</code>; and a name and theme saved with <code>localStorage.setItem()</code> and read back on load. The design rule is <b>one function per feature</b> (<code>loadPrefs()</code>, <code>loadUsers()</code>, <code>findLocation()</code>, <code>setupBoard()</code>), so each tile can be built and tested on its own.</p>
+  <pre class="code" data-run data-title="Unit 5 in one page: the student dashboard - save a name, switch theme, find me, re-order tasks" data-h="420" data-tall>&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 14px;
+         background: #f1f5f9; color: #1e293b; }
+  body.dark { background: #0f172a; color: #e2e8f0; }
+  header { display: flex; flex-wrap: wrap; gap: 8px; align-items: center;
+           justify-content: space-between; }
+  h1 { font-size: 20px; margin: 0; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+          gap: 12px; margin-top: 12px; }
+  .tile { background: #fff; border-radius: 10px; padding: 10px 12px; }
+  body.dark .tile { background: #1e293b; }
+  .tile h2 { font-size: 15px; margin: 0 0 6px; }
+  .tag { font-size: 11px; font-weight: 400; color: #64748b; }
+  ul { margin: 0; padding-left: 18px; }
+  #tasks { list-style: none; padding: 4px; min-height: 90px; border-radius: 8px; }
+  #tasks.over { outline: 2px dashed #7c3aed; }
+  .task { display: flex; justify-content: space-between; align-items: center;
+          background: #fff7ed; border: 1px solid #fdba74; border-radius: 6px;
+          padding: 4px 8px; margin: 4px 0; cursor: grab; }
+  body.dark .task { background: #334155; border-color: #475569; }
+  .task.dragging { opacity: .4; }
+&lt;/style&gt;
+&lt;header&gt;
+  &lt;h1 id="hello"&gt;Welcome!&lt;/h1&gt;
+  &lt;div&gt;
+    &lt;input id="name" placeholder="Your name" aria-label="Your name"&gt;
+    &lt;button id="save"&gt;Save name&lt;/button&gt;
+    &lt;button id="theme"&gt;Switch theme&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/header&gt;
+&lt;div class="grid"&gt;
+  &lt;section class="tile"&gt;
+    &lt;h2&gt;Users from API &lt;span class="tag"&gt;Fetch&lt;/span&gt;&lt;/h2&gt;
+    &lt;ul id="users"&gt;&lt;li&gt;Loading...&lt;/li&gt;&lt;/ul&gt;
+  &lt;/section&gt;
+  &lt;section class="tile"&gt;
+    &lt;h2&gt;My location &lt;span class="tag"&gt;Geolocation&lt;/span&gt;&lt;/h2&gt;
+    &lt;p id="where"&gt;Not asked yet.&lt;/p&gt;
+    &lt;button id="locate"&gt;Find me&lt;/button&gt;
+  &lt;/section&gt;
+  &lt;section class="tile"&gt;
+    &lt;h2&gt;Tasks &lt;span class="tag"&gt;Drag and Drop&lt;/span&gt;&lt;/h2&gt;
+    &lt;ul id="tasks"&gt;
+      &lt;li class="task" id="k1" draggable="true"&gt;&lt;span&gt;Revise Fetch API&lt;/span&gt;
+        &lt;button aria-label="Move Revise Fetch API up"&gt;&uarr;&lt;/button&gt;&lt;/li&gt;
+      &lt;li class="task" id="k2" draggable="true"&gt;&lt;span&gt;Build Kanban board&lt;/span&gt;
+        &lt;button aria-label="Move Build Kanban board up"&gt;&uarr;&lt;/button&gt;&lt;/li&gt;
+      &lt;li class="task" id="k3" draggable="true"&gt;&lt;span&gt;Test location finder&lt;/span&gt;
+        &lt;button aria-label="Move Test location finder up"&gt;&uarr;&lt;/button&gt;&lt;/li&gt;
+    &lt;/ul&gt;
+  &lt;/section&gt;
+  &lt;section class="tile"&gt;
+    &lt;h2&gt;Saved preferences &lt;span class="tag"&gt;Web Storage&lt;/span&gt;&lt;/h2&gt;
+    &lt;p id="prefs"&gt;&lt;/p&gt;
+  &lt;/section&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  // 1. Web Storage REMEMBERS: the name and the theme
+  function loadPrefs() {
+    const name = localStorage.getItem("name") || "student";
+    const theme = localStorage.getItem("theme") || "light";
+    document.body.classList.toggle("dark", theme === "dark");
+    document.getElementById("hello").textContent = `Welcome back, ${name}!`;
+    document.getElementById("prefs").textContent = `Name: ${name}. Theme: ${theme}.`;
+    console.log("Prefs:", name, theme);
+  }
+  document.getElementById("save").addEventListener("click", () =&gt; {
+    const name = document.getElementById("name").value.trim();
+    if (name !== "") {
+      localStorage.setItem("name", name);
+      loadPrefs();
+    }
+  });
+  document.getElementById("theme").addEventListener("click", () =&gt; {
+    const next = localStorage.getItem("theme") === "dark" ? "light" : "dark";
+    localStorage.setItem("theme", next);
+    loadPrefs();
+  });
+
+  // 2. Fetch TALKS: users from a pretend server (a Blob URL, so no internet is needed)
+  async function loadUsers() {
+    const list = document.getElementById("users");
+    const sample = [{ name: "Leanne Graham" }, { name: "Ervin Howell" }, { name: "Clementine Bauch" }];
+    const url = URL.createObjectURL(new Blob([JSON.stringify(sample)], { type: "application/json" }));
+    try {
+      const response = await fetch(url);
+      if (!response.ok) throw new Error("HTTP " + response.status);
+      const users = await response.json();
+      list.innerHTML = "";
+      users.forEach((user) =&gt; {
+        const li = document.createElement("li");
+        li.textContent = user.name;
+        list.appendChild(li);
+      });
+      console.log("Users loaded:", users.length);
+    } catch (error) {
+      list.innerHTML = "&lt;li&gt;Could not load users.&lt;/li&gt;";
+      console.error("Fetch failed:", error.message);
+    }
+  }
+
+  // 3. Geolocation LOCATES: only when the user asks
+  function findLocation() {
+    const where = document.getElementById("where");
+    const show = (lat, lon, note) =&gt; {
+      where.textContent = `Lat ${lat.toFixed(4)}, Lon ${lon.toFixed(4)} ${note}`;
+    };
+    if (!("geolocation" in navigator)) {
+      show(31.2560, 75.7051, "(sample: LPU)");
+      return;
+    }
+    where.textContent = "Waiting for permission...";
+    navigator.geolocation.getCurrentPosition(
+      (pos) =&gt; show(pos.coords.latitude, pos.coords.longitude, "(you)"),
+      (err) =&gt; {
+        console.warn("Location not available, code", err.code, "- using the sample");
+        show(31.2560, 75.7051, "(sample: LPU)");
+      },
+      { timeout: 8000 }
+    );
+  }
+  document.getElementById("locate").addEventListener("click", findLocation);
+
+  // 4. Drag and Drop MOVES: re-order the tasks (with an Up button as the second door)
+  function setupBoard() {
+    const list = document.getElementById("tasks");
+    const order = () =&gt; Array.from(list.querySelectorAll(".task span"), (s) =&gt; s.textContent).join(" | ");
+    list.querySelectorAll(".task").forEach((task) =&gt; {
+      task.addEventListener("dragstart", (event) =&gt; {
+        event.dataTransfer.setData("text/plain", task.id);
+        task.classList.add("dragging");
+      });
+      task.addEventListener("dragend", () =&gt; task.classList.remove("dragging"));
+      const up = task.querySelector("button");
+      up.addEventListener("click", () =&gt; {
+        const above = task.previousElementSibling;
+        if (above) above.before(task);
+        up.focus();
+        console.log("Order:", order());
+      });
+    });
+    list.addEventListener("dragover", (event) =&gt; {
+      event.preventDefault();
+      list.classList.add("over");
+    });
+    list.addEventListener("dragleave", () =&gt; list.classList.remove("over"));
+    list.addEventListener("drop", (event) =&gt; {
+      event.preventDefault();
+      list.classList.remove("over");
+      const card = document.getElementById(event.dataTransfer.getData("text/plain"));
+      if (!card || !card.classList.contains("task")) return;
+      const below = event.target.closest(".task");      // the card you dropped on, if any
+      if (below &amp;&amp; below !== card) below.before(card);   // go just above it
+      else if (!below) list.appendChild(card);           // empty space: go to the end
+      console.log("Order:", order());
+    });
+    console.log("Board ready:", order());
+  }
+
+  loadPrefs();
+  setupBoard();
+  loadUsers();
+&lt;/script&gt;</pre>
+  <p>Press Run and the Console shows <code>Prefs: student light</code>, then <code>Board ready: Revise Fetch API | Build Kanban board | Test location finder</code>, then <code>Users loaded: 3</code>, last because fetch is asynchronous: even a pretend server answers only after the start-up code has finished. Then explore:</p>
+  <ul>
+    <li><b>Save name</b> and <b>Switch theme</b> write to <code>localStorage</code>, and <code>loadPrefs()</code> redraws the page. In this practice frame the values last only until you press Run again (Chapter 64); on a real site they would still be there tomorrow.</li>
+    <li>The users come from a pretend server, so the example works offline. On a real site, swap in <code>await fetch("https://jsonplaceholder.typicode.com/users")</code> and nothing else changes.</li>
+    <li><b>Find me</b> will usually end with the LPU sample location in this frame: a practice frame may not ask for the location at all, so the error callback runs with code 1 (<code>PERMISSION_DENIED</code>). On a real site the browser shares a location only with a secure (HTTPS) page, after the user clicks Allow. The error callback makes the tile work either way.</li>
+    <li><b>Re-ordering:</b> drop a card <i>on another card</i> and <code>below.before(card)</code> puts it just above that card; drop it on the empty space at the bottom and <code>appendChild</code> sends it to the end. <code>event.target.closest(".task")</code> finds the card even if you dropped on its text or button. The &uarr; button is the second door, and it puts focus back, as in 67.8.</li>
+  </ul>
+
+  <h3>The final assignment: a productivity dashboard</h3>
+  <p>The deck ends Unit 5 with a one-week take-home project that grows this page into your own: (1) save the username and theme; (2) retrieve data from a public API; (3) display coordinates, with permission; (4) re-arrange tasks with drag and drop; (5) handle errors gracefully everywhere; (6) a responsive, user-friendly interface. Submit a zipped folder (<code>index.html</code>, <code>style.css</code>, <code>app.js</code>) plus two screenshots, light theme and dark.</p>
+  <table class="tbl">
+    <thead><tr><th>Criterion</th><th>Marks</th><th>Criterion</th><th>Marks</th></tr></thead>
+    <tbody>
+      <tr><td>Storage (name, theme)</td><td>15</td><td>Drag and drop board</td><td>20</td></tr>
+      <tr><td>Fetch + loading state</td><td>20</td><td>Error handling, code quality</td><td>15</td></tr>
+      <tr><td>Geolocation + errors</td><td>15</td><td>UI and responsiveness</td><td>15</td></tr>
+    </tbody>
+  </table>
+  <p>The six criteria add up to 100. Error handling appears twice, which is no accident: Unit 6 opens with debugging and error handling (Chapters 68 and 70).</p>
+</section>
+
+<section id="mistakes">
+  <h2>67.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "&lt;div draggable&gt; makes it draggable."</b><br>The attribute takes the words true or false; a bare <code>draggable</code> means &ldquo;auto&rdquo;, and a div stays put.</div>
+    <div class="r"><b>&#10003; "Write draggable=&quot;true&quot; in full."</b><br>Images, links and selected text are the only things draggable without it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "preventDefault() in dragover stops the drag."</b><br>The drag carries on exactly as before.</div>
+    <div class="r"><b>&#10003; "preventDefault() in dragover allows the drop."</b><br>It cancels the browser's default refusal. Without it, <code>drop</code> never fires.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "dataTransfer carries the element to the zone."</b><br>It can only carry strings (and, from the computer, files).</div>
+    <div class="r"><b>&#10003; "dataTransfer carries the id; the drop handler finds the element."</b><br><code>getElementById(getData("text/plain"))</code>, then <code>appendChild</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "event.target is the column I dropped on."</b><br>It is the innermost element under the pointer, often another card or the heading.</div>
+    <div class="r"><b>&#10003; "Use the column variable, or event.currentTarget."</b><br>That is always the element whose listener is running.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "dragleave will clear my highlight after a drop."</b><br>A successful drop fires <code>drop</code>, not <code>dragleave</code>.</div>
+    <div class="r"><b>&#10003; "Remove the highlight in dragleave AND drop; tidy the item in dragend."</b><br><code>dragend</code> fires last, whether the drop worked or not.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Everyone can drag, so the board needs no buttons."</b><br>Many phones, every keyboard-only user and every screen-reader user cannot.</div>
+    <div class="r"><b>&#10003; "Every drag action also works by click or keyboard."</b><br>One <code>moveTask()</code>, two doors: the drop event and a real button.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. The last three are predict-the-output questions, so read the code above each one first.</p>
+  <details class="q"><summary>Which attribute makes a &lt;div&gt; draggable?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. drag="yes"</li><li>B. draggable="true"</li><li>C. movable</li><li>D. dropzone</li></ul>
+    <p><b>Answer: B.</b> <code>draggable</code> takes the words <code>"true"</code> or <code>"false"</code>, so write it in full. A, C and D are not attributes that start a drag.</p></div></details>
+  <details class="q"><summary>Why do you call event.preventDefault() inside a drop zone's dragover handler?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. To stop the drag</li><li>B. To clear the dragged data</li><li>C. To allow the drop</li><li>D. To reload the page</li></ul>
+    <p><b>Answer: C.</b> The default action of <code>dragover</code> is to refuse the drop; cancelling it says &ldquo;you may drop here&rdquo;. It does not stop the drag (A): without the call, the drag carries on and it is the <i>drop</i> that never happens.</p></div></details>
+  <details class="q"><summary>Which three events fire on the element being dragged?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. dragenter, dragover, drop</li><li>B. dragstart, dragover, dragend</li><li>C. dragenter, drag, dragleave</li><li>D. dragstart, drag, dragend</li></ul>
+    <p><b>Answer: D.</b> Start, during, end, all on the source. The other four fire on the drop target, so A lists three of the target's events, and B and C mix the two sides.</p></div></details>
+  <details class="q"><summary>In which event do you normally call event.dataTransfer.setData()?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. dragstart</li><li>B. dragenter</li><li>C. drop</li><li>D. dragend</li></ul>
+    <p><b>Answer: A.</b> The bag is filled when the drag begins and emptied with <code>getData()</code> at <code>drop</code> (C). By <code>dragend</code> (D) the drop is over, so the data would reach nobody.</p></div></details>
+  <details class="q"><summary>A card is already in the To Do column. The code runs doneColumn.appendChild(card). What happens?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A copy appears in Done and the original stays in To Do</li><li>B. The card moves to Done and is no longer in To Do</li><li>C. An error, because the card already has a parent</li><li>D. Only the card's text is moved</li></ul>
+    <p><b>Answer: B.</b> <code>appendChild</code> with an element already on the page <b>moves</b> it, because an element can only have one parent. A copy (A) would need <code>cloneNode()</code>.</p></div></details>
+  <details class="q"><summary>A drop zone stays purple after every successful drop. The code removes the "over" class only in dragleave. Why?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A successful drop fires drop, not dragleave, so the class must also be removed in the drop handler</li><li>B. classList.remove() only works inside dragend</li><li>C. preventDefault() blocks every classList change</li><li>D. CSS classes cannot be changed during a drag</li></ul>
+    <p><b>Answer: A.</b> <code>dragleave</code> fires when the item leaves, or the drag is refused or cancelled; an accepted drop never &ldquo;leaves&rdquo;. B, C and D are false: classes can be changed in any handler.</p></div></details>
+  <details class="q"><summary>Which is the best way to make a drag-and-drop task board usable for keyboard-only and touch-screen users?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Use brighter highlight colours</li><li>B. Make the cards larger</li><li>C. Listen for more drag events</li><li>D. Add buttons (or a menu) that perform the same move</li></ul>
+    <p><b>Answer: D.</b> Keyboard users cannot start an HTML drag at all, and many mobile browsers handle it poorly, so styling or extra drag events (A, B, C) cannot help. Real buttons calling the same move function can.</p></div></details>
+  <details class="q"><summary>A student's column drop handler uses event.target.appendChild(card). Dropping onto another card puts the dragged card inside that card. What should the line be?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. card.appendChild(event.target)</li><li>B. document.body.appendChild(card)</li><li>C. event.currentTarget.appendChild(card)</li><li>D. event.target.appendChild(card.cloneNode(true))</li></ul>
+    <p><b>Answer: C.</b> <code>event.target</code> is the innermost element under the pointer (the other card); <code>event.currentTarget</code>, like the <code>column</code> variable, is the element whose listener is running: the column. A turns things inside out, B takes the card off the board, D still nests a copy.</p></div></details>
+  <details class="q"><summary>Which of the four browser APIs in this unit asks for the user's permission before it works?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Web Storage</li><li>B. Fetch API</li><li>C. Geolocation API</li><li>D. Drag and Drop API</li></ul>
+    <p><b>Answer: C.</b> A location is personal, so the browser asks the user (and requires HTTPS). Fetch (B) may be restricted by the <i>server</i> through CORS, but the user is never asked.</p></div></details>
+  <pre class="code">zone.addEventListener("dragenter", () =&gt; console.log("enter"));
+zone.addEventListener("dragover", () =&gt; {});           // no preventDefault()
+zone.addEventListener("dragleave", () =&gt; console.log("leave"));
+zone.addEventListener("drop", () =&gt; console.log("drop"));
+card.addEventListener("dragend", () =&gt; console.log("end"));</pre>
+  <details class="q"><summary>Predict: the user drags the (draggable) card straight into the zone and lets go there. What does the code above print?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>enter</code>, <code>leave</code>, <code>end</code>.</b> The zone never cancels <code>dragover</code>, so it refuses the drop: on release the browser fires <code>dragleave</code> instead of <code>drop</code>. <code>dragend</code> fires however the drag ends. Add <code>event.preventDefault()</code> to <code>dragover</code> and the output becomes <code>enter</code>, <code>drop</code>, <code>end</code>.</p></div></details>
+  <pre class="code">zone.addEventListener("dragover", (event) =&gt; {
+  event.preventDefault();
+  console.log("id:", event.dataTransfer.getData("text/plain"));
+});</pre>
+  <details class="q"><summary>Predict: the dragged card set its id "t2" with setData() at dragstart. In Chrome, what does the dragover code above print, and where should the id be read instead?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>id:</code> followed by an empty string, many times.</b> During <code>dragenter</code>, <code>dragover</code> and <code>dragleave</code> the bag is sealed: you may see the formats (<code>types</code>) but not the values. Read the id in <code>drop</code>, where it gives <code>"t2"</code>, or remember the dragged element in a variable at <code>dragstart</code>.</p></div></details>
+  <pre class="code">localStorage.setItem("count", 5);
+const c = localStorage.getItem("count");
+console.log(c + 1);
+
+console.log("A");
+fetch(url).then(() =&gt; console.log("B"));
+console.log("C");</pre>
+  <details class="q"><summary>Unit revision. Predict the output of the two snippets above (assume the fetch succeeds).<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>51</code>, then <code>A</code>, <code>C</code>, <code>B</code>.</b> Storage keeps only strings, so <code>getItem</code> returns <code>"5"</code> and <code>"5" + 1</code> joins text (<code>Number(c) + 1</code> would give 6). <code>fetch()</code> returns a Promise at once, the script carries on and prints C, and the <code>.then</code> callback prints B only when the response arrives.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>draggable="true"</code> makes any element draggable; images, links and selected text drag by default.</li>
+    <li>Seven events: <code>dragstart</code>, <code>drag</code>, <code>dragend</code> on the item; <code>dragenter</code>, <code>dragover</code>, <code>dragleave</code>, <code>drop</code> on the zone. <code>dragend</code> always comes last.</li>
+    <li>No element accepts a drop by default. <code>dragover</code> must call <code>event.preventDefault()</code>, or <code>drop</code> never fires. Call it in <code>drop</code> too.</li>
+    <li><code>dataTransfer</code> carries strings: <code>setData("text/plain", id)</code> at <code>dragstart</code>, <code>getData("text/plain")</code> at <code>drop</code>. It is sealed in between.</li>
+    <li><code>appendChild</code> moves an element that is already on the page. Append to the column (or <code>event.currentTarget</code>), not <code>event.target</code>, and guard against <code>null</code>.</li>
+    <li>Feedback with CSS classes: fade the item at <code>dragstart</code> and restore it at <code>dragend</code>; highlight the zone in <code>dragover</code> and remove it in <code>dragleave</code> <b>and</b> <code>drop</code>.</li>
+    <li>Drag and drop is mouse-first. Every drag needs a button alternative calling the same function, with focus put back and the change announced.</li>
+    <li>Storage REMEMBERS (sync), Fetch TALKS (Promise), Geolocation LOCATES (callbacks, permission, HTTPS), Drag and Drop MOVES (event-driven).</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>draggable="true"</code></td><td>The element can be picked up</td></tr>
+      <tr><td><code>draggable="false"</code></td><td>Stops an image or link being dragged</td></tr>
+      <tr><td><code>event.dataTransfer.setData("text/plain", el.id)</code></td><td>In <code>dragstart</code>: put the id in the bag</td></tr>
+      <tr><td><code>event.dataTransfer.getData("text/plain")</code></td><td>In <code>drop</code>: read the id back</td></tr>
+      <tr><td><code>event.preventDefault()</code> in <code>dragover</code></td><td>Allows dropping here</td></tr>
+      <tr><td><code>event.preventDefault()</code> in <code>drop</code></td><td>Stops the browser's own handling, such as opening a link</td></tr>
+      <tr><td><code>zone.appendChild(el)</code></td><td>Moves the element into the zone</td></tr>
+      <tr><td><code>other.before(el)</code></td><td>Puts <code>el</code> just above <code>other</code> (re-ordering)</td></tr>
+      <tr><td><code>effectAllowed = "move"</code> / <code>dropEffect = "move"</code></td><td>Shows a &ldquo;move&rdquo; cursor; the two must agree</td></tr>
+      <tr><td><code>event.dataTransfer.files</code></td><td>The files dropped from the computer</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTML_Drag_and_Drop_API" target="_blank" rel="noopener noreferrer">MDN &mdash; HTML Drag and Drop API<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full list of events, with a kanban-board example and a page on dropping files.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/DataTransfer" target="_blank" rel="noopener noreferrer">MDN &mdash; DataTransfer<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every member of the bag: setData, getData, types, files, effectAllowed, dropEffect.</span></li>
+    <li><a href="https://web.dev/articles/drag-and-drop" target="_blank" rel="noopener noreferrer">web.dev &mdash; The HTML Drag and Drop API<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A second walk-through of draggable boxes, drop-zone highlights and the DataTransfer object.</span></li>
+    <li><a href="https://javascript.info/mouse-drag-and-drop" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Drag&rsquo;n&rsquo;Drop with mouse events<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Past the syllabus: dragging built by hand from mouse events, the technique libraries use when the HTML API is not enough.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references for the whole course is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

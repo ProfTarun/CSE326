@@ -1,0 +1,663 @@
+<article class="chapter" data-ch="56">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 56 &middot; DOM Selection and Manipulation</p>
+  <h1>DOM Selection and Manipulation</h1>
+  <p class="lead">Chapter 55 showed you the tree the browser builds from your HTML. This chapter gives you the two skills that every interactive page is made of: <b>finding</b> the elements you want, and <b>changing</b> them &mdash; their words, their attributes, their classes, their styles, and even whether they exist at all. Every later chapter in this unit is these few tools used in new places.</p>
+  <p class="meta">About 38 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A CSS selector points at elements: <code>p</code> by tag, <code>.card</code> by class, <code>#login</code> by id, <code>nav a</code> for an <code>a</code> somewhere inside a <code>nav</code> (<a href="book.html?ch=23">Chapter 23</a>).</li>
+      <li>The DOM is a tree of objects; <code>document.getElementById("msg")</code> finds one element or gives <code>null</code>, and <code>textContent</code> reads or replaces its text (<a href="book.html?ch=55">Chapter 55</a>).</li>
+      <li><code>forEach</code> calls a function once for every item of an array, and <code>map</code> builds a new array from the answers (<a href="book.html?ch=53">Chapter 53</a>).</li>
+      <li><code>a?.b</code> gives <code>undefined</code> instead of an error when <code>a</code> is <code>null</code> (<a href="book.html?ch=51">Chapter 51</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Find elements with <code>getElementById</code>, <code>querySelector</code>, <code>querySelectorAll</code>, <code>getElementsByClassName</code> and <code>getElementsByTagName</code>, using the CSS selectors you already know.</li>
+      <li>Explain the difference between a static NodeList and a live HTMLCollection, and loop over either one.</li>
+      <li>Predict what each finder gives when nothing matches, and guard your code against <code>null</code>.</li>
+      <li>Choose between <code>textContent</code>, <code>innerText</code> and <code>innerHTML</code>, and say why <code>innerHTML</code> is dangerous with text a user typed.</li>
+      <li>Read and change attributes and properties, including <code>data-*</code> values through <code>dataset</code>.</li>
+      <li>Change an element's look with <code>classList</code> and <code>element.style</code>, and explain why switching a class is usually better.</li>
+      <li>Create, insert, move, copy and remove elements.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>56.1 Five ways to find an element</h2>
+  <p>Before a script can change anything on a page, it has to get hold of the element's object. In Chapter 55 you did that with <code>getElementById</code>. It is fast and exact, but it only works when the element has an id, and most elements do not. Your slides list five finders, all of them methods of <code>document</code>:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Finds</th><th>Gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>getElementById("title")</code></td><td>The element with that id (no <code>#</code>)</td><td>One element, or <code>null</code></td></tr>
+      <tr><td><code>querySelector(".student")</code></td><td>The <b>first</b> element matching a CSS selector</td><td>One element, or <code>null</code></td></tr>
+      <tr><td><code>querySelectorAll(".student")</code></td><td><b>All</b> elements matching a CSS selector</td><td>A NodeList (possibly empty)</td></tr>
+      <tr><td><code>getElementsByClassName("hostel")</code></td><td>All elements with that class (no dot)</td><td>An HTMLCollection (possibly empty)</td></tr>
+      <tr><td><code>getElementsByTagName("li")</code></td><td>All elements with that tag</td><td>An HTMLCollection (possibly empty)</td></tr>
+    </tbody>
+  </table>
+  <p>The two in the middle are the ones you will use most, because they take a <b>CSS selector</b>, the same pointing language you learned for stylesheets in Unit 3. Any selector you could write before a <code>{</code> in CSS works inside the brackets, written as a string (only pseudo-elements such as <code>::before</code> never match, because they are not elements):</p>
+  <table class="tbl">
+    <thead><tr><th>Selector string</th><th>Means</th><th>Taught in</th></tr></thead>
+    <tbody>
+      <tr><td><code>"p"</code>, <code>".card"</code>, <code>"#login"</code></td><td>By tag, by class, by id</td><td>Chapter 23</td></tr>
+      <tr><td><code>"nav a"</code> / <code>"ul &gt; li"</code></td><td>An <code>a</code> anywhere inside a <code>nav</code> / an <code>li</code> directly inside a <code>ul</code></td><td>Chapter 23</td></tr>
+      <tr><td><code>".card.wide"</code></td><td>An element with both classes</td><td>Chapter 23</td></tr>
+      <tr><td><code>'input[type="checkbox"]'</code></td><td>An element with that attribute value</td><td>Chapter 23</td></tr>
+      <tr><td><code>"li:first-child"</code></td><td>An <code>li</code> that is the first child of its parent</td><td>Chapter 32</td></tr>
+    </tbody>
+  </table>
+  <p>"First" in <code>querySelector</code> means first in <span class="jw" data-def="The order in which elements appear in the HTML, reading from top to bottom. An outer element comes before the elements inside it.">document order</span>: the order the elements appear in the HTML, top to bottom. <code>querySelectorAll</code> collects every match in that same order. One rule trips up everyone once: <code>getElementById</code> and <code>getElementsByClassName</code> want a bare <b>name</b>, while the two <code>querySelector</code> methods want a <b>selector</b>. So it is <code>getElementById("title")</code> but <code>querySelector("#title")</code>, and <code>getElementsByClassName("hostel")</code> but <code>querySelectorAll(".hostel")</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Five finders and what each one gives back. getElementById and querySelector give one element or null. querySelectorAll gives a static NodeList. getElementsByClassName and getElementsByTagName give a live HTMLCollection. All three lists can be empty.">
+      <text x="160" y="18" class="t c s">what you call</text>
+      <text x="485" y="18" class="t c s">what you get back</text>
+      <rect x="10" y="30" width="300" height="34" rx="8" class="box gry"/>
+      <text x="160" y="52" class="t c mono" style="font-size:11px">document.getElementById("title")</text>
+      <path d="M312 47 L356 47" class="edge" marker-end="url(#arr)"/>
+      <rect x="360" y="30" width="250" height="34" rx="8" class="box saf"/>
+      <text x="485" y="52" class="t c b">one element, or null</text>
+      <rect x="10" y="76" width="300" height="34" rx="8" class="box gry"/>
+      <text x="160" y="98" class="t c mono" style="font-size:11px">document.querySelector(".student")</text>
+      <path d="M312 93 L356 93" class="edge" marker-end="url(#arr)"/>
+      <rect x="360" y="76" width="250" height="34" rx="8" class="box saf"/>
+      <text x="485" y="98" class="t c b">the first match, or null</text>
+      <rect x="10" y="122" width="300" height="34" rx="8" class="box gry"/>
+      <text x="160" y="144" class="t c mono" style="font-size:11px">document.querySelectorAll(".student")</text>
+      <path d="M312 139 L356 139" class="edge" marker-end="url(#arr)"/>
+      <rect x="360" y="122" width="250" height="34" rx="8" class="box blu"/>
+      <text x="485" y="144" class="t c b">NodeList &#183; static snapshot</text>
+      <rect x="10" y="168" width="300" height="34" rx="8" class="box gry"/>
+      <text x="160" y="190" class="t c mono" style="font-size:11px">document.getElementsByClassName("hostel")</text>
+      <path d="M312 185 L356 185" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="360" y="168" width="250" height="34" rx="8" class="box grn"/>
+      <text x="485" y="190" class="t c b">HTMLCollection &#183; live</text>
+      <rect x="10" y="214" width="300" height="34" rx="8" class="box gry"/>
+      <text x="160" y="236" class="t c mono" style="font-size:11px">document.getElementsByTagName("li")</text>
+      <path d="M312 231 L356 231" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="360" y="214" width="250" height="34" rx="8" class="box grn"/>
+      <text x="485" y="236" class="t c b">HTMLCollection &#183; live</text>
+      <text x="310" y="264" class="t c s">orange = a single element &#183; blue and green = lists, which are empty (length 0) when nothing matches</text>
+    </svg>
+    <figcaption><b>Figure 56.1</b> Two finders give one element; three give a list. Notice which lists are "static" and which are "live" &mdash; Section 56.2 explains the difference.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="All five finders on one small page - change a selector and Run again" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  h2 { margin: 0; color: #0B2545; }
+  .hostel { color: #B42318; }
+&lt;/style&gt;
+&lt;h2 id="title"&gt;K23 toppers&lt;/h2&gt;
+&lt;ul id="toppers"&gt;
+  &lt;li class="student"&gt;Asha&lt;/li&gt;
+  &lt;li class="student hostel"&gt;Rahul&lt;/li&gt;
+  &lt;li class="student"&gt;Meera&lt;/li&gt;
+  &lt;li class="student hostel"&gt;Imran&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p class="note"&gt;Marks are out of 100.&lt;/p&gt;
+&lt;script&gt;
+  const title = document.getElementById("title");               // a name, no #
+  console.log("1. By id:", title.textContent);
+
+  const first = document.querySelector(".student");             // a selector, with the dot
+  console.log("2. First .student:", first.textContent);
+  console.log("3. First hosteller:", document.querySelector("#toppers .hostel").textContent);
+
+  const all = document.querySelectorAll(".student");
+  console.log("4. How many .student:", all.length);
+  all.forEach((li, i) =&gt; {
+    console.log("student " + (i + 1) + ":", li.textContent);
+  });
+
+  const hostellers = document.getElementsByClassName("hostel"); // a name, no dot
+  console.log("5. By class name:", hostellers.length, "-", hostellers[0].textContent, "and", hostellers[1].textContent);
+  console.log("6. By tag name:", document.getElementsByTagName("li").length, "li elements");
+
+  console.log("7. Same object?", document.querySelector("#title") === title);
+  title.textContent = "K23 toppers (found by id)";
+&lt;/script&gt;</pre>
+  <pre class="code">1. By id: K23 toppers
+2. First .student: Asha
+3. First hosteller: Rahul
+4. How many .student: 4
+student 1: Asha
+student 2: Rahul
+student 3: Meera
+student 4: Imran
+5. By class name: 2 - Rahul and Imran
+6. By tag name: 4 li elements
+7. Same object? true</pre>
+  <p>Line 2 found Asha because she is the first <code>.student</code> in document order; the other three matches were ignored. Line 3 used a descendant selector, "an element with class <code>hostel</code> inside <code>#toppers</code>": Rahul. <code>querySelectorAll</code> found all four, and <code>forEach</code> visited them in order. Line 7 shows that two finders pointing at the same element hand back <b>the very same object</b>, not two copies.</p>
+  <h3>Searching inside one element</h3>
+  <p><code>querySelector</code> and <code>querySelectorAll</code> are also methods of every element. Called on an element, they search only <b>below</b> it. On a page with a dozen lists, <code>document.querySelectorAll("li")</code> finds every item on the page, but <code>toppers.querySelectorAll("li")</code> finds only the items inside the toppers list.</p>
+  <div class="plain"><p>Use <code>getElementById</code> when the element has an id. Use <code>querySelector</code> for "the first element that matches this CSS selector" and <code>querySelectorAll</code> for "every element that matches". Ids and classes go in bare to the <code>getElement...</code> methods and with their <code>#</code> or <code>.</code> to the <code>querySelector</code> methods.</p></div>
+  <details class="qc"><summary>Quick check: which finder call is wrong, and what does it give? <code>document.querySelector("toppers")</code></summary><p>The selector <code>"toppers"</code> has no <code>#</code>, so it means "an element whose <b>tag</b> is <code>toppers</code>". There is no such tag, so it gives <code>null</code>. Write <code>querySelector("#toppers")</code> or <code>getElementById("toppers")</code>.</p></details>
+</section>
+
+<section id="s2">
+  <h2>56.2 Lists of elements: static and live</h2>
+  <p>Three finders return a list. Neither kind of list is a real array, but both behave like one in the ways you need most: they have a <code>length</code>, you read items with <code>[0]</code>, <code>[1]</code> and so on, and a <code>for...of</code> loop (Chapter 52) walks through them. They differ in two ways.</p>
+  <p><b>1. Static or live.</b> <code>querySelectorAll</code> returns a <span class="jw" data-def="A list-like object of nodes handed out by the DOM. The one from querySelectorAll is a fixed snapshot and has a forEach method.">NodeList</span> that is a <b>static snapshot</b>: it lists what matched at the moment you asked, and it never changes afterwards. <code>getElementsByClassName</code> and <code>getElementsByTagName</code> return an HTMLCollection that is <span class="jw" data-def="Kept up to date automatically. A live list re-checks the page every time you read it, so it grows and shrinks as elements are added or removed.">live</span>: it keeps watching the page, so when an element with that class is added or removed, the collection grows or shrinks by itself.</p>
+  <div class="callout analogy"><b>Picture this.</b> Your class teacher keeps the attendance register on her desk. You ask for the list of students and get one of two things. Either she <b>photocopies</b> today's page and hands it to you &mdash; that is <code>querySelectorAll</code>. A student who joins tomorrow is in the register but not on your photocopy; to see them you must ask for a fresh copy. Or she lets you <b>read the register itself</b> &mdash; that is <code>getElementsByClassName</code>. Whenever you look, it is up to date, because it <i>is</i> the register. Handy, but if you are crossing names out while you read down the page, the lines shift under your finger.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="Before a new item Meera is added, both the snapshot from querySelectorAll and the live collection from getElementsByClassName hold Asha and Rahul. After the item is appended, the snapshot still holds only Asha and Rahul, length 2, while the live collection holds Asha, Rahul and Meera, length 3.">
+      <text x="270" y="22" class="t c b">Before</text>
+      <text x="505" y="22" class="t c b">After list.append(meera)</text>
+      <path d="M383 30 L383 196" class="edge dash"/>
+      <text x="10" y="70" class="t b">snapshot</text>
+      <text x="10" y="88" class="t s mono">querySelectorAll</text>
+      <rect x="170" y="54" width="90" height="36" rx="8" class="box blu"/>
+      <text x="215" y="77" class="t c b">Asha</text>
+      <rect x="268" y="54" width="90" height="36" rx="8" class="box blu"/>
+      <text x="313" y="77" class="t c b">Rahul</text>
+      <text x="270" y="110" class="t c s">length 2</text>
+      <rect x="400" y="54" width="90" height="36" rx="8" class="box blu"/>
+      <text x="445" y="77" class="t c b">Asha</text>
+      <rect x="498" y="54" width="90" height="36" rx="8" class="box blu"/>
+      <text x="543" y="77" class="t c b">Rahul</text>
+      <text x="505" y="110" class="t c s">length 2 &#8212; Meera is missing</text>
+      <text x="10" y="150" class="t b">live</text>
+      <text x="10" y="168" class="t s mono">getElementsByClassName</text>
+      <rect x="170" y="134" width="90" height="36" rx="8" class="box grn"/>
+      <text x="215" y="157" class="t c b">Asha</text>
+      <rect x="268" y="134" width="90" height="36" rx="8" class="box grn"/>
+      <text x="313" y="157" class="t c b">Rahul</text>
+      <text x="270" y="190" class="t c s">length 2</text>
+      <rect x="400" y="134" width="66" height="36" rx="8" class="box grn"/>
+      <text x="433" y="157" class="t c b">Asha</text>
+      <rect x="472" y="134" width="66" height="36" rx="8" class="box grn"/>
+      <text x="505" y="157" class="t c b">Rahul</text>
+      <rect x="544" y="134" width="66" height="36" rx="8" class="box saf"/>
+      <text x="577" y="157" class="t c b">Meera</text>
+      <text x="505" y="190" class="t c s">length 3 &#8212; updated by itself</text>
+    </svg>
+    <figcaption><b>Figure 56.2</b> The same two lists before and after a new <code>.item</code> joins the page. The snapshot remembers the moment it was taken; the live collection always shows the page as it is now.</figcaption>
+  </figure>
+  <p><b>2. Which tools they carry.</b> A NodeList has a <code>forEach</code> method; an HTMLCollection does not, so calling <code>forEach</code> on one stops the script with <i>TypeError: ... forEach is not a function</i>. Neither has <code>map</code> or <code>filter</code>. When you need the array methods of Chapter 53, turn either list into a real array first with <code>Array.from(list)</code> (Chapter 50).</p>
+  <pre class="code" data-run data-title="A snapshot and a live list, before and after a new item - try adding a second new item" data-h="140">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+&lt;/style&gt;
+&lt;ul id="list"&gt;
+  &lt;li class="item"&gt;Asha&lt;/li&gt;
+  &lt;li class="item"&gt;Rahul&lt;/li&gt;
+&lt;/ul&gt;
+&lt;script&gt;
+  const snapshot = document.querySelectorAll(".item");     // static NodeList
+  const live = document.getElementsByClassName("item");     // live HTMLCollection
+  console.log("1. Before: snapshot", snapshot.length, "| live", live.length);
+
+  // add a third item (Section 56.8 explains these four lines)
+  const meera = document.createElement("li");
+  meera.className = "item";
+  meera.textContent = "Meera";
+  document.getElementById("list").append(meera);
+
+  console.log("2. After: snapshot", snapshot.length, "| live", live.length);
+  console.log("3. A fresh snapshot:", document.querySelectorAll(".item").length);
+
+  console.log("4. NodeList forEach:", typeof snapshot.forEach);
+  console.log("5. HTMLCollection forEach:", typeof live.forEach);
+  for (const li of live) {
+    console.log("for...of:", li.textContent);
+  }
+  const names = Array.from(live).map((li) =&gt; li.textContent);
+  console.log("6. As a real array:", names);
+&lt;/script&gt;</pre>
+  <pre class="code">1. Before: snapshot 2 | live 2
+2. After: snapshot 2 | live 3
+3. A fresh snapshot: 3
+4. NodeList forEach: function
+5. HTMLCollection forEach: undefined
+for...of: Asha
+for...of: Rahul
+for...of: Meera
+6. As a real array: ['Asha', 'Rahul', 'Meera']</pre>
+  <p>Line 2 is the whole story of this section: after Meera joined, the snapshot still says 2 and the live collection says 3. To see Meera through <code>querySelectorAll</code> you have to ask again (line 3). Lines 4 and 5 show the difference in tools: <code>typeof</code> reports a function on the NodeList and <code>undefined</code> on the HTMLCollection. <code>for...of</code> works on both, and <code>Array.from</code> turned the live collection into an ordinary array, so <code>map</code> could run.</p>
+  <div class="callout warn"><b>The live list that skips items.</b> Suppose you loop over <code>document.getElementsByClassName("new")</code> with an index and remove the class <code>new</code> from each item. Every removal makes the live collection shorter at once, so the next item slides down into the slot you just handled, and your loop jumps over it: only half of the items lose the class. A <code>querySelectorAll</code> snapshot does not shift, so loop over a snapshot whenever the loop changes the page.</div>
+  <div class="callout exam"><b>Exam tip.</b> One sentence answers most questions here: <i>querySelectorAll returns a static NodeList; getElementsByClassName and getElementsByTagName return a live HTMLCollection.</i> (The <code>childNodes</code> list from Chapter 55 is a NodeList too, but a live one &mdash; the "static" belongs to <code>querySelectorAll</code>.)</div>
+</section>
+
+<section id="s3">
+  <h2>56.3 When nothing matches</h2>
+  <p>A finder that finds nothing does not stop your script. What it gives depends on its kind:</p>
+  <ul>
+    <li><code>getElementById</code> and <code>querySelector</code> give <b><code>null</code></b>, the value that means "nothing here" (Chapter 43).</li>
+    <li>The three list finders give an <b>empty list</b>, with <code>length</code> 0. A <code>forEach</code> or <code>for...of</code> over an empty list simply runs zero times, so there is nothing to guard.</li>
+  </ul>
+  <p>The danger is the next line. Asking <code>null</code> for a property is an error, so <code>document.querySelector("#reslt").textContent = "Saved"</code>, with a typing slip in the id, stops the script with <i>TypeError: Cannot set properties of null (setting 'textContent')</i>. Chapter 55 showed the other common cause: the script ran before the element was built. When an element might really be missing &mdash; for example, a script shared by several pages, only some of which have a results box &mdash; check before you use it:</p>
+  <pre class="code">const box = document.querySelector("#result");
+if (box) {                      // null counts as false, an element as true
+  box.textContent = "Saved!";
+} else {
+  console.warn("No #result element on this page");
+}
+
+// shorter, when doing nothing is the right answer:
+document.querySelector("#result")?.classList.add("done");</pre>
+  <p>The second form uses optional chaining from Chapter 51: if the finder gives <code>null</code>, <code>?.</code> stops quietly and the line does nothing. It works for reading and for calling a method, but <b>not</b> for assigning: <code>document.querySelector("#result")?.textContent = "Saved!"</code> is a <i>SyntaxError</i>, and the whole script refuses to run. Use the <code>if</code> for assignments.</p>
+  <div class="callout warn"><b>Do not guard everything.</b> When an element <i>must</i> be on the page, a check only hides your typing slips. Let the TypeError appear: the Console names the line. Guard only elements that may honestly be absent.</div>
+  <details class="qc"><summary>Quick check: the page has no element with class <code>tag</code>. What happens on <code>document.querySelectorAll(".tag").forEach((t) =&gt; t.remove());</code>?</summary><p><b>Nothing, and no error.</b> <code>querySelectorAll</code> gives an empty NodeList, and <code>forEach</code> over an empty list calls the function zero times. Only the single-element finders give <code>null</code>.</p></details>
+</section>
+
+<section id="s4">
+  <h2>56.4 Changing what an element says</h2>
+  <p>Once you hold an element, three properties read and replace what is inside it. Your slides put the key difference in two lines: <b><code>textContent</code> inserts text without interpreting it as HTML; <code>innerHTML</code> parses the supplied string as HTML.</b> The third, <code>innerText</code>, looks like a twin of <code>textContent</code> but follows the screen instead of the tree.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>textContent</code></th><th><code>innerText</code></th><th><code>innerHTML</code></th></tr></thead>
+    <tbody>
+      <tr><td>Reading gives</td><td>All the text in the tree below the element</td><td>Only the text you can <b>see</b>, with line breaks where the screen has them</td><td>The markup inside, tags and all, as a string</td></tr>
+      <tr><td>Hidden text (<code>display: none</code>)</td><td>Included</td><td>Left out</td><td>Included, inside its tags</td></tr>
+      <tr><td>Writing <code>"&lt;b&gt;Hi&lt;/b&gt;"</code></td><td>Shows the characters <code>&lt;b&gt;Hi&lt;/b&gt;</code></td><td>Shows the characters <code>&lt;b&gt;Hi&lt;/b&gt;</code></td><td>Builds a <code>b</code> element: <b>Hi</b></td></tr>
+      <tr><td>Speed</td><td>Fast</td><td>Slower: the browser must work out the layout first</td><td>Slower: the browser must parse</td></tr>
+      <tr><td>Use it for</td><td>Almost everything</td><td>Copying text exactly as the user sees it</td><td>Markup you wrote yourself</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Three ways to read, two ways to write - edit the text in the const and Run again" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  .hide { display: none; }
+  .out { border: 1px dashed #94A3B8; border-radius: 8px; padding: 6px 10px; margin-top: 8px; }
+&lt;/style&gt;
+&lt;p id="fee"&gt;Fee: &#8377;&lt;span class="hide"&gt;450 &lt;/span&gt;500&lt;br&gt;Due: Friday&lt;/p&gt;
+&lt;div class="out" id="asText"&gt;&lt;/div&gt;
+&lt;div class="out" id="asHTML"&gt;&lt;/div&gt;
+&lt;script&gt;
+  const fee = document.getElementById("fee");
+  // JSON.stringify shows exactly which characters came back
+  console.log("1. textContent:", JSON.stringify(fee.textContent));
+  console.log("2. innerHTML:", fee.innerHTML);
+
+  const message = "&lt;b&gt;Asha&lt;/b&gt; scored 92";
+  const asText = document.getElementById("asText");
+  const asHTML = document.getElementById("asHTML");
+  asText.textContent = message;        // the characters go in as typed
+  asHTML.innerHTML = message;          // the string is parsed: a b element is built
+  console.log("3. Elements built: textContent", asText.children.length, "| innerHTML", asHTML.children.length);
+
+  // innerText reads the page as it is drawn on screen. A preview frame is drawn
+  // a moment after its script starts, so wait 300 ms first (setTimeout, Chapter 54).
+  setTimeout(() =&gt; {
+    console.log("4. innerText:", JSON.stringify(fee.innerText));
+  }, 300);
+&lt;/script&gt;</pre>
+  <pre class="code">1. textContent: "Fee: &#8377;450 500Due: Friday"
+2. innerHTML: Fee: &#8377;&lt;span class="hide"&gt;450 &lt;/span&gt;500&lt;br&gt;Due: Friday
+3. Elements built: textContent 0 | innerHTML 1
+4. innerText: "Fee: &#8377;500\nDue: Friday"</pre>
+  <p>The old fee, 450, sits in a hidden span. <code>textContent</code> (line 1) collects it anyway, and runs the words together where the <code>&lt;br&gt;</code> was, because a <code>br</code> holds no text. <code>innerHTML</code> (line 2) hands back the markup itself. Then the same string goes in twice. In the first box you see the angle brackets as plain characters; in the second, the browser built a real <code>b</code> element, so Asha appears in bold. Line 3 counts the elements that were built: none, and one. Line 4 arrives last, because it waited for the page to be drawn: <code>innerText</code> gives what a reader sees, with no hidden 450 and a <code>\n</code> line break where the screen breaks the line. (On an ordinary page, a script at the end of the body can read <code>innerText</code> straight away; the browser works out the layout on the spot.)</p>
+  <h3>Why innerHTML needs care</h3>
+  <p><code>innerHTML</code> turns a string into elements, and it does not ask who wrote the string. If the string came from a user &mdash; a comment box, a name field &mdash; that user can type tags, and a tag can carry an attribute that runs JavaScript, such as <code>onerror</code> on an <code>img</code>. Text has then become a program running in other people's browsers, an attack called <span class="jw" data-def="Cross-site scripting: an attack in which text typed by one person runs as code in other people's browsers, because a page inserted it as HTML.">XSS</span>. Chapter 58 shows the attack happening and how to build safely. The rule for now is short: <b>user text goes in with <code>textContent</code>; <code>innerHTML</code> only ever receives markup you wrote yourself.</b></p>
+  <p>Two smaller facts. <code>list.innerHTML = ""</code> empties an element in one go. And <code>list.innerHTML += "&lt;li&gt;New&lt;/li&gt;"</code> does not just add one item: it rebuilds every element inside from a string, throwing the old ones away. Section 56.8 shows the proper way to add.</p>
+  <div class="plain"><p><code>textContent</code> is the safe, fast default: words in, words out. <code>innerText</code> gives only what is visible. <code>innerHTML</code> reads and writes tags, so give it only HTML you wrote, never text a user typed.</p></div>
+  <details class="qc"><summary>Quick check: a name box holds <code>&lt;i&gt;Rahul&lt;/i&gt;</code>. Which line shows the name exactly as typed, angle brackets and all: <code>out.textContent = name</code> or <code>out.innerHTML = name</code>?</summary><p><b><code>out.textContent = name</code>.</b> It puts the characters in as text. <code>innerHTML</code> would build an <code>i</code> element and show <i>Rahul</i> in italics, and with nastier input it could run code.</p></details>
+</section>
+
+<section id="s5">
+  <h2>56.5 Attributes and properties</h2>
+  <p>Every element in your HTML can carry <span class="jw" data-def="A name=value setting written inside an opening tag, such as href=&quot;notes.html&quot; or alt=&quot;campus&quot;.">attributes</span>: <code>href</code> on a link, <code>src</code> and <code>alt</code> on an image, <code>type</code> and <code>value</code> on an input. Four methods work on any attribute by its name, exactly as it is written in the HTML:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Does</th></tr></thead>
+    <tbody>
+      <tr><td><code>el.getAttribute("href")</code></td><td>Reads the attribute's text, or <code>null</code> if the element does not have it</td></tr>
+      <tr><td><code>el.setAttribute("href", "unit5.html")</code></td><td>Adds the attribute, or changes it if it is already there</td></tr>
+      <tr><td><code>el.removeAttribute("title")</code></td><td>Takes the attribute off the element</td></tr>
+      <tr><td><code>el.hasAttribute("title")</code></td><td><code>true</code> or <code>false</code></td></tr>
+    </tbody>
+  </table>
+  <p>The most common attributes also have a ready-made <b>property</b> of the same name on the element object, which is shorter to write: <code>img.src</code>, <code>img.alt</code>, <code>link.href</code>, <code>input.value</code>, <code>box.checked</code>, <code>button.disabled</code>. You met two in Chapter 55: <code>id</code>, and <code>className</code> for the <code>class</code> attribute. Usually the attribute and the property mirror each other: set one and the other changes. Three differences are worth knowing.</p>
+  <ul>
+    <li><b><code>value</code>.</b> The <code>value</code> attribute of an input is only its <b>starting</b> text. The <code>value</code> property is what is in the box <b>now</b>, after the user has typed. To read what someone typed, always use the property, <code>input.value</code>. Changing the property does not change the attribute. A checkbox's <code>checked</code> works the same way: the attribute is the starting tick, the property is the tick now.</li>
+    <li><b>Yes/no attributes.</b> <code>checked</code>, <code>disabled</code> and <code>hidden</code> work by being present or absent; their properties are <code>true</code> or <code>false</code>. Write <code>button.disabled = false</code>, not <code>setAttribute("disabled", "false")</code> &mdash; the second one <i>adds</i> the attribute, and a button that has <code>disabled</code> at all is disabled, whatever text the attribute holds.</li>
+    <li><b><code>href</code> and <code>src</code>.</b> The attribute is the text you wrote, such as <code>notes.html</code>. The property is the full address the browser worked out from it, such as <code>https://site.example/unit5/notes.html</code>.</li>
+  </ul>
+  <h3>Your own data: <code>data-*</code> and <code>dataset</code></h3>
+  <p>Sometimes an element needs to carry a fact that HTML has no attribute for: a student's roll number, a product's price, which question a button belongs to. HTML lets you invent attributes for this, as long as the name starts with <code>data-</code>: <code>data-roll-no="12"</code>, <code>data-section="K23"</code>. They do nothing on their own, but scripts can read them, and Chapter 57 uses them to tell buttons apart.</p>
+  <p>JavaScript reads them through one property, <code>dataset</code>, an object holding every <code>data-</code> attribute of the element. Drop the <code>data-</code> from the name and write the rest in <span class="jw" data-def="A way of joining words without spaces where every word after the first starts with a capital letter: rollNo, backgroundColor.">camelCase</span>: <code>data-roll-no</code> becomes <code>dataset.rollNo</code>. Two facts follow: the values are always <b>strings</b>, so <code>"12"</code> needs <code>Number()</code> before you do sums with it, and assigning a new key, <code>dataset.status = "present"</code>, writes a new <code>data-status</code> attribute onto the element.</p>
+  <pre class="code" data-run data-title="Attributes, properties and dataset - change value=&quot;Asha&quot; in the HTML and Run again" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  p { margin: 6px 0; }
+&lt;/style&gt;
+&lt;p&gt;&lt;a id="link" href="notes.html" title="Unit 5 notes"&gt;Unit 5 notes&lt;/a&gt;&lt;/p&gt;
+&lt;img id="pic" src="media/campus.svg" alt="LPU campus" width="160"&gt;
+&lt;p&gt;&lt;input id="name" type="text" value="Asha"&gt;
+   &lt;label&gt;&lt;input id="agree" type="checkbox"&gt; I agree&lt;/label&gt;&lt;/p&gt;
+&lt;p id="stu" data-roll-no="12" data-section="K23"&gt;Rahul&lt;/p&gt;
+&lt;script&gt;
+  const link = document.getElementById("link");
+  console.log("1. href attribute:", link.getAttribute("href"));
+  console.log("2. href property is a full address?", link.href.length &gt; "notes.html".length);
+  link.setAttribute("href", "https://www.lpu.in/");
+  link.removeAttribute("title");
+  console.log("3. After: href =", link.getAttribute("href"), "| has title?", link.hasAttribute("title"));
+
+  const pic = document.getElementById("pic");
+  pic.alt = "Map of the LPU campus";              // property and attribute stay in step
+  console.log("4. alt:", pic.getAttribute("alt"));
+
+  const name = document.getElementById("name");
+  name.value = "Rahul";                            // what is in the box now
+  console.log("5. value property:", name.value, "| value attribute:", name.getAttribute("value"));
+
+  const agree = document.getElementById("agree");
+  console.log("6. checked before:", agree.checked);
+  agree.checked = true;                            // the tick appears
+  console.log("7. checked after:", agree.checked);
+
+  const stu = document.getElementById("stu");
+  console.log("8. dataset:", stu.dataset.rollNo, stu.dataset.section, "| type:", typeof stu.dataset.rollNo);
+  stu.dataset.status = "present";                  // writes data-status="present"
+  console.log("9.", stu.outerHTML);
+&lt;/script&gt;</pre>
+  <pre class="code">1. href attribute: notes.html
+2. href property is a full address? true
+3. After: href = https://www.lpu.in/ | has title? false
+4. alt: Map of the LPU campus
+5. value property: Rahul | value attribute: Asha
+6. checked before: false
+7. checked after: true
+8. dataset: 12 K23 | type: string
+9. &lt;p id="stu" data-roll-no="12" data-section="K23" data-status="present"&gt;Rahul&lt;/p&gt;</pre>
+  <p>Line 2 checks that the <code>href</code> property is longer than the <code>notes.html</code> you wrote: the browser has turned <code>notes.html</code> into a full address. (The exact address depends on where the page lives, which is why the example does not print it.) Line 5 is the <code>value</code> difference: the box now shows Rahul, but the attribute still remembers the starting text, Asha. Line 8 shows that <code>dataset</code> values come back as strings. Line 9 uses <code>outerHTML</code> from Chapter 55 to show the new <code>data-status</code> attribute, written into the element by one assignment.</p>
+  <div class="plain"><p>Attributes are what the HTML says; properties are the live values on the object. For everyday attributes either works and they stay in step. For what a user typed, read the <code>value</code> property; for yes/no settings, set <code>true</code> or <code>false</code>; for your own facts, use <code>data-</code> attributes and read them with <code>dataset</code>.</p></div>
+</section>
+
+<section id="s6">
+  <h2>56.6 Classes: classList, not className</h2>
+  <p>The most useful change you can make to an element is to switch a <b>class</b> on or off, because a class brings a whole group of CSS rules with it. Chapter 55 showed <code>className</code>, the <code>class</code> attribute as one string. Assigning to it <b>replaces every class</b> the element had: on <code>&lt;div class="card absent"&gt;</code>, the line <code>div.className = "topper"</code> leaves just <code>topper</code>, and the card's border and padding disappear with the lost <code>card</code> class.</p>
+  <p>So for changing classes, use <code>classList</code>. It holds the element's classes as a small list and handles one class at a time, leaving the others alone:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th><th>Gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>el.classList.add("topper")</code></td><td>Adds the class (no effect if it is already there)</td><td>nothing</td></tr>
+      <tr><td><code>el.classList.remove("absent")</code></td><td>Removes the class (no error if it was not there)</td><td>nothing</td></tr>
+      <tr><td><code>el.classList.toggle("topper")</code></td><td>Adds it if missing, removes it if present</td><td><code>true</code> if the class is now on, <code>false</code> if now off</td></tr>
+      <tr><td><code>el.classList.contains("topper")</code></td><td>Changes nothing; just asks</td><td><code>true</code> or <code>false</code></td></tr>
+      <tr><td><code>el.classList.replace("old", "new")</code></td><td>Swaps one class for another</td><td><code>true</code> if <code>old</code> was there</td></tr>
+    </tbody>
+  </table>
+  <p><code>add</code> and <code>remove</code> can take several names at once, <code>el.classList.add("card", "topper")</code>. Like <code>getElementsByClassName</code>, every <code>classList</code> method wants the bare class name: <code>"topper"</code>, never <code>".topper"</code>. <code>toggle</code> is the switch you will use most, for anything with an on and an off: a dark theme, an open menu, a selected answer.</p>
+</section>
+
+<section id="s7">
+  <h2>56.7 Inline styles with element.style</h2>
+  <p>Your slides' topic "Changing CSS using JavaScript" has a direct route too. Every element has a <code>style</code> property, and each CSS property is a property of it. Set one and the browser writes it into the element's <code>style</code> attribute as an inline style:</p>
+  <pre class="code">box.style.color = "white";
+box.style.backgroundColor = "#138808";   // CSS: background-color
+box.style.fontSize = "18px";             // CSS: font-size  - a string, with its unit
+box.style.display = "none";              // hides the element
+box.style.display = "";                  // removes the inline value: back to the stylesheet</pre>
+  <p>Three rules. <b>Names are camelCase</b>: a CSS name with hyphens loses them and capitalises the next letter, because a hyphen in JavaScript is a minus sign &mdash; <code>box.style.background-color</code> would mean <code>box.style.background</code> minus <code>color</code>. <b>Values are strings</b>, exactly as you would write them in CSS, units included: <code>"18px"</code>, not <code>18</code>. And <b>reading <code>style</code> sees only inline styles</b>: if the colour came from a stylesheet, <code>box.style.color</code> is an empty string. To ask what the browser is actually using, call <code>getComputedStyle(box).color</code>.</p>
+  <h3>Why a class is usually better</h3>
+  <p>Inline styles work, but they make a mess:</p>
+  <ul>
+    <li><b>The design is split</b> between the stylesheet and your scripts, so nobody can find all of it in one place.</li>
+    <li><b>Turning it off is clumsy.</b> Five <code>style</code> lines to switch a look on need five more to switch it off. A class needs one <code>toggle</code>.</li>
+    <li><b>Inline styles beat your stylesheet.</b> An inline style beats every selector in the stylesheet (only an <code>!important</code> rule from Chapter 23 beats it), so it keeps winning even after you add a class that should change it. The example below shows this.</li>
+  </ul>
+  <p>So the habit is: <b>describe each look once, as a class in your CSS, and let JavaScript switch classes.</b> Keep <code>element.style</code> for values that are worked out while the page runs, such as a progress bar whose width is <code>`${percent}%`</code>.</p>
+  <pre class="code" data-run data-title="classList, className and style on three cards - then press the button a few times" data-h="270">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  .card { border: 2px solid #CBD5E1; border-radius: 10px; padding: 6px 12px; margin: 6px 0; }
+  .topper { border-color: #138808; background: #E7F6EC; }
+  .absent { opacity: 0.5; text-decoration: line-through; }
+  button { font: inherit; padding: 6px 10px; border-radius: 6px; }
+&lt;/style&gt;
+&lt;div id="asha" class="card"&gt;Asha - 92&lt;/div&gt;
+&lt;div id="rahul" class="card absent"&gt;Rahul - 0&lt;/div&gt;
+&lt;div id="meera" class="card"&gt;Meera - 78&lt;/div&gt;
+&lt;button id="btn" type="button"&gt;Toggle topper on Meera&lt;/button&gt;
+&lt;script&gt;
+  const asha = document.getElementById("asha");
+  const rahul = document.getElementById("rahul");
+  const meera = document.getElementById("meera");
+
+  asha.classList.add("topper");
+  console.log("1. Asha:", asha.className);
+  rahul.classList.remove("absent");
+  console.log("2. Rahul:", rahul.className, "| topper?", rahul.classList.contains("topper"));
+  console.log("3. toggle:", meera.classList.toggle("topper"), "then", meera.classList.toggle("topper"));
+
+  rahul.className = "topper";                       // replaces EVERY class
+  console.log("4. Rahul after className:", rahul.className);
+
+  meera.style.backgroundColor = "#FFF4E5";          // inline style, camelCase name
+  meera.style.fontWeight = "bold";
+  console.log("5. style.fontWeight:", meera.style.fontWeight);
+  console.log("6. style.borderRadius:", JSON.stringify(meera.style.borderRadius));
+  console.log("7. computed borderRadius:", getComputedStyle(meera).borderRadius);
+
+  // Chapter 57 explains this line: run the function on every click
+  document.getElementById("btn").addEventListener("click", () =&gt; {
+    console.log("Meera is a topper now?", meera.classList.toggle("topper"));
+  });
+&lt;/script&gt;</pre>
+  <pre class="code">1. Asha: card topper
+2. Rahul: card | topper? false
+3. toggle: true then false
+4. Rahul after className: topper
+5. style.fontWeight: bold
+6. style.borderRadius: ""
+7. computed borderRadius: 10px</pre>
+  <p>Line 1: Asha keeps <code>card</code> and gains <code>topper</code>, so her card turns green. Line 2: <code>remove</code> took only <code>absent</code> away, so Rahul is no longer struck through. Line 3 shows <code>toggle</code> reporting each flip: on, then off. Line 4 is the <code>className</code> trap: Rahul's class is now <i>only</i> <code>topper</code>. He has the green background, but his border and padding vanished with <code>card</code>. Lines 6 and 7 show that <code>style</code> reads inline values only: the rounded corners come from the stylesheet, so <code>style.borderRadius</code> is empty while <code>getComputedStyle</code> reports <code>10px</code>.</p>
+  <p>Now press the button. The Console prints <i>Meera is a topper now? true</i>, and her border turns green &mdash; but her background stays orange-cream, because the inline <code>background-color</code> beats the <code>.topper</code> rule. Press again: <i>false</i>, and the border goes back to grey. That is the third reason in action: once a script has set an inline style, your classes can no longer change that property.</p>
+  <div class="plain"><p>Write each look once as a CSS class. Switch it with <code>classList.add</code>, <code>remove</code> and <code>toggle</code>, which leave the other classes alone. Assigning to <code>className</code> wipes them all. Use <code>style</code>, with camelCase names and string values, only for a value your code works out.</p></div>
+</section>
+
+<section id="s8">
+  <h2>56.8 Creating, inserting and removing elements</h2>
+  <p>So far every element was already in the HTML. A script can also make new ones. Building an element takes three steps, and the third is the one beginners forget:</p>
+  <ol>
+    <li><b>Create</b> it: <code>const li = document.createElement("li");</code> gives a brand-new, empty <code>li</code> element object.</li>
+    <li><b>Fill</b> it: <code>li.textContent = "Meera";</code>, plus any classes or attributes it needs.</li>
+    <li><b>Insert</b> it: <code>list.append(li);</code> puts it into the tree, and only now does it appear on the page.</li>
+  </ol>
+  <p>Between steps 1 and 3 the element exists only in memory, like a letter written but not posted: no finder can see it and nothing shows on screen. Where it goes is measured from an element already on the page:</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="Where each insertion method puts a new element, measured from a ul. before puts it above the ul as a sibling, matching the insertAdjacentHTML position beforebegin. prepend puts it inside the ul as the first child, afterbegin. Below the existing items Rahul and Meera, append puts it inside as the last child, beforeend. after puts it below the ul as a sibling, afterend.">
+      <text x="75" y="18" class="t c s">where it lands</text>
+      <text x="305" y="18" class="t c s">method on the list</text>
+      <text x="540" y="18" class="t c s">insertAdjacentHTML</text>
+      <rect x="175" y="28" width="260" height="30" rx="8" class="box saf"/>
+      <text x="305" y="48" class="t c b mono">list.before(el)</text>
+      <text x="75" y="48" class="t c s">sibling above</text>
+      <text x="540" y="48" class="t c mono" style="font-size:12px">"beforebegin"</text>
+      <rect x="150" y="70" width="310" height="164" rx="12" class="box blu"/>
+      <text x="166" y="88" class="t s mono">&lt;ul id="list"&gt;</text>
+      <rect x="175" y="96" width="260" height="30" rx="8" class="box saf"/>
+      <text x="305" y="116" class="t c b mono">list.prepend(el)</text>
+      <text x="75" y="116" class="t c s">first child</text>
+      <text x="540" y="116" class="t c mono" style="font-size:12px">"afterbegin"</text>
+      <rect x="175" y="134" width="260" height="26" rx="8" class="box gry"/>
+      <text x="305" y="152" class="t c">li &#183; Rahul</text>
+      <rect x="175" y="166" width="260" height="26" rx="8" class="box gry"/>
+      <text x="305" y="184" class="t c">li &#183; Meera</text>
+      <rect x="175" y="198" width="260" height="30" rx="8" class="box saf"/>
+      <text x="305" y="218" class="t c b mono">list.append(el)</text>
+      <text x="75" y="218" class="t c s">last child</text>
+      <text x="540" y="218" class="t c mono" style="font-size:12px">"beforeend"</text>
+      <rect x="175" y="244" width="260" height="30" rx="8" class="box saf"/>
+      <text x="305" y="264" class="t c b mono">list.after(el)</text>
+      <text x="75" y="264" class="t c s">sibling below</text>
+      <text x="540" y="264" class="t c mono" style="font-size:12px">"afterend"</text>
+    </svg>
+    <figcaption><b>Figure 56.3</b> Four places to put a new element, measured from the list. <code>prepend</code> and <code>append</code> go inside it; <code>before</code> and <code>after</code> go outside it, as its siblings. The right-hand column gives the matching position name for <code>insertAdjacentHTML</code>.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Puts the new content</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><code>parent.append(a, b, ...)</code></td><td>Inside, at the end</td><td>Takes several elements or plain strings at once</td></tr>
+      <tr><td><code>parent.appendChild(el)</code></td><td>Inside, at the end</td><td>The older form: exactly one element, and it returns that element</td></tr>
+      <tr><td><code>parent.prepend(el)</code></td><td>Inside, at the start</td><td></td></tr>
+      <tr><td><code>el.before(x)</code> / <code>el.after(x)</code></td><td>Outside, just above / just below</td><td>New siblings, not children</td></tr>
+      <tr><td><code>el.insertAdjacentHTML(position, html)</code></td><td>At one of the four positions in Figure 56.3</td><td>Parses a string of HTML, so the <code>innerHTML</code> safety rule applies</td></tr>
+      <tr><td><code>el.remove()</code></td><td>&mdash;</td><td>Takes the element, and everything inside it, out of the page</td></tr>
+    </tbody>
+  </table>
+  <p><code>insertAdjacentHTML</code> is the polite cousin of <code>innerHTML +=</code>: it parses your markup and adds the new elements at one position, leaving every existing element untouched. <code>remove()</code> needs no parent: you call it on the element that should go.</p>
+  <h3>Moving and copying</h3>
+  <p>An element can be in only one place in the tree. So when you <code>append</code> or <code>appendChild</code> an element that is <b>already on the page</b>, it is not copied: it is taken out of its old place and put into the new one. That is how you reorder a list. When you really want a second one, copy it with <code>cloneNode(true)</code>, where <code>true</code> means "and everything inside it". (With no <code>true</code> you get an empty shell, without its text.) A clone also copies the id, so give the copy a new id or remove it, because ids must stay unique.</p>
+  <pre class="code" data-run data-title="Create, insert, move, copy and remove - predict the order before you Run" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  h3 { margin: 0; color: #0B2545; }
+  li.new { color: #138808; }
+&lt;/style&gt;
+&lt;ul id="list"&gt;
+  &lt;li&gt;Rahul&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p id="end"&gt;This line will be removed.&lt;/p&gt;
+&lt;script&gt;
+  const list = document.getElementById("list");
+  const order = () =&gt; Array.from(list.children).map((li) =&gt; li.textContent).join(", ");
+
+  const meera = document.createElement("li");       // 1. create
+  meera.textContent = "Meera";                       // 2. fill
+  meera.classList.add("new");
+  console.log("1. Made:", meera, "| on the page?", meera.isConnected);
+  list.append(meera);                                // 3. insert
+  console.log("2. On the page now?", meera.isConnected);
+
+  const asha = document.createElement("li");
+  asha.textContent = "Asha";
+  list.prepend(asha);                                // first child
+
+  const heading = document.createElement("h3");
+  heading.textContent = "Section K23";
+  list.before(heading);                              // sibling above the list
+
+  list.insertAdjacentHTML("beforeend", "&lt;li&gt;Imran &lt;b&gt;(new)&lt;/b&gt;&lt;/li&gt;");
+  console.log("3. Order:", order());
+
+  list.appendChild(asha);                            // already on the page: MOVED, not copied
+  console.log("4. After appendChild(asha):", order());
+
+  const copy = meera.cloneNode(true);                // a real second Meera
+  list.append(copy);
+  console.log("5. After the clone:", order());
+
+  document.getElementById("end").remove();
+  console.log("6. Items:", list.children.length, "| #end now:", document.getElementById("end"));
+&lt;/script&gt;</pre>
+  <pre class="code">1. Made: &lt;li class="new"&gt; | on the page? false
+2. On the page now? true
+3. Order: Asha, Rahul, Meera, Imran (new)
+4. After appendChild(asha): Rahul, Meera, Imran (new), Asha
+5. After the clone: Rahul, Meera, Imran (new), Asha, Meera
+6. Items: 5 | #end now: null</pre>
+  <p>Line 1 catches the new element between creating and inserting: it exists, but <code>isConnected</code>, which says whether an element is in the page, is <code>false</code>. One <code>append</code> later it is <code>true</code> and Meera appears in green. Line 3 shows each insertion where Figure 56.3 said: Asha first, then Rahul, Meera, and Imran, built from a string. The heading went above the list, outside it, so it is not among the list's children. Line 4 is the move: <code>appendChild(asha)</code> did not make a second Asha; it carried the one Asha from the top to the bottom. Line 5 shows the copy, a real second Meera. Line 6: the paragraph is gone, so <code>getElementById</code> gives <code>null</code>.</p>
+  <div class="plain"><p>Create with <code>createElement</code>, fill with <code>textContent</code> and <code>classList</code>, then insert with <code>append</code>, <code>prepend</code>, <code>before</code> or <code>after</code> &mdash; nothing shows until you insert. Inserting an element that is already on the page moves it; <code>cloneNode(true)</code> copies it; <code>remove()</code> deletes it.</p></div>
+  <details class="qc"><summary>Quick check: a list holds A, B, C. What order does <code>list.append(list.firstElementChild)</code> leave?</summary><p><b>B, C, A.</b> The first child, A, is already on the page, so <code>append</code> moves it to the end instead of copying it.</p></details>
+  <p>You can practise every tool in this chapter on any website. Open DevTools (<kbd>F12</kbd>), choose the <b>Console</b> tab and try <code>document.querySelectorAll("a").length</code> to count the links, or <code>document.querySelector("h1").textContent = "Hello from me"</code>. As Chapter 55 showed, a reload builds a fresh tree and undoes it all.</p>
+  <div class="callout exam"><b>Exam tip.</b> "Why does my new element not appear?" almost always means step 3 is missing: <code>createElement</code> made it but nothing inserted it. And "why did my element disappear from its old place?" means it was moved by <code>append</code> or <code>appendChild</code>, not copied.</div>
+</section>
+
+<section id="mistakes">
+  <h2>56.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "querySelector gives me every match."</b><br>It stops at the first one in document order.</div>
+    <div class="r"><b>&#10003; "querySelector gives the first match; querySelectorAll gives them all."</b><br>The <i>All</i> in the name is the whole difference.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>getElementsByClassName(".card")</code> finds my cards."</b><br>It looks for a class literally called <code>.card</code>, and finds none.</div>
+    <div class="r"><b>&#10003; "Bare names for the getElement... methods and classList; selectors, with # and ., for querySelector."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "All element lists are arrays, so forEach and map always work."</b><br>An HTMLCollection has no <code>forEach</code>, and neither kind has <code>map</code>.</div>
+    <div class="r"><b>&#10003; "They are list-like. Use for...of, or Array.from(list) for the array methods."</b><br>A NodeList from <code>querySelectorAll</code> does have <code>forEach</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "innerHTML and textContent are the same, just two names."</b><br>One parses tags; the other shows them as characters.</div>
+    <div class="r"><b>&#10003; "textContent for text, innerHTML only for markup I wrote."</b><br>User text in <code>innerHTML</code> is how XSS gets in (Chapter 58).</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>el.style.color</code> tells me the element's colour."</b><br>It shows only an inline value, and is often empty.</div>
+    <div class="r"><b>&#10003; "<code>getComputedStyle(el).color</code> tells me the colour actually in use."</b></div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the "what does this print?" questions, write down the page's elements first, in document order.</p>
+  <details class="q"><summary>Which method returns <b>all</b> the elements that match a CSS selector?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>getElementById()</code></li><li>B. <code>querySelector()</code></li><li>C. <code>querySelectorAll()</code></li><li>D. <code>getElementsByTagName()</code></li></ul>
+    <p><b>Answer: C.</b> <code>querySelector</code> (B) takes a CSS selector too but stops at the first match. <code>getElementsByTagName</code> returns many elements, but by tag name only, not by any selector.</p></div></details>
+  <details class="q"><summary>A page has three elements with class <code>item</code>. What does <code>document.querySelector(".item")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The first <code>.item</code> in document order</li><li>B. A NodeList of all three</li><li>C. The last <code>.item</code> on the page</li><li>D. <code>null</code>, because more than one element matches</li></ul>
+    <p><b>Answer: A.</b> <code>querySelector</code> always returns one element: the first match, reading the HTML from the top. Several matches are not an error (D); to get all three you need <code>querySelectorAll</code> (B).</p></div></details>
+  <details class="q"><summary>No element on the page has the class <code>tag</code>. What do <code>document.querySelector(".tag")</code> and <code>document.querySelectorAll(".tag").length</code> give?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>undefined</code> and <code>0</code></li><li>B. An error, then <code>0</code></li><li>C. <code>null</code> and <code>null</code></li><li>D. <code>null</code> and <code>0</code></li></ul>
+    <p><b>Answer: D.</b> A single-element finder that finds nothing gives <code>null</code>; a list finder gives an empty list, whose length is 0. Neither call throws: the error only comes if you then ask <code>null</code> for a property.</p></div></details>
+  <details class="q"><summary>What happens when this line runs on a page with three <code>.card</code> elements? <code>document.getElementsByClassName("card").forEach((c) =&gt; c.remove());</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. All three cards are removed</li><li>B. <i>TypeError: ... forEach is not a function</i></li><li>C. Only the first card is removed</li><li>D. Nothing happens and there is no error</li></ul>
+    <p><b>Answer: B.</b> <code>getElementsByClassName</code> returns an HTMLCollection, which has no <code>forEach</code>. Use <code>document.querySelectorAll(".card").forEach(...)</code>, whose NodeList does have it &mdash; and which, being a snapshot, does not shrink while the cards are removed.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>&lt;ul id="u"&gt;&lt;li class="x"&gt;A&lt;/li&gt;&lt;li class="x"&gt;B&lt;/li&gt;&lt;/ul&gt;</code><br><code>const s = document.querySelectorAll(".x");</code><br><code>const l = document.getElementsByClassName("x");</code><br><code>const c = document.createElement("li"); c.className = "x";</code><br><code>document.getElementById("u").append(c);</code><br><code>console.log(s.length, l.length);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>2 3</code>.</b> <code>s</code> is a static snapshot taken when there were two <code>.x</code> items. <code>l</code> is a live HTMLCollection, so it counts the third item as soon as it is appended.</p></div></details>
+  <details class="q"><summary>A script runs <code>out.textContent = "&lt;i&gt;Hi&lt;/i&gt;";</code>. What does the page show?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Hi in italics</li><li>B. Nothing, because the tags are removed</li><li>C. The characters <code>&lt;i&gt;Hi&lt;/i&gt;</code>, tags included</li><li>D. Hi in plain text, with the tags removed</li></ul>
+    <p><b>Answer: C.</b> <code>textContent</code> inserts text without interpreting it as HTML, so the angle brackets appear as characters. A is what <code>innerHTML</code> would show, because it parses the string.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>&lt;p id="p" data-roll-no="7"&gt;Asha&lt;/p&gt;</code><br><code>const p = document.getElementById("p");</code><br><code>console.log(p.dataset.rollNo, typeof p.dataset.rollNo);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>7 string</code>.</b> <code>data-roll-no</code> is read as <code>dataset.rollNo</code>: the <code>data-</code> is dropped and the rest is camelCase. Every <code>dataset</code> value is a string; convert with <code>Number()</code> before doing sums.</p></div></details>
+  <details class="q"><summary>An element is <code>&lt;div class="card red"&gt;</code>. After <code>div.className = "big";</code> what is its class attribute?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>"card red big"</code></li><li>B. <code>"big"</code></li><li>C. <code>"big card red"</code></li><li>D. <code>"card big"</code></li></ul>
+    <p><b>Answer: B.</b> Assigning to <code>className</code> replaces the whole attribute. To add <code>big</code> and keep the others, which gives A, write <code>div.classList.add("big")</code>.</p></div></details>
+  <details class="q"><summary>Which line correctly gives an element a yellow background?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>el.style.background-color = "yellow";</code></li><li>B. <code>el.style = backgroundColor("yellow");</code></li><li>C. <code>el.css.backgroundColor = "yellow";</code></li><li>D. <code>el.style.backgroundColor = "yellow";</code></li></ul>
+    <p><b>Answer: D.</b> CSS names become camelCase on <code>style</code>. In A the hyphen is read as a minus sign, so the line is a SyntaxError; B and C use things that do not exist.</p></div></details>
+  <details class="q"><summary>An input was written as <code>&lt;input id="n" value="Asha"&gt;</code>. The user clears it and types Rahul. What do <code>n.value</code> and <code>n.getAttribute("value")</code> give?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. "Rahul" and "Asha"</li><li>B. "Asha" and "Rahul"</li><li>C. "Rahul" and "Rahul"</li><li>D. "Asha" and "Asha"</li></ul>
+    <p><b>Answer: A.</b> The <code>value</code> property is what is in the box now; the <code>value</code> attribute is only the starting text written in the HTML, and typing does not change it. Read user input with the property.</p></div></details>
+  <details class="q"><summary><span>A list holds A, B and C in that order. What is the order after these lines?<br><code>const x = document.createElement("li"); x.textContent = "Z";</code><br><code>list.prepend(x);</code><br><code>list.appendChild(list.children[1]);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: Z, B, C, A.</b> After <code>prepend</code> the order is Z, A, B, C. Then <code>children[1]</code> is A, which is already on the page, so <code>appendChild</code> moves it to the end rather than copying it.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>One element: <code>getElementById("id")</code> or <code>querySelector(selector)</code>. All matches: <code>querySelectorAll(selector)</code>. Selectors keep their <code>#</code> and <code>.</code>; the <code>getElement...</code> methods take bare names.</li>
+    <li><code>querySelectorAll</code> gives a static NodeList with <code>forEach</code>. <code>getElementsByClassName</code> and <code>getElementsByTagName</code> give a live HTMLCollection without it. <code>for...of</code> works on both; <code>Array.from</code> makes a real array.</li>
+    <li>No match: <code>null</code> from the single finders, an empty list from the list finders. Guard with <code>if (el)</code>; <code>?.</code> cannot assign.</li>
+    <li><code>textContent</code> inserts text without interpreting it as HTML; <code>innerHTML</code> parses the string as HTML, so never give it user text. <code>innerText</code> gives only the visible text.</li>
+    <li>Attributes: <code>getAttribute</code>, <code>setAttribute</code>, <code>removeAttribute</code>, <code>hasAttribute</code>. Properties such as <code>src</code>, <code>href</code>, <code>value</code> and <code>checked</code> are the live values; <code>value</code> holds what the user typed.</li>
+    <li><code>data-roll-no="12"</code> is read as <code>el.dataset.rollNo</code>, always a string.</li>
+    <li>Switch looks with <code>classList.add</code>, <code>remove</code>, <code>toggle</code> and <code>contains</code>; assigning <code>className</code> replaces every class. <code>element.style</code> takes camelCase names and string values, sees inline styles only, and beats the stylesheet.</li>
+    <li>New elements: <code>createElement</code>, fill, then insert with <code>append</code>, <code>prepend</code>, <code>before</code> or <code>after</code>. Inserting an element already on the page moves it; <code>cloneNode(true)</code> copies; <code>remove()</code> deletes.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>document.getElementById("title")</code></td><td>The element with that id, or <code>null</code></td></tr>
+      <tr><td><code>document.querySelector("#toppers .hostel")</code></td><td>The first match for any CSS selector, or <code>null</code></td></tr>
+      <tr><td><code>document.querySelectorAll(".student")</code></td><td>Every match: a static NodeList with <code>forEach</code></td></tr>
+      <tr><td><code>document.getElementsByClassName("hostel")</code></td><td>Every element with the class: a live HTMLCollection</td></tr>
+      <tr><td><code>document.getElementsByTagName("li")</code></td><td>Every element with the tag: a live HTMLCollection</td></tr>
+      <tr><td><code>parent.querySelectorAll("li")</code></td><td>Searches only inside <code>parent</code></td></tr>
+      <tr><td><code>Array.from(list)</code></td><td>A real array, so <code>map</code> and <code>filter</code> work</td></tr>
+      <tr><td><code>el.textContent = text</code></td><td>Replaces the content with plain text (safe)</td></tr>
+      <tr><td><code>el.innerHTML = markup</code></td><td>Parses the string and builds elements (your own markup only)</td></tr>
+      <tr><td><code>el.getAttribute("href")</code> / <code>el.setAttribute("href", url)</code></td><td>Reads / writes an attribute as written in HTML</td></tr>
+      <tr><td><code>input.value</code>, <code>box.checked</code>, <code>btn.disabled = true</code></td><td>Live properties of form elements</td></tr>
+      <tr><td><code>el.dataset.rollNo</code></td><td>The value of <code>data-roll-no</code>, as a string</td></tr>
+      <tr><td><code>el.classList.toggle("dark")</code></td><td>Adds or removes the class; returns <code>true</code> if now on</td></tr>
+      <tr><td><code>el.style.backgroundColor = "#FFF4E5"</code></td><td>Sets one inline style (camelCase name, string value)</td></tr>
+      <tr><td><code>getComputedStyle(el).color</code></td><td>The value the browser is actually using</td></tr>
+      <tr><td><code>document.createElement("li")</code></td><td>A new element, not yet on the page</td></tr>
+      <tr><td><code>append</code> / <code>prepend</code> / <code>before</code> / <code>after</code></td><td>Insert at the end / start inside, or just above / below outside</td></tr>
+      <tr><td><code>el.insertAdjacentHTML("beforeend", markup)</code></td><td>Parses markup and adds it at one position, keeping the rest</td></tr>
+      <tr><td><code>el.cloneNode(true)</code> / <code>el.remove()</code></td><td>A deep copy / takes the element off the page</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://javascript.info/searching-elements-dom" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Searching: getElement*, querySelector*<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every finder side by side, with live and static collections explained and small tasks at the end.</span></li>
+    <li><a href="https://javascript.info/dom-attributes-and-properties" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Attributes and properties<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">When an attribute and its property stay in step and when they do not, and how <code>dataset</code> works.</span></li>
+    <li><a href="https://javascript.info/modifying-document" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Modifying the document<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Creating, inserting, moving, cloning and removing elements, including <code>insertAdjacentHTML</code>.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/classList" target="_blank" rel="noopener noreferrer">MDN &mdash; Element.classList<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official reference for <code>add</code>, <code>remove</code>, <code>toggle</code>, <code>contains</code> and <code>replace</code>.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

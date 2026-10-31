@@ -1,0 +1,541 @@
+<article class="chapter" data-ch="42">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 42 &middot; Variables and Constants</p>
+  <h1>Variables and Constants</h1>
+  <p class="lead">A program has to remember things: a student's name, the marks she scored, the runs on the scoreboard so far. It remembers each one by giving it a name, and a value with a name is called a variable. This chapter shows you how to make one, how to change it, how to make one that can never be changed, and how to choose a name that JavaScript accepts and other people can read.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>console.log("Total:", total)</code> prints its values, separated by spaces, in the Console panel under every Run (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li>A statement is one complete instruction, and this book ends every statement with a semicolon (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li>JavaScript is case-sensitive: to it, <code>console</code> and <code>Console</code> are two different words (<a href="book.html?ch=41">Chapter 41</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what a variable is, and point to the declaration, the initialisation and the assignment in a piece of code.</li>
+      <li>Create variables with <code>let</code> and <code>const</code>, and say what a variable holds before it is given a value.</li>
+      <li>Compare <code>var</code>, <code>let</code> and <code>const</code> on reassigning, redeclaring, scope and hoisting.</li>
+      <li>Explain why a <code>const</code> object or array can still change inside.</li>
+      <li>Choose the right keyword: <code>const</code> by default, <code>let</code> when the value changes, never <code>var</code> in new code.</li>
+      <li>Write names that follow JavaScript's rules and its camelCase convention, and spot names that break them.</li>
+      <li>Read the messages "Assignment to constant variable", "is not defined" and "has already been declared", and fix the line that caused each one.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>42.1 A name for a value</h2>
+  <p>Every app on your phone remembers things: a shopping app your cart, a game your score, the LPU portal your attendance. A program cannot remember a value unless it has somewhere to keep it and a name to find it by. That named value is a <b>variable</b>.</p>
+  <p>Here is the smallest useful program with a variable in it:</p>
+  <pre class="code">let marks = 85;
+console.log(marks);     // 85</pre>
+  <p>Read the first line aloud as <i>"make a variable called <code>marks</code> and put 85 in it"</i>. The second line uses the name. JavaScript sees <code>marks</code>, looks up the value that goes with that name, and hands 85 to <code>console.log</code>. From now on you never type 85 again; you type the name.</p>
+  <p>The usual picture is a box with a label on it. <code>marks</code> is the label, 85 is what is inside, and later you can take 85 out and put a different value in. Your lecture slides use a more exact word: <i>a variable is a named <span class="jw" data-def="The link that ties a name to a value, so that writing the name gives you the value. A variable is a binding.">binding</span> used to refer to a value in a JavaScript program</i>. A binding is that link between a name and a value, like a string tied from a luggage tag to a suitcase. The box and the tag are two pictures of one idea; this book mostly uses the box, because it is easier to draw.</p>
+  <div class="plain"><p>A variable is a name you choose for a value, so the program can find that value again. Write the name, and JavaScript uses whatever value goes with it at that moment.</p></div>
+  <p>Why not just type the value each time? Three reasons:</p>
+  <ul>
+    <li><b>One place to change.</b> If the pass mark of 40 appears on ten lines and becomes 35, you edit ten lines and miss one. Give it a name, and you edit one line.</li>
+    <li><b>Values that change while the program runs</b>, such as a score or a total. You cannot type those in advance; only a variable can follow them.</li>
+    <li><b>Meaning.</b> <code>totalMarks</code> tells a reader what the number is. A bare <code>85</code> tells them nothing.</li>
+  </ul>
+</section>
+
+<section id="s2">
+  <h2>42.2 Declare, initialise, assign</h2>
+  <p>Three words describe everything you do to a variable, and examiners use all three. Here is the slides' example, one step at a time:</p>
+  <pre class="code">let studentName;          // declaration: create the variable
+studentName = "Aman";     // initialisation: give it its first value
+let marks = 85;           // declaration with initialisation, in one line</pre>
+  <ul>
+    <li><b>Declaration</b> creates the variable. The word <code>let</code> tells JavaScript "a new name is coming", and the name follows it. After <code>let studentName;</code> the box exists, but you have not put anything in it.</li>
+    <li><b>Initialisation</b> gives a variable its first value. On the second line <code>studentName</code> receives <code>"Aman"</code>.</li>
+    <li>Usually both happen in one statement. <code>let marks = 85;</code> declares <code>marks</code> and initialises it to 85. This is the form you will write most often.</li>
+  </ul>
+  <p>The third word is <b>assignment</b>, and it is what the <code>=</code> sign does every time it appears: <i>work out the value on the right, then store it in the variable on the left</i>. A variable's first assignment is its initialisation. Every later one throws the old value away and stores the new one, which is called <b>reassigning</b> the variable:</p>
+  <pre class="code">studentName = "Meera";    // assignment: "Aman" is replaced by "Meera"</pre>
+  <p>Notice that <code>=</code> does not mean "equals" here. It is an order: <i>store this</i>. Chapter 44 meets it again among the operators, where the job of comparing two values goes to <code>===</code>.</p>
+  <p>One question remains. What is inside the box between declaring and initialising? Not nothing: JavaScript puts in a special value called <code>undefined</code>, which means "no value has been given yet". Chapter 43 tells its full story; for now, learn to recognise it when the Console shows it.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="One variable at three moments: declared and holding undefined, given its first value Aman, then reassigned to Meera">
+      <text x="100" y="26" class="t c s mono">let studentName;</text>
+      <rect x="45" y="40" width="110" height="26" rx="6" class="box gry"/>
+      <text x="100" y="58" class="t c mono">studentName</text>
+      <path d="M100 66 L100 82" class="edge"/>
+      <rect x="40" y="82" width="120" height="56" rx="10" class="box gry"/>
+      <text x="100" y="115" class="t c mono b">undefined</text>
+      <text x="100" y="164" class="t c b">1 DECLARE</text>
+      <text x="100" y="182" class="t c s">the box is made;</text>
+      <text x="100" y="197" class="t c s">it holds undefined</text>
+      <path d="M164 110 L244 110" class="edge" marker-end="url(#arr)"/>
+      <text x="310" y="26" class="t c s mono">studentName = "Aman";</text>
+      <rect x="255" y="40" width="110" height="26" rx="6" class="box gry"/>
+      <text x="310" y="58" class="t c mono">studentName</text>
+      <path d="M310 66 L310 82" class="edge"/>
+      <rect x="250" y="82" width="120" height="56" rx="10" class="box saf"/>
+      <text x="310" y="115" class="t c mono b">"Aman"</text>
+      <text x="310" y="164" class="t c b">2 INITIALISE</text>
+      <text x="310" y="182" class="t c s">the first value</text>
+      <text x="310" y="197" class="t c s">goes in</text>
+      <path d="M374 110 L454 110" class="edge" marker-end="url(#arr)"/>
+      <text x="520" y="26" class="t c s mono">studentName = "Meera";</text>
+      <rect x="465" y="40" width="110" height="26" rx="6" class="box gry"/>
+      <text x="520" y="58" class="t c mono">studentName</text>
+      <path d="M520 66 L520 82" class="edge"/>
+      <rect x="460" y="82" width="120" height="56" rx="10" class="box grn"/>
+      <text x="520" y="115" class="t c mono b">"Meera"</text>
+      <text x="520" y="164" class="t c b">3 REASSIGN</text>
+      <text x="520" y="182" class="t c s">the new value replaces</text>
+      <text x="520" y="197" class="t c s">the old: "Aman" is gone</text>
+    </svg>
+    <figcaption><b>Figure 42.1</b> One label, one box, three moments. Declaring makes the box, the first assignment initialises it, and every later assignment replaces what was there.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Declare, initialise, reassign - watch one box change" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let studentName;                                      // 1. declaration
+  console.log("After declaring:", studentName);         // After declaring: undefined
+
+  studentName = "Aman";                                 // 2. initialisation
+  console.log("After the first value:", studentName);   // After the first value: Aman
+
+  studentName = "Meera";                                // 3. reassignment
+  console.log("After assigning again:", studentName);   // After assigning again: Meera
+
+  let marks = 85;                                       // declare and initialise at once
+  console.log("marks:", marks);                         // marks: 85
+&lt;/script&gt;</pre>
+  <p>Four lines appear in the Console, exactly as the comments say. The name <code>studentName</code> never changed; only the value attached to it did.</p>
+  <div class="plain"><p>Declaring makes the box. Initialising puts the first thing in it. Assigning puts something in it, whether for the first time or the fiftieth, and whatever was there before is gone. A box that has been made but not yet filled holds <code>undefined</code>.</p></div>
+  <div class="callout exam"><b>Exam tip.</b> Follow the slides: in <code>let x;</code> followed by <code>x = 5;</code>, the first line <b>declares</b> and the second <b>initialises</b>, and <code>let x = 5;</code> does both at once. (Strictly, the language rules say JavaScript initialises <code>x</code> to <code>undefined</code> when <code>let x;</code> runs, which makes <code>x = 5</code> its first assignment. Both descriptions agree on what happens: <code>undefined</code> first, then 5.)</div>
+  <details class="qc"><summary>Quick check: in <code>let total; total = 90; total = 95;</code> which statement declares, which initialises, and what does <code>total</code> hold at the end?</summary><p><code>let total;</code> declares it (it holds <code>undefined</code>), <code>total = 90;</code> initialises it, and <code>total = 95;</code> reassigns it. At the end it holds 95; the 90 is gone.</p></details>
+</section>
+
+<section id="s3">
+  <h2>42.3 Three keywords: let, const and var</h2>
+  <p><code>let</code> is not the only way to declare a variable. JavaScript has three <span class="jw" data-def="A word with a fixed meaning that JavaScript itself owns, such as let, const, var or if. You use it as an instruction, never as a name.">keywords</span> for the job, and the slides introduce all three:</p>
+  <table class="tbl">
+    <thead><tr><th>Keyword</th><th>In one line (the slides' definitions)</th><th>Added in</th></tr></thead>
+    <tbody>
+      <tr><td><code>var</code></td><td>The traditional way. Can be reassigned, and can even be declared again.</td><td>1995</td></tr>
+      <tr><td><code>let</code></td><td>Declares a block-scoped variable whose value can be reassigned.</td><td>2015</td></tr>
+      <tr><td><code>const</code></td><td>Declares a block-scoped binding that must be initialised when declared and cannot be reassigned.</td><td>2015</td></tr>
+    </tbody>
+  </table>
+  <p>Why three? The slides give the reason: these keywords help us <b>store data, manage values, and control where variables can be accessed</b>. For twenty years JavaScript had only <code>var</code>, which has some awkward habits (42.5), so in 2015 the language added <code>let</code> and <code>const</code>. Modern code uses those two. You learn <code>var</code> because old code, and old exam questions, still use it.</p>
+  <p>The "constants" in this chapter's title are simply variables declared with <code>const</code>: names attached to one value for good.</p>
+  <div class="callout analogy"><b>Picture this.</b> The big scoreboard at a cricket ground. Some panels change all match long: Runs, Wickets, Overs. The scorer wipes them and writes new numbers after every ball. Those are <code>let</code>. Other panels are painted before the toss and never change: the name of the ground, the two teams. Those are <code>const</code>. A panel that is up but still blank, such as "Player of the Match" during the first over, is a declared variable holding <code>undefined</code>. And one last detail: the painted panel "Batting: India" will say India all day, but who is batting <i>for</i> India changes with every wicket. A <code>const</code> fixes which thing a name refers to, not what goes on inside that thing (42.6).</div>
+</section>
+
+<section id="s4">
+  <h2>42.4 let and const up close</h2>
+  <h3>let: a box you can refill</h3>
+  <p>The slides' <code>let</code> example:</p>
+  <pre class="code">let score = 50;
+console.log(score);    // 50
+score = 75;
+console.log(score);    // 75</pre>
+  <p>Same name, two values at two moments. The third line does not make a new variable; there is no <code>let</code> on it. It replaces 50 with 75 in the variable that already exists. Use <code>let</code> for anything that is <i>meant</i> to change while the program runs: a running total, a counter, the current question number, a score.</p>
+  <h3>const: filled once, at once</h3>
+  <p>The slides' definition of <code>const</code> contains two rules.</p>
+  <ol>
+    <li><b>It must be initialised when declared.</b> <code>const collegeName = "LPU";</code> is right. <code>const collegeName;</code> on its own is refused with <i>SyntaxError: Missing initializer in const declaration</i>. That makes sense: a <code>const</code> that starts empty could never be filled, because filling it later would be a reassignment.</li>
+    <li><b>It cannot be reassigned.</b> The slide's "Try" line:</li>
+  </ol>
+  <pre class="code">const age = 20;
+age = 21;      // TypeError: Assignment to constant variable.</pre>
+  <p>The first line is fine. The second stops the program with an error, which section 42.9 teaches you to read. Here are the slides' <code>let</code> and <code>const</code> examples together, with labels on the output:</p>
+  <pre class="code" data-run data-title="The slides' let and const examples - change the numbers and Run again" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // let: the value can be replaced
+  let score = 50;
+  console.log("score:", score);                 // score: 50
+  score = 75;
+  console.log("score:", score);                 // score: 75
+
+  // const: given its value once, on the same line
+  const collegeName = "LPU";
+  const passingMarks = 40;
+  console.log("college:", collegeName);         // college: LPU
+  console.log("pass mark:", passingMarks);      // pass mark: 40
+
+  // a const can be USED as often as you like; it just cannot be replaced
+  const myMarks = 72;
+  console.log("above the pass mark by:", myMarks - passingMarks);   // above the pass mark by: 32
+&lt;/script&gt;</pre>
+  <p>The last line reads two constants and subtracts one from the other. Using a <code>const</code> is always allowed; only storing a new value in it is forbidden.</p>
+  <details class="qc"><summary>Quick check: which of these three lines is an error, and why? <code>const pi = 3.14;</code> &nbsp; <code>const g;</code> &nbsp; <code>let h;</code></summary><p><code>const g;</code> is the error: a <code>const</code> must be given its value on the same line, so JavaScript reports "Missing initializer in const declaration". <code>let h;</code> is fine; <code>h</code> simply holds <code>undefined</code> until you assign it.</p></details>
+</section>
+
+<section id="s5">
+  <h2>42.5 var: the old keyword</h2>
+  <p>The slides' <code>var</code> example looks exactly like a <code>let</code> one:</p>
+  <pre class="code">var studentName = "Aman";
+var marks = 80;
+console.log(studentName);    // Aman
+console.log(marks);          // 80
+marks = 90;
+console.log(marks);          // 90</pre>
+  <p>So far there is no difference. The slides add that <code>var</code> <b>allows reassignment and redeclaration within the same scope, and is function-scoped</b>. Those are the three places where it parts company with <code>let</code>.</p>
+  <ol>
+    <li><b>Redeclaring.</b> With <code>var</code> you may declare the same name again, and nothing complains: the second <code>var marks = 95;</code> simply replaces the value. With <code>let</code> or <code>const</code>, a second declaration of the same name in the same place is refused: <i>SyntaxError: Identifier 'marks' has already been declared</i>. That is not <code>var</code> being kind: in a long file, a second <code>var marks</code> two hundred lines down wipes out the first value without a warning. <code>let</code> catches that mistake for you.</li>
+    <li><b>Scope.</b> A variable's <span class="jw" data-def="The part of a program where a name can be seen and used. Outside its scope, the name does not exist.">scope</span> is the region of the program where its name can be seen. <code>let</code> and <code>const</code> are <b>block-scoped</b>: they exist only inside the nearest pair of curly braces <code>{ }</code> around them. <code>var</code> ignores those braces and belongs to the whole function around it (or to the whole script, if it is not inside a function): it is <b>function-scoped</b>. Chapter 49 shows exactly what this means; for now, learn the two phrases.</li>
+    <li><b>Using it before its line.</b> Read a <code>var</code> on a line <i>above</i> its declaration and you get <code>undefined</code> instead of an error. Do the same with <code>let</code> or <code>const</code> and you get <i>ReferenceError: Cannot access 'x' before initialization</i>. This behaviour is part of <span class="jw" data-def="JavaScript noting every declared name in a part of the program before running it, so a name already exists above its own line. Chapter 49 explains it.">hoisting</span>, and Chapter 49 explains it properly.</li>
+  </ol>
+  <pre class="code" data-run data-title="var allows a second declaration and an early read - no error for either" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the slides' var example
+  var studentName = "Aman";
+  var marks = 80;
+  console.log(studentName);                          // Aman
+  console.log(marks);                                // 80
+  marks = 90;
+  console.log(marks);                                // 90
+
+  // var lets you declare the SAME name again: no error, no warning
+  var marks = 95;
+  console.log("after a second var marks:", marks);   // after a second var marks: 95
+
+  // var can even be read above its own line: it gives undefined
+  console.log("rollNo before its line:", rollNo);    // rollNo before its line: undefined
+  var rollNo = "12302457";
+  console.log("rollNo after its line:", rollNo);     // rollNo after its line: 12302457
+&lt;/script&gt;</pre>
+  <p>Six lines, no errors. Change the second <code>var marks</code> to <code>let marks</code> in the Playground and nothing prints at all: the whole script is refused with "Identifier 'marks' has already been declared". Section 42.9 explains why not even the first line runs.</p>
+  <p>Here is everything so far in one table. The last two rows are only a preview; Chapter 49 teaches them.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>var</code></th><th><code>let</code></th><th><code>const</code></th></tr></thead>
+    <tbody>
+      <tr><td>Reassign: <code>x = newValue;</code></td><td>Yes</td><td>Yes</td><td><b>No</b> &mdash; TypeError</td></tr>
+      <tr><td>Declare the same name again in the same scope</td><td>Yes, silently</td><td><b>No</b> &mdash; SyntaxError</td><td><b>No</b> &mdash; SyntaxError</td></tr>
+      <tr><td>May be declared without a value</td><td>Yes (holds <code>undefined</code>)</td><td>Yes (holds <code>undefined</code>)</td><td><b>No</b> &mdash; SyntaxError</td></tr>
+      <tr><td>Scope</td><td>Function</td><td>Block <code>{ }</code></td><td>Block <code>{ }</code></td></tr>
+      <tr><td>Read above its own line (hoisting)</td><td>Gives <code>undefined</code></td><td>ReferenceError</td><td>ReferenceError</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><code>var</code> is the old, forgiving keyword. It lets you declare a name twice, it lets you use a name before its line, and it ignores the braces of a block. Each of those freedoms hides a mistake. <code>let</code> and <code>const</code> are strict about all three, and that strictness is the reason they were added.</p></div>
+</section>
+
+<section id="s6">
+  <h2>42.6 const fixes the name, not the contents</h2>
+  <p>Here is the fact about <code>const</code> that surprises almost everyone. A <code>const</code> cannot be reassigned, but if its value is an object or an array, <b>the inside can still change</b>.</p>
+  <p>Arrays and objects have chapters of their own (Chapters 50 and 51), so here is just enough to follow along. An <b>object</b> groups several values under one name, inside curly braces: <code>{ name: "Asha", marks: 80 }</code>. You reach one value inside it with a dot: <code>student.marks</code>. An <b>array</b> is a list inside square brackets, such as <code>["Maths", "Physics"]</code>, and <code>push</code> adds an item to the end of the list.</p>
+  <pre class="code" data-run data-title="A const object and a const array, both changed inside - no error" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // a const object: { } groups several values under one name
+  const student = { name: "Asha", marks: 80 };
+  console.log("Before:", student.marks);     // Before: 80
+
+  student.marks = 95;                        // change INSIDE the object: allowed
+  console.log("After:", student.marks);      // After: 95
+  console.log(student);                      // {name: 'Asha', marks: 95}
+
+  // a const array: [ ] is a list, and push adds an item at the end
+  const subjects = ["Maths", "Physics"];
+  subjects.push("Chemistry");                // change INSIDE the array: allowed
+  console.log(subjects);                     // ['Maths', 'Physics', 'Chemistry']
+&lt;/script&gt;</pre>
+  <p>(Inside a whole object or list, the Console shows text in single quotes, as Chrome's own Console does.)</p>
+  <p>Why is this allowed? Because <code>student.marks = 95</code> does not give the name <code>student</code> a new value. <code>student</code> still refers to the very same object it did on the first line; you changed something <i>inside</i> that object. What <code>const</code> forbids is pointing the name at a <i>different</i> value:</p>
+  <pre class="code">student = { name: "Rahul", marks: 70 };   // TypeError: Assignment to constant variable.
+subjects = ["Biology"];                   // TypeError: Assignment to constant variable.</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="A const name is fixed to one object: changing a value inside the object is allowed, pointing the name at a different object is a TypeError">
+      <rect x="20" y="92" width="150" height="46" rx="10" class="box ink"/>
+      <text x="95" y="120" class="t c w b mono">const student</text>
+      <text x="95" y="160" class="t c s">fixed to ONE object</text>
+      <path d="M172 104 L294 66" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="300" y="18" width="210" height="92" rx="10" class="box blu"/>
+      <text x="405" y="40" class="t c s">the object</text>
+      <text x="405" y="66" class="t c mono">name: "Asha"</text>
+      <text x="405" y="92" class="t c mono b">marks: 80 &#8594; 95</text>
+      <text x="405" y="134" class="t c s b">&#10003; student.marks = 95;  change inside: allowed</text>
+      <path d="M172 128 L294 176" class="edge dash" marker-end="url(#arr)"/>
+      <text x="226" y="174" class="t c b" style="fill:#C42B2B">&#10007;</text>
+      <rect x="300" y="160" width="210" height="44" rx="10" class="box gry"/>
+      <text x="405" y="187" class="t c mono">{ name: "Rahul" }</text>
+      <text x="405" y="226" class="t c s b">&#10007; student = { ... };  point elsewhere: TypeError</text>
+    </svg>
+    <figcaption><b>Figure 42.2</b> <code>const</code> fixes the arrow, not the box at the end of it. Change what is inside the object as often as you like; the name can never be pointed at another one.</figcaption>
+  </figure>
+  <div class="callout why"><b>Key idea.</b> <code>const</code> fixes which value the name leads to, not what is inside it. For a number or a piece of text there is nothing inside to change, so <code>const passingMarks = 40;</code> really is 40 for as long as the program runs. For an object or an array, only the name is fixed. (If you ever need an object whose contents cannot change either, JavaScript offers <code>Object.freeze</code>; the MDN <code>const</code> page in the references shows it.)</div>
+  <div class="plain"><p><code>const</code> glues a name to one value. If that value is a list or a group of values, you can still add to it and change things in it. What you cannot do is peel the name off and glue it to something else.</p></div>
+  <details class="qc"><summary>Quick check: <code>const marks = [70, 80];</code> Which of these lines works: <code>marks.push(90);</code> or <code>marks = [70, 80, 90];</code>?</summary><p><code>marks.push(90);</code> works: it changes the inside of the same array. <code>marks = [70, 80, 90];</code> throws <i>TypeError: Assignment to constant variable</i>, because it tries to point the name at a brand-new array.</p></details>
+</section>
+
+<section id="s7">
+  <h2>42.7 Which keyword should I use?</h2>
+  <p>Most professional teams follow one rule, and so does this book:</p>
+  <ol>
+    <li><b><code>const</code> by default.</b> Most names in a program never need a new value: the student's name, the pass mark, a button on the page, a result you worked out once.</li>
+    <li><b><code>let</code> when the value must change</b>: a counter, a running total, a score updated ball by ball.</li>
+    <li><b><code>var</code> never in new code.</b> Read it, understand it, but do not write it.</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 215" role="img" aria-label="Choosing a keyword: if the name will never need a different value use const, if it will use let, and do not use var in new code">
+      <rect x="20" y="55" width="210" height="64" rx="12" class="box saf"/>
+      <text x="125" y="82" class="t c b">Will this name ever need</text>
+      <text x="125" y="101" class="t c b">a different value later?</text>
+      <path d="M232 74 L330 42" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="272" y="48" class="t c s b">no</text>
+      <path d="M232 100 L330 132" class="edge" marker-end="url(#arr)"/>
+      <text x="272" y="136" class="t c s b">yes</text>
+      <rect x="335" y="15" width="265" height="54" rx="12" class="box grn"/>
+      <text x="467" y="38" class="t c b mono">const</text>
+      <text x="467" y="57" class="t c s">the default: most names in a program</text>
+      <rect x="335" y="105" width="265" height="54" rx="12" class="box blu"/>
+      <text x="467" y="128" class="t c b mono">let</text>
+      <text x="467" y="147" class="t c s">counters, running totals, scores</text>
+      <rect x="20" y="172" width="580" height="32" rx="10" class="box gry"/>
+      <text x="310" y="193" class="t c s">var: do not write it in new code; learn it only to read old code and old questions</text>
+    </svg>
+    <figcaption><b>Figure 42.3</b> One question decides it. If the answer is no, or you are not sure yet, start with <code>const</code>.</figcaption>
+  </figure>
+  <p>Why <code>const</code> first? Because it helps whoever reads the code, usually you a week later. A <code>const</code> tells you, without reading another line, that the name means the same thing everywhere. If you change it by mistake, JavaScript stops you with an error instead of letting a wrong value spread quietly. And a <code>let</code> signals: <i>watch this one, it changes</i>. So write <code>const</code> first, and if JavaScript complains when you assign to it and the change really is intended, switch that one declaration to <code>let</code>.</p>
+</section>
+
+<section id="s8">
+  <h2>42.8 Naming your variables</h2>
+  <p>The name you give a variable is called an <span class="jw" data-def="The name you give to something you create in code, such as a variable or a function. studentName is an identifier.">identifier</span>. JavaScript checks four rules. Break one of the first three and the script is refused with a SyntaxError before any of it runs.</p>
+  <ol>
+    <li><b>Only letters, digits, the underscore <code>_</code> and the dollar sign <code>$</code>.</b> No spaces, no hyphens, no other symbols such as <code>%</code>, <code>@</code> or <code>.</code>. A hyphen is especially sneaky: <code>fee-paid</code> reads as "fee minus paid".</li>
+    <li><b>It must not start with a digit.</b> <code>marks2</code> is fine; <code>2marks</code> is not. JavaScript decides from the very first character whether it is reading a number or a name.</li>
+    <li><b>It must not be a <span class="jw" data-def="A word JavaScript keeps for its own grammar, such as if, for, class or const. It can never be used as a name.">reserved word</span>.</b> These are words JavaScript keeps for itself: <code>const</code>, <code>var</code>, <code>if</code>, <code>else</code>, <code>for</code>, <code>function</code>, <code>return</code>, <code>class</code>, <code>new</code>, <code>true</code>, <code>false</code>, <code>null</code> and a few dozen more. Treat <code>let</code> as one of them too.</li>
+    <li><b>Names are case-sensitive.</b> <code>marks</code>, <code>Marks</code> and <code>MARKS</code> are three different variables. You cannot break this rule, but you can trip over it, and beginners do, daily.</li>
+  </ol>
+  <p>Letters from other scripts are allowed too (<code>let &#2344;&#2366;&#2350; = "Asha";</code> works), but code is shared with people everywhere, so stick to English letters.</p>
+  <h3>Conventions: what good programmers choose</h3>
+  <p>The rules decide what JavaScript <i>accepts</i>. Conventions decide what other people can <i>read</i>.</p>
+  <ul>
+    <li><b>camelCase.</b> A name cannot contain a space, so several words are glued together: the first word all small, every later word starting with a capital, as in <code>studentName</code>, <code>totalMarks</code>, <code>passingMarks</code>. The capitals stick up like a camel's humps. All the slides' examples follow it.</li>
+    <li><b>Say what it holds.</b> <code>totalMarks</code> beats <code>t</code>, <code>x1</code> or <code>data</code>. You type a name once and read it a hundred times.</li>
+    <li><b>Yes-or-no values</b> usually start with <code>is</code> or <code>has</code>: <code>isPassed</code>, <code>hasPaidFee</code>.</li>
+    <li><b>Fixed settings</b> known before the program runs are often written in capitals with underscores: <code>const MAX_MARKS = 100;</code>. This is a habit, not a rule; the slides' <code>const passingMarks = 40;</code> is just as correct.</li>
+  </ul>
+  <table class="tbl">
+    <thead><tr><th>Name</th><th>Allowed?</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>studentName</code></td><td>&#10003;</td><td>Letters only, in camelCase: the ideal</td></tr>
+      <tr><td><code>marks2</code></td><td>&#10003;</td><td>A digit is fine, just not first</td></tr>
+      <tr><td><code>student_name</code></td><td>&#10003;</td><td>Legal, but JavaScript style prefers <code>studentName</code></td></tr>
+      <tr><td><code>_count</code>, <code>$price</code></td><td>&#10003;</td><td>Legal, but best left to libraries</td></tr>
+      <tr><td><code>2ndYear</code></td><td>&#10007;</td><td>Starts with a digit</td></tr>
+      <tr><td><code>student name</code></td><td>&#10007;</td><td>Contains a space</td></tr>
+      <tr><td><code>fee-paid</code></td><td>&#10007;</td><td>The hyphen is read as a minus sign</td></tr>
+      <tr><td><code>total%</code></td><td>&#10007;</td><td><code>%</code> is not allowed in a name</td></tr>
+      <tr><td><code>class</code></td><td>&#10007;</td><td>A reserved word</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: which of these are legal names? <code>rollNo</code>, <code>roll no</code>, <code>roll_no</code>, <code>1stRoll</code>, <code>ROLL</code>. Which one follows the convention?</summary><p><code>rollNo</code>, <code>roll_no</code> and <code>ROLL</code> are legal. <code>roll no</code> has a space and <code>1stRoll</code> starts with a digit. The conventional choice is <code>rollNo</code>, in camelCase.</p></details>
+</section>
+
+<section id="s9">
+  <h2>42.9 Reading the error messages</h2>
+  <p>Every beginner meets the same few messages in the first week. They look frightening in red, but each one names the problem precisely. The example below makes three common mistakes on purpose, one per button, so you can see the real messages.</p>
+  <pre class="code" data-run data-title="Three mistakes on purpose - press each button and read the red line" data-h="160">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 16px; color: #3C4A60; }
+  button { font: inherit; padding: 6px 12px; margin: 4px 6px 4px 0; }
+&lt;/style&gt;
+&lt;p&gt;Each button makes one mistake on purpose. Press one, then read the Console panel.&lt;/p&gt;
+&lt;button id="b1"&gt;1. Change a const&lt;/button&gt;
+&lt;button id="b2"&gt;2. Misspell a name&lt;/button&gt;
+&lt;button id="b3"&gt;3. Wrong capital letter&lt;/button&gt;
+&lt;script&gt;
+  const passingMarks = 40;
+  let totalMarks = 72;
+  console.log("Ready: passingMarks is", passingMarks, "and totalMarks is", totalMarks);
+
+  // how a button runs code is Chapter 57; each button runs ONE broken line
+  document.getElementById("b1").addEventListener("click", () =&gt; {
+    passingMarks = 35;            // a const cannot be given a new value
+  });
+  document.getElementById("b2").addEventListener("click", () =&gt; {
+    console.log(totalMark);       // the variable is totalMarks, with an s
+  });
+  document.getElementById("b3").addEventListener("click", () =&gt; {
+    console.log(TotalMarks);      // a capital T makes it a different name
+  });
+&lt;/script&gt;</pre>
+  <p>Press Run and the Console shows <i>Ready: passingMarks is 40 and totalMarks is 72</i>. Then press the three buttons in order. In Chrome and Edge the panel shows:</p>
+  <pre class="code">Uncaught TypeError: Assignment to constant variable.  (line 16)
+Uncaught ReferenceError: totalMark is not defined  (line 19)
+Uncaught ReferenceError: TotalMarks is not defined  (line 22)</pre>
+  <p>Take the first line apart. Every error message has the same four pieces:</p>
+  <ul>
+    <li><b>Uncaught</b> &mdash; nothing caught the error, so JavaScript stopped running that piece of code (Chapter 70 shows how to catch errors).</li>
+    <li><b>TypeError</b> &mdash; the kind of error.</li>
+    <li><b>Assignment to constant variable.</b> &mdash; what went wrong, in one phrase.</li>
+    <li><b>(line 16)</b> &mdash; where. Count down the example to line 16 and you land on <code>passingMarks = 35;</code>. Chrome's own DevTools shows the place at the right-hand end, as something like <code>index.html:16</code>.</li>
+  </ul>
+  <p>Here are the messages this chapter's mistakes produce. Firefox words some differently (for example "invalid assignment to const 'passingMarks'"), but the kind of error and the line number are the same.</p>
+  <table class="tbl">
+    <thead><tr><th>Message (Chrome, Edge)</th><th>Kind</th><th>What went wrong</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Assignment to constant variable.</td><td>TypeError</td><td>A line used <code>=</code> on a <code>const</code></td><td>If the value really must change, declare it with <code>let</code></td></tr>
+      <tr><td>totalMark is not defined</td><td>ReferenceError</td><td>No variable with exactly that name can be found: a typo, a wrong capital, or no declaration</td><td>Compare the spelling, letter by letter, with the declaration</td></tr>
+      <tr><td>Identifier 'score' has already been declared</td><td>SyntaxError</td><td>A second <code>let</code> or <code>const</code> for a name that already exists in the same scope</td><td>Delete the second keyword: <code>score = 75;</code> assigns to the existing variable</td></tr>
+      <tr><td>Missing initializer in const declaration</td><td>SyntaxError</td><td><code>const</code> written without <code>= value</code></td><td>Give it its value on the same line, or use <code>let</code></td></tr>
+      <tr><td>Cannot access 'rank' before initialization</td><td>ReferenceError</td><td>A <code>let</code> or <code>const</code> used above its own line</td><td>Move the use below the declaration (Chapter 49)</td></tr>
+    </tbody>
+  </table>
+  <p>Notice <i>when</i> each kind appears. A <b>TypeError</b> or <b>ReferenceError</b> happens while the script is running, so every line above the broken one has already run; that is why "Ready" was printed first. A <b>SyntaxError</b> is found while JavaScript reads the whole script, before running any of it. The script is refused as a whole, not even its first line runs, and the Console shows nothing but the error:</p>
+  <pre class="code">console.log("Starting");     // never printed
+let score = 50;
+let score = 75;              // Uncaught SyntaxError: Identifier 'score' has already been declared</pre>
+  <div class="plain"><p>Read a red line from left to right: what kind of mistake, what exactly, and on which line. Then go to that line. If nothing at all was printed, look for a SyntaxError: the script was refused before it started.</p></div>
+  <div class="callout warn"><b>A forgotten keyword is not an error.</b> If you leave out <code>let</code> entirely, as in <code>totl = 90;</code> (a typo for <code>total</code>), a normal script does not complain. It quietly creates a brand-new variable called <code>totl</code>, your real <code>total</code> never changes, and nothing tells you why. Always declare with <code>const</code> or <code>let</code>. Putting the line <code>"use strict";</code> at the very top of a script turns this silent mistake into a proper error: <i>ReferenceError: totl is not defined</i>.</div>
+</section>
+
+<section id="s10">
+  <h2>42.10 Build it: a live scoreboard</h2>
+  <p>Time to put the analogy from 42.3 on screen. The batting team, the ground and the target never change during an innings, so they are <code>const</code>. The runs and wickets change after every ball, so they are <code>let</code>. Each button stores a new value in a <code>let</code> and redraws the board.</p>
+  <p>Two pieces are borrowed from later chapters, and the comments say which. One line needs a word now: in <code>runs = runs + 4;</code> JavaScript works out the right side first, using the old value (0 + 4 is 4), and only then stores the answer back in <code>runs</code>. Chapter 44 shows the shorter <code>runs += 4;</code>.</p>
+  <pre class="code" data-run data-title="A scoreboard: const for what is fixed, let for what changes - press the buttons" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  .board { background: #0B2545; color: #fff; border-radius: 12px;
+           padding: 12px 18px; max-width: 340px; }
+  .board h3 { margin: 0 0 6px; color: #FF9933; font-size: 16px; }
+  .board p { margin: 4px 0; font-size: 20px; font-weight: 700; }
+  button { font: inherit; padding: 6px 12px; margin: 10px 6px 0 0; }
+&lt;/style&gt;
+&lt;div class="board"&gt;
+  &lt;h3 id="title"&gt;&lt;/h3&gt;
+  &lt;p id="score"&gt;&lt;/p&gt;
+  &lt;p id="need"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;button id="one"&gt;1 run&lt;/button&gt;
+&lt;button id="four"&gt;Four&lt;/button&gt;
+&lt;button id="six"&gt;Six&lt;/button&gt;
+&lt;button id="out"&gt;Wicket&lt;/button&gt;
+&lt;script&gt;
+  // fixed for the whole innings: const
+  const battingTeam = "India";
+  const venue = "Mohali";
+  const target = 181;
+
+  // these change after every ball: let
+  let runs = 0;
+  let wickets = 0;
+
+  // redraw the board (a function is a named job you can repeat: Chapter 48)
+  function showBoard() {
+    document.getElementById("title").textContent = battingTeam + " at " + venue;
+    document.getElementById("score").textContent = runs + "/" + wickets;
+    document.getElementById("need").textContent = "Need " + (target - runs) + " to win";
+    console.log("runs:", runs, "wickets:", wickets);
+  }
+  showBoard();
+
+  // each button changes a let, then redraws (buttons are Chapter 57)
+  document.getElementById("one").addEventListener("click", () =&gt; { runs = runs + 1; showBoard(); });
+  document.getElementById("four").addEventListener("click", () =&gt; { runs = runs + 4; showBoard(); });
+  document.getElementById("six").addEventListener("click", () =&gt; { runs = runs + 6; showBoard(); });
+  document.getElementById("out").addEventListener("click", () =&gt; { wickets = wickets + 1; showBoard(); });
+&lt;/script&gt;</pre>
+  <p>On Run the board reads <i>India at Mohali</i>, <i>0/0</i>, <i>Need 181 to win</i>, and the Console says <i>runs: 0 wickets: 0</i>. Press Four and then Six: the board shows 10/0 and <i>Need 171 to win</i>. The <code>+</code> between a number and text, as in <code>runs + "/" + wickets</code>, joins them into one piece of text; Chapter 44 explains why.</p>
+  <p>Two things to try in the Playground. First, change <code>let runs = 0;</code> to <code>const runs = 0;</code>. The board still draws 0/0, but pressing Four gives <i>TypeError: Assignment to constant variable</i>: the whole difference between <code>let</code> and <code>const</code>, in one click. Second, keep pressing Six past the target: the board says "Need" followed by a negative number. Printing "India won" instead needs a decision (Chapter 47).</p>
+</section>
+
+<section id="mistakes">
+  <h2>42.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>=</code> means equals."</b><br>In JavaScript one <code>=</code> is an order, not a statement of fact.</div>
+    <div class="r"><b>&#10003; "<code>=</code> means store: work out the right side, put it in the variable on the left."</b><br>That is why <code>marks = marks + 5;</code> makes sense. Comparing is the job of <code>===</code> (Chapter 44).</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A <code>const</code> can never change in any way."</b><br>A <code>const</code> object or array can be changed inside.</div>
+    <div class="r"><b>&#10003; "A <code>const</code> name can never be pointed at a different value."</b><br><code>student.marks = 95;</code> is allowed; <code>student = {};</code> is a TypeError.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A variable declared without a value is empty, or 0, or null."</b><br>None of those.</div>
+    <div class="r"><b>&#10003; "It holds <code>undefined</code>."</b><br><code>let city; console.log(city);</code> prints <code>undefined</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>var</code> and <code>let</code> are two spellings of the same thing."</b><br>They differ in three ways.</div>
+    <div class="r"><b>&#10003; "<code>var</code> can be declared twice, is function-scoped and can be read above its own line; <code>let</code> refuses all three."</b><br>That is exactly why <code>let</code> was added.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I typed <code>let x = 5;</code> in the DevTools Console and it said undefined, so <code>x</code> is undefined."</b><br>The Console was answering a different question.</div>
+    <div class="r"><b>&#10003; "The Console shows the value of the statement I typed, and a declaration has no value."</b><br>Type <code>x</code> on its own and it answers 5. (Chrome's Console prompt also lets you declare the same <code>let</code> twice, as a convenience while experimenting; a real script never does.)</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which keyword declares a variable that must be given its value at once and can never be reassigned?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>var</code></li><li>B. <code>let</code></li><li>C. <code>static</code></li><li>D. <code>const</code></li></ul>
+    <p><b>Answer: D.</b> <code>const</code> must be initialised on the same line and cannot be reassigned. <code>let</code> and <code>var</code> can both be reassigned, and <code>static</code> is not a way to declare a variable in JavaScript.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let city; console.log(city);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>undefined</code></li><li>B. <code>null</code></li><li>C. An empty line</li><li>D. <code>ReferenceError: city is not defined</code></li></ul>
+    <p><b>Answer: A.</b> <code>city</code> was declared but never given a value, so it holds <code>undefined</code>. D is what you would get if <code>city</code> had never been declared at all.</p></div></details>
+  <details class="q"><summary>What happens when this runs? <code>const age = 20; age = 21; console.log(age);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It prints 21</li><li>B. It prints 20</li><li>C. <code>TypeError: Assignment to constant variable.</code>, and nothing is printed</li><li>D. A SyntaxError before any line runs</li></ul>
+    <p><b>Answer: C.</b> The second statement tries to reassign a <code>const</code>, which throws a TypeError and stops the script, so <code>console.log</code> never runs. It is not a SyntaxError: the code is grammatically correct, and the problem appears only when the assignment runs.</p></div></details>
+  <details class="q"><summary>Which of these is a valid variable name?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>2ndYear</code></li><li>B. <code>_totalMarks</code></li><li>C. <code>first-name</code></li><li>D. <code>class</code></li></ul>
+    <p><b>Answer: B.</b> A name may contain letters, digits, <code>_</code> and <code>$</code>, and may start with <code>_</code>. A starts with a digit, C contains a hyphen (read as minus), and D is a reserved word.</p></div></details>
+  <details class="q"><summary>Which statement about <code>var</code>, <code>let</code> and <code>const</code> is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>var</code> can be declared twice in the same scope without an error</li><li>B. <code>let</code> can be declared twice in the same scope without an error</li><li>C. <code>const</code> can be declared without a value and assigned later</li><li>D. <code>var</code> is block-scoped</li></ul>
+    <p><b>Answer: A.</b> Redeclaring is the slides' first difference for <code>var</code>. B gives "Identifier has already been declared", C gives "Missing initializer in const declaration", and D is backwards: <code>var</code> is function-scoped, while <code>let</code> and <code>const</code> are block-scoped.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const marks = [70, 80]; marks.push(90); console.log(marks);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>TypeError: Assignment to constant variable.</code></li><li>B. <code>[70, 80]</code></li><li>C. <code>[70, 80, 90]</code></li><li>D. A SyntaxError</li></ul>
+    <p><b>Answer: C.</b> <code>push</code> changes the inside of the same array; the name <code>marks</code> is not reassigned, so <code>const</code> has no objection. Option A is the common wrong belief that <code>const</code> freezes the contents.</p></div></details>
+  <details class="q"><summary>Say what each line does, and what <code>fee</code> holds at the end: <code>let fee = 1500; fee = 1750;</code> Could the first line use <code>const</code> instead?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> the first statement declares <code>fee</code> and initialises it to 1500; the second reassigns it, so <code>fee</code> ends up holding 1750. It could <b>not</b> use <code>const</code>: the second statement would then throw <i>TypeError: Assignment to constant variable</i>. A value that is meant to change needs <code>let</code>.</p></div></details>
+  <details class="q"><summary>What does this print? <code>var score = 50; var score = 75; console.log(score);</code> What happens if both <code>var</code>s are changed to <code>let</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it prints <b>75</b>: <code>var</code> allows a second declaration, which simply replaces the value. With <code>let</code> the script is refused with <i>SyntaxError: Identifier 'score' has already been declared</i>, and because a SyntaxError is found before the script runs, nothing at all is printed.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let Marks = 90; console.log(marks);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 90</li><li>B. <code>undefined</code></li><li>C. <code>marks</code></li><li>D. <code>ReferenceError: marks is not defined</code></li></ul>
+    <p><b>Answer: D.</b> Names are case-sensitive, so <code>Marks</code> and <code>marks</code> are different names, and no variable called <code>marks</code> was ever declared. B is tempting, but <code>undefined</code> needs a variable that exists without a value.</p></div></details>
+  <details class="q"><summary>Following JavaScript's usual naming convention, which is the best name for a student's total marks?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>total_marks</code></li><li>B. <code>totalMarks</code></li><li>C. <code>TotalMarks</code></li><li>D. <code>total-marks</code></li></ul>
+    <p><b>Answer: B.</b> camelCase: the first word small, each later word starting with a capital. A is legal but not the JavaScript style, C capitalises the first word as well, and D is not legal at all, because the hyphen is a minus sign.</p></div></details>
+  <details class="q"><summary>A variable counts how many students have submitted an assignment; it goes up by one with each submission. Which keyword should declare it?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>var</code>, because counters are old-style code</li><li>B. <code>const</code>, because it is a count</li><li>C. Any of the three; they behave identically</li><li>D. <code>let</code></li></ul>
+    <p><b>Answer: D.</b> The value changes with each submission, so it needs reassignment, and in modern code that means <code>let</code>. B throws a TypeError on the first update, A works but brings <code>var</code>'s hidden risks, and C is false.</p></div></details>
+  <details class="q"><summary>A student writes <code>const total;</code> on one line and plans to write <code>total = 450;</code> later. What happens, and what are the two ways to fix it?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the script is refused with <i>SyntaxError: Missing initializer in const declaration</i>, because a <code>const</code> must receive its value in the declaration itself. Fix 1: write it in one line, <code>const total = 450;</code>. Fix 2: if the value really is assigned later, or will change, declare it with <code>let total;</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A variable is a name bound to a value. Write the name and JavaScript uses the value it holds at that moment.</li>
+    <li>Declaration creates the variable, initialisation gives its first value, and assignment (<code>=</code>) stores a value, replacing the old one. A variable declared but not yet assigned holds <code>undefined</code>.</li>
+    <li><code>let</code> can be reassigned. <code>const</code> must be initialised on the same line and can never be reassigned. <code>var</code> is the old keyword: it can be redeclared, is function-scoped, and gives <code>undefined</code> when read above its line.</li>
+    <li><code>const</code> fixes the name, not the contents: a <code>const</code> object or array can still change inside.</li>
+    <li>Use <code>const</code> by default, <code>let</code> when the value must change, and never <code>var</code> in new code.</li>
+    <li>Names use letters, digits, <code>_</code> and <code>$</code>; they cannot start with a digit or be a reserved word; they are case-sensitive. Write them in camelCase and make them say what they hold.</li>
+    <li>Read a red line as kind, message and line number. A SyntaxError stops the whole script before it starts; TypeError and ReferenceError stop it at the broken line.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>let x;</code></td><td>Declares <code>x</code>; it holds <code>undefined</code></td></tr>
+      <tr><td><code>let x = 5;</code></td><td>Declares and initialises in one statement</td></tr>
+      <tr><td><code>x = 10;</code></td><td>Assigns a new value to an existing <code>let</code> or <code>var</code></td></tr>
+      <tr><td><code>const MAX_MARKS = 100;</code></td><td>A constant: value given now, never reassigned</td></tr>
+      <tr><td><code>const t;</code></td><td>SyntaxError: Missing initializer in const declaration</td></tr>
+      <tr><td><code>const s = { m: 80 }; s.m = 95;</code></td><td>Allowed: changes the inside of the object</td></tr>
+      <tr><td><code>s = {};</code> (when <code>s</code> is a <code>const</code>)</td><td>TypeError: Assignment to constant variable.</td></tr>
+      <tr><td><code>let a = 1; let a = 2;</code></td><td>SyntaxError: Identifier 'a' has already been declared</td></tr>
+      <tr><td><code>var a = 1; var a = 2;</code></td><td>Allowed silently &mdash; one reason to avoid <code>var</code></td></tr>
+      <tr><td><code>console.log(totl);</code> (never declared)</td><td>ReferenceError: totl is not defined</td></tr>
+      <tr><td><code>studentName</code>, <code>isFeePaid</code></td><td>camelCase names: the JavaScript convention</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://javascript.info/variables" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Variables<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a second voice, including naming advice and small tasks at the end.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Grammar_and_types" target="_blank" rel="noopener noreferrer">MDN &mdash; Grammar and types<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Declarations, identifiers and constants in the official guide's own words.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let" target="_blank" rel="noopener noreferrer">MDN &mdash; let<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full reference, with the redeclaration and temporal dead zone rules spelled out.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/const" target="_blank" rel="noopener noreferrer">MDN &mdash; const<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Why a const object can still change inside, with examples.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

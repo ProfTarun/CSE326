@@ -1,0 +1,799 @@
+<article class="chapter" data-ch="77">
+<style>
+/* demo for this chapter only - every selector is scoped to .d77 */
+.d77 { display: flex; flex-wrap: wrap; gap: 14px; align-items: center; }
+.d77 .b77 { background: #0B2545; color: #fff; border: 0; padding: 10px 16px;
+  border-radius: 8px; font-weight: 700; font-size: 14px; cursor: pointer; }
+.d77 .gone77:focus { outline: none; }
+.d77 .ring77:focus-visible { outline: 3px solid #E07B1E; outline-offset: 3px; }
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 77 &middot; Web Development Best Practices</p>
+  <h1>Web Development Best Practices</h1>
+  <p class="lead">A website can work perfectly on your laptop and still fail the blind student who cannot find its button, the teammate who cannot read its code, the phone it does not fit, and the stranger who uses it to steal your users' data. Best practices are the habits that prevent all four. This chapter gathers them in one place and ends with the checklist to tick before you hand anything in.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>HTML should be lowercase, quoted, semantic and validated before it is published (<a href="book.html?ch=12">Chapter 12</a>).</li>
+      <li>A responsive page has the viewport meta tag and flexible media, and is tested on a real phone (<a href="book.html?ch=21">Chapter 21</a>).</li>
+      <li>Native <code>&lt;button&gt;</code>, <code>&lt;a&gt;</code> and <code>&lt;input&gt;</code> come with keyboard and screen-reader support; custom controls do not (<a href="book.html?ch=59">Chapter 59</a>).</li>
+      <li>Lighthouse and the Network panel measure how fast a page loads (<a href="book.html?ch=74">Chapter 74</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Connect each best practice to the quality it protects.</li>
+      <li>Find and fix the six semantic and accessibility problems in a typical first page.</li>
+      <li>Refactor repeated CSS and cryptic JavaScript without changing the result.</li>
+      <li>Show user data safely with <code>textContent</code>, and explain why browser-side validation and "hidden" API keys are not security.</li>
+      <li>Plan a test across widths, browsers, the keyboard and a slow network with a testing matrix.</li>
+      <li>Use the W3C validator, Lighthouse and axe or WAVE, and say what each cannot see.</li>
+      <li>Run the final checklist on your own project.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>77.1 Why best practices matter</h2>
+  <p>Chapter 76 put your site on the Internet, so now strangers will use it. Working is the minimum. A <b>best practice</b> is a habit experienced developers follow because it keeps code working, and understandable, long after the day it was written: when the data is strange, when the reader cannot see, when somebody is trying to break it.</p>
+  <p>Who meets your website? Not only you, with Chrome and fast Wi-Fi. Also a student on a cheap phone; a blind student whose <span class="jw" data-def="Software that reads the screen aloud, or sends it to a braille display, for people who cannot see it. It relies on the HTML saying what each thing is.">screen reader</span> speaks the page aloud; Google's search robot; the teammate adding a feature next month; and somebody looking for a way to misuse it. The slide groups the habits by the quality each one protects:</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 240" role="img" aria-label="Five qualities of good code, each with the habits that protect it">
+      <rect x="10" y="20" width="132" height="58" rx="10" class="box grn"/>
+      <text x="76" y="45" class="t c b">Reliability</text><text x="76" y="64" class="t c s">it keeps working</text>
+      <rect x="154" y="20" width="132" height="58" rx="10" class="box blu"/>
+      <text x="220" y="45" class="t c b">Maintainability</text><text x="220" y="64" class="t c s">easy to change</text>
+      <rect x="298" y="20" width="132" height="58" rx="10" class="box saf"/>
+      <text x="364" y="45" class="t c b">Accessibility</text><text x="364" y="64" class="t c s">everyone can use it</text>
+      <rect x="442" y="20" width="132" height="58" rx="10" class="box red"/>
+      <text x="508" y="45" class="t c b">Security</text><text x="508" y="64" class="t c s">hard to abuse</text>
+      <rect x="586" y="20" width="132" height="58" rx="10" class="box gry"/>
+      <text x="652" y="45" class="t c b">Teamwork</text><text x="652" y="64" class="t c s">others can join in</text>
+      <path d="M76 116 L76 84" class="edge" marker-end="url(#arr)"/>
+      <path d="M220 116 L220 84" class="edge" marker-end="url(#arr)"/>
+      <path d="M364 116 L364 84" class="edge" marker-end="url(#arr)"/>
+      <path d="M508 116 L508 84" class="edge" marker-end="url(#arr)"/>
+      <path d="M652 116 L652 84" class="edge" marker-end="url(#arr)"/>
+      <rect x="10" y="118" width="132" height="82" rx="10" class="box"/>
+      <text x="76" y="142" class="t c" style="font-size:12px">test edge cases</text><text x="76" y="162" class="t c" style="font-size:12px">handle errors</text><text x="76" y="182" class="t c" style="font-size:12px">loading states</text>
+      <rect x="154" y="118" width="132" height="82" rx="10" class="box"/>
+      <text x="220" y="142" class="t c" style="font-size:12px">small functions</text><text x="220" y="162" class="t c" style="font-size:12px">clear names</text><text x="220" y="182" class="t c" style="font-size:12px">no repetition</text>
+      <rect x="298" y="118" width="132" height="82" rx="10" class="box"/>
+      <text x="364" y="142" class="t c" style="font-size:12px">semantic HTML</text><text x="364" y="162" class="t c" style="font-size:12px">labels and alt</text><text x="364" y="182" class="t c" style="font-size:12px">keyboard, contrast</text>
+      <rect x="442" y="118" width="132" height="82" rx="10" class="box"/>
+      <text x="508" y="142" class="t c" style="font-size:12px">textContent</text><text x="508" y="162" class="t c" style="font-size:12px">no secrets</text><text x="508" y="182" class="t c" style="font-size:12px">HTTPS everywhere</text>
+      <rect x="586" y="118" width="132" height="82" rx="10" class="box"/>
+      <text x="652" y="142" class="t c" style="font-size:12px">Git and README</text><text x="652" y="162" class="t c" style="font-size:12px">consistent style</text><text x="652" y="182" class="t c" style="font-size:12px">comments say why</text>
+      <text x="364" y="226" class="t c s">"Code is read far more often than it is written." Write for the next reader &mdash; often future you.</text>
+    </svg>
+    <figcaption><b>Figure 77.1</b> Each habit in the bottom row protects the quality above it. None changes what the page does on a good day; all decide what happens on a bad one.</figcaption>
+  </figure>
+  <p><b>Reliability</b> means the page survives <span class="jw" data-def="An unusual but possible situation at the edge of what you planned for: an empty box, a zero, a very long name, a double click, no internet.">edge cases</span> such as an empty box (Chapter 70). <b>Maintainability</b> means the next change is cheap (Chapter 73). <b>Accessibility</b> means keyboard and screen-reader users can use the page (Chapter 59). <b>Security</b> means it cannot easily be turned against its users. <b>Teamwork</b> means someone else can pick it up (Chapter 75). Search engines gain too: semantic headings, alt text, speed and HTTPS all help a page rank (Chapter 11).</p>
+  <div class="callout analogy"><b>Picture this.</b> A city's building code demands a ramp beside the steps, fire exits and wiring in standard colours. None of it makes the building look better on opening day, and a builder in a hurry can skip it all and still hand over a building that stands. The code exists for the days after: the visitor in a wheelchair, the electrician repairing a wall he did not build, the night of a fire. Best practices are a website's building code: the ramp is accessibility, the fire exit is error handling, the wiring colours are clear names.</div>
+  <div class="callout why"><b>Key idea.</b> Every practice here costs a little time once and saves time, money or a user every time the code is read, run or attacked afterwards.</div>
+</section>
+
+<section id="s2">
+  <h2>77.2 Semantic and accessible HTML</h2>
+  <p>Units 1 and 2 taught semantic, accessible HTML one element at a time. The slide turns it into one exercise: <code>before.html</code> looks fine with a little CSS, but it has <b>six problems</b>. Find them before you read on.</p>
+  <pre class="code">&lt;!-- before.html --&gt;
+&lt;div class="header"&gt;
+  &lt;div class="title"&gt;My Blog&lt;/div&gt;
+  &lt;div onclick="go('home')"&gt;Home&lt;/div&gt;
+&lt;/div&gt;
+&lt;div class="big"&gt;Latest posts&lt;/div&gt;
+&lt;div class="small"&gt;Post one&lt;/div&gt;
+&lt;img src="cat.jpg"&gt;
+&lt;input placeholder="Email"&gt;
+&lt;div class="btn" onclick="send()"&gt;Send&lt;/div&gt;</pre>
+  <details class="qc"><summary><span>Quick check: why is <code>placeholder="Email"</code> not enough to name the box?</span></summary><p>The placeholder vanishes as soon as the user types, and it is not a reliable name for screen readers. A <code>&lt;label&gt;</code> stays visible, is read out, and clicking it puts the cursor in the box.</p></details>
+  <p>The corrected <code>after.html</code>, and the six problems it fixes:</p>
+  <pre class="code">&lt;!-- after.html --&gt;
+&lt;header&gt;
+  &lt;h1&gt;My Blog&lt;/h1&gt;
+  &lt;nav&gt;&lt;a href="index.html"&gt;Home&lt;/a&gt;&lt;/nav&gt;
+&lt;/header&gt;
+&lt;main&gt;
+  &lt;h2&gt;Latest posts&lt;/h2&gt;
+  &lt;h3&gt;Post one&lt;/h3&gt;
+  &lt;img src="cat.jpg" alt="Ginger cat asleep"&gt;
+  &lt;form&gt;
+    &lt;label for="email"&gt;Email&lt;/label&gt;
+    &lt;input id="email" type="email"&gt;
+    &lt;button type="submit"&gt;Send&lt;/button&gt;
+  &lt;/form&gt;
+&lt;/main&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>#</th><th>Problem in before.html</th><th>Fix in after.html</th><th>Who it hurts</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>No <span class="jw" data-def="A large region of a page with a known job (header, navigation, main content, footer), which a screen reader can list and jump to, like chapters in a book.">landmarks</span>: everything is a <code>div</code></td><td><code>&lt;header&gt;</code>, <code>&lt;nav&gt;</code>, <code>&lt;main&gt;</code></td><td>Screen-reader users; search engines</td></tr>
+      <tr><td>2</td><td>The blog title is a <code>div</code>, not a heading</td><td><code>&lt;h1&gt;My Blog&lt;/h1&gt;</code></td><td>Heading navigators; SEO</td></tr>
+      <tr><td>3</td><td>Clickable <code>div</code>s cannot be reached with <kbd>Tab</kbd> or pressed with <kbd>Enter</kbd></td><td><code>&lt;a&gt;</code> to go, <code>&lt;button&gt;</code> to act</td><td>Keyboard users</td></tr>
+      <tr><td>4</td><td>Heading levels faked with classes <code>big</code> and <code>small</code></td><td><code>&lt;h2&gt;</code> and <code>&lt;h3&gt;</code></td><td>Screen readers lose the outline</td></tr>
+      <tr><td>5</td><td>The image has no <code>alt</code> text</td><td><code>alt="Ginger cat asleep"</code></td><td>Blind users</td></tr>
+      <tr><td>6</td><td>The input has no label (the placeholder disappears) and the wrong type</td><td><code>&lt;label for="email"&gt;</code> with a matching <code>id</code>, and <code>type="email"</code></td><td>Everyone: phones show the @ keyboard</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>after.html can be styled to look exactly like before.html. The difference is what the browser <i>knows</i>. Use the element that matches what the thing <i>is</i>, and keyboard support, screen-reader announcements and search-engine understanding come free. A <code>div</code> gives you none of them.</p>
+  </div>
+  <p>Problem 3 is the hardest to believe, so test it. The red "button" is a <code>div</code> with an <code>onclick</code>; the green one is a real <code>&lt;button&gt;</code>.</p>
+  <pre class="code" data-run data-title="The keyboard test - click the white space, then use only Tab, Enter and Space" data-h="240">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  .fake, button { display: inline-block; margin: 6px 8px 6px 0; padding: 10px 18px;
+    border: 0; border-radius: 8px; color: #fff; font: 700 15px system-ui, sans-serif;
+    cursor: pointer; }
+  .fake { background: #C42B2B; }
+  button { background: #138808; }
+  button:focus-visible { outline: 3px solid #E07B1E; outline-offset: 3px; }
+&lt;/style&gt;
+&lt;p&gt;Click here first, then press &lt;b&gt;Tab&lt;/b&gt; to move and &lt;b&gt;Enter&lt;/b&gt; or &lt;b&gt;Space&lt;/b&gt; to press.&lt;/p&gt;
+&lt;div class="fake" onclick="send('div')"&gt;Send (div)&lt;/div&gt;
+&lt;button type="button" id="realBtn"&gt;Send (button)&lt;/button&gt;
+&lt;p id="log"&gt;Nothing sent yet.&lt;/p&gt;
+&lt;script&gt;
+  function send(source) {
+    document.querySelector("#log").textContent = "Sent by the " + source + "!";
+    console.log("Sent by the", source);
+  }
+  document.querySelector("#realBtn").addEventListener("click", () =&gt; send("button"));
+
+  // tabIndex -1 means "Tab skips me"; 0 means "Tab stops here"
+  console.log("div tabIndex:", document.querySelector(".fake").tabIndex);
+  console.log("button tabIndex:", document.querySelector("#realBtn").tabIndex);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>div tabIndex: -1</code> and <code>button tabIndex: 0</code>: &minus;1 means <kbd>Tab</kbd> skips the element. Press <kbd>Tab</kbd> and the focus lands only on the green button; <kbd>Enter</kbd> or <kbd>Space</kbd> then sends, because the browser turns the key press into a <code>click</code>. The mouse works on both, which is why the bug survives.</p>
+  <h3>The semantic and accessible HTML checklist</h3>
+  <p>What a reviewer will look for, with the chapter that taught it.</p>
+  <table class="tbl">
+    <thead><tr><th>Check</th><th>Why it matters</th><th>Chapter</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;!DOCTYPE html&gt;</code>, <code>&lt;html lang="en"&gt;</code>, charset, viewport, a real <code>&lt;title&gt;</code></td><td>Standards mode; correct pronunciation; fits phones</td><td>4, 12</td></tr>
+      <tr><td>Landmarks: <code>header</code>, <code>nav</code>, one <code>main</code>, <code>footer</code></td><td>Screen readers jump between them</td><td>13, 14</td></tr>
+      <tr><td>One <code>h1</code>, then headings in order, no skipped level</td><td>The outline is how users skim</td><td>13</td></tr>
+      <tr><td><code>alt</code> on every image (<code>alt=""</code> for decoration)</td><td>Blind users hear it</td><td>8, 15</td></tr>
+      <tr><td>A <code>&lt;label&gt;</code> and the right <code>type</code> for every input</td><td>A named field; the right phone keyboard</td><td>16, 17</td></tr>
+      <tr><td><code>&lt;a href&gt;</code> to go, <code>&lt;button&gt;</code> to act</td><td>Keyboard support comes free</td><td>12, 59</td></tr>
+      <tr><td>Link text that makes sense alone, never "click here"</td><td>Screen readers list links out of context</td><td>8, 15</td></tr>
+      <tr><td>Text contrast at least 4.5:1 (3:1 for large text)</td><td>Readable for low vision</td><td>20</td></tr>
+      <tr><td>A visible focus ring on every control</td><td>Keyboard users see where they are</td><td>32, 59</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s3">
+  <h2>77.3 Maintainable CSS and JavaScript</h2>
+  <p>The next slide is a refactor: change how code is written without changing what it does. First the CSS, three buttons and three rules:</p>
+  <pre class="code">/* styles.css - BEFORE */
+#saveBtn   { background: #4338ca; color: white; padding: 8px 16px; border-radius: 6px; }
+#sendBtn   { background: #4338ca; color: white; padding: 8px 16px; border-radius: 6px; }
+#deleteBtn { background: red;     color: white; padding: 8px 16px; border-radius: 6px; }</pre>
+  <p>It works. Now the college changes its brand colour: you must find the same hex code twice here, and in every file where somebody copied it. Miss one and the site has two blues. The habit that avoids this is called <span class="jw" data-def="Don't Repeat Yourself: every fact (a colour, a rate, a rule) should be written in exactly one place, so a change is one edit, not a hunt.">DRY</span>.</p>
+  <pre class="code">/* styles.css - AFTER */
+:root { --primary: #4338ca; --danger: #dc2626; }
+
+.btn         { background: var(--primary); color: white;
+               padding: 8px 16px; border-radius: 6px; }
+.btn--danger { background: var(--danger); }
+
+&lt;!-- index.html --&gt;
+&lt;button class="btn"&gt;Save&lt;/button&gt;
+&lt;button class="btn"&gt;Send&lt;/button&gt;
+&lt;button class="btn btn--danger"&gt;Delete&lt;/button&gt;</pre>
+  <p>Three ID rules became one reusable class plus a <b>modifier</b> class that changes only what differs (the double dash, a habit called BEM, means "a variation of <code>.btn</code>"). The colours moved into custom properties (Chapter 36), so a new brand colour is <b>one edit</b>; the slide also swaps the keyword <code>red</code> for a chosen shade. Now the JavaScript:</p>
+  <pre class="code">// cart.js - BEFORE
+function f(a) { var t = 0; for (var i = 0; i &lt; a.length; i++) t = t + a[i].p * a[i].q; return t * 1.18; }
+
+// cart.js - AFTER
+const GST_RATE = 0.18;   // 18% GST on all items
+
+function cartTotal(items) {
+  let subtotal = 0;
+  for (const item of items) {
+    subtotal += item.price * item.qty;
+  }
+  return subtotal * (1 + GST_RATE);
+}</pre>
+  <p>What do <code>f</code>, <code>a</code>, <code>t</code>, <code>p</code> and <code>q</code> mean? You can only guess. <code>1.18</code> is a <span class="jw" data-def="A bare number in code whose meaning is not written anywhere, like 1.18 or 86400. Give it a named constant so readers know what it is and you can change it in one place.">magic number</span>: a tax? a discount? In the second version every name answers its own question, the rate has a name and a comment, and <code>var</code> is gone (Chapter 42). Prove that only readability changed:</p>
+  <pre class="code" data-run data-title="Before and after the refactor - same cart, same answer" data-h="175">&lt;p&gt;Both functions get the same cart. Read the Console panel.&lt;/p&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // BEFORE: works, but tells the reader nothing
+  function f(a) { var t = 0; for (var i = 0; i &lt; a.length; i++) t = t + a[i].p * a[i].q; return t * 1.18; }
+
+  // AFTER: the same logic, readable
+  const GST_RATE = 0.18;   // 18% GST on all items
+
+  function cartTotal(items) {
+    let subtotal = 0;
+    for (const item of items) {
+      subtotal += item.price * item.qty;
+    }
+    return subtotal * (1 + GST_RATE);
+  }
+
+  // the old code needed the short property names p and q
+  const oldCart = [{ p: 250, q: 2 }, { p: 100, q: 1 }];
+  const cart = [
+    { name: "Notebook", price: 250, qty: 2 },
+    { name: "Pen set", price: 100, qty: 1 }
+  ];
+
+  console.log("Before:", f(oldCart));
+  console.log("After:", cartTotal(cart));
+  console.log("Same answer?", f(oldCart) === cartTotal(cart));
+  document.querySelector("#out").textContent =
+    "Total with GST: &#8377;" + cartTotal(cart).toFixed(2);
+&lt;/script&gt;</pre>
+  <p>Both print <code>708</code> (&#8377;600 plus 18%), the third line prints <code>true</code>, and the page shows <code>Total with GST: &#8377;708.00</code>. Identical output, very different cost the next time the rate changes.</p>
+  <div class="plain">
+    <p>Refactoring is tidying, not changing. You rename, split and remove repetition, then check the result is exactly the same. If the output changes, it was not a refactor &mdash; it was a new bug.</p>
+  </div>
+  <h3>The eight habits on the slide</h3>
+  <table class="tbl">
+    <thead><tr><th>Habit</th><th>What it looks like</th></tr></thead>
+    <tbody>
+      <tr><td>Consistent naming</td><td>One style everywhere (table below)</td></tr>
+      <tr><td>Reusable CSS classes</td><td><code>.btn</code> for every button, modifiers like <code>.btn--danger</code></td></tr>
+      <tr><td>Small, focused functions</td><td>One job, describable without "and" (Chapter 73)</td></tr>
+      <tr><td>No duplicate code</td><td>Each value or piece of logic written once</td></tr>
+      <tr><td>Separation of concerns</td><td>HTML, CSS and JS in separate files</td></tr>
+      <tr><td>Readable indentation</td><td>Two spaces per level, one statement per line</td></tr>
+      <tr><td>Comments explain why</td><td>The reason or the trap, not the code retold</td></tr>
+      <tr><td>Remove unused code</td><td>No dead functions or stray <code>console.log</code>s; Git keeps old versions</td></tr>
+    </tbody>
+  </table>
+  <table class="tbl">
+    <thead><tr><th>What you are naming</th><th>Convention</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>JavaScript variables and functions</td><td>camelCase; nouns for data, verbs for actions</td><td><code>studentList</code>, <code>showError()</code>, <code>cartTotal()</code></td></tr>
+      <tr><td>True/false values</td><td>Start with is, has or can</td><td><code>isLoggedIn</code>, <code>hasErrors</code></td></tr>
+      <tr><td>Constants that never change</td><td>UPPER_SNAKE_CASE, declared at the top</td><td><code>GST_RATE</code>, <code>MAX_SEATS</code></td></tr>
+      <tr><td>CSS classes and custom properties</td><td>lowercase with hyphens</td><td><code>.nav-link</code>, <code>.btn--danger</code>, <code>--primary</code></td></tr>
+      <tr><td>Files and folders</td><td>lowercase, hyphens, no spaces</td><td><code>about-us.html</code></td></tr>
+    </tbody>
+  </table>
+  <p>A comment that explains <i>why</i> stays true; one that explains <i>what</i> goes stale when the line changes:</p>
+  <pre class="code">// WEAK: says what the code already says
+total = subtotal * 1.18;      // multiply subtotal by 1.18
+
+// USEFUL: says what the code cannot say
+const GST_RATE = 0.18;        // 18% GST on all items; change here if the rate changes
+const MAX_SEATS = 4;          // the venue allows 4 tickets per booking</pre>
+  <p>Let tools enforce the boring parts. A <b>formatter</b> such as Prettier re-indents a whole file in one keystroke. A <span class="jw" data-def="A tool that reads your code without running it and warns about likely mistakes: unused variables, == instead of ===, a variable used before it exists.">linter</span> such as ESLint underlines likely mistakes, such as an unused variable, before you press Run. Both have VS Code extensions.</p>
+</section>
+
+<section id="s4">
+  <h2>77.4 Frontend security fundamentals</h2>
+  <p>The slide's big idea: <b>everything sent to the browser is visible to, and changeable by, the person using it.</b> Any visitor can read and edit your HTML and JavaScript in DevTools, watch every request, and call your server without your page at all (Chapter 69). So front-end security rests on two habits: <b>never trust what comes in</b>, and <b>never hide in the page what must stay secret</b>. The slide's six practices follow, plus one it leaves out: safe new-tab links.</p>
+
+  <h3>1. Never trust input: textContent, not innerHTML</h3>
+  <p><b>Untrusted data</b> is anything you did not write yourself: form input, the query string, API data, values from <code>localStorage</code>. Any of it can contain HTML. On Asha's class-notes site, Rahul leaves this comment:</p>
+  <pre class="code">Nice notes! &lt;img src="x" onerror="...any JavaScript Rahul likes..."&gt;</pre>
+  <p>If the site displays comments with <code>innerHTML</code>, the browser <b>reads those characters as HTML code</b>. It builds a real <code>&lt;img&gt;</code>, fails to load the image <code>x</code>, and runs the <code>onerror</code> attribute as JavaScript. Every visitor now runs Rahul's code inside Asha's site. This is <span class="jw" data-def="Cross-site scripting: an attacker gets their JavaScript to run inside your page, usually by sneaking HTML into text that your page then inserts with innerHTML.">XSS</span>, cross-site scripting, one of the Web's most common security holes. The script can read what users type, steal a login token from <code>localStorage</code>, or redraw the page as a fake login form.</p>
+  <pre class="code">// UNSAFE: the browser parses the comment as HTML and may run code inside it
+wall.innerHTML = comment;
+
+// SAFE: the browser shows the comment as plain characters, nothing runs
+wall.textContent = comment;</pre>
+  <figure class="fig">
+    <svg viewBox="0 0 680 250" role="img" aria-label="The same malicious comment shown with innerHTML runs code; shown with textContent it is only text">
+      <rect x="10" y="88" width="180" height="76" rx="12" class="box ink"/>
+      <text x="100" y="112" class="t c b w">a comment with HTML</text>
+      <text x="100" y="134" class="t c w mono" style="font-size:11px">Nice! &lt;img src="x"</text>
+      <text x="100" y="150" class="t c w mono" style="font-size:11px">onerror="..."&gt;</text>
+      <path d="M190 110 C 214 110, 214 56, 236 56" class="edge" marker-end="url(#arr)"/>
+      <path d="M190 142 C 214 142, 214 194, 236 194" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="240" y="18" width="200" height="76" rx="12" class="box red"/>
+      <text x="340" y="43" class="t c b mono" style="font-size:12px">wall.innerHTML = c</text>
+      <text x="340" y="63" class="t c s">read as HTML code:</text>
+      <text x="340" y="80" class="t c s">a real &lt;img&gt; is built</text>
+      <path d="M440 56 L466 56" class="edge" marker-end="url(#arr)"/>
+      <rect x="470" y="18" width="200" height="76" rx="12" class="box red"/>
+      <text x="570" y="43" class="t c b">onerror RUNS</text>
+      <text x="570" y="63" class="t c s">the attacker's code runs</text>
+      <text x="570" y="80" class="t c s">in every visitor's page</text>
+      <rect x="240" y="156" width="200" height="76" rx="12" class="box grn"/>
+      <text x="340" y="181" class="t c b mono" style="font-size:12px">wall.textContent = c</text>
+      <text x="340" y="201" class="t c s">kept as characters:</text>
+      <text x="340" y="218" class="t c s">no element is built</text>
+      <path d="M440 194 L466 194" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="470" y="156" width="200" height="76" rx="12" class="box grn"/>
+      <text x="570" y="181" class="t c b">nothing runs</text>
+      <text x="570" y="201" class="t c s">visitors simply read</text>
+      <text x="570" y="218" class="t c s mono">Nice! &lt;img src="x" ...&gt;</text>
+    </svg>
+    <figcaption><b>Figure 77.2</b> One comment, two properties. <code>innerHTML</code> treats the text as instructions to build elements; <code>textContent</code> treats it as letters to display.</figcaption>
+  </figure>
+  <p>The example does it for real. Here the attacker's comment only turns the page pink and prints a warning; on a real site it could do anything.</p>
+  <pre class="code" data-run data-title="XSS in one click - post with innerHTML, then with textContent" data-h="340">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  textarea { width: 100%; height: 58px; font: 13px monospace; box-sizing: border-box; }
+  button { margin: 8px 8px 8px 0; padding: 8px 14px; font-weight: 700; border: 0;
+           border-radius: 8px; color: #fff; cursor: pointer; }
+  #unsafe { background: #C42B2B; }
+  #safe { background: #138808; }
+  .wall { border: 1px solid #CBD5E1; border-radius: 8px; padding: 8px 10px; min-height: 22px; }
+&lt;/style&gt;
+&lt;label for="msg"&gt;A comment (an attacker typed this):&lt;/label&gt;
+&lt;textarea id="msg"&gt;Nice notes! &lt;img src="x" onerror="document.body.style.background='#FCE4E4'; console.error('ATTACK: code from a comment just ran inside your page')"&gt;&lt;/textarea&gt;
+&lt;button id="unsafe" type="button"&gt;Post with innerHTML&lt;/button&gt;
+&lt;button id="safe" type="button"&gt;Post with textContent&lt;/button&gt;
+&lt;p&gt;&lt;b&gt;Comment wall&lt;/b&gt;&lt;/p&gt;
+&lt;div class="wall" id="wall"&gt;&lt;/div&gt;
+&lt;script&gt;
+  const msg = document.querySelector("#msg");
+  const wall = document.querySelector("#wall");
+
+  document.querySelector("#unsafe").addEventListener("click", () =&gt; {
+    wall.innerHTML = msg.value;            // parsed as HTML: an &lt;img&gt; is created
+    console.log("innerHTML: elements inside the wall =", wall.children.length);
+  });
+
+  document.querySelector("#safe").addEventListener("click", () =&gt; {
+    document.body.style.background = "";
+    wall.textContent = msg.value;          // shown as characters: nothing is created
+    console.log("textContent: elements inside the wall =", wall.children.length);
+  });
+&lt;/script&gt;</pre>
+  <p>Press the red button: the Console prints <code>innerHTML: elements inside the wall = 1</code> (the image the browser built), then the red <code>ATTACK</code> line as the failed load fires <code>onerror</code>. Press the green button: the page turns white, the comment appears as ordinary text, angle brackets and all, and the Console prints <code>... = 0</code>. Nothing was built, so nothing could run.</p>
+  <div class="plain">
+    <p><code>innerHTML</code> means "read this as HTML code". <code>textContent</code> means "show these letters". Anything a user typed, or an API sent, must go in as letters.</p>
+  </div>
+  <div class="callout warn"><b>A trap.</b> Students test XSS with <code>&lt;script&gt;alert(1)&lt;/script&gt;</code>, see nothing happen, and decide <code>innerHTML</code> is safe. It is not. A <code>&lt;script&gt;</code> inserted through <code>innerHTML</code> never runs (the HTML standard says so), but event-handler attributes such as <code>onerror</code> on the elements it creates do.</div>
+  <p>When you build content from data (Chapter 58), create the element yourself and put the user's words in as text. <code>innerHTML</code> is fine for fixed markup <i>you</i> wrote:</p>
+  <pre class="code">// SAFE: create the element, then add the user's words as text
+const li = document.createElement("li");
+li.textContent = comment.text;            // any &lt; &gt; &amp; stay harmless characters
+commentList.append(li);
+
+// RISKY: user text pasted into a template, then parsed as HTML
+commentList.innerHTML += `&lt;li&gt;${comment.text}&lt;/li&gt;`;
+
+// FINE: fixed markup you wrote yourself, no outside data
+emptyState.innerHTML = "&lt;b&gt;No comments yet.&lt;/b&gt; Be the first!";</pre>
+  <p>A site that must accept formatted HTML from users passes it through a tested <b>sanitiser</b> library such as DOMPurify. Never write your own filter; attackers know the ways round them.</p>
+
+  <h3>2. Validate in the browser for convenience, on the server for safety</h3>
+  <p><b>Validating</b> data means checking its <b>type</b>, <b>length</b>, <b>format</b> and <b>range</b> (marks from 0 to 100) before you use it, as Chapters 18 and 60 did in the browser. Now the slide's prediction question. A registration page contains this check:</p>
+  <pre class="code">if (age.value &lt; 18) {
+  return showError("Must be 18+");
+}</pre>
+  <p><b>Can a 15-year-old still register?</b> Yes: turn JavaScript off; edit the <code>if</code> in DevTools; or skip the page and send the request straight to the server with <code>fetch</code> in the Console or a tool such as curl. The check lives on the user's computer, so the user decides whether it runs. <b>Client-side validation is not a security boundary.</b> The server must check again.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 680 250" role="img" aria-label="Four routes to the server; only one passes through the browser check, all pass through the server check">
+      <rect x="10" y="16" width="240" height="40" rx="10" class="box grn"/>
+      <text x="130" y="41" class="t c">Honest user: form + JS check</text>
+      <rect x="10" y="72" width="240" height="40" rx="10" class="box red"/>
+      <text x="130" y="97" class="t c">JavaScript turned off</text>
+      <rect x="10" y="128" width="240" height="40" rx="10" class="box red"/>
+      <text x="130" y="153" class="t c">Check deleted in DevTools</text>
+      <rect x="10" y="184" width="240" height="40" rx="10" class="box red"/>
+      <text x="130" y="209" class="t c">Request sent directly (curl)</text>
+      <path d="M250 36 L326 100" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M250 92 L326 116" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M250 148 L326 134" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M250 204 L326 150" class="edge dash" marker-end="url(#arr)"/>
+      <rect x="330" y="80" width="150" height="90" rx="12" class="box ink"/>
+      <text x="405" y="110" class="t c b w">SERVER</text>
+      <text x="405" y="132" class="t c w" style="font-size:12px">checks EVERY</text>
+      <text x="405" y="150" class="t c w" style="font-size:12px">request again</text>
+      <path d="M480 108 L526 74" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M480 142 L526 176" class="edge" marker-end="url(#arr)"/>
+      <rect x="530" y="40" width="140" height="56" rx="10" class="box grn"/>
+      <text x="600" y="64" class="t c b">saved</text><text x="600" y="83" class="t c s">valid data only</text>
+      <rect x="530" y="154" width="140" height="56" rx="10" class="box red"/>
+      <text x="600" y="178" class="t c b">refused</text><text x="600" y="197" class="t c s">with a clear error</text>
+      <text x="340" y="244" class="t c s">The browser check guards one road. The server check guards all four.</text>
+    </svg>
+    <figcaption><b>Figure 77.3</b> Only the honest user's request passes through your JavaScript. Every request reaches the server, so the real check must happen there.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>The browser's check helps honest users fix mistakes quickly. It cannot stop a dishonest one, because the browser belongs to the user. Only the server, which you control, can refuse a bad request.</p>
+  </div>
+  <p>The example has two pretend servers inside it. The form's check stops the honest 15-year-old; an attacker skips the form and calls the servers directly.</p>
+  <pre class="code" data-run data-title="The browser check is a convenience - watch the attacker go round it" data-h="195">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  input { width: 70px; padding: 6px 8px; }
+  button { margin-left: 6px; padding: 7px 14px; font-weight: 700; }
+  #msg { font-weight: 700; }
+&lt;/style&gt;
+&lt;form id="signup"&gt;
+  &lt;label for="age"&gt;Your age&lt;/label&gt;
+  &lt;input id="age" type="number" value="15"&gt;
+  &lt;button&gt;Register&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="msg"&gt;Press Register, then read the Console.&lt;/p&gt;
+&lt;script&gt;
+  // ---- two pretend SERVERS (in real life these run on another computer) ----
+  function trustingServer(data) {                 // assumes the browser checked
+    return "Trusting server: registered, age " + data.age;
+  }
+  function carefulServer(data) {                  // checks everything again
+    const age = Number(data.age);
+    if (!Number.isInteger(age) || age &lt; 18 || age &gt; 120) {
+      return "Careful server: refused, must be 18 or older";
+    }
+    return "Careful server: registered, age " + age;
+  }
+
+  // ---- BROWSER code: a quick check, for the honest user's convenience ----
+  const ageBox = document.querySelector("#age");
+  const msg = document.querySelector("#msg");
+  document.querySelector("#signup").addEventListener("submit", (event) =&gt; {
+    event.preventDefault();
+    if (ageBox.value &lt; 18) {                       // "15" &lt; 18 is true
+      msg.textContent = "Must be 18+ (checked in the browser)";
+      return;
+    }
+    msg.textContent = carefulServer({ age: ageBox.value });
+  });
+
+  // ---- an ATTACKER skips the form and calls the servers directly ----
+  console.log("The box holds a", typeof ageBox.value, "-", ageBox.value);
+  console.log("Attacker, age 15 -&gt;", trustingServer({ age: 15 }));
+  console.log("Attacker, age 15 -&gt;", carefulServer({ age: 15 }));
+  console.log("Attacker, age 'abc' -&gt;", carefulServer({ age: "abc" }));
+  console.log("Honest adult, age 19 -&gt;", carefulServer({ age: 19 }));
+&lt;/script&gt;</pre>
+  <p>The Console shows five lines. <code>The box holds a string - 15</code>: an input's <code>value</code> is always text, and <code>"15" &lt; 18</code> works only because JavaScript converts it to a number (Chapter 44). Then the disaster: <code>Trusting server: registered, age 15</code>. The careful server refuses 15 and <code>"abc"</code> (which becomes <code>NaN</code>) and accepts 19. Press Register and the browser check stops you; change the box to 19 and you are registered. So validate twice: in the browser for <b>friendliness</b>, on the server for <b>safety</b>.</p>
+
+  <h3>3. No secrets in frontend code</h3>
+  <p>The slide's "never do this" example:</p>
+  <pre class="code">// app.js - visible to every visitor:
+const API_KEY = "sk_live_51H8xK...";
+fetch(`${API_URL}?key=${API_KEY}`);</pre>
+  <p>An <b>API key</b> is a password that lets a program use a paid or limited service: a weather feed, a payment gateway, an AI model. In <code>app.js</code> it is readable in the Sources panel and in every request URL in the Network panel. On GitHub Pages it is public twice: in DevTools, and in your repository, where bots scan new commits for keys within minutes. Someone else then runs up your bill.</p>
+  <div class="plain">
+    <p>If the browser can read it, the visitor can read it. A secret used by browser code is not a secret.</p>
+  </div>
+  <details class="qc"><summary>Quick check: Rahul minifies app.js so the key is buried in one enormous unreadable line. Is it safe now?</summary><p>No. Minifying, base64-encoding or splitting the key into pieces only makes it slower for a human to spot. The browser still has to rebuild the real key to send it, and the Network panel shows it in the request. Hiding is not securing.</p></details>
+  <p>What to do instead:</p>
+  <ul>
+    <li><b>Keep the key on a server you control.</b> The browser asks <i>your</i> server; it adds the key, calls the real API and returns only the result. GitHub Pages serves static files only (Chapter 76), so this needs a small back end or "serverless function" elsewhere.</li>
+    <li><b>Keep server secrets in a <code>.env</code> file listed in <code>.gitignore</code></b> (Chapter 75). This protects server code only: build tools that feed <code>.env</code> to front-end code paste the value into the JavaScript.</li>
+    <li><b>If a key leaks, rotate it at once</b>: revoke it and create a new one. Deleting the line in a new commit does not help; the old commit still has it.</li>
+  </ul>
+  <p>Some services also issue a <b>publishable</b> key (often <code>pk_</code>) designed for browser code; the <b>secret</b> one (<code>sk_</code>, like the slide's) never leaves the server.</p>
+
+  <h3>4. HTTPS everywhere</h3>
+  <p>HTTPS encrypts what travels between browser and server, so nobody on the café Wi-Fi can read or alter it (Chapter 1). "Everywhere" means the <b>site itself</b> (GitHub Pages gives it free), <b>every API call</b> and <b>every asset</b>. A page loaded over HTTPS that tries <code>fetch("http://...")</code> is blocked as <b>mixed content</b>, a common reason a project fails once it is live. Geolocation (Chapter 66), the camera and the clipboard API need HTTPS; <code>http://localhost</code> counts as secure for testing.</p>
+  <div class="callout warn"><b>What HTTPS does not mean.</b> The padlock says the connection is private, not that the site is honest: a fake bank site can have a perfectly valid padlock. HTTPS protects the journey, not the destination.</div>
+
+  <h3>5. Links that open a new tab</h3>
+  <pre class="code">&lt;a href="https://github.com/asha-kumar" target="_blank" rel="noopener noreferrer"&gt;My GitHub&lt;/a&gt;</pre>
+  <ul>
+    <li><b><code>noopener</code></b> &mdash; the new tab gets no <code>window.opener</code>, so the linked page cannot quietly send <i>your</i> tab to a lookalike login page (reverse tabnabbing).</li>
+    <li><b><code>noreferrer</code></b> &mdash; the browser sends no <code>Referer</code> header, so the new site is not told which page the user came from. It also implies <code>noopener</code>.</li>
+  </ul>
+  <p>Current browsers apply <code>noopener</code> to <code>target="_blank"</code> links automatically, but write it anyway: older browsers still exist, and audit tools look for it. Every link in this chapter's Reference material is written this way.</p>
+
+  <h3>6. A Content Security Policy</h3>
+  <p>A <b>Content Security Policy</b> (CSP) tells the browser where your page may load things from. The slide's one-line version goes in the <code>&lt;head&gt;</code>:</p>
+  <pre class="code">&lt;meta http-equiv="Content-Security-Policy" content="default-src 'self'"&gt;</pre>
+  <p><code>default-src 'self'</code> means: scripts, styles, images and <code>fetch</code> requests may come only from my own site. A second wall behind <code>textContent</code>: even if an attacker injects <code>&lt;img onerror="..."&gt;</code>, the browser refuses to run inline JavaScript. The price: your own inline <code>&lt;script&gt;</code> and <code>&lt;style&gt;</code> elements and <code>onclick</code> and <code>style</code> attributes stop working too, &mdash; one more reason to keep JS and CSS in their own files (Chapter 73). Servers usually send the policy as an HTTP header; GitHub Pages sites use the meta tag.</p>
+  <h3>The six practices together</h3>
+  <table class="tbl">
+    <thead><tr><th>Practice (slide)</th><th>In one line</th><th>Stops</th></tr></thead>
+    <tbody>
+      <tr><td>Avoid unsafe HTML insertion</td><td><code>textContent</code> for user and API data</td><td>XSS</td></tr>
+      <tr><td>Validate untrusted data</td><td>Type, length, format; server checks again</td><td>Bad data saved</td></tr>
+      <tr><td>No secrets in frontend code</td><td>Keys are readable in Sources</td><td>Stolen keys</td></tr>
+      <tr><td>Use HTTPS everywhere</td><td>Site, APIs and assets</td><td>Eavesdropping</td></tr>
+      <tr><td>Content Security Policy</td><td>Limit where scripts load from</td><td>Injected scripts</td></tr>
+      <tr><td>Safe deployment habits</td><td><code>.env</code> in <code>.gitignore</code>; rotate leaked keys</td><td>Secrets on GitHub</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s5">
+  <h2>77.5 Responsive design and cross-browser testing</h2>
+  <p>"It works on my machine" is the most famous excuse in software. Your machine is one screen, one browser, one mouse and one fast connection; your users have hundreds of combinations. The slide's answer is a <b>testing matrix</b>: what must work down the side, where across the top, every cell filled in honestly. Its sample results:</p>
+  <table class="tbl">
+    <thead><tr><th>Test case</th><th>Chrome desktop</th><th>Firefox desktop</th><th>Safari iPhone</th><th>Chrome Android</th><th>Keyboard only</th><th>Slow 4G</th></tr></thead>
+    <tbody>
+      <tr><td>Layout at 375 / 768 / 1280 px</td><td>&#10003;</td><td>&#10003;</td><td><b>&#10007;</b></td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td></tr>
+      <tr><td>Navigation menu opens and closes</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td><b>&#10007;</b></td><td>&#10003;</td></tr>
+      <tr><td>Form errors shown and announced</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td></tr>
+      <tr><td>Visible focus on every control</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td><td>&ndash;</td><td><b>&#10007;</b></td><td>&ndash;</td></tr>
+      <tr><td>Loading and error states</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td><td>&#10003;</td></tr>
+      <tr><td>Images load, no layout shift</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&#10003;</td><td>&ndash;</td><td><b>&#10007;</b></td></tr>
+    </tbody>
+  </table>
+  <p>&#10003; works, &#10007; bug found (add a note), &ndash; does not apply. Notice: <b>none of the four bugs shows up in Chrome on a desktop</b>, where most students do all their testing. Each points at a lesson from this book:</p>
+  <ul>
+    <li><b>Safari iPhone, layout</b> &mdash; something is wider than 375 pixels (the example below finds it).</li>
+    <li><b>Keyboard, menu</b> &mdash; the toggle is a clickable <code>div</code>; make it a <code>&lt;button&gt;</code> (Chapter 59).</li>
+    <li><b>Keyboard, focus</b> &mdash; a stylesheet says <code>outline: none</code>; use <code>:focus-visible</code> (demo below).</li>
+    <li><b>Slow 4G, layout shift</b> &mdash; images without <code>width</code> and <code>height</code> (Chapter 74).</li>
+  </ul>
+  <p>Copy the matrix into your project's README and fill it in for your own site; it shows a reviewer that you tested properly.</p>
+  <h3>Screen sizes: the device toolbar, then a real phone</h3>
+  <p>In Chrome or Edge DevTools, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> opens the <b>device toolbar</b> (Chapter 69). Try widths of <b>375</b> (a phone), <b>768</b> (a tablet) and <b>1280</b> (a laptop), and drag slowly between them: at every width, <b>no horizontal scroll bar</b>. The toolbar imitates a phone's screen size and its touch, but it is still your computer's browser on your computer's fast processor, not the phone's own. The slide's advice: <b>DevTools emulation is good; a real phone is better.</b></p>
+  <details class="qc"><summary>Quick check: which three widths does the testing matrix check, and which kind of device does each stand for?</summary><p>375 px (a phone), 768 px (a tablet) and 1280 px (a laptop or desktop). The final checklist stretches the range from 375 up to 1440 px.</p></details>
+  <p>The most common responsive bug is one element that is too wide. This function compares the width of the page with the width of the window, then lists every element that pokes out past the right edge.</p>
+  <pre class="code" data-run data-title="Who is causing the sideways scroll? - read the Console, then press the fix" data-h="265">&lt;style&gt;
+  * { box-sizing: border-box; }
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 12px; color: #0B2545; }
+  .card { background: #EEF2FF; border-radius: 8px; padding: 10px; margin-bottom: 8px; }
+  .banner { width: 1200px; background: #FFE8D1; padding: 10px; margin-bottom: 8px; }
+&lt;/style&gt;
+&lt;div class="card"&gt;A normal card: it shrinks to fit any screen.&lt;/div&gt;
+&lt;div class="banner"&gt;A banner someone gave a fixed width of 1200px&lt;/div&gt;
+&lt;div class="card"&gt;Another normal card.&lt;/div&gt;
+&lt;button id="fix" type="button"&gt;Apply the fix: max-width: 100%&lt;/button&gt;
+&lt;script&gt;
+  function findOverflow() {
+    const visible = document.documentElement.clientWidth;   // the window
+    const page = document.documentElement.scrollWidth;      // the content
+    console.log("Window:", visible + "px", "| page:", page + "px");
+
+    const tooWide = [...document.body.querySelectorAll("*")]
+      .filter((el) =&gt; el.getBoundingClientRect().right &gt; visible)
+      .map((el) =&gt; el.tagName.toLowerCase() + "." + el.className);
+
+    if (tooWide.length &gt; 0) {
+      console.warn("Too wide:", tooWide.join(", "));
+    } else {
+      console.log("No horizontal scroll. Good.");
+    }
+  }
+
+  window.addEventListener("load", findOverflow);    // check once the page is drawn
+  document.querySelector("#fix").addEventListener("click", () =&gt; {
+    document.querySelector(".banner").style.maxWidth = "100%";
+    findOverflow();
+  });
+&lt;/script&gt;</pre>
+  <p>The first run reports a page about 1212 pixels wide in a narrower window (its width depends on your screen) and names the culprit: <code>Too wide: div.banner</code>. Press the button and the two widths match, then <code>No horizontal scroll. Good.</code> The fix is Chapter 21's: <code>max-width: 100%</code> means never wider than the container.</p>
+  <h3>Browsers: four names, three engines</h3>
+  <p>Browsers draw pages with a <span class="jw" data-def="The part of a browser that reads HTML and CSS and draws the page. Different engines occasionally disagree, which is why you test in more than one.">rendering engine</span>, and three matter today. Testing one browser from each catches almost every difference.</p>
+  <table class="tbl">
+    <thead><tr><th>Browser</th><th>Engine</th><th>Why test it</th></tr></thead>
+    <tbody>
+      <tr><td>Chrome</td><td>Blink</td><td>The most used browser in India and the world</td></tr>
+      <tr><td>Edge</td><td>Blink (since 2020)</td><td>The default on Windows; normally behaves like Chrome</td></tr>
+      <tr><td>Firefox</td><td>Gecko</td><td>A different engine: catches code that works in Chrome only by accident</td></tr>
+      <tr><td>Safari (iPhone, iPad, Mac)</td><td>WebKit</td><td>Every iPhone user. Apple has long required every iPhone browser, even the one labelled Chrome, to use WebKit underneath (relaxed only in the EU, in 2024)</td></tr>
+    </tbody>
+  </table>
+  <p>Prefer <b>standard</b> features, and look up anything new on <b>caniuse.com</b>, which shows which browsers support it. When a feature might be missing, check for it first and offer a fallback &mdash; <b>feature detection</b>:</p>
+  <pre class="code">// JavaScript: use a feature only where it exists
+if ("geolocation" in navigator) {
+  navigator.geolocation.getCurrentPosition(showMap, showError);
+} else {
+  showMessage("Location is not available - please type your city.");
+}
+
+/* CSS has its own version */
+@supports (display: grid) {
+  .gallery { display: grid; grid-template-columns: repeat(3, 1fr); }
+}</pre>
+  <h3>Keyboard only, and bad conditions</h3>
+  <p>Put the mouse away and use the whole site with five keys:</p>
+  <table class="tbl">
+    <thead><tr><th>Key</th><th>Should</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Move to the next / previous control, in a sensible order, with a visible focus ring</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Follow a link, press a button, submit a form</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Press a button, tick a checkbox</td></tr>
+      <tr><td><kbd>Escape</kbd></td><td>Close a menu or dialog, returning focus to its opener</td></tr>
+    </tbody>
+  </table>
+  <div class="demo">
+    <p class="dlab">Live &mdash; click the blank space just above these buttons, then press Tab twice</p>
+    <div class="d77">
+      <button type="button" class="b77 gone77">outline: none</button>
+      <button type="button" class="b77 ring77">:focus-visible ring</button>
+    </div>
+  </div>
+  <p>On the first button the focus is there but invisible: a keyboard user is lost. The second shows where they are, and thanks to <code>:focus-visible</code> a mouse click does not show the ring (Chapter 32).</p>
+  <p>Finally, test under <b>bad conditions</b>: in the Network panel's throttling menu choose <b>Slow 4G</b>, then <b>Offline</b>. You should see your loading state, no jumping layout, and a friendly error with a way to retry, not a blank page (Chapters 70 and 72).</p>
+</section>
+
+<section id="s6">
+  <h2>77.6 Validation and audit tools</h2>
+  <p>Nobody sees their own mistakes reliably. Free tools check your work against the standards in seconds.</p>
+  <table class="tbl">
+    <thead><tr><th>Tool</th><th>What it checks</th><th>How to use it</th><th>What it cannot tell you</th></tr></thead>
+    <tbody>
+      <tr><td><b>W3C Markup Validation Service</b><br>validator.w3.org</td><td>HTML against the standard: unclosed or misnested tags, duplicate <code>id</code>s, missing <code>alt</code></td><td>Paste the code, upload the file or give the live URL</td><td>Whether the page looks right</td></tr>
+      <tr><td><b>W3C CSS Validation Service</b><br>jigsaw.w3.org/css-validator</td><td>CSS syntax: misspelled properties, impossible values</td><td>The same three ways</td><td>Whether the layout works on a phone</td></tr>
+      <tr><td><b>Lighthouse</b><br>in Chrome and Edge DevTools</td><td>Scores 0&ndash;100 in four categories: Performance, Accessibility, Best Practices, SEO</td><td>Lighthouse tab &rarr; Mobile &rarr; Analyze page load</td><td>Whether a keyboard user can finish a task</td></tr>
+      <tr><td><b>axe DevTools</b><br>extension by Deque</td><td>WCAG accessibility rules: contrast, names, labels, ARIA, with the fix explained</td><td>axe DevTools tab &rarr; Scan</td><td>Whether alt text is <i>meaningful</i></td></tr>
+      <tr><td><b>WAVE</b><br>by WebAIM</td><td>Similar rules, drawn as icons on your page</td><td>Click the WAVE toolbar icon</td><td>The same blind spots as axe</td></tr>
+    </tbody>
+  </table>
+  <p>Working tips. Validate the <b>HTML first</b>: one unclosed tag can cause dozens of confusing errors further down, so fix the first error and re-check. Run Lighthouse in an <b>Incognito window</b> (extensions spoil the score) and on <b>Mobile</b>, the stricter setting. Scores of 90&ndash;100 are green, 50&ndash;89 orange, 0&ndash;49 red. Lighthouse's accessibility checks are built on axe's rules, so the two usually agree.</p>
+  <p>How does a tool like axe work? It runs rules against the page, asking of every element questions such as "does this image have an <code>alt</code>?" Here is a tiny one, run against a page with seven mistakes left in on purpose:</p>
+  <pre class="code" data-run data-title="A mini accessibility checker - seven planted mistakes, found by rules" data-h="420">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  .fake { display: inline-block; background: #0B2545; color: #fff;
+          padding: 6px 12px; border-radius: 6px; cursor: pointer; }
+  #report { font-weight: 700; }
+&lt;/style&gt;
+&lt;!-- a page with mistakes left in on purpose --&gt;
+&lt;h1&gt;Asha's Portfolio&lt;/h1&gt;
+&lt;h3&gt;Projects&lt;/h3&gt;
+&lt;img src="media/campus.svg" width="120" height="60"&gt;
+&lt;img src="media/campus.svg" alt="LPU campus gate" width="120" height="60"&gt;
+&lt;p&gt;&lt;input id="email" type="email" placeholder="Email"&gt;
+   &lt;label for="phone"&gt;Phone&lt;/label&gt; &lt;input id="phone" type="tel"&gt;&lt;/p&gt;
+&lt;p&gt;&lt;span class="fake" onclick="console.log('contact')"&gt;Contact me&lt;/span&gt;
+   &lt;a href="https://github.com/" target="_blank"&gt;My GitHub&lt;/a&gt;
+   &lt;a href="cv.pdf"&gt;&lt;/a&gt;&lt;/p&gt;
+&lt;p id="report"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const problems = [];
+  const report = (element, problem) =&gt; problems.push({ element, problem });
+
+  // Rule 1: every image needs alt (alt="" is allowed for decoration)
+  document.querySelectorAll("img").forEach((img, i) =&gt; {
+    if (!img.hasAttribute("alt")) report("img #" + (i + 1), "no alt text");
+  });
+
+  // Rule 2: every form field needs a label
+  document.querySelectorAll("input, select, textarea").forEach((field) =&gt; {
+    if (field.labels.length === 0 &amp;&amp; !field.hasAttribute("aria-label")) {
+      report("input#" + field.id, "no label (a placeholder is not a label)");
+    }
+  });
+
+  // Rule 3: clickable things must be real links or buttons
+  document.querySelectorAll("div[onclick], span[onclick]").forEach((el) =&gt; {
+    report(el.tagName.toLowerCase() + " '" + el.textContent + "'", "clickable but not a button or link");
+  });
+
+  // Rule 4: links need text, and new tabs need rel="noopener noreferrer"
+  document.querySelectorAll("a").forEach((a) =&gt; {
+    if (a.textContent.trim() === "") report("a " + a.getAttribute("href"), "link has no text");
+    if (a.target === "_blank" &amp;&amp; !a.rel.includes("noopener")) {
+      report("a '" + a.textContent + "'", "target=_blank without rel=noopener");
+    }
+  });
+
+  // Rule 5: headings must not skip a level
+  let last = 0;
+  document.querySelectorAll("h1, h2, h3, h4, h5, h6").forEach((h) =&gt; {
+    const level = Number(h.tagName[1]);
+    if (last &gt; 0 &amp;&amp; level &gt; last + 1) {
+      report(h.tagName.toLowerCase() + " '" + h.textContent + "'", "skips from h" + last + " to h" + level);
+    }
+    last = level;
+  });
+
+  // Rule 6: the page must say what language it is in
+  if (!document.documentElement.lang) report("html", "no lang attribute");
+
+  console.table(problems);
+  document.querySelector("#report").textContent =
+    problems.length + " problems found - see the Console panel.";
+&lt;/script&gt;</pre>
+  <p>The page says <b>7 problems found</b>, and the Console table lists them in rule order:<code>img #1</code> has no alt text; <code>input#email</code> has no label; the <code>span 'Contact me'</code> is clickable but not a button or link; <code>a 'My GitHub'</code> opens a new tab without <code>rel=noopener</code>; <code>a cv.pdf</code> has no text; <code>h3 'Projects'</code> skips from h1 to h3; and the <code>html</code> element has no <code>lang</code>. Fix one, press Run again, and watch the count drop. Real tools are the same idea with hundreds of rules.</p>
+  <details class="qc"><summary>Quick check: your site scores 100 for Accessibility in Lighthouse. Does that mean every user can use it?</summary><p>No. Tools test only what a rule can measure: that an image has alt text, not that <code>alt="image123"</code> is useless; that a button has a name, not that the Tab order jumps around. A 100 means "no automatically detectable problems". Keyboard testing and a real person still matter.</p></details>
+  <div class="callout exam"><b>Exam tip.</b> Match the tool to the question. <i>Is my HTML valid?</i> &mdash; the W3C validator. <i>How good is my page overall?</i> &mdash; Lighthouse. <i>Which accessibility rules does it break, and where?</i> &mdash; axe or WAVE. <i>Can a real person use it?</i> &mdash; no tool; test it yourself.</div>
+</section>
+
+<section id="s7">
+  <h2>77.7 The final web development checklist</h2>
+  <p>The module's last slide turns the whole unit into ten lines: the self-assessment to complete before you submit your final project. Print this page (<kbd>Ctrl</kbd>+<kbd>P</kbd>) or copy the table into your README, and tick a box only when you have done the check in the fourth column.</p>
+  <table class="tbl">
+    <thead><tr><th>&#9744;</th><th>Area</th><th>Done when</th><th>How to verify it</th><th>Chapter</th></tr></thead>
+    <tbody>
+      <tr><td>&#9744;</td><td><b>Functionality</b></td><td>Every feature works, including edge cases</td><td>Try an empty box, a zero, a double click</td><td>68, 70</td></tr>
+      <tr><td>&#9744;</td><td><b>Code quality</b></td><td>Organised files, clear names, no dead code</td><td>Reread it the next day; delete unused code</td><td>73</td></tr>
+      <tr><td>&#9744;</td><td><b>Accessibility</b></td><td>Labels, alt text, keyboard, contrast</td><td>A keyboard-only run; a clean axe or WAVE scan</td><td>15, 20, 59</td></tr>
+      <tr><td>&#9744;</td><td><b>Responsiveness</b></td><td>375 px to 1440 px, no horizontal scroll</td><td>Device toolbar across the range; a real phone</td><td>21, 37</td></tr>
+      <tr><td>&#9744;</td><td><b>Performance</b></td><td>Optimised images, <code>defer</code>, Lighthouse checked</td><td>Lighthouse on Mobile, in Incognito</td><td>74</td></tr>
+      <tr><td>&#9744;</td><td><b>Error handling</b></td><td>Loading, empty and error states; <code>try...catch</code></td><td>Slow 4G and Offline; an empty list</td><td>70, 72</td></tr>
+      <tr><td>&#9744;</td><td><b>Security</b></td><td><code>textContent</code>, no secrets, HTTPS</td><td>Search your code for <code>innerHTML</code> and <code>key</code>; check the padlock</td><td>77</td></tr>
+      <tr><td>&#9744;</td><td><b>Documentation</b></td><td>README: what it is, how to run it, the live link</td><td>A classmate can run it from the README alone</td><td>75</td></tr>
+      <tr><td>&#9744;</td><td><b>Version control</b></td><td>Meaningful commits, pushed, <code>.gitignore</code></td><td><code>git status</code> is clean; <code>git log --oneline</code> reads like a diary</td><td>75</td></tr>
+      <tr><td>&#9744;</td><td><b>Deployment verified</b></td><td>Live URL tested on phone and desktop</td><td>Open the github.io link on mobile data</td><td>76</td></tr>
+    </tbody>
+  </table>
+  <p>The ten rows fall into four questions:<b>Does it work?</b> (functionality, error handling). <b>Can everyone use it?</b> (accessibility, responsiveness, performance). <b>Is it safe?</b> (security). <b>Can someone else find, run and continue it?</b> (code quality, documentation, version control, deployment).</p>
+  <div class="callout why"><b>Key idea.</b> Every row is a habit to practise from the first line of a project, so on the last day ticking it takes minutes, not hours.</div>
+</section>
+
+<section id="mistakes">
+  <h2>77.8 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "My JavaScript checks the age, so the server is protected."</b><br>The user controls the browser and can skip, edit or bypass your check.</div>
+    <div class="r"><b>&#10003; "Browser validation is for convenience; the server must validate again."</b><br>Two checks, two jobs: friendliness in the browser, safety on the server.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "innerHTML is safe because inserted &lt;script&gt; tags do not run."</b><br>Event-handler attributes such as <code>onerror</code> on the elements it builds still run.</div>
+    <div class="r"><b>&#10003; "User and API data go in with textContent, or as text inside elements I create."</b><br><code>innerHTML</code> is only for fixed markup you wrote yourself.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "It works in Chrome on my laptop, so it works."</b><br>That is one cell of the matrix; in the slide's sample, none of the four bugs appeared there.</div>
+    <div class="r"><b>&#10003; "I tested three widths, the main browsers, the keyboard, a slow network and a real phone."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Lighthouse gave me 100, so the site is accessible."</b><br>Tools check only what a rule can measure; meaningless alt text and a chaotic Tab order still pass.</div>
+    <div class="r"><b>&#10003; "Automated tools first, then a keyboard-only run and a look with real eyes."</b><br>The tools find the easy problems fast, so your time goes on the hard ones.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary><span>A comments page must display text typed by users. Which property should it use?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>innerHTML</code></li><li>B. <code>outerHTML</code></li><li>C. <code>textContent</code></li><li>D. <code>insertAdjacentHTML</code></li></ul>
+    <p><b>Answer: C.</b> <code>textContent</code> shows the text as characters, so HTML inside it never runs. A, B and D all parse their input as HTML, which is how XSS gets in.</p></div></details>
+  <details class="q"><summary><span>A registration page contains <code>if (age.value &lt; 18) { return showError("Must be 18+"); }</code>. Can a 15-year-old still register? Explain.</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: yes.</b> They can turn JavaScript off, edit the check in DevTools, or send the request straight to the server (with curl, say). Client-side validation is not a security boundary; the server must check the age again.</p></div></details>
+  <details class="q"><summary><span>A student's GitHub Pages site needs a secret key for a paid weather API. Where should the key be kept?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. In a <code>const</code> at the top of <code>app.js</code></li><li>B. In a hidden <code>&lt;input type="hidden"&gt;</code> field</li><li>C. Base64-encoded inside <code>index.html</code></li><li>D. On a server or serverless function that calls the API and returns only the results</li></ul>
+    <p><b>Answer: D.</b> A, B and C all deliver the key to the browser, where DevTools shows it; base64 is an encoding anyone can reverse, not encryption.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const box = document.createElement("div"); box.textContent = "&lt;b&gt;Hi&lt;/b&gt;"; console.log(box.children.length, box.innerHTML);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>0 &amp;lt;b&amp;gt;Hi&amp;lt;/b&amp;gt;</code></b>. <code>textContent</code> creates one text node, not a <code>&lt;b&gt;</code> element, so there are 0 child elements. Written back out as HTML, the angle brackets are escaped as <code>&amp;lt;</code> and <code>&amp;gt;</code>, which is why the text can never become a tag. The user sees the characters <code>&lt;b&gt;Hi&lt;/b&gt;</code>, not a bold word.</p></div></details>
+  <details class="q"><summary><span>A script in <code>app.js</code> runs <code>box.innerHTML = '&lt;script&gt;console.log("A")&lt;/script&gt;&lt;img src="x" onerror="console.log(\'B\')"&gt;';</code> and then appends <code>box</code> to the page. What appears in the Console?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A, then B</li><li>B. A only</li><li>C. B only</li><li>D. Nothing at all</li></ul>
+    <p><b>Answer: C.</b> A <code>&lt;script&gt;</code> inserted through <code>innerHTML</code> never runs, so no A. But the <code>&lt;img&gt;</code> is a real element; its image fails to load and its <code>onerror</code> attribute prints B. So "scripts do not run with innerHTML" is no defence against XSS.</p></div></details>
+  <details class="q"><summary><span>What does <code>rel="noopener"</code> on a <code>target="_blank"</code> link protect against?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The opened page using <code>window.opener</code> to send your original tab to a fake page</li><li>B. Search engines indexing the link</li><li>C. The linked page loading over HTTP</li><li>D. The link being saved in the browser's history</li></ul>
+    <p><b>Answer: A.</b> Without it, older browsers give the new tab a handle on your tab, which a malicious page can use to swap your page for a lookalike login screen (reverse tabnabbing).</p></div></details>
+  <details class="q"><summary><span>Which tool checks a page's markup against the HTML standard and reports unclosed tags and duplicate ids?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The Network panel</li><li>B. The W3C Markup Validation Service</li><li>C. WAVE</li><li>D. caniuse.com</li></ul>
+    <p><b>Answer: B.</b> validator.w3.org checks HTML against the standard. The Network panel shows requests, WAVE checks accessibility rules, and caniuse.com tells you which browsers support a feature.</p></div></details>
+  <details class="q"><summary><span>Which of these is NOT one of the categories in a Lighthouse report?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Performance</li><li>B. Accessibility</li><li>C. SEO</li><li>D. Spelling and grammar</li></ul>
+    <p><b>Answer: D.</b> Lighthouse scores four categories: Performance, Accessibility, Best Practices and SEO. It does not check your writing.</p></div></details>
+  <details class="q"><summary><span>In before.html, <code>&lt;div class="btn" onclick="send()"&gt;Send&lt;/div&gt;</code> works with a mouse. What is the main problem with it?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It cannot be reached with Tab or pressed with Enter, and screen readers do not announce it as a button</li><li>B. A div is not allowed to have an onclick attribute</li><li>C. It only works in Chrome</li><li>D. Its text is too short to be read</li></ul>
+    <p><b>Answer: A.</b> A div is not focusable (its <code>tabIndex</code> is &minus;1) and has no button role. A real <code>&lt;button&gt;</code> is focusable, announced as a button, and turns Enter and Space into clicks. B and C are false: the div works, but only for mouse users.</p></div></details>
+  <details class="q"><summary><span>Which comment is the most useful one to put next to <code>const GST_RATE = 0.18;</code>?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>// a constant</code></li><li>B. <code>// 18% GST on all items; change here if the rate changes</code></li><li>C. <code>// set GST_RATE to 0.18</code></li><li>D. <code>// do not touch</code></li></ul>
+    <p><b>Answer: B.</b> It says what the number means and why someone might change it, which the code cannot say. A and C only repeat the code; D gives an order with no reason.</p></div></details>
+  <details class="q"><summary><span>A site's menu opens with a mouse click but not with the Enter key. Which test from the testing matrix would catch this?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Lighthouse Performance</li><li>B. The keyboard-only test</li><li>C. Throttling to Slow 4G</li><li>D. The W3C CSS validator</li></ul>
+    <p><b>Answer: B.</b> Only the keyboard test finds controls a mouse can use and a keyboard cannot. The likely cause is a clickable div; the fix is a real button.</p></div></details>
+  <details class="q"><summary><span>A project works on <code>http://localhost</code>. Once deployed to <code>https://asha.github.io/marks/</code>, its <code>fetch("http://api.example.com/marks")</code> fails. Why, and what is the fix?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: mixed content.</b> A page loaded over HTTPS may not fetch from a plain <code>http://</code> address, so the browser blocks the request (the Console says so). The fix is to call the API at its <code>https://</code> address.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Best practices protect reliability, maintainability, accessibility, security and teamwork, and help search engines too.</li>
+    <li>Semantic HTML: landmarks, ordered headings, <code>alt</code>, a <code>&lt;label&gt;</code> per input, <code>&lt;a&gt;</code> to go and <code>&lt;button&gt;</code> to act. A clickable <code>div</code> is invisible to the keyboard.</li>
+    <li>Maintainable code: clear consistent names, named constants, reusable classes, small functions, no duplication, comments that explain why. A refactor never changes the output.</li>
+    <li>The user can read and change everything sent to the browser: <code>textContent</code> for user and API data; validate again on the server; no secrets in front-end code; rotate leaked keys.</li>
+    <li>HTTPS for the site, APIs and assets; <code>rel="noopener noreferrer"</code> on new-tab links; a CSP limits where scripts come from.</li>
+    <li>Test a matrix: 375, 768, 1280 px; Chrome, Firefox, Safari, Edge; a real phone; keyboard only; Slow 4G and offline.</li>
+    <li>W3C validator, Lighthouse, axe or WAVE &mdash; then a human test, because tools see only what rules can measure.</li>
+    <li>The final checklist has ten areas, from functionality to verified deployment.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>el.textContent = userText;</code></td><td>Shows the text as characters; nothing runs</td></tr>
+      <tr><td><code>el.innerHTML = userText;</code></td><td>Parses it as HTML: an XSS hole</td></tr>
+      <tr><td><code>&lt;a href="..." target="_blank" rel="noopener noreferrer"&gt;</code></td><td>Safe new tab, no referrer sent</td></tr>
+      <tr><td><code>&lt;meta http-equiv="Content-Security-Policy" content="default-src 'self'"&gt;</code></td><td>Load only from your own site</td></tr>
+      <tr><td><code>&lt;label for="email"&gt;</code> + <code>&lt;input id="email" type="email"&gt;</code></td><td>A named field with the @ keyboard</td></tr>
+      <tr><td><code>const GST_RATE = 0.18;</code></td><td>A named constant, not a magic number</td></tr>
+      <tr><td><code>:root { --primary: #4338ca; }</code></td><td>One edit changes the colour everywhere</td></tr>
+      <tr><td><code>:focus-visible { outline: 3px solid #E07B1E; }</code></td><td>A focus ring for keyboard users</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>M</kbd> in DevTools</td><td>Device toolbar</td></tr>
+      <tr><td><code>scrollWidth &gt; clientWidth</code> on <code>document.documentElement</code></td><td><code>true</code> when the page scrolls sideways</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Node/textContent" target="_blank" rel="noopener noreferrer">MDN &mdash; Node: textContent<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How textContent differs from innerHTML and innerText, including the security note on XSS.</span></li>
+    <li><a href="https://web.dev/learn/accessibility" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn Accessibility<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A free course that goes deeper on semantics, focus, contrast and testing.</span></li>
+    <li><a href="https://developer.chrome.com/docs/lighthouse/overview" target="_blank" rel="noopener noreferrer">Chrome for Developers &mdash; Lighthouse<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How to run Lighthouse and what each of its audits means.</span></li>
+    <li><a href="https://validator.w3.org/" target="_blank" rel="noopener noreferrer">W3C Markup Validation Service<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Paste your HTML or give it your live URL; fix the first error first.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

@@ -1,0 +1,1069 @@
+<article class="chapter" data-ch="78">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 78 &middot; Improving Web Applications using GitHub Copilot</p>
+  <h1>Improving Web Applications using GitHub Copilot</h1>
+  <p class="lead">There is now a tool that writes code while you type, explains errors in plain words and drafts your tests. Used well, it saves hours; used carelessly, it fills a project with code that looks right and quietly breaks. This last chapter teaches the careful way &mdash; how to ask, how to review, where these tools go wrong &mdash; and closes the course with the project that uses everything you have learned.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Debugging is a method: reproduce, read the error, isolate, fix the root cause, test again (<a href="book.html?ch=68">Chapter 68</a>).</li>
+      <li>Refactoring reshapes working code into small, clearly named functions <i>without changing what it does</i> (<a href="book.html?ch=73">Chapter 73</a>).</li>
+      <li><code>git add</code>, <code>git commit</code> and <code>git push</code> save and share snapshots, and secrets never go into a commit (<a href="book.html?ch=75">Chapter 75</a>).</li>
+      <li>GitHub Pages publishes a repository's static files at <code>USERNAME.github.io/REPOSITORY/</code> (<a href="book.html?ch=76">Chapter 76</a>).</li>
+      <li>User input goes onto the page with <code>textContent</code>, never <code>innerHTML</code>, and anything clickable is a real <code>&lt;button&gt;</code> (<a href="book.html?ch=77">Chapter 77</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what GitHub Copilot is, how it makes a suggestion, and what it cannot know.</li>
+      <li>Follow the review-first workflow: prompt, suggestion, review, test, fix, commit.</li>
+      <li>Turn a weak prompt into a strong one with the seven-part template.</li>
+      <li>Review AI-generated UI code for semantic, keyboard, security and layout problems.</li>
+      <li>Use Copilot to debug, refactor and draft tests and documentation &mdash; and check each output.</li>
+      <li>State Copilot's limitations and the rules of responsible use: secrets, licences, academic integrity.</li>
+      <li>Plan, build, deploy and review the capstone portfolio against a final checklist.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>78.1 What GitHub Copilot is &mdash; and what it is not</h2>
+  <p>Every chapter so far taught you to write code yourself. <b>GitHub Copilot</b> is an AI-assisted coding tool, made by GitHub, that writes some of it <i>with</i> you. It runs inside your editor (VS Code, Visual Studio, JetBrains editors and others) and on GitHub.com. It <b>suggests code</b> as you type, <b>explains</b> unfamiliar code, helps <b>refactor</b> functions and helps <b>investigate errors</b>. GitHub calls it an AI <span class="jw" data-def="Two people working at one computer: one types, the other watches, asks questions and catches mistakes. They swap roles often.">pair programmer</span>.</p>
+  <p>Copilot is built on <span class="jw" data-def="A program trained on a huge amount of text so that it can predict which words, or which lines of code, are most likely to come next.">large language models</span> trained on natural-language text and on source code from publicly available sources, including public repositories on GitHub. When you pause while typing, Copilot sends the <b>context</b> it can see as a <span class="jw" data-def="The instructions and context you give an AI tool. A clearer prompt gets a better draft back.">prompt</span> to the model, which predicts the code most likely to come next; the editor shows it as grey "ghost text". In chat, your question joins the prompt.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 680 250" role="img" aria-label="Copilot sends what it can see as a prompt to an AI model, which predicts a draft suggestion; you decide whether to keep it">
+      <rect x="14" y="20" width="204" height="160" rx="12" class="box saf"/>
+      <text x="116" y="44" class="t c b">What Copilot can see</text>
+      <text x="116" y="70" class="t c s">the file you are editing</text>
+      <text x="116" y="90" class="t c s">other files open in the editor</text>
+      <text x="116" y="110" class="t c s">your comments and names</text>
+      <text x="116" y="130" class="t c s">where your cursor is</text>
+      <text x="116" y="150" class="t c s">your question in chat</text>
+      <path d="M220 100 L262 100" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="241" y="90" class="t c s">prompt</text>
+      <rect x="266" y="20" width="176" height="160" rx="12" class="box blu"/>
+      <text x="354" y="44" class="t c b">The AI model</text>
+      <text x="354" y="70" class="t c s">a large language model,</text>
+      <text x="354" y="88" class="t c s">trained on public code</text>
+      <text x="354" y="106" class="t c s">and text</text>
+      <text x="354" y="136" class="t c s">predicts the code most</text>
+      <text x="354" y="154" class="t c s">likely to come next</text>
+      <path d="M444 100 L484 100" class="edge" marker-end="url(#arr)"/>
+      <rect x="488" y="20" width="178" height="160" rx="12" class="box gry"/>
+      <text x="577" y="44" class="t c b">A suggestion</text>
+      <text x="577" y="70" class="t c s">grey ghost text in the</text>
+      <text x="577" y="88" class="t c s">editor, or a chat answer</text>
+      <text x="577" y="122" class="t c b">a DRAFT</text>
+      <text x="577" y="142" class="t c s">not tested, not run,</text>
+      <text x="577" y="160" class="t c s">possibly wrong</text>
+      <path d="M577 181 L577 195" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="488" y="198" width="178" height="46" rx="10" class="box grn"/>
+      <text x="577" y="217" class="t c b">YOU decide</text>
+      <text x="577" y="235" class="t c s">Tab keeps it, Esc drops it</text>
+      <rect x="14" y="198" width="428" height="46" rx="10" class="box red"/>
+      <text x="228" y="217" class="t c b">It never runs your code.</text>
+      <text x="228" y="235" class="t c s">It cannot see requirements that you did not write down.</text>
+    </svg>
+    <figcaption><b>Figure 78.1</b> A suggestion is a prediction made from the context Copilot can see. Notice the two red facts: nothing has been run, and anything you did not write down is invisible to it.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Copilot does not understand your project the way you do. It makes a very good guess at what usually comes next. A good guess is often right, but not always, and Copilot cannot tell you which guesses are wrong. Finding out is your job.</p>
+  </div>
+  <table class="tbl">
+    <thead><tr><th>Feature</th><th>What you see</th></tr></thead>
+    <tbody>
+      <tr><td><b>Inline suggestions</b></td><td>Grey text completing the line or function. <kbd>Tab</kbd> accepts, <kbd>Esc</kbd> dismisses.</td></tr>
+      <tr><td><b>Chat</b></td><td>A panel for plain-English requests: <i>explain this, why does it fail, write tests.</i></td></tr>
+      <tr><td><b>Inline chat</b></td><td><kbd>Ctrl</kbd>+<kbd>I</kbd> in VS Code: a chat box inside the file, about the selected lines.</td></tr>
+      <tr><td><b>Multi-file edits</b></td><td>Proposed changes across several files, for you to review, keep or undo.</td></tr>
+      <tr><td><b>On GitHub.com</b></td><td>Help with pull requests and repository questions, depending on your plan.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Features vary</b> with your editor, plan and organisation's settings. At the time of writing there is a free plan with a monthly limit, and verified students get a paid plan free through GitHub Education. In VS Code, set it up from the Copilot icon and sign in to GitHub; check GitHub's current documentation before a lab.</p>
+  <h3>Your comments and names are instructions</h3>
+  <pre class="code">// Format a rupee amount with two decimals, e.g. 525 -&gt; "&#8377;525.00"
+function formatRupees(amount) {
+  return `&#8377;${amount.toFixed(2)}`;     // &lt;- this line appears as grey ghost text
+}</pre>
+  <p>You typed the comment and the first line; the grey line is the suggestion. It is probably right because the comment states the goal <i>and gives an example</i>. Call the function <code>doStuff(x)</code> with no comment and you get a guess. Chapter 73's naming habits steer an AI too.</p>
+  <details class="qc">
+    <summary>Quick check: Copilot shows you a suggestion. Has it checked that the code works?</summary>
+    <p>No. It predicted the code from patterns. It has not run it, cannot see your browser, and knows only the requirements in the prompt.</p>
+  </details>
+</section>
+
+<section id="s2">
+  <h2>78.2 Why use it, and the review-first workflow</h2>
+  <p>AI help is at its best on the boring and the unfamiliar. The deck lists seven uses:</p>
+  <table class="tbl">
+    <thead><tr><th>Use</th><th>An example request</th></tr></thead>
+    <tbody>
+      <tr><td><b>Repetitive coding</b></td><td>"Write handlers for these five buttons, like the first one." (<span class="jw" data-def="Repetitive code that is almost the same every time, such as the opening lines of every HTML page or five near-identical handlers.">boilerplate</span>)</td></tr>
+      <tr><td><b>Understanding code</b></td><td>"Explain this function line by line."</td></tr>
+      <tr><td><b>Generating test cases</b></td><td>"List the edge cases I should test."</td></tr>
+      <tr><td><b>Refactoring</b></td><td>"Suggest smaller functions and clearer names; keep the behaviour."</td></tr>
+      <tr><td><b>Explaining errors</b></td><td>"Explain <code>TypeError: Cannot read properties of undefined</code> in plain words."</td></tr>
+      <tr><td><b>Documentation</b></td><td>"Draft a README for this project."</td></tr>
+      <tr><td><b>Exploring alternatives</b></td><td>"Show two other ways to write this loop and compare them."</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>The non-negotiable part.</b> AI-generated code can contain mistakes, insecure patterns and outdated APIs, and wrong code arrives as confidently formatted as right code. Review and test everything.</div>
+  <div class="callout analogy"><b>Picture this.</b> A wedding caterer hires a kitchen helper who has read ten thousand recipe books. Ask for gravy for two hundred guests and the pot is on in a minute. But nobody told the helper that the bride's grandmother cannot eat garlic, so in it goes &mdash; most gravy has garlic. The head cook keeps the fast helper, but states the rules first, tastes every dish before it leaves, and answers for any guest who falls ill. Copilot is the helper. You are the head cook.</div>
+  <div class="callout why"><b>Key idea.</b> Copilot is a fast junior teammate who has read a lot of code but has never seen your requirements. Use its speed; keep your judgement.</div>
+  <p>For a beginner the valuable requests <b>explain</b> ("why is this a TypeError?"); the risky ones <b>write</b>. Code you accept but cannot explain teaches you nothing, you cannot debug it, and the exams have no Copilot in them.</p>
+  <div class="plain">
+    <p>Ask Copilot to <b>explain</b> far more often than to <b>write</b>. When it writes something, make sure you could have written it yourself, just more slowly.</p>
+  </div>
+  <h3>The review-first workflow</h3>
+  <p>The deck's six-step loop gives the AI exactly one step: <b>(1)</b> you write a clear prompt; <b>(2)</b> Copilot suggests a draft; <b>(3)</b> you review every line for logic, security and style; <b>(4)</b> you test normal, empty and invalid input in a browser; <b>(5)</b> you fix &mdash; edit, re-prompt or reject; <b>(6)</b> you commit the verified change, as its author.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 680 270" role="img" aria-label="The six-step review-first loop: prompt, suggestion, review, test, fix, commit; a failed review goes back to the prompt">
+      <rect x="16" y="24" width="196" height="72" rx="12" class="box saf"/>
+      <text x="114" y="50" class="t c b">1  You write a prompt</text>
+      <text x="114" y="70" class="t c s">goal, constraints,</text>
+      <text x="114" y="86" class="t c s">the relevant code</text>
+      <path d="M212 60 L240 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="242" y="24" width="196" height="72" rx="12" class="box blu"/>
+      <text x="340" y="50" class="t c b">2  Copilot suggests</text>
+      <text x="340" y="70" class="t c s">a draft,</text>
+      <text x="340" y="86" class="t c s">not an answer</text>
+      <path d="M438 60 L466 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="468" y="24" width="196" height="72" rx="12" class="box saf"/>
+      <text x="566" y="50" class="t c b">3  You review</text>
+      <text x="566" y="70" class="t c s">read every line: logic,</text>
+      <text x="566" y="86" class="t c s">security, style</text>
+      <path d="M566 96 L566 168" class="edge" marker-end="url(#arr)"/>
+      <rect x="468" y="170" width="196" height="72" rx="12" class="box saf"/>
+      <text x="566" y="196" class="t c b">4  You run tests</text>
+      <text x="566" y="216" class="t c s">normal, empty, invalid</text>
+      <text x="566" y="232" class="t c s">inputs; the browser</text>
+      <path d="M468 206 L440 206" class="edge" marker-end="url(#arr)"/>
+      <rect x="242" y="170" width="196" height="72" rx="12" class="box saf"/>
+      <text x="340" y="196" class="t c b">5  You fix issues</text>
+      <text x="340" y="216" class="t c s">edit it, re-prompt,</text>
+      <text x="340" y="232" class="t c s">or reject it</text>
+      <path d="M242 206 L214 206" class="edge" marker-end="url(#arr)"/>
+      <rect x="16" y="170" width="196" height="72" rx="12" class="box grn"/>
+      <text x="114" y="196" class="t c b">6  You commit</text>
+      <text x="114" y="216" class="t c s">verified changes only;</text>
+      <text x="114" y="232" class="t c s">you are the author</text>
+      <path d="M340 170 L340 134 L114 134 L114 98" class="edge saf dash" marker-end="url(#arr-saf)"/>
+      <text x="227" y="127" class="t c s">not good enough? improve the prompt</text>
+      <text x="340" y="262" class="t c s">Orange: your job. Blue: Copilot's job. A line you cannot explain never reaches step 6.</text>
+    </svg>
+    <figcaption><b>Figure 78.2</b> The review-first loop. Copilot owns one box out of six; everything after its suggestion &mdash; review, test, fix, commit &mdash; belongs to you.</figcaption>
+  </figure>
+  <p>A suggestion that fails review goes round again; you own every line that ships. <b>If you can't explain a line, don't commit it.</b></p>
+  <div class="callout exam"><b>Exam tip.</b> After a suggestion "passes your one test", the answer is never "commit it" or "ask Copilot if it is right". It is: review the code and test the edge cases.</div>
+  <details class="qc">
+    <summary>Quick check: which of the six steps does Copilot actually do?</summary>
+    <p>Only step 2, the suggestion. Everything else &mdash; and the responsibility for the live site &mdash; is yours.</p>
+  </details>
+</section>
+
+<section id="s3">
+  <h2>78.3 Writing effective prompts</h2>
+  <p>A prompt is Copilot's only window onto your requirements. Whatever you leave out, it guesses &mdash; usually whatever is most common in the code it has read.</p>
+  <div class="fix">
+    <div class="w"><b>&#10007; Weak prompt</b><br>"Make a website better."<br><br>Which file? Better how? What must not change? Copilot has to invent every answer.</div>
+    <div class="r"><b>&#10003; Improved prompt</b><br>"Review this <b>vanilla JavaScript task manager</b>. Identify duplicated logic, improve input validation and add accessible error messages, <b>preserve the existing interface</b>, and <b>suggest small, testable changes</b>. Explain each modification and <b>list the cases I should test</b>."</div>
+  </div>
+  <p>The improved prompt fills in the parts of the seven-part template:</p>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>The question it answers</th><th>In the task-manager prompt</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 Context</b></td><td>What code, what project?</td><td>"this vanilla JavaScript task manager"</td></tr>
+      <tr><td><b>2 Objective</b></td><td>What change do you want?</td><td>"identify duplicated logic, improve input validation"</td></tr>
+      <tr><td><b>3 Requirements</b></td><td>What must the result have?</td><td>"add accessible error messages"</td></tr>
+      <tr><td><b>4 Constraints</b></td><td>What must <i>not</i> change?</td><td>"preserve the existing interface"</td></tr>
+      <tr><td><b>5 Expected output</b></td><td>What form should the answer take?</td><td>"small, testable changes; explain each"</td></tr>
+      <tr><td><b>6 Error handling</b></td><td>Which failures must be covered?</td><td>(missing &mdash; e.g. "an empty title")</td></tr>
+      <tr><td><b>7 Testing</b></td><td>How will you check it?</td><td>"list the cases I should test"</td></tr>
+    </tbody>
+  </table>
+  <p>"Explain this line" needs only context; the more you ask it to <i>change</i>, the more parts you need. Two more repairs:</p>
+  <table class="tbl">
+    <thead><tr><th>Weak</th><th>Strong</th></tr></thead>
+    <tbody>
+      <tr><td>"Fix my code."</td><td>"<code>averageMarks(students)</code> (below) throws <code>TypeError: Cannot read properties of undefined (reading 'marks')</code> with two students. Explain the root cause, suggest the smallest safe fix, and list tests for normal, empty and invalid input."</td></tr>
+      <tr><td>"Make a navbar."</td><td>"Create a responsive navigation bar in semantic HTML (<code>nav</code>, <code>ul</code>), CSS and vanilla JavaScript. Below 600px, a menu button toggles the links and updates <code>aria-expanded</code>. No libraries. Explain each part."</td></tr>
+    </tbody>
+  </table>
+  <p>Good habits: <b>one job per prompt</b>, so the answer is small enough to review; <b>ask for a plan before code</b>; <b>give an example</b> ("<code>formatRupees(525)</code> returns <code>"&#8377;525.00"</code>"); <b>paste the exact error</b>, never a secret; and <b>follow up</b> &mdash; "that uses <code>innerHTML</code>; use <code>textContent</code>".</p>
+  <p>The example is a prompt builder with one box per part, filled in for the task manager &mdash; except one. Press <b>Run</b>, then <b>Build my prompt</b>.</p>
+  <pre class="code" data-run data-title="The seven-part prompt builder - build, fill the gap, then try pasting a fake key" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 14px; font-size: 13.5px; color: #1E293B; }
+  .row { display: grid; grid-template-columns: 120px 1fr; gap: 6px; align-items: center; margin: 4px 0; }
+  label { font-weight: 700; }
+  input { font: inherit; padding: 5px 7px; border: 1px solid #94A3B8; border-radius: 6px; }
+  button { margin: 8px 0 4px; padding: 7px 16px; font-weight: 700; }
+  #out { white-space: pre-wrap; background: #F1F5F9; padding: 8px 10px; border-radius: 8px; margin: 0; }
+  #status { margin: 4px 0; }
+  #status.bad { color: #B91C1C; font-weight: 700; }
+  @media (max-width: 480px) { .row { grid-template-columns: 1fr; } }
+&lt;/style&gt;
+&lt;form id="builder"&gt;
+  &lt;div class="row"&gt;&lt;label for="context"&gt;Context&lt;/label&gt;
+    &lt;input id="context" value="My vanilla JavaScript task manager (app.js, pasted below)"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="objective"&gt;Objective&lt;/label&gt;
+    &lt;input id="objective" value="Remove duplicated logic and improve input validation"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="requirements"&gt;Requirements&lt;/label&gt;
+    &lt;input id="requirements" value="Accessible error messages next to the input"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="constraints"&gt;Constraints&lt;/label&gt;
+    &lt;input id="constraints" value="Preserve the existing interface; no libraries"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="output"&gt;Expected output&lt;/label&gt;
+    &lt;input id="output" value="Small, testable changes, each one explained"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="errors"&gt;Error handling&lt;/label&gt;
+    &lt;input id="errors" placeholder="Which failures must it handle?"&gt;&lt;/div&gt;
+  &lt;div class="row"&gt;&lt;label for="testing"&gt;Testing&lt;/label&gt;
+    &lt;input id="testing" value="List the cases I should test"&gt;&lt;/div&gt;
+  &lt;button type="submit"&gt;Build my prompt&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="status"&gt;&lt;/p&gt;
+&lt;pre id="out"&gt;&lt;/pre&gt;
+&lt;script&gt;
+  const PARTS = [
+    { id: "context", label: "Context" },
+    { id: "objective", label: "Objective" },
+    { id: "requirements", label: "Requirements" },
+    { id: "constraints", label: "Constraints" },
+    { id: "output", label: "Expected output" },
+    { id: "errors", label: "Error handling" },
+    { id: "testing", label: "Testing" },
+  ];
+  // words that suggest a secret is about to leave your computer
+  const SECRET = /password|passwd|secret|token|api[ _-]?key|\bghp_\w+|\bsk-\w{8,}/i;
+
+  const form = document.querySelector("#builder");
+  const statusEl = document.querySelector("#status");
+  const out = document.querySelector("#out");
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                       // stay on this page
+    const lines = [];
+    const missing = [];
+    PARTS.forEach((part) =&gt; {
+      const text = document.getElementById(part.id).value.trim();
+      if (text !== "") lines.push(`${part.label}: ${text}`);
+      else missing.push(part.label);
+    });
+    const prompt = lines.join("\n");
+    console.log(`Parts filled: ${lines.length} of ${PARTS.length}`);
+    if (missing.length &gt; 0) console.warn("Missing:", missing.join(", "));
+
+    if (SECRET.test(prompt)) {
+      out.textContent = "";
+      statusEl.textContent = "Stop: this looks like a password, key or token. Remove it, then build again.";
+      statusEl.className = "bad";
+      console.error("Possible secret found - prompt NOT built");
+      return;
+    }
+    out.textContent = prompt;
+    statusEl.className = "";
+    statusEl.textContent = missing.length === 0
+      ? "All seven parts are there. Copy the prompt into Copilot Chat."
+      : `Usable, but think about: ${missing.join(", ")}.`;
+  });
+&lt;/script&gt;</pre>
+  <p>The Console says <code>Parts filled: 6 of 7</code> and warns <code>Missing: Error handling</code>; the page shows the prompt, one part per line. Type <i>"An empty title"</i> into the empty box and build again: <code>Parts filled: 7 of 7</code>. Now add <code>api_key = abc123</code> to Context: the builder refuses, with a red Console error. Real tools have no such safety catch &mdash; you are the safety catch.</p>
+</section>
+
+<section id="s4">
+  <h2>78.4 Using Copilot to generate UI code</h2>
+  <p>The deck's first demonstration follows one request to a finished feature. Every AI output in this chapter is illustrative; real outputs differ each time.</p>
+  <h3>Step 1: the prompt</h3>
+  <blockquote>"Create a responsive task card using semantic HTML, CSS and vanilla JavaScript. Show the title and due date, and a button to mark it done. Build cards from user-entered titles safely. Must be keyboard accessible."</blockquote>
+  <h3>Step 2: an illustrative suggestion</h3>
+  <pre class="code">&lt;div class="task-card"&gt;
+  &lt;div class="title"&gt;Submit DBMS assignment&lt;/div&gt;
+  &lt;div class="due"&gt;Due: Fri&lt;/div&gt;
+  &lt;div class="done-btn" onclick="markDone()"&gt;Done&lt;/div&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  function addTask(title) {
+    list.innerHTML += `&lt;div class="card"&gt;${title}&lt;/div&gt;`;
+  }
+&lt;/script&gt;</pre>
+  <p>Click "Done" with a mouse and something happens; add a task and it appears. A hurried student commits this. A reviewer checks it against the prompt, requirement by requirement.</p>
+  <h3>Step 3: the review</h3>
+  <table class="tbl">
+    <thead><tr><th>Finding</th><th>Why it matters</th><th>The fix</th></tr></thead>
+    <tbody>
+      <tr><td><b>Not semantic</b></td><td>"Div soup": no structure for a screen reader or search engine (Chapter 13).</td><td><code>&lt;article&gt;</code>, <code>&lt;h3&gt;</code>, <code>&lt;p&gt;</code></td></tr>
+      <tr><td><b>Not keyboard accessible</b></td><td>A clickable <code>div</code> never gets focus and ignores <kbd>Enter</kbd> and <kbd>Space</kbd> (Chapter 59).</td><td>A real <code>&lt;button type="button"&gt;</code></td></tr>
+      <tr><td><b>XSS risk</b></td><td>A typed title goes through <code>innerHTML</code>, so HTML in it is obeyed &mdash; <span class="jw" data-def="XSS: an attack in which text typed by a user is treated by the page as HTML or code, so the attacker's code runs in other people's browsers.">cross-site scripting</span> (Chapter 77).</td><td><code>createElement</code> + <code>textContent</code></td></tr>
+      <tr><td><b>Not responsive</b></td><td>No CSS at all; the requirement was silently dropped.</td><td>A small grid rule</td></tr>
+    </tbody>
+  </table>
+  <p>Two more: <code>markDone()</code> is never written, and <code>innerHTML +=</code> rebuilds <i>every</i> card from text, so listeners attached to old cards are lost.</p>
+  <div class="plain">
+    <p>"It worked when I clicked it" is one test, by one person holding a mouse. A review asks what that skipped: the keyboard, strange input, a phone, and what the prompt actually asked for.</p>
+  </div>
+  <h3>Step 4: test, then Step 5: the final implementation</h3>
+  <p>Confirm each finding before rewriting: <kbd>Tab</kbd> to Done and press <kbd>Enter</kbd>; add the title <code>&lt;b&gt;Hi&lt;/b&gt;</code> and see whether it turns bold; shrink to 375px (Chapter 69); check the Console. Then the developer writes or corrects the final version:</p>
+  <pre class="code">// task-card.js
+function createTaskCard(task) {
+  const card = document.createElement("article");
+  card.className = "task-card";
+
+  const title = document.createElement("h3");
+  title.textContent = task.title;              // safe text
+  const due = document.createElement("p");
+  due.textContent = `Due: ${task.due}`;
+
+  const btn = document.createElement("button");
+  btn.type = "button";
+  btn.textContent = "Mark done";
+  btn.addEventListener("click", () =&gt; {
+    const done = card.classList.toggle("is-done");
+    btn.setAttribute("aria-pressed", done);
+  });
+
+  card.append(title, due, btn);
+  return card;
+}</pre>
+  <pre class="code">/* task-card.css */
+.task-list { display: grid; gap: 1rem;
+             grid-template-columns: repeat(auto-fill, minmax(16rem, 1fr)); }
+.task-card { display: grid; gap: 0.5rem; padding: 1rem; border-radius: 12px; }
+.task-card.is-done h3 { text-decoration: line-through; }</pre>
+  <p><code>classList.toggle</code> returns <code>true</code> when it has just added the class, so <code>done</code> is the new state, and <code>aria-pressed</code> tells a screen reader whether the button is pressed. The grid gives one card per row on a phone and several on a laptop. Copilot drafted; the developer engineered.</p>
+  <p>The example sets the unreviewed suggestion (A) beside the reviewed version (B) and adds each task to both. B also sets <code>aria-pressed="false"</code> at creation, so it is announced as a toggle from the start.</p>
+  <pre class="code" data-run data-title="Suggestion A against reviewed version B - Add, try the sneaky title, then press Tab repeatedly" data-h="320">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 14px; font-size: 14px; }
+  .controls { display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+  .controls input { font: inherit; padding: 5px 8px; flex: 1 1 180px; min-width: 0; }
+  .cols { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+          gap: 12px; margin-top: 10px; }
+  .col { border: 1px dashed #94A3B8; border-radius: 10px; padding: 8px 10px; }
+  .col h2 { font-size: 14px; margin: 0 0 6px; }
+  /* B's own CSS - A came with none */
+  #good-list .task-card { display: grid; gap: 0.4rem; padding: 0.8rem; border-radius: 12px;
+                          background: #F0FDF4; border: 1px solid #86EFAC; margin-bottom: 8px; }
+  #good-list .task-card h3 { margin: 0; font-size: 15px; }
+  #good-list .task-card p { margin: 0; color: #475569; }
+  #good-list .task-card button { justify-self: start; }
+  #good-list .task-card.is-done h3 { text-decoration: line-through; }
+  button:focus-visible, input:focus-visible { outline: 3px solid #E07B1E; outline-offset: 2px; }
+&lt;/style&gt;
+&lt;div class="controls"&gt;
+  &lt;label for="title"&gt;Task title&lt;/label&gt;
+  &lt;input id="title"&gt;
+  &lt;button id="add" type="button"&gt;Add to both&lt;/button&gt;
+  &lt;button id="sneaky" type="button"&gt;Sneaky title&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="cols"&gt;
+  &lt;section class="col"&gt;
+    &lt;h2&gt;A: the suggestion, unreviewed&lt;/h2&gt;
+    &lt;div id="ai-list"&gt;
+      &lt;div class="task-card"&gt;
+        &lt;div class="title"&gt;Submit DBMS assignment&lt;/div&gt;
+        &lt;div class="due"&gt;Due: Fri&lt;/div&gt;
+        &lt;div class="done-btn" onclick="markDone()"&gt;Done&lt;/div&gt;
+      &lt;/div&gt;
+    &lt;/div&gt;
+  &lt;/section&gt;
+  &lt;section class="col"&gt;
+    &lt;h2&gt;B: after review&lt;/h2&gt;
+    &lt;div id="good-list"&gt;&lt;/div&gt;
+  &lt;/section&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  // ---- A: the illustrative suggestion (markDone added so it can run) ----
+  const list = document.querySelector("#ai-list");
+  function markDone() {
+    console.log("A: Done clicked - only possible with a mouse");
+  }
+  function addTask(title) {
+    list.innerHTML += `&lt;div class="card"&gt;${title}&lt;/div&gt;`;
+  }
+
+  // ---- B: the reviewed version (task-card.js) ----
+  function createTaskCard(task) {
+    const card = document.createElement("article");
+    card.className = "task-card";
+    const title = document.createElement("h3");
+    title.textContent = task.title;                 // safe text: never parsed as HTML
+    const due = document.createElement("p");
+    due.textContent = `Due: ${task.due}`;
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.textContent = "Mark done";
+    btn.setAttribute("aria-pressed", "false");      // announced as a toggle from the start
+    btn.addEventListener("click", () =&gt; {
+      const done = card.classList.toggle("is-done");
+      btn.setAttribute("aria-pressed", done);
+      console.log(`B: "${task.title}" done = ${done}`);
+    });
+    card.append(title, due, btn);
+    return card;
+  }
+  const goodList = document.querySelector("#good-list");
+  goodList.append(createTaskCard({ title: "Submit DBMS assignment", due: "Fri" }));
+
+  // ---- the test bench ----
+  const input = document.querySelector("#title");
+  input.value = "&lt;b&gt;Hi&lt;/b&gt;";
+
+  document.querySelector("#add").addEventListener("click", () =&gt; {
+    const text = input.value.trim();
+    if (text === "") return;
+    addTask(text);                                                 // A
+    goodList.append(createTaskCard({ title: text, due: "Fri" }));  // B
+    console.log("Added:", text);
+  });
+
+  document.querySelector("#sneaky").addEventListener("click", () =&gt; {
+    input.value = `&lt;img src="data:," onerror="console.warn('A: injected code ran!')"&gt;`;
+  });
+
+  // which controls can the keyboard reach?
+  document.addEventListener("focusin", (event) =&gt; {
+    const el = event.target;
+    console.log("Focus:", el.id ? `#${el.id}` : el.textContent);
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Add to both</b> with the starting title <code>&lt;b&gt;Hi&lt;/b&gt;</code>: in A, <b>Hi</b> turns bold; B shows the text as typed. Press <b>Sneaky title</b>, then <b>Add to both</b>: the Console warns <code>A: injected code ran!</code> &mdash; typed text ran as code, and runs again with every card you add, because <code>+=</code> rebuilds the list. Then click in the preview and press <kbd>Tab</kbd> repeatedly: the Console logs <code>#title</code>, <code>#add</code>, <code>#sneaky</code>, then each <code>Mark done</code> button &mdash; never A's "Done", because a <code>div</code> cannot be focused.</p>
+</section>
+
+<section id="s5">
+  <h2>78.5 Using Copilot for debugging</h2>
+  <p>The deck's debugging challenge: a function should return the average mark of a group.</p>
+  <pre class="code">// marks.js
+function averageMarks(students) {
+  let total = 0;
+  for (let i = 0; i &lt;= students.length; i++) {
+    total += students[i].marks;
+  }
+  return total / students.length;
+}</pre>
+  <p>Called with two students, it stops with:</p>
+  <pre class="code">&#10006; Uncaught TypeError: Cannot read properties of undefined (reading 'marks')</pre>
+  <p><b>Spend two minutes on it yourself first</b> (Chapter 68); you can only judge Copilot's answer if you have thought about the question. Only <code>students[i].marks</code> reads <code>.marks</code>, so for some <code>i</code>, <code>students[i]</code> is <code>undefined</code>&hellip;</p>
+  <blockquote>"Analyze this JavaScript function. Identify the likely root cause of the error, explain why it occurs, suggest the smallest safe correction, and provide test cases for normal, empty, and invalid inputs."</blockquote>
+  <p>Paste the failing function, the exact error, what you expected ("85 for 80 and 90") and a made-up sample input. Never paste passwords, keys, tokens, real students' data or exam questions.</p>
+  <blockquote><b>Illustrative answer.</b> <code>i &lt;= students.length</code> runs one step too far. With two students the loop runs for <code>i</code> = 0, 1 and 2, but <code>students[2]</code> is <code>undefined</code>, and reading <code>.marks</code> from <code>undefined</code> throws. Also, an empty array would return <code>0 / 0</code>, which is <code>NaN</code>.</blockquote>
+  <p>This is the classic <span class="jw" data-def="A loop or a count that goes one step too far, or stops one step too short - often a less-than-or-equal sign written where less-than was meant.">off-by-one error</span>: arrays start at 0, so the last index is <code>length - 1</code> and the condition must be <code>i &lt; students.length</code>. <b>Treat the explanation as a hypothesis</b> &mdash; Copilot recognised a pattern; it did not run your code. One labelled log confirms it:</p>
+  <pre class="code">for (let i = 0; i &lt;= students.length; i++) {
+  console.log("i =", i, "student:", students[i]);
+  total += students[i].marks;
+}
+// i = 0 student: {marks: 80}
+// i = 1 student: {marks: 90}
+// i = 2 student: undefined       &lt;- the loop went one step too far</pre>
+  <pre class="code">function averageMarks(students) {
+  if (students.length === 0) return null;     // nothing to average
+  let total = 0;
+  for (let i = 0; i &lt; students.length; i++) { // &lt; not &lt;=
+    total += students[i].marks;
+  }
+  return total / students.length;
+}</pre>
+  <div class="plain">
+    <p>The <b>smallest safe fix</b> changes as little as possible: one character in the loop, one line for the empty case. A big rewrite that "also fixes it" brings new unreviewed code, and new code is where new bugs live.</p>
+  </div>
+  <pre class="code" data-run data-title="Reproduce the bug, then test the fix with normal, empty and invalid input" data-h="120">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // marks.js as it was - the bug is still in it
+  function averageMarksBuggy(students) {
+    let total = 0;
+    for (let i = 0; i &lt;= students.length; i++) {
+      total += students[i].marks;
+    }
+    return total / students.length;
+  }
+
+  // the smallest safe fix, after review
+  function averageMarks(students) {
+    if (students.length === 0) return null;          // nothing to average
+    let total = 0;
+    for (let i = 0; i &lt; students.length; i++) {      // &lt; not &lt;=
+      total += students[i].marks;
+    }
+    return total / students.length;
+  }
+
+  const group = [{ name: "Asha", marks: 80 }, { name: "Rahul", marks: 90 }];
+
+  // 1. Reproduce the bug (caught, so the rest of the example still runs)
+  try {
+    averageMarksBuggy(group);
+  } catch (err) {
+    console.error("Buggy:", err.name + ":", err.message);
+  }
+
+  // 2. The three tests from the prompt
+  console.log("Normal [80, 90] gives", averageMarks(group));
+  console.log("Empty [] gives", averageMarks([]));
+  console.log('Invalid ["abc"] gives', averageMarks([{ name: "Meera", marks: "abc" }]));
+
+  // 3. A separate, deliberate change: refuse marks that are not numbers
+  function averageMarksChecked(students) {
+    if (students.length === 0) return null;
+    let total = 0;
+    for (const s of students) {
+      if (!Number.isFinite(s.marks)) {
+        throw new TypeError(`Marks for ${s.name} are not a number: ${s.marks}`);
+      }
+      total += s.marks;
+    }
+    return total / students.length;
+  }
+  try {
+    averageMarksChecked([{ name: "Meera", marks: "abc" }]);
+  } catch (err) {
+    console.error("Checked:", err.message);
+  }
+
+  document.querySelector("#out").textContent =
+    `Class average for Asha and Rahul: ${averageMarks(group)}`;
+&lt;/script&gt;</pre>
+  <p>In Chrome or Edge the Console's first line is <code>Buggy: TypeError: Cannot read properties of undefined (reading 'marks')</code> (Firefox says "students[i] is undefined"). Then <code>Normal [80, 90] gives 85</code> and <code>Empty [] gives null</code>. But <code>Invalid ["abc"] gives NaN</code>: no crash, just nonsense, because <code>0 + "abc"</code> is the string <code>"0abc"</code>, and <code>"0abc" / 1</code> is <code>NaN</code>.</p>
+  <p>The test found what the fix missed &mdash; that is what tests are for. Validation is a <b>separate</b> change with its own function, test and commit: <code>averageMarksChecked</code> prints <code>Checked: Marks for Meera are not a number: abc</code>. <code>Number.isFinite</code> rejects strings, <code>NaN</code> and <code>Infinity</code> in one check.</p>
+</section>
+
+<section id="s6">
+  <h2>78.6 Using Copilot for refactoring</h2>
+  <p>This grade function works, but every branch repeats the same two lines:</p>
+  <pre class="code">function showGrade(marks) {
+  if (marks &gt;= 90) {
+    gradeEl.textContent = "Grade: A"; gradeEl.style.color = "green";
+  } else if (marks &gt;= 75) {
+    gradeEl.textContent = "Grade: B"; gradeEl.style.color = "green";
+  } else if (marks &gt;= 60) {
+    gradeEl.textContent = "Grade: C"; gradeEl.style.color = "orange";
+  } else {
+    gradeEl.textContent = "Grade: F"; gradeEl.style.color = "red";
+  }
+}</pre>
+  <p>Asked to make it modular, Copilot might propose a table and two tiny functions:</p>
+  <pre class="code">const GRADES = [
+  { min: 90, grade: "A", level: "good" },
+  { min: 75, grade: "B", level: "good" },
+  { min: 60, grade: "C", level: "warn" },
+  { min: 0,  grade: "F", level: "bad" },
+];
+
+function getGrade(marks) {
+  return GRADES.find((g) =&gt; marks &gt;= g.min);
+}
+
+function showGrade(marks) {
+  const { grade, level } = getGrade(marks);
+  gradeEl.textContent = `Grade: ${grade}`;
+  gradeEl.className = `grade grade--${level}`;
+}</pre>
+  <p>It looks better: the bands live in one table, and the colours have moved into CSS classes (Chapter 73). Now the refactoring checklist: &#9744; behaviour unchanged? &#9744; edge cases &mdash; 90, 75, 60, 0, &minus;5, not-a-number? &#9744; clear names? &#9744; less duplication? &#9744; tests still pass?</p>
+  <details class="qc">
+    <summary>Quick check: predict it before you read on. What does the new <code>showGrade(-5)</code> do?</summary>
+    <p>It throws a <code>TypeError</code>. No row has <code>min</code> at or below &minus;5, so <code>find()</code> returns <code>undefined</code>, and <code>undefined</code> cannot be destructured. The old code fell through to <code>else</code> and showed "Grade: F".</p>
+  </details>
+  <p>The AI introduced a <span class="jw" data-def="Something that used to work and stopped working because of a change, often one that was meant to improve the code.">regression</span>: the old final <code>else</code> caught <i>everything</i>, and the table version quietly removed that safety net. The example runs the old version, the AI's refactor and a fixed refactor on the same nine inputs.</p>
+  <pre class="code" data-run data-title="Old, refactored and fixed on the same nine inputs - read the Console table" data-h="80">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // BEFORE: long and repetitive - but every input shows something
+  function showGradeOld(marks, gradeEl) {
+    if (marks &gt;= 90) {
+      gradeEl.textContent = "Grade: A"; gradeEl.style.color = "green";
+    } else if (marks &gt;= 75) {
+      gradeEl.textContent = "Grade: B"; gradeEl.style.color = "green";
+    } else if (marks &gt;= 60) {
+      gradeEl.textContent = "Grade: C"; gradeEl.style.color = "orange";
+    } else {
+      gradeEl.textContent = "Grade: F"; gradeEl.style.color = "red";
+    }
+  }
+
+  // AFTER: the proposed modular version (illustrative)
+  const GRADES = [
+    { min: 90, grade: "A", level: "good" },
+    { min: 75, grade: "B", level: "good" },
+    { min: 60, grade: "C", level: "warn" },
+    { min: 0, grade: "F", level: "bad" },
+  ];
+  function getGrade(marks) {
+    return GRADES.find((g) =&gt; marks &gt;= g.min);
+  }
+  function showGradeNew(marks, gradeEl) {
+    const { grade, level } = getGrade(marks);
+    gradeEl.textContent = `Grade: ${grade}`;
+    gradeEl.className = `grade grade--${level}`;
+  }
+
+  // FIXED: same table, but nothing can fall off the end of it
+  function getGradeFixed(marks) {
+    return GRADES.find((g) =&gt; marks &gt;= g.min) ?? GRADES[GRADES.length - 1];
+  }
+  function showGradeFixed(marks, gradeEl) {
+    const { grade, level } = getGradeFixed(marks);
+    gradeEl.textContent = `Grade: ${grade}`;
+    gradeEl.className = `grade grade--${level}`;
+  }
+
+  // what does each version show for one input? (errors are reported, not thrown)
+  function shown(showFn, marks) {
+    const el = document.createElement("b");     // a scratch element, never on the page
+    try {
+      showFn(marks, el);
+      return el.textContent;
+    } catch (err) {
+      return err.name;
+    }
+  }
+
+  const inputs = [95, 90, 80, 75, 65, 30, 0, -5, NaN];
+  const rows = inputs.map((marks) =&gt; ({
+    marks,
+    before: shown(showGradeOld, marks),
+    refactor: shown(showGradeNew, marks),
+    fixed: shown(showGradeFixed, marks),
+  }));
+  console.table(rows);
+
+  const broken = rows.filter((r) =&gt; r.refactor !== r.before).map((r) =&gt; r.marks);
+  const stillBroken = rows.filter((r) =&gt; r.fixed !== r.before).map((r) =&gt; r.marks);
+  console.log("Refactor changed the result for:", broken);
+  console.log("Fixed version changed the result for:", stillBroken);
+
+  try {
+    showGradeNew(-5, document.createElement("b"));
+  } catch (err) {
+    console.error("showGradeNew(-5):", err.message);
+  }
+
+  document.querySelector("#out").textContent =
+    `Inputs tried: ${inputs.length}. The AI refactor broke ${broken.length}; the fixed version broke ${stillBroken.length}.`;
+&lt;/script&gt;</pre>
+  <p>For the seven ordinary marks all three columns agree. For <code>-5</code> and <code>NaN</code>, <code>before</code> and <code>fixed</code> say <code>'Grade: F'</code> but <code>refactor</code> says <code>'TypeError'</code>; the summary lines read <code>[-5, NaN]</code> and <code>[]</code>, and Chrome's red line says <code>Cannot destructure property 'grade' of 'getGrade(...)' as it is undefined.</code></p>
+  <p>The fix is Chapter 44's <code>??</code>: "if the left side is <code>null</code> or <code>undefined</code>, use the right side". When <code>find()</code> comes back empty-handed, <code>getGradeFixed</code> falls back to the last row, F &mdash; the old safety net.</p>
+  <div class="plain">
+    <p>A refactor may change the <b>shape</b> of the code and nothing else. Feed old and new the same inputs, strange ones included: the outputs must match. If not, it is a bug with nicer formatting.</p>
+  </div>
+  <p>Should &minus;5 really be an F? Probably not. But changing that is a <b>behaviour change</b> &mdash; a deliberate decision in its own commit, which the next section makes.</p>
+</section>
+
+<section id="s7">
+  <h2>78.7 Using Copilot to write tests and documentation</h2>
+  <p>AI-suggested tests find cases you forgot, but a wrong test gives confidence you have not earned. Ask for the cases as a <b>table first</b>, quick to review before any test code exists:</p>
+  <blockquote>"List test cases for <code>getGrade(marks)</code> as a table: input, expected grade, reason. Cover boundaries, invalid and empty input. Don't write code yet."</blockquote>
+  <table class="tbl">
+    <thead><tr><th>Input</th><th>Expected</th><th>Reason (illustrative output)</th></tr></thead>
+    <tbody>
+      <tr><td><code>90</code></td><td>A</td><td>Lower boundary of A</td></tr>
+      <tr><td><code>89.9</code></td><td>B</td><td>Just below A</td></tr>
+      <tr><td><code>60</code></td><td>C</td><td>Lower boundary of C</td></tr>
+      <tr><td><code>0</code></td><td>F</td><td>Minimum valid</td></tr>
+      <tr><td><code>-5</code></td><td>F ?</td><td>Policy decision &mdash; and the refactored code crashes!</td></tr>
+      <tr><td><code>"abc"</code></td><td>error</td><td>Not a number</td></tr>
+    </tbody>
+  </table>
+  <p>Each <span class="jw" data-def="An unusual input at the edge of what a function accepts: an empty list, zero, the exact boundary value, the largest value, or the wrong type.">edge case</span> listed is good, but <code>75</code> (B's lower boundary) and <code>100</code> (the maximum) are missing, and the &minus;5 row asks <i>what should happen?</i> The team decides: <b>marks outside 0&ndash;100, or not numbers, are refused</b> &mdash; <code>getGrade</code> returns <code>null</code>. Copilot turns the reviewed table, plus your two rows, into test code. Run it:</p>
+  <pre class="code" data-run data-title="Generated tests, run for real - one of them is wrong, but which side?" data-h="90">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 14px; }
+  .pass { color: #166534; font-weight: 700; }
+  .fail { color: #B91C1C; font-weight: 700; }
+&lt;/style&gt;
+&lt;p id="summary"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const GRADES = [
+    { min: 90, grade: "A", level: "good" },
+    { min: 75, grade: "B", level: "good" },
+    { min: 60, grade: "C", level: "warn" },
+    { min: 0, grade: "F", level: "bad" },
+  ];
+
+  /**
+   * Returns the grade band for a mark.
+   * @param {number} marks - a number from 0 to 100
+   * @returns {{grade: string, level: string} | null} the band, or null
+   *   when marks is not a number from 0 to 100
+   */
+  function getGrade(marks) {
+    if (!Number.isFinite(marks) || marks &lt; 0 || marks &gt; 100) return null;   // policy: refuse
+    return GRADES.find((g) =&gt; marks &gt;= g.min);
+  }
+
+  // test cases: the reviewed table, turned into code by the assistant
+  const tests = [
+    { input: 90, expected: "A", reason: "lower boundary of A" },
+    { input: 89.9, expected: "B", reason: "just below A" },
+    { input: 75, expected: "C", reason: "lower boundary of B" },
+    { input: 60, expected: "C", reason: "lower boundary of C" },
+    { input: 0, expected: "F", reason: "minimum valid" },
+    { input: 100, expected: "A", reason: "maximum valid" },
+    { input: -5, expected: null, reason: "below the range: refused" },
+    { input: "abc", expected: null, reason: "not a number: refused" },
+  ];
+
+  const results = tests.map((t) =&gt; {
+    const band = getGrade(t.input);
+    const actual = band ? band.grade : null;
+    return { input: t.input, expected: t.expected, actual,
+             result: actual === t.expected ? "PASS" : "FAIL" };
+  });
+  console.table(results);
+
+  const failed = results.filter((r) =&gt; r.result === "FAIL");
+  console.log(`${results.length - failed.length} passed, ${failed.length} failed`);
+  failed.forEach((r) =&gt; {
+    console.warn(`FAIL: getGrade(${r.input}) gave ${r.actual}, but the test expected ${r.expected}`);
+  });
+
+  const summary = document.querySelector("#summary");
+  summary.textContent = `${results.length - failed.length} of ${results.length} tests pass.`;
+  summary.className = failed.length === 0 ? "pass" : "fail";
+&lt;/script&gt;</pre>
+  <p>Seven pass, one fails: <code>FAIL: getGrade(75) gave B, but the test expected C</code>. Don't rush to "fix" the code: 75 is B's lower boundary, as the test's own reason says. <b>The code is right; the test is wrong.</b> Change that <code>"C"</code> to <code>"B"</code> and run again: <code>8 of 8 tests pass</code>, in green. Then add a row: <code>74.9</code> should be <code>"C"</code>.</p>
+  <div class="callout warn"><b>Generated tests need review too.</b> A wrong expected value either sends you "fixing" correct code or, worse, matches a bug and locks it in. A test file nobody runs protects nothing while feeling safe.</div>
+  <h3>Documentation must describe the real behaviour</h3>
+  <p>The deck's illustrative doc comment:</p>
+  <pre class="code">/**
+ * Returns the grade band for a mark.
+ * @param {number} marks - 0 to 100
+ * @returns {{grade: string, level: string}}
+ * @throws if marks is not a number 0-100
+ */</pre>
+  <p>The shipped <code>getGrade</code> never throws; for bad input it returns <code>null</code>. So <code>@throws</code> is untrue and <code>@returns</code> omits <code>null</code> &mdash; the comment in the example says <code>{...} | null</code> instead. <b>Check generated comments against what the code does.</b></p>
+  <p>Copilot can also draft a <b>README</b> (then delete inventions such as features you never built) and a <b>GitHub Pages deployment checklist</b> (then compare it line by line with Chapter 76).</p>
+</section>
+
+<section id="s8">
+  <h2>78.8 Limitations and responsible use</h2>
+  <p>Every limitation below has already appeared in this chapter:</p>
+  <table class="tbl">
+    <thead><tr><th>Limitation</th><th>Example</th><th>What you do</th></tr></thead>
+    <tbody>
+      <tr><td><b>Suggestions can be incorrect</b></td><td>The off-by-one loop; the &minus;5 crash</td><td>Read every line; test edge cases</td></tr>
+      <tr><td><b>Security risks</b></td><td><code>innerHTML</code> with user input; a hard-coded key</td><td><code>textContent</code>; secrets stay on a server</td></tr>
+      <tr><td><b>Context misunderstood</b></td><td>"Responsive" silently dropped</td><td>Write requirements into the prompt</td></tr>
+      <tr><td><b>Outdated or unsuitable dependencies</b></td><td><code>var</code>, <code>document.write</code>; a library for one click</td><td>Prefer modern standard APIs; check MDN</td></tr>
+      <tr><td><b>Licensed code</b></td><td>A long block matching a public repository</td><td>See below</td></tr>
+      <tr><td><b>Tests and review still required</b></td><td>"It looked fine."</td><td>The review-first loop, every time</td></tr>
+      <tr><td><b>Academic integrity</b></td><td>Submitted work you cannot explain</td><td>Follow the policy; disclose</td></tr>
+      <tr><td><b>Sensitive data</b></td><td>A password or real marks in a prompt</td><td>Remove it before sending</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Confident is not the same as correct.</b> Wrong answers arrive in the same fluent grammar as right ones. An AI may even invent a function that does not exist and explain it smoothly. Only reading and testing reveal the truth.</div>
+  <p><b>Licences.</b> A suggestion can occasionally match public code, which belongs to its author under a licence. Your Copilot settings on GitHub can block such matches; if you allow them, <i>code referencing</i> shows where a match came from and its licence. Follow it, or write your own.</p>
+  <p><b>Sensitive data.</b> A prompt leaves your computer for someone else's servers. Use placeholders such as <code>"YOUR_API_KEY"</code> and <code>"Student A"</code>. If a real key ever leaks, into a prompt or a commit, revoke it and make a new one (Chapter 75).</p>
+  <p><b>Academic integrity.</b> <b>Follow LPU's and your course's policy</b> on AI, and ask your teacher if unsure. Where AI is allowed, <b>disclose</b> which tool you used and for what, <b>be able to explain and modify</b> everything you submit, and <b>never</b> paste exam questions into an AI tool. A README note is the usual disclosure:</p>
+  <pre class="code">## AI use
+I used GitHub Copilot Chat to explain a TypeError in js/form.js and to
+list test cases for the email check. I wrote and tested the final code
+myself. Suggestions I rejected, and why, are in docs/ai-log.md.</pre>
+  <div class="callout why"><b>Key idea.</b> AI is an assistant, not a replacement for engineering judgement. It can draft; only you can decide.</div>
+  <details class="qc">
+    <summary>Quick check: your <code>fetch()</code> fails, and the file contains <code>const API_KEY = "a8f3..."</code>. Is it fine to paste the whole file into chat and ask why?</summary>
+    <p>No. Replace the key with a placeholder and paste only the failing function and the exact error. If the real key was already sent, revoke it.</p>
+  </details>
+</section>
+
+<section id="s9">
+  <h2>78.9 Practical: the AI-assisted development challenge</h2>
+  <p>The deck's thirty-minute task: improve your portfolio with Copilot &mdash; <b>only if your course policy allows AI tools</b>; if not, use your own ideas as the "suggestions". <b>(1)</b> Identify three weaknesses (Lighthouse, a keyboard-only try, a code smell); <b>(2)</b> write a precise seven-part prompt for each; <b>(3)</b> review the suggested code line by line; <b>(4)</b> implement changes in small commits; <b>(5)</b> test with the keyboard, a phone width and the Console; <b>(6)</b> record every decision in an <b>AI decision log</b>:</p>
+  <table class="tbl">
+    <thead><tr><th>Suggestion</th><th>Decision</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td>Add alt text to project images</td><td><b>Accepted</b></td><td>Checked that each alt text describes its image</td></tr>
+      <tr><td>Render cards with <code>innerHTML</code></td><td><b>Rejected</b></td><td>XSS risk; used <code>textContent</code></td></tr>
+      <tr><td>Lazy-load the hero image</td><td><b>Modified</b></td><td>The hero is the LCP element; <code>loading="lazy"</code> only below the fold</td></tr>
+    </tbody>
+  </table>
+  <p>Keep the log as Markdown in your repository:</p>
+  <pre class="code"># AI decision log - portfolio
+
+| Suggestion                     | Decision | Why                                       |
+|--------------------------------|----------|-------------------------------------------|
+| Add alt text to project images | Accepted | Checked each alt describes the image      |
+| Render cards with innerHTML    | Rejected | XSS risk; used textContent instead        |
+| Lazy-load the hero image       | Modified | Hero is LCP - lazy only below the fold    |</pre>
+  <div class="callout exam"><b>How it is marked.</b> On reasoning &mdash; the prompt, the review, the tests, the explanations &mdash; <b>not</b> on how much code the AI wrote. Rejecting a bad suggestion with a clear reason scores higher than pasting a hundred lines that happen to work.</div>
+</section>
+
+<section id="s10">
+  <h2>78.10 The capstone: a student developer portfolio</h2>
+  <p>The course ends with one project that uses every unit. Ananya, a final-year student, wants a portfolio for recruiters: fast, accessible, good on a phone, at a public URL, in a clean GitHub repository. It needs responsive design (Chapters 30, 31, 37), about and skills sections (13, 14), project cards and interactive navigation (57, 58, 71), a validated contact form (16, 18, 60, 70), organised code (73), a repository and Pages deployment (75, 76), performance and accessibility work (15, 59, 74, 77) and, optionally, Copilot refinement.</p>
+  <div class="callout warn"><b>The contact form cannot send email by itself.</b> GitHub Pages serves static files only &mdash; no server of yours receives the message (Chapter 76). The form validates and shows clear messages; delivery needs a backend, a third-party form service or a <code>mailto:</code> link, and the form must not pretend it sent anything.</div>
+  <h3>Architecture</h3>
+  <pre class="code">portfolio/
+&#9500;&#9472;&#9472; index.html
+&#9500;&#9472;&#9472; README.md
+&#9500;&#9472;&#9472; .gitignore
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; style.css
+&#9500;&#9472;&#9472; js/
+&#9474;   &#9500;&#9472;&#9472; main.js
+&#9474;   &#9492;&#9472;&#9472; form.js
+&#9492;&#9472;&#9472; assets/
+    &#9492;&#9472;&#9472; images/</pre>
+  <p><code>index.html</code> holds the content and landmarks; <code>css/style.css</code> the layout, theme and responsive rules; <code>js/main.js</code> the menu toggle; <code>js/form.js</code> validation and messages; <code>README.md</code> and <code>.gitignore</code> describe the project and what Git must ignore.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 262" role="img" aria-label="The capstone pipeline: local code, local Git repository, GitHub repository, GitHub Pages, the live website, and visitors' browsers">
+      <rect x="10" y="20" width="300" height="136" rx="14" class="box gry"/>
+      <text x="24" y="40" class="t s b">YOUR LAPTOP</text>
+      <rect x="22" y="52" width="116" height="88" rx="10" class="box saf"/>
+      <text x="80" y="78" class="t c b">Local code</text>
+      <text x="80" y="98" class="t c s">VS Code +</text>
+      <text x="80" y="114" class="t c s">Live Server</text>
+      <text x="80" y="130" class="t c s">localhost preview</text>
+      <path d="M138 96 L178 96" class="edge" marker-end="url(#arr)"/>
+      <text x="159" y="88" class="t c s">commit</text>
+      <rect x="180" y="52" width="118" height="88" rx="10" class="box"/>
+      <text x="239" y="78" class="t c b">Local Git repo</text>
+      <text x="239" y="98" class="t c s">snapshots saved</text>
+      <text x="239" y="114" class="t c s">in .git</text>
+      <rect x="372" y="20" width="338" height="136" rx="14" class="box gry"/>
+      <text x="386" y="40" class="t s b">GITHUB</text>
+      <path d="M298 96 L384 96" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="341" y="88" class="t c s">git push</text>
+      <rect x="386" y="52" width="136" height="88" rx="10" class="box blu"/>
+      <text x="454" y="78" class="t c b">GitHub repo</text>
+      <text x="454" y="98" class="t c s">github.com/</text>
+      <text x="454" y="114" class="t c s">ananya-k/portfolio</text>
+      <path d="M522 96 L564 96" class="edge" marker-end="url(#arr)"/>
+      <text x="543" y="88" class="t c s">deploy</text>
+      <rect x="566" y="52" width="132" height="88" rx="10" class="box blu"/>
+      <text x="632" y="78" class="t c b">GitHub Pages</text>
+      <text x="632" y="98" class="t c s">publishes the</text>
+      <text x="632" y="114" class="t c s">static files</text>
+      <path d="M632 140 L632 188" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="642" y="172" class="t s">HTTPS</text>
+      <rect x="470" y="192" width="228" height="58" rx="10" class="box grn"/>
+      <text x="584" y="214" class="t c b">Live website</text>
+      <text x="584" y="234" class="t c s">ananya-k.github.io/portfolio/</text>
+      <path d="M470 221 L302 221" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="386" y="213" class="t c s">every visit</text>
+      <rect x="22" y="192" width="278" height="58" rx="10" class="box"/>
+      <text x="161" y="214" class="t c b">Visitors on any device</text>
+      <text x="161" y="234" class="t c s">browsers download HTML, CSS, JS, images</text>
+    </svg>
+    <figcaption><b>Figure 78.3</b> From laptop to live site. You preview locally, Git records snapshots, <code>git push</code> sends them to GitHub, Pages publishes the static files, and each visitor's browser downloads and runs them. No server of yours runs any code.</figcaption>
+  </figure>
+  <h3>The development and debugging workflow</h3>
+  <p>Use this loop for every feature. Inspecting and debugging happen <i>before</i> you commit, and small loops give small commits that are easy to review and undo.</p>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th>What it means</th><th>Chapter</th></tr></thead>
+    <tbody>
+      <tr><td><b>1 Plan</b></td><td>Wireframe and acceptance checks</td><td>72</td></tr>
+      <tr><td><b>2 Build</b></td><td>The smallest working version</td><td>71</td></tr>
+      <tr><td><b>3 Inspect</b></td><td>Elements, Console, Network</td><td>69</td></tr>
+      <tr><td><b>4 Debug</b></td><td>Reproduce, breakpoint, fix the root cause</td><td>68</td></tr>
+      <tr><td><b>5 Test</b></td><td>Keyboard, phone, edge cases</td><td>77</td></tr>
+      <tr><td><b>6 Refactor</b></td><td>Clear names, small functions</td><td>73</td></tr>
+      <tr><td><b>7 Commit</b></td><td><code>git add .</code> then <code>git commit -m "Add project cards"</code></td><td>75</td></tr>
+      <tr><td><b>8 Push</b></td><td><code>git push origin main</code></td><td>75</td></tr>
+      <tr><td><b>9 Deploy</b></td><td>Pages publishes automatically</td><td>76</td></tr>
+      <tr><td><b>10 Verify</b></td><td>Live URL on a desktop <i>and</i> a phone</td><td>76</td></tr>
+    </tbody>
+  </table>
+  <p>Step 10 matters because some bugs exist only on the live site: a path starting with <code>/</code>, <code>Logo.png</code> linked as <code>logo.png</code>, an <code>http://</code> image on an <code>https://</code> page.</p>
+  <h3>Build it: the contact form's <code>form.js</code></h3>
+  <p>The reviewed form logic: one rule per field, each error next to its field and linked with <code>aria-describedby</code>, focus sent to the first problem, the name written with <code>textContent</code> &mdash; and an honest message, because nothing is sent.</p>
+  <pre class="code" data-run data-title="The portfolio contact form - submit it empty, then with a bad email, then correctly" data-h="340" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 14px; font-size: 14px; }
+  label { display: block; font-weight: 700; margin-top: 6px; }
+  input, textarea { font: inherit; padding: 6px 8px; width: 100%; max-width: 380px;
+                    box-sizing: border-box; border: 1px solid #94A3B8; border-radius: 6px; }
+  [aria-invalid="true"] { border: 2px solid #B91C1C; }
+  .error { color: #B91C1C; font-size: 13px; margin: 2px 0 0; min-height: 1.2em; }
+  button { margin-top: 8px; padding: 8px 18px; font-weight: 700; }
+  #status { color: #166534; font-weight: 700; }
+&lt;/style&gt;
+&lt;form id="contact" novalidate&gt;
+  &lt;label for="name"&gt;Name&lt;/label&gt;
+  &lt;input id="name" name="name" autocomplete="name" aria-describedby="name-error"&gt;
+  &lt;p class="error" id="name-error"&gt;&lt;/p&gt;
+
+  &lt;label for="email"&gt;Email&lt;/label&gt;
+  &lt;input id="email" name="email" type="email" autocomplete="email" aria-describedby="email-error"&gt;
+  &lt;p class="error" id="email-error"&gt;&lt;/p&gt;
+
+  &lt;label for="message"&gt;Message&lt;/label&gt;
+  &lt;textarea id="message" name="message" rows="3" aria-describedby="message-error"&gt;&lt;/textarea&gt;
+  &lt;p class="error" id="message-error"&gt;&lt;/p&gt;
+
+  &lt;button type="submit"&gt;Send&lt;/button&gt;
+&lt;/form&gt;
+&lt;p id="status" role="status"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // js/form.js - checks the form and explains every problem.
+  // GitHub Pages has no server, so this page cannot deliver the message itself.
+  const form = document.querySelector("#contact");
+  const statusEl = document.querySelector("#status");
+  const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+  // one rule per field: return "" when it is fine, or the message to show
+  const RULES = {
+    name: (value) =&gt; (value === "" ? "Please enter your name." : ""),
+    email: (value) =&gt; (EMAIL_PATTERN.test(value) ? "" : "Please enter an email such as asha@example.com."),
+    message: (value) =&gt; (value.length &lt; 10 ? "Please write at least 10 characters." : ""),
+  };
+
+  function showError(field, message) {
+    document.querySelector(`#${field.id}-error`).textContent = message;
+    field.setAttribute("aria-invalid", message === "" ? "false" : "true");
+  }
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                        // no server to send it to
+    statusEl.textContent = "";
+    let firstProblem = null;
+    for (const fieldName of Object.keys(RULES)) {
+      const field = document.querySelector(`#${fieldName}`);
+      const message = RULES[fieldName](field.value.trim());
+      showError(field, message);
+      if (message !== "" &amp;&amp; firstProblem === null) firstProblem = field;
+    }
+    if (firstProblem !== null) {
+      firstProblem.focus();                        // take the visitor straight to it
+      console.warn("Not sent. First problem:", firstProblem.id);
+      return;
+    }
+    const sender = document.querySelector("#name").value.trim();
+    statusEl.textContent = `Thank you, ${sender}! (Demo: nothing was sent - this page has no server.)`;
+    console.log("Valid message from", sender);
+    form.reset();
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Send</b> empty: three red messages, red borders, focus jumps to Name, and the Console warns <code>Not sent. First problem: name</code>. Enter <i>Asha</i>, the email <i>asha@lpu</i> and a message of ten or more characters: only the email complains (<code>First problem: email</code>) &mdash; the pattern needs a dot after the <code>@</code>. With <i>asha@lpu.in</i> the page thanks Asha, admits nothing was sent, and logs <code>Valid message from Asha</code>. <code>novalidate</code> turns off the browser's own bubbles; <code>role="status"</code> announces the thank-you.</p>
+  <h3>The final live review and knowledge check</h3>
+  <p>Each deployed site is reviewed on its live URL, on the projector:</p>
+  <table class="tbl">
+    <thead><tr><th>Check</th><th>How it is tested live</th></tr></thead>
+    <tbody>
+      <tr><td>Functional behaviour</td><td>Every link, the menu, the cards, the form with bad input</td></tr>
+      <tr><td>Responsive design</td><td>375px wide: no sideways scrolling</td></tr>
+      <tr><td>Accessibility</td><td><kbd>Tab</kbd> through every control: visible focus</td></tr>
+      <tr><td>Performance</td><td>Lighthouse in mobile mode</td></tr>
+      <tr><td>Browser console clean</td><td>No red errors</td></tr>
+      <tr><td>Deployment URL works</td><td>Network panel: no 404s</td></tr>
+      <tr><td>Repository docs</td><td>README with the live link</td></tr>
+    </tbody>
+  </table>
+  <p>Fixing a bug <i>during</i> the review shows the unit's most important skill. The deck's twelve-question Unit 6 check then revises: wrong total, no error &rarr; logical error; a 404 &rarr; Network panel; <code>fetch()</code> on a 404 <i>resolves</i>, <code>response.ok</code> false; <code>addEventListener("click", save())</code> runs <code>save</code> at once; accessible Delete &rarr; <code>&lt;button type="button"&gt;</code>; a user's comment &rarr; <code>textContent</code>; payment validation &rarr; server; <code>defer</code> runs after parsing; good LCP &le; 2.5&nbsp;s; <code>git add .</code> stages all; Pages hosts static sites only; one passing test &rarr; review and test edge cases.</p>
+  <h3>The final assignment and checklist</h3>
+  <p>Build, debug, improve and deploy your own web application &mdash; the portfolio, or a task manager, quiz or weather dashboard using a public HTTPS API. Make it responsive, organise the code, add meaningful interactions, fix defects with DevTools, handle errors, make at least three performance or code-quality improvements, push to GitHub, publish with Pages and test the live site. Submit the repository link, the live URL (<code>USERNAME.github.io/project/</code>) and a one-page explanation: two bugs you fixed, and three improvements with before-and-after evidence. Tick every row first:</p>
+  <table class="tbl">
+    <thead><tr><th>Area</th><th>Done when</th><th>Chapter</th></tr></thead>
+    <tbody>
+      <tr><td>&#9744; Functionality</td><td>Every feature works, edge cases too</td><td>68, 71</td></tr>
+      <tr><td>&#9744; Code quality</td><td>Organised files, clear names, no dead code</td><td>73</td></tr>
+      <tr><td>&#9744; Accessibility</td><td>Labels, alt text, keyboard, contrast</td><td>15, 20, 59</td></tr>
+      <tr><td>&#9744; Responsiveness</td><td>375px to 1440px, no horizontal scroll</td><td>37</td></tr>
+      <tr><td>&#9744; Performance</td><td>Optimised images, <code>defer</code>, Lighthouse</td><td>74</td></tr>
+      <tr><td>&#9744; Error handling</td><td>Loading, empty and error states</td><td>70</td></tr>
+      <tr><td>&#9744; Security</td><td><code>textContent</code>, no secrets, HTTPS</td><td>77</td></tr>
+      <tr><td>&#9744; Documentation</td><td>README with the live link</td><td>75</td></tr>
+      <tr><td>&#9744; Version control</td><td>Meaningful commits, a <code>.gitignore</code></td><td>75</td></tr>
+      <tr><td>&#9744; Deployment verified</td><td>Live URL tested on phone and desktop</td><td>76</td></tr>
+      <tr><td>&#9744; AI use (if allowed)</td><td>Disclosed; decision log; every line understood</td><td>78</td></tr>
+    </tbody>
+  </table>
+  <p>Walk the cycle once more: <b>debug, inspect, handle errors, build the interface, design, organise, optimise, version, deploy, assist</b>. A professional web developer debugs systematically, designs with care, optimises by measuring, collaborates through version control, deploys reliably &mdash; and uses AI as an assistant, never a substitute for judgement. Go and build something, break it, fix it, and put it on the web.</p>
+</section>
+
+<section id="mistakes">
+  <h2>78.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Copilot has read millions of programs, so its code must be right."</b><br>It predicts likely code; likely is not correct for your requirements.</div>
+    <div class="r"><b>&#10003; "Copilot drafts; I verify."</b><br>Every suggestion is reviewed and tested before it is committed.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "To check a suggestion, I ask Copilot whether it is correct."</b><br>Its "yes" is another prediction, not a test.</div>
+    <div class="r"><b>&#10003; "I read it and run it."</b><br>Normal, empty and invalid input, the keyboard, a phone, the Console.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A refactor that looks cleaner is an improvement."</b><br>The table-based <code>showGrade</code> looked cleaner and crashed on &minus;5.</div>
+    <div class="r"><b>&#10003; "A refactor behaves exactly like the old code."</b><br>Behaviour changes are separate, deliberate decisions.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "When a test fails, the code is wrong."</b><br>Generated tests can be wrong, like <code>getGrade(75)</code> expecting "C".</div>
+    <div class="r"><b>&#10003; "I find out which side is wrong."</b><br>Tests are code, and get reviewed like code.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Using Copilot is always cheating" &mdash; or &mdash; "always allowed."</b><br>The rules belong to the course, not the tool.</div>
+    <div class="r"><b>&#10003; "I follow the policy for this piece of work."</b><br>Where allowed, I disclose my AI use and can explain every line.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary><span>GitHub Copilot is best described as:</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A compiler that reports every bug before you run the code</li><li>B. An AI coding assistant that suggests, explains and edits code, built on models trained on public code and text</li><li>C. A free hosting service for static websites</li><li>D. A version-control system that records commits</li></ul>
+    <p><b>Answer: B.</b> Copilot predicts code from context and guarantees nothing, so A is wrong. C is GitHub Pages; D is Git.</p></div></details>
+  <details class="q"><summary><span>A Copilot suggestion passes your one test. What is the next step?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Commit it immediately</li><li>B. Ask Copilot whether it is right, then commit</li><li>C. Review it line by line and test the edge cases</li><li>D. Delete the test, since the code now works</li></ul>
+    <p><b>Answer: C.</b> You own the code. One passing test proves little, and asking the model to grade itself (B) is another prediction, not a check.</p></div></details>
+  <details class="q"><summary><span>Which prompt is most likely to get a useful, reviewable answer?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. "Make my website better."</li><li>B. "Fix the form."</li><li>C. "Write JavaScript for a contact page."</li><li>D. "In form.js (below), validate name, email and message in vanilla JavaScript; show each error next to its field; do not change the HTML; explain each change and list the cases to test."</li></ul>
+    <p><b>Answer: D.</b> It has context, objective, requirements, a constraint, an output format and testing. A, B and C leave Copilot to guess.</p></div></details>
+  <details class="q"><summary><span>With the fixed <code>averageMarks</code> from section 78.5, what does this print?<br><code>console.log(averageMarks([{ marks: 70 }, { marks: 80 }, { marks: 90 }]), averageMarks([]));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>80 null</code>.</b> The loop stops before <code>i</code> reaches 3, adds 70 + 80 + 90 = 240 and divides by 3. The empty list returns <code>null</code> before any <code>0 / 0</code> can produce <code>NaN</code>.</p></div></details>
+  <details class="q"><summary><span>The original <code>averageMarks</code>, with <code>i &lt;= students.length</code>, is called with two students. What happens?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A TypeError, because the last pass reads <code>.marks</code> from <code>students[2]</code>, which is <code>undefined</code></li><li>B. It returns 85</li><li>C. A SyntaxError, because <code>&lt;=</code> is not allowed in a <code>for</code> loop</li><li>D. It returns <code>NaN</code> without any error</li></ul>
+    <p><b>Answer: A.</b> Indexes 0 and 1 exist; the condition also tries 2, and reading <code>.marks</code> from <code>undefined</code> throws before anything is returned. <code>&lt;=</code> is legal syntax, so C is wrong.</p></div></details>
+  <details class="q"><summary><span><code>getGrade(marks)</code> returns <code>GRADES.find((g) =&gt; marks &gt;= g.min)</code>, and <code>showGrade</code> does <code>const { grade, level } = getGrade(marks);</code>. The lowest row has <code>min: 0</code>. What does <code>showGrade(-5)</code> do?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Shows "Grade: F", like the old code</li><li>B. Shows "Grade: undefined"</li><li>C. Shows nothing and logs nothing</li><li>D. Throws a TypeError, because <code>find()</code> returns <code>undefined</code> and <code>undefined</code> cannot be destructured</li></ul>
+    <p><b>Answer: D.</b> No row matches &minus;5, so <code>find()</code> returns <code>undefined</code>, and destructuring it throws. A is what the <i>old</i> code did &mdash; that is the regression. B would need an object without a <code>grade</code>.</p></div></details>
+  <details class="q"><summary><span>A suggestion adds cards with <code>list.innerHTML += `&lt;div class="card"&gt;${title}&lt;/div&gt;`;</code> where <code>title</code> is typed by the user. What is the most serious problem?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Cross-site scripting: the title is parsed as HTML, so code inside it can run; use <code>createElement</code> and <code>textContent</code></li><li>B. Template literals cannot be used with <code>innerHTML</code></li><li>C. <code>innerHTML</code> works only in Chrome</li><li>D. <code>card</code> is a reserved class name</li></ul>
+    <p><b>Answer: A.</b> A title such as <code>&lt;img src="x" onerror="..."&gt;</code> runs its code in the page. B, C and D are simply false.</p></div></details>
+  <details class="q"><summary><span>Which of these must never be pasted into a prompt?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The exact error message from the Console</li><li>B. Your GitHub personal access token</li><li>C. The function you are debugging</li><li>D. The expected output for one example input</li></ul>
+    <p><b>Answer: B.</b> Tokens, passwords, keys and personal data never go into a prompt, which leaves your computer. A, C and D belong in a good debugging prompt.</p></div></details>
+  <details class="q"><summary><span>Your course allows AI tools for the project. Which use is responsible?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Generate the whole site and submit it without mentioning AI</li><li>B. Paste the CA question into Copilot Chat during the test</li><li>C. Use Copilot to explain an error, write and test the fix yourself, and note the AI use in the README</li><li>D. Submit code you cannot explain, as long as it passes</li></ul>
+    <p><b>Answer: C.</b> Follow the policy, disclose, and be able to explain everything. A hides the use, B breaks exam rules, D fails "explain every line".</p></div></details>
+  <details class="q"><summary><span>Ananya's portfolio on GitHub Pages validates its contact form and shows "Thank you", but no email ever arrives. Why?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The email pattern is wrong</li><li>B. HTTPS blocks forms</li><li>C. Forms only work with jQuery</li><li>D. GitHub Pages serves static files only; without a backend or a form service, nothing delivers the message</li></ul>
+    <p><b>Answer: D.</b> Browser code can validate, but delivering email needs a server. Validation passed, so A is not the cause; B and C are false.</p></div></details>
+  <details class="q"><summary><span>An AI-generated test expects <code>getGrade(75)</code> to return <code>"C"</code>, and it fails because the function returns <code>"B"</code>. What do you conclude, and what do you do?</span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: the test is wrong, not the code.</b> 75 is B's lower boundary (<code>75 &gt;= 75</code> is true), so <code>"B"</code> is correct. Fix the expected value and rerun. A failing test means "find out which side is wrong".</p></div></details>
+  <details class="q"><summary><span>You ask Copilot to refactor a working function. Which review question matters most?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Does it behave exactly as before for every input, including edge cases such as &minus;5 and <code>NaN</code>?</li><li>B. Is the new version shorter?</li><li>C. Does it use newer syntax, such as arrow functions?</li><li>D. Did the AI write it, or did I?</li></ul>
+    <p><b>Answer: A.</b> A refactor may change only the shape, never the behaviour. B and C are worthless if the result is wrong; D does not change whether it works.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Copilot is an AI pair programmer: it predicts code from the context it can see, never runs your code, and knows only the requirements you wrote down.</li>
+    <li>Use it for boilerplate, explanations, test ideas, refactors, docs and alternatives &mdash; and, as a beginner, to explain more than to write.</li>
+    <li>Review-first loop: prompt, suggestion, review, test, fix, commit. If you can't explain a line, don't commit it.</li>
+    <li>A strong prompt has context, objective, requirements, constraints, expected output, error handling and testing.</li>
+    <li>Review AI UI code for semantics, keyboard access, XSS and responsiveness.</li>
+    <li>Debug: think first, treat the AI's explanation as a hypothesis, apply the smallest safe fix, test normal, empty and invalid input.</li>
+    <li>A refactor behaves identically; generated tests and docs must match the real behaviour.</li>
+    <li>Responsible use: protect secrets and personal data, respect licences, follow your institution's policy and disclose AI use.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Action or code</th><th>What it does / effect</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Tab</kbd> / <kbd>Esc</kbd></td><td>Accept / dismiss the inline suggestion</td></tr>
+      <tr><td><kbd>Alt</kbd>+<kbd>]</kbd> / <kbd>Alt</kbd>+<kbd>[</kbd></td><td>Next / previous suggestion (VS Code, Windows)</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>&#8594;</kbd></td><td>Accept just the next word</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>I</kbd> / <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>I</kbd></td><td>Inline chat / the Chat panel</td></tr>
+      <tr><td><code>/explain</code>, <code>/fix</code>, <code>/tests</code>, <code>/doc</code></td><td>VS Code chat shortcuts (type <code>/</code> for the current list)</td></tr>
+      <tr><td><code>i &lt; arr.length</code></td><td>The correct loop bound; <code>&lt;=</code> is off-by-one</td></tr>
+      <tr><td><code>find(...) ?? fallback</code></td><td>Never destructure a <code>find()</code> result that may be <code>undefined</code></td></tr>
+      <tr><td><code>Number.isFinite(x)</code></td><td>True only for finite numbers: rejects strings, <code>NaN</code>, <code>Infinity</code></td></tr>
+      <tr><td>AI decision log</td><td>Suggestion | Accepted, Rejected or Modified | Why</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://docs.github.com/en/copilot" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; GitHub Copilot<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official guide: setup, plans and student access, prompting, and the current features and shortcuts.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML" target="_blank" rel="noopener noreferrer">MDN &mdash; Element.innerHTML<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Its security section explains why AI code that puts user input into innerHTML must be rejected.</span></li>
+    <li><a href="https://javascript.info/debugging-chrome" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Debugging in the browser<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Breakpoints and stepping, for confirming an AI's explanation of a bug instead of trusting it.</span></li>
+    <li><a href="https://docs.github.com/en/pages" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; GitHub Pages<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Publishing the capstone portfolio, from the first deploy to a custom domain.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

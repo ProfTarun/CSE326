@@ -79,7 +79,10 @@ function chaptersFor(topic, questions) {
   var tn = flat(topic), qn = flat(questions.join(" "));
   var scored = [];
   BOOK.chapters.forEach(function (c) {
-    if (c.unit === "ap") return;
+    /* the assessments reported here (CA2) are HTML and CSS, so only Units 1-3
+       may be suggested - JavaScript chapters share words like "accessibility"
+       and "form validation" and would otherwise win */
+    if (!/^u[123]$/.test(c.unit)) return;
     var s = 0;
     (c.keywords || []).forEach(function (k) {
       var kk = flat(k);

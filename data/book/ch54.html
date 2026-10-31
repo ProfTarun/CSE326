@@ -1,0 +1,716 @@
+<article class="chapter" data-ch="54">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 54 &middot; Callback Functions</p>
+  <h1>Callback Functions</h1>
+  <p class="lead">Some jobs finish at once. Others finish later: a timer runs out, a button is clicked, marks arrive from a server. JavaScript handles every "later" moment in the same way: you hand over a function and say "call this back when it happens". That function is a callback. This chapter shows how to write callbacks, when they run, and the tangle that Promises were invented to untie.</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A function is a value: <code>greet</code> is the function itself, <code>greet()</code> runs it, and a function can be handed to another function (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>An arrow function such as <code>(m) =&gt; m + 5</code> is the short way to write a function expression (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>The call stack holds the function that is running right now, and it is empty once the last line of a script has run (<a href="book.html?ch=49">Chapter 49</a>).</li>
+      <li><code>forEach</code>, <code>map</code>, <code>filter</code> and <code>sort</code> take a function and call it for you; they are higher-order functions (<a href="book.html?ch=53">Chapter 53</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Define a callback and tell it apart from the higher-order function that receives it.</li>
+      <li>Say whether a callback is synchronous or asynchronous, and predict the order of the Console lines.</li>
+      <li>Use <code>setTimeout</code>, <code>setInterval</code>, <code>clearTimeout</code> and <code>clearInterval</code>, including passing values to the callback.</li>
+      <li>Explain, with the call stack, the waiting queue and the event loop, why a 0 ms timer still waits.</li>
+      <li>Write your own function that accepts a callback, such as <code>processMarks(marks, onDone)</code>.</li>
+      <li>Read an error-first callback, recognise callback hell, and say why Promises and <code>async</code>/<code>await</code> were invented.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>54.1 Call me back: what a callback is</h2>
+  <p>In Chapter 48 you handed a whole function to another function: <code>doTwice(cheer)</code> gave <code>cheer</code> to <code>doTwice</code>, and <code>doTwice</code> ran it twice. In Chapter 53 you did it constantly, giving small arrow functions to <code>forEach</code>, <code>map</code> and <code>filter</code>. That pattern has a name, and your slides define it in one line.</p>
+  <div class="callout why"><b>Key idea.</b> A <span class="jw" data-def="A function you hand to another function, for that function to run when it is ready.">callback</span> is a function passed to another function, to be invoked by that function. The callback is the function <b>being passed</b>. The <span class="jw" data-def="A function that receives a function as an argument, or returns one, or both.">higher-order function</span> is the function that <b>receives</b> it (or returns one).</div>
+  <p>Here is a function that accepts a callback, in the style of the slide's <code>processUser</code> example:</p>
+  <pre class="code">function processUser(name, callback) {
+  console.log("Processing user:", name);
+  callback(name);                    // the moment the function is "called back"
+}
+
+function greet(name) {
+  console.log("Welcome, " + name + "!");
+}
+
+processUser("Asha", greet);
+// Processing user: Asha
+// Welcome, Asha!</pre>
+  <p>Follow the handover. The call passes two arguments: a string, and the function <code>greet</code> itself, with no brackets. Inside, the parameter <code>callback</code> holds that function, just as <code>name</code> holds "Asha". <code>processUser</code> does its own work, then writes <code>callback(name)</code>: brackets after a parameter that holds a function, so <code>greet("Asha")</code> runs. <code>processUser</code> is the higher-order function; <code>greet</code> is the callback. You hand a function over, and the receiver calls it back when it is ready.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Three steps. You call processUser with the string Asha and the function greet. processUser receives them, so name is Asha and callback is greet. processUser then calls callback(name), which means greet(Asha). processUser is the higher-order function and greet is the callback.">
+      <text x="310" y="26" class="t c s">No brackets after greet: you hand over the function itself, not its answer</text>
+      <rect x="10" y="44" width="180" height="84" rx="12" class="box blu"/>
+      <text x="100" y="68" class="t c b">1. YOU CALL</text>
+      <text x="100" y="92" class="t c mono" style="font-size:12px">processUser(</text>
+      <text x="100" y="110" class="t c mono" style="font-size:12px">"Asha", greet)</text>
+      <path d="M192 86 L218 86" class="edge" marker-end="url(#arr)"/>
+      <rect x="222" y="44" width="180" height="84" rx="12" class="box saf"/>
+      <text x="312" y="68" class="t c b">2. IT RECEIVES</text>
+      <text x="312" y="92" class="t c mono" style="font-size:12px">name = "Asha"</text>
+      <text x="312" y="110" class="t c mono" style="font-size:12px">callback = greet</text>
+      <path d="M404 86 L430 86" class="edge" marker-end="url(#arr)"/>
+      <rect x="434" y="44" width="176" height="84" rx="12" class="box grn"/>
+      <text x="522" y="68" class="t c b">3. IT CALLS BACK</text>
+      <text x="522" y="92" class="t c mono" style="font-size:12px">callback(name)</text>
+      <text x="522" y="110" class="t c mono" style="font-size:12px">is greet("Asha")</text>
+      <text x="100" y="152" class="t c b" style="font-size:12px">a function as an argument</text>
+      <text x="312" y="152" class="t c b" style="font-size:12px">processUser: higher-order</text>
+      <text x="522" y="152" class="t c b" style="font-size:12px">greet: the callback</text>
+      <path d="M20 172 L600 172" class="edge dash"/>
+      <text x="310" y="198" class="t c s">Console: "Processing user: Asha", then "Welcome, Asha!"</text>
+    </svg>
+    <figcaption><b>Figure 54.1</b> A callback travels into the higher-order function as an ordinary argument, waits in a parameter, and runs when that function writes brackets after the parameter.</figcaption>
+  </figure>
+  <p>A callback does not have to be a named function. These three calls hand over three different callbacks:</p>
+  <pre class="code">processUser("Rahul", greet);                                       // a named function
+processUser("Meera", function (n) { console.log("Hi, " + n); });   // an anonymous function, written in place
+processUser("Kabir", (n) =&gt; console.log("Hello, " + n));           // an arrow function: the usual choice</pre>
+  <p>The arrow form is the one you will see most. A callback is usually short and used once, so it is written right inside the call.</p>
+  <div class="callout warn"><b>No brackets when you hand it over.</b> <code>processUser("Asha", greet())</code> runs <code>greet</code> <i>right now</i>, with no argument, and prints "Welcome, undefined!". What is handed over is <code>greet</code>'s return value, <code>undefined</code>. So when <code>processUser</code> reaches <code>callback(name)</code>, it stops with <i>TypeError: callback is not a function</i>. Hand over the function: <code>greet</code>.</div>
+  <div class="plain"><p>A callback is an ordinary function that you give to another function instead of calling it yourself. The other function keeps it in a parameter and runs it at the right moment, with whatever values it has to give.</p></div>
+  <p>Your lab sheet (slide 18) sets two tasks on a student result system. <b>Task 1:</b> <code>processStudent()</code> accepts a student object and a callback, which displays the name and marks. <b>Task 2:</b> <code>checkResult()</code> accepts marks and a callback, which displays "Pass" for at least 40, otherwise "Fail". Task 1 is called below with two different callbacks: one <code>processStudent</code>, two different jobs.</p>
+  <pre class="code" data-run data-title="Slide 18, Tasks 1 and 2 - change a mark to 39 and Run again" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  #sheet { white-space: pre-line; background: #F1F5F9; padding: 8px 12px; border-radius: 8px; }
+&lt;/style&gt;
+&lt;p&gt;Result sheet, written by the second callback:&lt;/p&gt;
+&lt;p id="sheet"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 }
+  ];
+
+  // Task 1: a student and a callback; processStudent hands the student to the callback
+  function processStudent(student, callback) {
+    callback(student);
+  }
+
+  // Task 2: marks and a callback; checkResult decides, the callback displays
+  function checkResult(marks, callback) {
+    const result = marks &gt;= 40 ? "Pass" : "Fail";
+    callback(result);
+  }
+
+  // callback A: show a student in the Console
+  function showInConsole(student) {
+    console.log(`${student.name}: ${student.marks} marks`);
+  }
+
+  // callback B: add a student to the sheet on the page (Chapter 56 explains textContent)
+  function addToSheet(student) {
+    document.getElementById("sheet").textContent += `${student.name} - ${student.marks}\n`;
+  }
+
+  for (const student of students) {
+    processStudent(student, showInConsole);      // one job, shown in the Console
+    processStudent(student, addToSheet);         // the same job, shown on the page
+    checkResult(student.marks, (result) =&gt; {     // an arrow callback, written in place
+      console.log(`${student.name}: ${result}`);
+    });
+  }
+&lt;/script&gt;</pre>
+  <p>The Console shows two lines per student: "Asha: 78 marks", "Asha: Pass", and so on. Rahul fails with 35; Kabir passes with exactly 40, because the rule is "at least 40". The arrow callback receives only the result, yet prints the name too: it was written inside the loop, so it can see <code>student</code> (a closure, Chapter 49).</p>
+  <details class="qc"><summary>Quick check: in <code>checkResult(student.marks, (result) =&gt; { ... })</code>, which is the higher-order function and which is the callback?</summary><p><code>checkResult</code> is the higher-order function, because it receives a function. The arrow function is the callback, because it is the function being passed. It receives "Pass" or "Fail" because <code>checkResult</code> calls it with that value.</p></details>
+</section>
+
+<section id="s2">
+  <h2>54.2 Synchronous callbacks: called back at once</h2>
+  <p>Every callback so far ran <b>during</b> the call that received it. <code>processStudent</code> called its callback before it finished, so by the time the next line of the program ran, the callback's work was done. The array methods of Chapter 53 behave in the same way:</p>
+  <pre class="code">const marks = [72, 85, 64];
+
+console.log("Before");
+marks.forEach((m) =&gt; console.log("Callback got", m));
+console.log("After");
+
+// Before
+// Callback got 72
+// Callback got 85
+// Callback got 64
+// After</pre>
+  <p><code>forEach</code> calls your arrow function three times, once per element, and only then returns (with <code>undefined</code>, because it has no answer to give). "After" cannot appear until all three calls are over. A callback that runs like this, inside the call and before the next line, is a <span class="jw" data-def="Happening in step: each piece of work is finished before the next line starts.">synchronous</span> callback. The compare function you give to <code>sort</code> is another. <code>marks.sort((a, b) =&gt; a - b)</code> calls it several times to decide which number goes first, and every one of those calls is over before <code>sort</code> hands back the sorted array. The functions you give to <code>map</code>, <code>filter</code>, <code>find</code>, <code>some</code> and <code>every</code> are synchronous too.</p>
+  <p>Synchronous callbacks <i>customise</i> a job. <code>sort</code> already knows how to sort; your callback tells it what "smaller" means. They are easy to follow, because the code runs in the order you read it. The next kind does not.</p>
+</section>
+
+<section id="s3">
+  <h2>54.3 Asynchronous callbacks: called back later</h2>
+  <p>The browser gives you a function called <code>setTimeout</code>. You hand it a callback and a number of milliseconds (1000 ms is one second), and it calls the callback once, after that time. Chapter 49 used it briefly. Predict what this prints:</p>
+  <pre class="code">console.log("1. Order placed");
+setTimeout(() =&gt; {
+  console.log("2. Food is ready");
+}, 2000);
+console.log("3. Find a table");</pre>
+  <p>Reading top to bottom, you expect 1, 2, 3. The Console shows <b>1 and 3</b> at once, and <b>2</b> two seconds later. <code>setTimeout</code> does not sit and wait for two seconds. It books a timer with the browser, keeps your callback for later, and returns immediately, so line 3 runs straight away. Two seconds later the browser calls the callback back. A callback that runs later like this, after the code around it has moved on, is an <span class="jw" data-def="Not in step: the work finishes later, and the rest of your code carries on meanwhile instead of waiting for it.">asynchronous</span> callback.</p>
+  <div class="callout analogy"><b>Picture this.</b> At a busy food court you order a masala dosa. The cashier does not make you stand at the counter for ten minutes. She takes your order, hands you a buzzer and calls "Next!". You find a table while the dosa cooks, and when it is ready the buzzer goes off and you go back to collect it. Placing the order is the call to <code>setTimeout</code>; the buzzer is the callback you left behind; finding a table is line 3, which happens while the dosa is still cooking. One more detail: you collect at the same counter, and the cashier serves one person at a time. Even if your buzzer goes off the moment you sit down, you wait until she has finished with the person in front of you. Section 54.5 is about exactly that.</div>
+  <figure class="fig">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Two timelines. Synchronous: Before, then forEach calling show three times, then After; all callbacks finish before After. Asynchronous: Before, then setTimeout books a timer, then After, then the script ends; only later does the callback show run.">
+      <text x="20" y="24" class="t b">SYNCHRONOUS</text>
+      <text x="130" y="24" class="t s mono">marks.forEach(show)</text>
+      <rect x="20" y="40" width="80" height="50" rx="8" class="box gry"/>
+      <text x="60" y="70" class="t c">Before</text>
+      <rect x="110" y="34" width="290" height="62" rx="8" class="box saf"/>
+      <text x="255" y="52" class="t c s">forEach calls the callback 3 times</text>
+      <rect x="122" y="60" width="84" height="26" rx="6" class="box grn"/>
+      <text x="164" y="78" class="t c s mono">show(72)</text>
+      <rect x="213" y="60" width="84" height="26" rx="6" class="box grn"/>
+      <text x="255" y="78" class="t c s mono">show(85)</text>
+      <rect x="304" y="60" width="84" height="26" rx="6" class="box grn"/>
+      <text x="346" y="78" class="t c s mono">show(64)</text>
+      <rect x="410" y="40" width="80" height="50" rx="8" class="box gry"/>
+      <text x="450" y="70" class="t c">After</text>
+      <text x="500" y="60" class="t s">every callback is</text>
+      <text x="500" y="76" class="t s">done before After</text>
+      <text x="20" y="130" class="t b">ASYNCHRONOUS</text>
+      <text x="138" y="130" class="t s mono">setTimeout(show, 0)</text>
+      <rect x="20" y="146" width="80" height="50" rx="8" class="box gry"/>
+      <text x="60" y="176" class="t c">Before</text>
+      <rect x="110" y="146" width="130" height="50" rx="8" class="box saf"/>
+      <text x="175" y="168" class="t c s mono">setTimeout(...)</text>
+      <text x="175" y="186" class="t c s">books a timer</text>
+      <rect x="250" y="146" width="80" height="50" rx="8" class="box gry"/>
+      <text x="290" y="176" class="t c">After</text>
+      <path d="M365 140 L365 204" class="edge dash"/>
+      <text x="365" y="134" class="t c s">script ends</text>
+      <rect x="420" y="146" width="180" height="50" rx="8" class="box grn"/>
+      <text x="510" y="168" class="t c s mono">show()</text>
+      <text x="510" y="186" class="t c s">called back later</text>
+      <path d="M175 198 L175 220 L510 220 L510 202" class="edge dash" marker-end="url(#arr)"/>
+      <text x="342" y="238" class="t c s">the callback waits until the code around it has finished</text>
+      <path d="M20 258 L596 258" class="edge" marker-end="url(#arr)"/>
+      <text x="560" y="250" class="t s">time</text>
+    </svg>
+    <figcaption><b>Figure 54.2</b> A synchronous callback runs inside the call, before the next line. An asynchronous callback is booked now and runs after the script has ended, even with a delay of 0.</figcaption>
+  </figure>
+  <p>Timers are only the start. Every time a page waits for something outside your code, it uses an asynchronous callback:</p>
+  <table class="tbl">
+    <thead><tr><th>You write</th><th>The callback runs</th><th>Kind</th></tr></thead>
+    <tbody>
+      <tr><td><code>arr.forEach(cb)</code>, <code>arr.map(cb)</code>, <code>arr.sort(cb)</code></td><td>Now, during the call, once per element or comparison</td><td>Synchronous</td></tr>
+      <tr><td><code>setTimeout(cb, 2000)</code></td><td>Once, at least 2 seconds later</td><td>Asynchronous</td></tr>
+      <tr><td><code>setInterval(cb, 1000)</code></td><td>Every second, until it is stopped</td><td>Asynchronous</td></tr>
+      <tr><td><code>btn.addEventListener("click", cb)</code></td><td>Every time the button is clicked (Chapter 57)</td><td>Asynchronous</td></tr>
+      <tr><td><code>fetch(url).then(cb)</code></td><td>When the server's reply arrives (Chapter 65)</td><td>Asynchronous</td></tr>
+      <tr><td><code>navigator.geolocation.getCurrentPosition(ok, fail)</code></td><td>When the device finds its location, or gives up (Chapter 66)</td><td>Asynchronous</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="Predict the order before you Run - then click the button" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  button { padding: 8px 14px; font-weight: 700; cursor: pointer; }
+&lt;/style&gt;
+&lt;p&gt;Write down the order you expect, press &lt;b&gt;Run&lt;/b&gt;, then click the button.&lt;/p&gt;
+&lt;button id="btn"&gt;Click me later&lt;/button&gt;
+&lt;script&gt;
+  const marks = [72, 85, 64];
+
+  console.log("1. Before forEach");
+  marks.forEach((m) =&gt; console.log("2. forEach callback got", m));      // synchronous
+  console.log("3. After forEach");
+
+  setTimeout(() =&gt; console.log("5. Timer callback, 0 ms"), 0);          // asynchronous
+  setTimeout(() =&gt; console.log("6. Timer callback, 1000 ms"), 1000);    // asynchronous
+
+  document.getElementById("btn").addEventListener("click", () =&gt; {
+    console.log("7. Click callback: runs on every click");             // asynchronous
+  });
+
+  console.log("4. Last line of the script");
+&lt;/script&gt;</pre>
+  <p>The numbers come out in order: 1, "2" three times, 3, 4, 5, and 6 a second later. Line 4 is written last but printed before 5, because the 0 ms timer's callback runs only after the whole script has finished. Line 7 appears on every click, and never if you do not click.</p>
+  <div class="plain"><p>A synchronous callback is called back <b>before</b> the next line runs. An asynchronous callback is called back <b>after</b> your code has carried on, when something happens: a timer ends, a button is clicked, data arrives. To tell them apart, ask: "is this function waiting for something?"</p></div>
+  <details class="qc"><summary>Quick check: is the function you give to <code>addEventListener("click", ...)</code> synchronous or asynchronous?</summary><p>Asynchronous. Adding the listener only hands the function to the browser; the line after it runs at once. The callback runs later, each time the click happens, and it may never run at all if nobody clicks.</p></details>
+</section>
+
+<section id="s4">
+  <h2>54.4 Timers: setTimeout and setInterval</h2>
+  <p>The two timer functions are provided by the browser (they belong to the <code>window</code> object, Chapter 55), not by the JavaScript language itself, but every browser has them. Both take a callback, a delay in milliseconds, and optionally extra arguments that are passed on to the callback:</p>
+  <pre class="code">const id1 = setTimeout(callback, delay, arg1, arg2);    // call callback(arg1, arg2) ONCE, after delay ms
+const id2 = setInterval(callback, delay, arg1, arg2);   // call it EVERY delay ms, until stopped
+
+clearTimeout(id1);    // cancel the timeout, if it has not run yet
+clearInterval(id2);   // stop the interval</pre>
+  <p>Each one returns a <span class="jw" data-def="A number the browser gives you when it books a timer, like a token number. You hand it back to cancel that exact timer.">timer ID</span>, a number that names this particular timer. Keep it in a variable: it is your only way to cancel the timer, because <code>clearTimeout</code> and <code>clearInterval</code> take the ID, not the function. An interval that is never cleared keeps calling its callback until the page is closed.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>setTimeout</code></th><th><code>setInterval</code></th></tr></thead>
+    <tbody>
+      <tr><td>Runs the callback</td><td>Once</td><td>Again and again</td></tr>
+      <tr><td>Typical use</td><td>A reminder, a message that disappears after 3 seconds, a delayed step</td><td>A clock, a countdown, a slideshow</td></tr>
+      <tr><td>Stop it with</td><td><code>clearTimeout(id)</code>, before it runs</td><td><code>clearInterval(id)</code>, at any time</td></tr>
+      <tr><td>The delay is</td><td colspan="2">The <b>least</b> time to wait, not an exact time (section 54.5 explains why)</td></tr>
+    </tbody>
+  </table>
+  <pre class="code" data-run data-title="A reminder, a cancelled timer and an exam countdown - press Stop during the countdown" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  #clock { font-size: 34px; font-weight: 800; color: #0B2545; margin: 6px 0; }
+  button { padding: 8px 14px; font-weight: 700; cursor: pointer; }
+&lt;/style&gt;
+&lt;p&gt;CSE326 exam starts in:&lt;/p&gt;
+&lt;p id="clock"&gt;5&lt;/p&gt;
+&lt;button id="stop"&gt;Stop the countdown&lt;/button&gt;
+&lt;script&gt;
+  // 1. setTimeout runs once; the extra argument "CSE326" is passed to remind
+  function remind(subject) {
+    console.log("Reminder:", subject, "assignment is due today");
+  }
+  const reminderId = setTimeout(remind, 500, "CSE326");
+  console.log("Reminder booked, timer ID:", reminderId);
+
+  // 2. a timer cancelled before its time is up never runs
+  const cancelledId = setTimeout(() =&gt; console.log("You will never see this"), 800);
+  clearTimeout(cancelledId);
+
+  // 3. setInterval runs every 1000 ms until clearInterval stops it
+  let seconds = 5;
+  const clock = document.getElementById("clock");
+  const countdownId = setInterval(() =&gt; {
+    seconds = seconds - 1;
+    if (seconds &gt; 0) {
+      clock.textContent = seconds;
+      console.log("Tick:", seconds);
+    } else {
+      clearInterval(countdownId);          // stop, or it would tick for ever
+      clock.textContent = "Exam starts now!";
+      console.log("Countdown finished, interval cleared");
+    }
+  }, 1000);
+
+  document.getElementById("stop").addEventListener("click", () =&gt; {
+    clearInterval(countdownId);
+    console.log("Stopped by you at", seconds);
+  });
+&lt;/script&gt;</pre>
+  <p>The timer-ID line comes first, because it is ordinary synchronous code; the ID is just some whole number. Half a second later the reminder appears, with "CSE326" passed on by <code>setTimeout</code>. "You will never see this" never appears, because <code>clearTimeout</code> cancelled it in time. Then come four ticks, 4 down to 1, and on the fifth call the interval clears itself. Press Stop part-way and the ticks end at once.</p>
+  <div class="callout exam"><b>Exam tip.</b> <code>setTimeout</code> = once, <code>setInterval</code> = repeat. Both return an ID, and <code>clearTimeout(id)</code> or <code>clearInterval(id)</code> cancels with that ID. The delay is in milliseconds: three seconds is <code>3000</code>, not <code>3</code>.</div>
+  <details class="qc"><summary>Quick check: a slideshow changes picture with <code>setInterval(nextSlide, 5000)</code>. How should the Pause button stop it?</summary><p>Store the ID when the interval starts, <code>const slideTimer = setInterval(nextSlide, 5000);</code>, and call <code>clearInterval(slideTimer)</code> in the Pause button's callback. <code>clearInterval(nextSlide)</code> does nothing, because it needs the ID, not the function.</p></details>
+</section>
+
+<section id="s5">
+  <h2>54.5 The event loop: who decides when a callback runs</h2>
+  <p>JavaScript in a page has one call stack (Chapter 49), so it does exactly one thing at a time: it is <span class="jw" data-def="Able to do only one thing at a time, like a counter with a single cashier.">single-threaded</span>. So who counts the two seconds while your code carries on? Not JavaScript. The browser has helpers of its own, outside JavaScript, which keep timers, watch for clicks and wait for network replies (diagrams online often label them "Web APIs"). Three pieces work together:</p>
+  <ol>
+    <li><b>The call stack</b> &mdash; the code running right now. Your script runs here from its first line to its last.</li>
+    <li><b>The browser's helpers</b> &mdash; <code>setTimeout</code> hands them your callback and the delay, and returns at once. They count the time while JavaScript runs the next lines.</li>
+    <li><b>The waiting queue</b> &mdash; when the time is up, or the click happens, the helper does not interrupt your code. It puts the callback at the back of the <span class="jw" data-def="A waiting line of callbacks that are ready to run. The first one in is the first one out, like a queue at a counter.">task queue</span> (also called the callback queue).</li>
+  </ol>
+  <p>Joining them is the <span class="jw" data-def="The browser's never-ending rule: when the call stack is empty, take the first callback waiting in the queue and run it.">event loop</span>, a rule the browser repeats for as long as the page is open: <b>if the call stack is empty, take the first callback from the queue and run it to the end; then check again.</b></p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 296" role="img" aria-label="The call stack runs setTimeout, which hands the callback cb to the browser helpers. When the time is up, cb joins the waiting queue. The event loop moves the first waiting callback onto the call stack only when the stack is empty.">
+      <rect x="20" y="40" width="190" height="210" rx="12" class="box blu"/>
+      <text x="115" y="62" class="t c b">CALL STACK</text>
+      <text x="115" y="80" class="t c s">runs one thing at a time</text>
+      <rect x="40" y="176" width="150" height="28" rx="6" class="box saf"/>
+      <text x="115" y="195" class="t c s mono">setTimeout(cb, 1000)</text>
+      <rect x="40" y="208" width="150" height="28" rx="6" class="box gry"/>
+      <text x="115" y="227" class="t c s">your script</text>
+      <rect x="400" y="24" width="200" height="96" rx="12" class="box gry"/>
+      <text x="500" y="46" class="t c b">BROWSER HELPERS</text>
+      <text x="500" y="64" class="t c s">timers, clicks, network</text>
+      <rect x="430" y="78" width="140" height="28" rx="6" class="box saf"/>
+      <text x="500" y="97" class="t c s mono">cb: 1000 ms timer</text>
+      <path d="M212 190 L398 92" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="228" y="56" class="t s">1. setTimeout hands cb</text>
+      <text x="228" y="70" class="t s">over and returns at once</text>
+      <path d="M500 122 L500 174" class="edge" marker-end="url(#arr)"/>
+      <text x="510" y="144" class="t s">2. time up:</text>
+      <text x="510" y="158" class="t s">cb joins queue</text>
+      <rect x="330" y="178" width="270" height="78" rx="12" class="box grn"/>
+      <text x="465" y="198" class="t c b">WAITING QUEUE</text>
+      <text x="465" y="214" class="t c s">ready callbacks, first in, first out</text>
+      <rect x="350" y="224" width="70" height="24" rx="5" class="box"/>
+      <text x="385" y="240" class="t c s mono">cb</text>
+      <rect x="430" y="224" width="110" height="24" rx="5" class="box"/>
+      <text x="485" y="240" class="t c s mono">click handler</text>
+      <path d="M328 236 L214 236" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="270" y="274" class="t c b">3. Event loop: is the call stack empty?</text>
+      <text x="270" y="290" class="t c s">Then move the first waiting callback onto it, and repeat.</text>
+    </svg>
+    <figcaption><b>Figure 54.3</b> Callbacks never jump into running code. The browser counts the time, the ready callback queues, and the event loop moves it onto the call stack only when the stack is empty.</figcaption>
+  </figure>
+  <p>That rule explains the most famous surprise in JavaScript. Trace this, with a delay of zero:</p>
+  <pre class="code">console.log("A");
+setTimeout(() =&gt; console.log("B"), 0);
+console.log("C");
+// A
+// C
+// B</pre>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th>Call stack</th><th>Helpers and queue</th><th>Console</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>Runs <code>console.log("A")</code></td><td>Empty</td><td>A</td></tr>
+      <tr><td>2</td><td>Runs <code>setTimeout</code>: hands the callback over and returns at once</td><td>The 0 ms timer is up almost at once, so the callback joins the queue</td><td>A</td></tr>
+      <tr><td>3</td><td>Runs <code>console.log("C")</code></td><td>The callback is waiting</td><td>A C</td></tr>
+      <tr><td>4</td><td>The script has finished: empty</td><td>The event loop moves the callback onto the stack</td><td>A C</td></tr>
+      <tr><td>5</td><td>Runs the callback, <code>console.log("B")</code></td><td>Empty</td><td>A C B</td></tr>
+    </tbody>
+  </table>
+  <p>A delay of zero does not mean "now". It means "as soon as possible, <i>after</i> the running code has finished". The callback is ready almost at once, but the event loop will not move it while your script is still running: your buzzer went off, but the cashier was still serving someone. For the same reason the delay is only the <i>least</i> time to wait. If the stack is busy when the time is up, the callback waits longer.</p>
+  <div class="plain"><p>Timers and clicks never interrupt your code. When one is ready, its callback joins a queue. Only when the running code has completely finished does the event loop take the next callback from the queue and run it, from start to end.</p></div>
+  <p>The same rule has a darker side. While your code keeps the call stack busy, <b>nothing else can happen</b>: no timer callback, no click handler, and the browser cannot even redraw the page. This example keeps JavaScript busy for one second with a loop that only watches the clock:</p>
+  <pre class="code" data-run data-title="A busy call stack makes a 0 ms timer wait a whole second" data-h="140">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;. The preview freezes for about a second; then read the Console.&lt;/p&gt;
+&lt;script&gt;
+  const start = Date.now();            // the time now, in milliseconds (Chapter 62)
+  console.log("1. Script starts and books a 0 ms timer");
+
+  setTimeout(() =&gt; {
+    console.log("3. The 0 ms timer finally ran, after", Date.now() - start, "ms");
+  }, 0);
+
+  // keep the call stack busy for one second
+  while (Date.now() - start &lt; 1000) {
+    // nothing here: just keep checking the clock
+  }
+  console.log("2. Busy loop over, after", Date.now() - start, "ms");
+&lt;/script&gt;</pre>
+  <p>Line 2 reports about 1000 ms, and the "0 ms" timer runs just after it, because the event loop had to wait for the busy loop to end. A page that does heavy work in one long piece feels frozen for exactly this reason, so real pages keep every callback short. (Chapter 65 adds one detail: promise callbacks have a queue of their own, served first. Still, nothing interrupts code that is already running.)</p>
+  <div class="callout exam"><b>Exam tip.</b> In "what does this print?" questions, every synchronous line prints first, whatever the delays say. Then the timer callbacks run in order of when their time is up: for timers booked together, the shortest delay first, and equal delays in the order they were booked.</div>
+</section>
+
+<section id="s6">
+  <h2>54.6 Writing your own function that takes a callback</h2>
+  <p>You are not limited to the browser's functions. Any function you write can accept a callback, and the pattern is always the same: take a function as a parameter, do your work, then call it with the results. Here is <code>processMarks</code>. It adds up a list of marks, works out the average, and calls back whoever asked, through a parameter named <code>onDone</code>:</p>
+  <pre class="code">function processMarks(marks, onDone) {
+  let total = 0;
+  for (const m of marks) {           // for...of, Chapter 52
+    total = total + m;
+  }
+  const average = total / marks.length;
+  onDone(total, average);            // call back with two results
+}
+
+processMarks([72, 85, 64, 91], (total, average) =&gt; {
+  console.log("Total:", total, "Average:", average);   // Total: 312 Average: 78
+});</pre>
+  <p>Why not simply <code>return</code> the answers? For a quick calculation you could, and Chapter 48's advice still holds. A callback earns its place in two situations: when the <i>caller</i> should decide what happens with the result (log it, show it, save it), so one <code>processMarks</code> serves them all; and when the result is not ready yet. The second matters most, and ends this section.</p>
+  <h3>Who chooses the callback's arguments?</h3>
+  <p>The function that does the calling. <code>processMarks</code> calls <code>onDone(total, average)</code>, so every callback you give it receives the total first and the average second. You choose the <i>names</i>, so <code>(t, avg)</code> works just as well, but the caller fixes the <i>order</i> (Chapter 48). The same holds for every function that takes a callback:</p>
+  <table class="tbl">
+    <thead><tr><th>The function</th><th>Calls your callback with</th></tr></thead>
+    <tbody>
+      <tr><td><code>processMarks(marks, cb)</code></td><td><code>(total, average)</code></td></tr>
+      <tr><td><code>arr.forEach(cb)</code></td><td><code>(element, index, array)</code>; name only the ones you need</td></tr>
+      <tr><td><code>setTimeout(cb, ms, a, b)</code></td><td><code>(a, b)</code>, the extra arguments you gave it</td></tr>
+      <tr><td><code>btn.addEventListener("click", cb)</code></td><td><code>(event)</code>, the details of the click (Chapter 57)</td></tr>
+      <tr><td>An error-first function (section 54.7)</td><td><code>(error, data)</code></td></tr>
+    </tbody>
+  </table>
+  <p>When you need to call a function with values the caller does not supply, wrap the call in an arrow function. The arrow function is the callback, and inside it you call your own function with whatever you like:</p>
+  <pre class="code">function remind(subject) {
+  console.log("Reminder:", subject, "assignment is due today");
+}
+
+setTimeout(remind("CSE326"), 500);         // WRONG: remind runs NOW, and setTimeout gets undefined
+setTimeout(() =&gt; remind("CSE326"), 500);   // right: the arrow is called back, and it calls remind
+setTimeout(remind, 500, "CSE326");         // also right: setTimeout passes "CSE326" on</pre>
+  <h3>Results that arrive later</h3>
+  <p>Now the real reason callbacks exist. Suppose the marks are on a server and take a second to arrive. You might try to return them:</p>
+  <pre class="code">function getMarks(rollNo) {
+  setTimeout(() =&gt; {
+    return [72, 85, 64, 91];       // returns to the timer, not to whoever called getMarks
+  }, 1000);
+}                                  // getMarks itself ends at once and returns nothing
+
+const marks = getMarks(12);
+console.log(marks);                // undefined: the data does not exist yet</pre>
+  <p><code>getMarks</code> finishes in a split second, long before the timer ends, and has no <code>return</code> of its own, so the caller gets <code>undefined</code>. The <code>return</code> inside the arrow function hands the array to whoever called the arrow function: the browser's timer, which throws it away. A value that does not exist yet cannot be returned. Instead, the caller hands over a callback, and the function calls it when the data is ready:</p>
+  <pre class="code" data-run data-title="processMarks with three callbacks, and marks that arrive a second later" data-h="140">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  #out { font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;p id="out"&gt;Waiting for the server...&lt;/p&gt;
+&lt;script&gt;
+  function processMarks(marks, onDone) {
+    let total = 0;
+    for (const m of marks) {
+      total = total + m;
+    }
+    const average = total / marks.length;
+    onDone(total, average);
+  }
+
+  // one processMarks, different callbacks
+  processMarks([72, 85, 64, 91], (total, average) =&gt; {
+    console.log("Asha - total:", total, "average:", average);
+  });
+  processMarks([35, 42, 37], (t, avg) =&gt; {          // your own names, the same order
+    console.log("Rahul - average:", avg, avg &gt;= 40 ? "(pass)" : "(below 40)");
+  });
+
+  // a pretend server: the marks are ready only after one second
+  function loadMarks(rollNo, onLoaded) {
+    console.log("Asking the server for roll", rollNo, "...");
+    setTimeout(() =&gt; {
+      onLoaded([72, 85, 64, 91]);                  // call back once the data exists
+    }, 1000);
+  }
+
+  loadMarks(12, (marks) =&gt; {
+    console.log("Marks arrived:", marks);
+    processMarks(marks, (total, average) =&gt; {
+      document.getElementById("out").textContent = `Roll 12: total ${total}, average ${average}`;
+      console.log("Shown on the page");
+    });
+  });
+  console.log("Meanwhile, the page is free to do other things");
+&lt;/script&gt;</pre>
+  <p>Four lines appear at once: Asha's total 312 and average 78, Rahul's average 38 "(below 40)", the request for roll 12, and "Meanwhile...", which comes before the marks because <code>loadMarks</code> returns as soon as its timer is booked. A second later the marks arrive and the page changes. Timers, <code>addEventListener</code> and geolocation still hand results over in exactly this way.</p>
+  <details class="qc"><summary>Quick check: why does <code>getMarks(12)</code> give <code>undefined</code>, when the arrow function inside it says <code>return</code>?</summary><p>That <code>return</code> belongs to the arrow function, so it hands the array back to whoever called the arrow function: the browser's timer, a second later. <code>getMarks</code> itself has no <code>return</code> and finished long before, so its call gives <code>undefined</code>. The fix is to accept a callback and call it with the data, as <code>loadMarks</code> does.</p></details>
+</section>
+
+<section id="s7">
+  <h2>54.7 When something goes wrong: error-first callbacks</h2>
+  <p>Waiting for something means it can fail: there is no student with that roll number, or the network is down. A <code>try...catch</code> around <code>loadMarks(...)</code> cannot help, because the failure happens later, after the <code>try</code> has finished (Chapter 70). The callback itself must be told. A very common convention, a habit programmers agree on rather than a rule of the language, is the <b>error-first callback</b>: the callback's first parameter is an error, and the result comes second.</p>
+  <ul>
+    <li>On failure, the function calls <code>callback(new Error("what went wrong"))</code>.</li>
+    <li>On success, it calls <code>callback(null, result)</code>. A <code>null</code> in first place means "no error".</li>
+  </ul>
+  <pre class="code">function findStudent(rollNo, callback) {
+  setTimeout(() =&gt; {
+    const student = students.find((s) =&gt; s.roll === rollNo);   // find, Chapter 50
+    if (student === undefined) {
+      callback(new Error("No student with roll " + rollNo));   // failure: the error first
+    } else {
+      callback(null, student);                                 // success: null, then the data
+    }
+  }, 300);
+}
+
+findStudent(99, (err, student) =&gt; {
+  if (err) {                           // always check the error first...
+    console.log("Error:", err.message);
+    return;                            // ...and stop: there is no student to use
+  }
+  console.log("Found", student.name);
+});</pre>
+  <p>The caller always checks <code>err</code> first, and returns early if there is one. <code>new Error("...")</code> makes an error object whose <code>message</code> holds the text (Chapter 70). Node.js, the JavaScript that runs on servers, uses this convention throughout its classic built-in functions, such as <code>fs.readFile(path, (err, data) =&gt; { ... })</code>. Browser features more often take separate success and failure callbacks (geolocation, Chapter 66), or return promises.</p>
+</section>
+
+<section id="s8">
+  <h2>54.8 Callback hell, and why Promises were invented</h2>
+  <p>A report card needs three steps, each waiting on the one before: find the student, work out the average of their marks, then turn the average into a grade. With callbacks, each next step can only start <b>inside</b> the previous step's callback, because that is the only place where its result exists. Watch the shape the code takes:</p>
+  <pre class="code" data-run data-title="The pyramid of callbacks - try roll 99 and roll 15 as well" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  button { margin: 0 6px 6px 0; padding: 7px 12px; font-weight: 700; cursor: pointer; }
+  #out { font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;p&gt;Roll 12 runs at once. Roll 99 does not exist; roll 15 has no marks yet.&lt;/p&gt;
+&lt;button id="r12"&gt;Roll 12&lt;/button&gt;
+&lt;button id="r99"&gt;Roll 99&lt;/button&gt;
+&lt;button id="r15"&gt;Roll 15&lt;/button&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { roll: 12, name: "Asha", marks: [72, 85, 64, 91] },
+    { roll: 15, name: "Rahul", marks: [] }
+  ];
+
+  // three pretend server steps: each answers after 300 ms, error first
+  function findStudent(rollNo, callback) {
+    setTimeout(() =&gt; {
+      const student = students.find((s) =&gt; s.roll === rollNo);
+      if (student === undefined) {
+        callback(new Error("No student with roll " + rollNo));
+      } else {
+        callback(null, student);
+      }
+    }, 300);
+  }
+
+  function getAverage(student, callback) {
+    setTimeout(() =&gt; {
+      if (student.marks.length === 0) {
+        callback(new Error("No marks yet for " + student.name));
+      } else {
+        let total = 0;
+        for (const m of student.marks) {
+          total = total + m;
+        }
+        callback(null, total / student.marks.length);
+      }
+    }, 300);
+  }
+
+  function getGrade(average, callback) {          // cannot fail, but keeps the same shape
+    setTimeout(() =&gt; {
+      if (average &gt;= 80) {
+        callback(null, "A");
+      } else if (average &gt;= 60) {
+        callback(null, "B");
+      } else if (average &gt;= 40) {
+        callback(null, "C");
+      } else {
+        callback(null, "F");
+      }
+    }, 300);
+  }
+
+  function show(text) {
+    document.getElementById("out").textContent = text;
+    console.log(text);
+  }
+
+  // the pyramid: each step lives inside the previous step's callback
+  function showReport(rollNo) {
+    show("Working on roll " + rollNo + "...");
+    findStudent(rollNo, (err, student) =&gt; {
+      if (err) {
+        show("Error: " + err.message);
+        return;
+      }
+      getAverage(student, (err, average) =&gt; {
+        if (err) {
+          show("Error: " + err.message);
+          return;
+        }
+        getGrade(average, (err, grade) =&gt; {
+          if (err) {
+            show("Error: " + err.message);
+            return;
+          }
+          show(`${student.name}: average ${average}, grade ${grade}`);
+        });
+      });
+    });
+  }
+
+  showReport(12);
+  document.getElementById("r12").addEventListener("click", () =&gt; showReport(12));
+  document.getElementById("r99").addEventListener("click", () =&gt; showReport(99));
+  document.getElementById("r15").addEventListener("click", () =&gt; showReport(15));
+&lt;/script&gt;</pre>
+  <p>Roll 12 prints "Working on roll 12..." and, 0.9 seconds later (three steps of 300 ms), "Asha: average 78, grade B". Roll 99 fails at step 1 and roll 15 at step 2. The innermost line can still use <code>student</code> and <code>average</code>, because each callback sits inside the ones around it (a closure again).</p>
+  <p>Now look at the shape. Each step pushes the code one level further right, and the closing brackets pile up at the bottom, <code>});</code> three times over. This is <b>callback hell</b>, or the <b>pyramid of doom</b>. Three steps are bearable; real programs often had six or seven, and the problems grow with every level:</p>
+  <ul>
+    <li><b>Hard to read.</b> The steps happen top to bottom, but the code drifts sideways, and you must match brackets to see where each step ends.</li>
+    <li><b>Errors handled again and again.</b> The same <code>if (err)</code> check sits at every level, and one forgotten check lets a failure slip through silently.</li>
+    <li><b>Hard to change.</b> Adding a step in the middle means re-nesting everything.</li>
+    <li><b>Trust.</b> You hand your code to someone else's function and hope it calls back exactly once: not never, and not twice.</li>
+  </ul>
+  <p>Giving each callback a name and defining it separately flattens the pyramid a little, but not the repeated error checks. The real fix arrived in the language itself. In 2015 JavaScript gained <b>Promises</b>: a function hands back an object that stands for "the answer, when it comes", and you attach the next step with <code>.then()</code>. In 2017 came <b><code>async</code> and <code>await</code></b>, which let asynchronous steps be written like ordinary lines. Once the three helpers are rewritten to return promises, the same report reads like this:</p>
+  <pre class="code">// A preview of Chapter 65: the same three steps with promises and await
+async function showReport(rollNo) {
+  try {
+    const student = await findStudent(rollNo);
+    const average = await getAverage(student);
+    const grade = await getGrade(average);
+    show(`${student.name}: average ${average}, grade ${grade}`);
+  } catch (err) {
+    show("Error: " + err.message);
+  }
+}</pre>
+  <p>The same three steps, top to bottom, with one <code>try...catch</code> for every error. Chapter 65 teaches promises, <code>await</code> and <code>fetch</code> properly. Underneath they still use callbacks and the event loop; they simply keep them in order.</p>
+  <div class="plain"><p>Callbacks work. But when step 2 needs step 1's answer and step 3 needs step 2's, each step must be written inside the one before. The code becomes a deep, sideways pyramid that is hard to read and repeats its error checks. Promises and <code>async</code>/<code>await</code> were added to JavaScript to write the same steps in a straight line.</p></div>
+</section>
+
+<section id="mistakes">
+  <h2>54.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A callback is a special kind of function."</b><br>Nothing in its definition is special.</div>
+    <div class="r"><b>&#10003; "Any function becomes a callback when it is passed to another function to be called."</b><br><code>greet</code> is an ordinary function; it is a callback only in <code>processUser("Asha", greet)</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Every callback runs later."</b><br>The callbacks of <code>forEach</code>, <code>map</code> and <code>sort</code> run straight away.</div>
+    <div class="r"><b>&#10003; "Synchronous callbacks run during the call; asynchronous ones run when something happens."</b><br>Ask whether the function is waiting for something: a timer, a click, a reply.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>setTimeout(fn, 0)</code> runs <code>fn</code> immediately."</b><br>Its callback waits in the queue.</div>
+    <div class="r"><b>&#10003; "It runs as soon as possible after the current code has finished."</b><br>The event loop moves a callback onto the stack only when the stack is empty, which is also why any delay is a minimum, not an exact time.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I can return a value from inside a <code>setTimeout</code> callback to my function's caller."</b><br>That <code>return</code> goes to the timer, much later.</div>
+    <div class="r"><b>&#10003; "A result that arrives later is handed over through a callback (or a promise)."</b><br>Accept a callback and call it with the data once it exists.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>setTimeout(greet("Asha"), 2000)</code> greets Asha after two seconds."</b><br>The brackets run <code>greet</code> now and hand over its result.</div>
+    <div class="r"><b>&#10003; "Hand over a function: <code>setTimeout(() =&gt; greet("Asha"), 2000)</code>."</b><br>Or let <code>setTimeout</code> pass the value: <code>setTimeout(greet, 2000, "Asha")</code>.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>What is a callback function?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A function that calls itself again and again</li><li>B. A function passed to another function, to be called by that function</li><li>C. A function that runs automatically when the page loads</li><li>D. Any function that returns another function</li></ul>
+    <p><b>Answer: B.</b> That is the slide's definition. D describes one kind of higher-order function, not the callback; A is recursion.</p></div></details>
+  <details class="q"><summary>In <code>checkResult(72, showResult)</code>, where <code>checkResult</code> calls <code>showResult</code> with "Pass" or "Fail", which statement is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>showResult</code> is the higher-order function and <code>checkResult</code> is the callback</li><li>B. Both are callbacks</li><li>C. <code>checkResult</code> is the higher-order function and <code>showResult</code> is the callback</li><li>D. Neither, because <code>showResult</code> is written without brackets</li></ul>
+    <p><b>Answer: C.</b> The function being passed is the callback; the function receiving it is the higher-order function. A has the roles backwards, and the missing brackets in D are exactly how a function is handed over.</p></div></details>
+  <details class="q"><summary>What does this print? <code>console.log("A"); setTimeout(() =&gt; console.log("B"), 0); console.log("C");</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A C B</li><li>B. A B C</li><li>C. B A C</li><li>D. A C, and B never prints</li></ul>
+    <p><b>Answer: A.</b> Even with a 0 ms delay, the timer's callback waits in the queue until the script has finished, so C prints before B. B is the trap for anyone who reads 0 as "now"; in D, the callback does run, just last.</p></div></details>
+  <details class="q"><summary>Predict every line, in order: <code>console.log("start"); [1, 2].forEach((n) =&gt; { setTimeout(() =&gt; console.log(n), 0); }); console.log("end");</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: start, end, 1, 2.</b> The <code>forEach</code> callback is synchronous and runs twice at once, but it only books two timers. Their callbacks wait until the script has printed "end", then run in the order they were booked.</p></div></details>
+  <details class="q"><summary>A student writes <code>setTimeout(greet("Asha"), 2000);</code> where <code>greet</code> prints a greeting. What happens?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The greeting appears after 2 seconds</li><li>B. The greeting appears at once, and nothing useful happens after 2 seconds</li><li>C. A SyntaxError stops the script</li><li>D. The greeting appears twice</li></ul>
+    <p><b>Answer: B.</b> The brackets run <code>greet("Asha")</code> immediately, and <code>setTimeout</code> receives its return value, <code>undefined</code>, instead of a function. Write <code>setTimeout(() =&gt; greet("Asha"), 2000)</code> or <code>setTimeout(greet, 2000, "Asha")</code>.</p></div></details>
+  <details class="q"><summary>After <code>const id = setInterval(tick, 1000);</code>, which line stops the interval?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>clearInterval(tick);</code></li><li>B. <code>setInterval(tick, 0);</code></li><li>C. <code>stopInterval(id);</code></li><li>D. <code>clearInterval(id);</code></li></ul>
+    <p><b>Answer: D.</b> <code>clearInterval</code> takes the timer ID that <code>setInterval</code> returned. A passes the function, so it stops nothing; B starts a second interval; C does not exist.</p></div></details>
+  <details class="q"><summary>What does this print? <code>setTimeout(() =&gt; console.log("X"), 200); setTimeout(() =&gt; console.log("Y"), 100); console.log("Z");</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. X Y Z</li><li>B. Y X Z</li><li>C. Z X Y</li><li>D. Z Y X</li></ul>
+    <p><b>Answer: D.</b> The synchronous line Z prints first. Then the callbacks run as their time is up: Y after 100 ms, X after 200 ms. The delays decide the order, not the order the timers were written in.</p></div></details>
+  <details class="q"><summary>Which of these callbacks is synchronous?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The compare function given to <code>marks.sort(...)</code></li><li>B. The function given to <code>setTimeout(..., 500)</code></li><li>C. The function given to <code>btn.addEventListener("click", ...)</code></li><li>D. The function given to <code>fetch(url).then(...)</code></li></ul>
+    <p><b>Answer: A.</b> <code>sort</code> calls its compare function during the call, and every comparison is done before <code>sort</code> returns. The other three wait for something: a timer, a click, a server reply.</p></div></details>
+  <details class="q"><summary>In your own words: why does <code>setTimeout(fn, 0)</code> not run <code>fn</code> immediately?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>setTimeout</code> hands <code>fn</code> to the browser and returns at once. When the 0 ms are up, <code>fn</code> joins the waiting queue, and the event loop moves it onto the call stack only when the stack is empty: after the running code, usually the rest of the script, has finished.</p></div></details>
+  <details class="q"><summary>An error-first callback is written <code>(err, data) =&gt; { ... }</code>. What does <code>err</code> hold when the operation succeeded?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. An Error object with an empty message</li><li>B. The data</li><li>C. <code>null</code>, meaning "no error"</li><li>D. The string "ok"</li></ul>
+    <p><b>Answer: C.</b> By convention the function calls <code>callback(null, result)</code> on success and <code>callback(new Error("..."))</code> on failure. <code>null</code> is falsy, so <code>if (err)</code> is skipped when all went well.</p></div></details>
+  <details class="q"><summary>Promises and <code>async</code>/<code>await</code> were added to JavaScript mainly to solve which problem?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Images loading slowly on mobile phones</li><li>B. Deeply nested callbacks with repeated error checks, known as callback hell</li><li>C. Functions that have no names</li><li>D. Loops that run too fast to see</li></ul>
+    <p><b>Answer: B.</b> Dependent asynchronous steps nest into a sideways pyramid with an <code>if (err)</code> at every level. Promises and <code>await</code> write the same steps in a straight line with one <code>try...catch</code>.</p></div></details>
+  <details class="q"><summary>Predict every line: <code>let n = 0; const id = setInterval(() =&gt; { n++; console.log("Tick", n); if (n === 3) { clearInterval(id); } }, 100); console.log("Started");</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: Started, Tick 1, Tick 2, Tick 3, and then nothing more.</b> "Started" is synchronous, so it prints first. The interval's callback then runs every 100 ms. On the third call <code>n</code> is 3, so <code>clearInterval(id)</code> stops it, and no fourth tick ever runs.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A callback is a function passed to another function, to be called by it; the receiver is a higher-order function. Hand the callback over without brackets.</li>
+    <li>Synchronous callbacks (<code>forEach</code>, <code>map</code>, the <code>sort</code> compare function) run during the call, before the next line. Asynchronous ones (timers, <code>addEventListener</code>, <code>fetch(...).then</code>) run later, when something happens.</li>
+    <li><code>setTimeout</code> runs once, <code>setInterval</code> repeats. Both return a timer ID for <code>clearTimeout</code> or <code>clearInterval</code>. The delay is in milliseconds, and it is a minimum.</li>
+    <li>The event loop moves the first waiting callback onto the call stack only when the stack is empty, so a 0 ms timer still waits for the script, and a busy loop freezes the page.</li>
+    <li>The caller of a callback chooses its arguments; wrap a call in an arrow function to pass your own. A result that arrives later cannot be returned, so it is handed to a callback.</li>
+    <li>Error-first callbacks receive <code>(err, data)</code>, with <code>err</code> as <code>null</code> on success. Check it first.</li>
+    <li>Dependent asynchronous steps nest into callback hell; Promises (2015) and <code>async</code>/<code>await</code> (2017) straighten it out (Chapter 65).</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>processUser("Asha", greet)</code></td><td>Hands <code>greet</code> over as a callback (no brackets)</td></tr>
+      <tr><td><code>callback(name)</code></td><td>Inside the receiver: calls the callback back</td></tr>
+      <tr><td><code>marks.forEach((m) =&gt; ...)</code></td><td>Synchronous callback, once per element</td></tr>
+      <tr><td><code>setTimeout(cb, 1000)</code></td><td>Calls <code>cb</code> once, at least 1 second later; returns an ID</td></tr>
+      <tr><td><code>setTimeout(cb, 1000, "Asha")</code></td><td>The same, and passes "Asha" to <code>cb</code></td></tr>
+      <tr><td><code>setTimeout(() =&gt; greet("Asha"), 1000)</code></td><td>Wraps a call so you choose the arguments</td></tr>
+      <tr><td><code>setTimeout(cb, 0)</code></td><td>Runs <code>cb</code> after the current code has finished</td></tr>
+      <tr><td><code>const id = setInterval(cb, 1000)</code></td><td>Calls <code>cb</code> every second and keeps the ID</td></tr>
+      <tr><td><code>clearTimeout(id)</code> / <code>clearInterval(id)</code></td><td>Cancels that timer</td></tr>
+      <tr><td><code>callback(null, data)</code> / <code>callback(new Error("..."))</code></td><td>Error-first: success / failure</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Callback_function" target="_blank" rel="noopener noreferrer">MDN &mdash; Callback function<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A short definition with one synchronous and one asynchronous example.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Window/setTimeout" target="_blank" rel="noopener noreferrer">MDN &mdash; setTimeout()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every parameter, the timer ID, and the reasons a delay can be longer than you asked for.</span></li>
+    <li><a href="https://javascript.info/callbacks" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Introduction: callbacks<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Error-first callbacks and the pyramid of doom in a second voice, leading straight into promises.</span></li>
+    <li><a href="https://javascript.info/event-loop" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Event loop<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The event loop in more depth, with tips on splitting heavy work so a page never freezes.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

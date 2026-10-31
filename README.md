@@ -11,7 +11,7 @@ No sign-up, no password, nothing to install.
 
 | | |
 |---|---|
-| **39 textbook chapters + reference shelf** | Units 1&ndash;3 in full: theory, diagrams and flowcharts, runnable examples, live CSS sliders, tap-to-explain jargon, exam-style checks, and a read-aloud audiobook mode |
+| **77 textbook chapters + reference shelf** | Units 1&ndash;6 in full: theory, diagrams and flowcharts, runnable examples (JavaScript ones with a console panel), live CSS sliders, tap-to-explain jargon, exam-style checks, and a read-aloud audiobook mode |
 | **22 step-by-step lessons** | Units 1&ndash;3: HTML fundamentals, semantic HTML and forms, CSS |
 | **110 command drills** | One short drill for every tag, attribute, input type and CSS property that can appear in the paper |
 | **6 lab practicals** | The prescribed Unit 7 experiments, with the marking scheme visible |
@@ -69,6 +69,9 @@ data/book/chNN.html    one file per chapter: plain HTML fragments
 js/check.js            the marking engine
 js/app.js              shared UI, progress, practice pad
 js/book.js             the textbook reader: contents, search, audiobook
+js/runshim.js          example runner: Console panel, in-memory storage,
+                       media/ files handed to examples inline
+media/                 tone.wav, clip.webm, campus.svg used by examples
 ```
 
 ### The textbook
@@ -98,7 +101,10 @@ The 39 chapters cover every Unit 1, 2 and 3 syllabus topic, and every
 question in the CA2 paper sets and the mock-test bank has its fact stated in
 the corresponding chapter (checked by script before release: Unit 3 passes
 104 of 104 coverage checks, covering all 48 CSS bank questions and every
-topic in both Unit 3 lecture decks). Chapter 40 is a reference shelf of
+topic in both Unit 3 lecture decks). Chapters 41&ndash;78 cover Units 4&ndash;6
+and follow every slide of the Unit IV, V and 6 lecture decks; each one was
+reviewed with every runnable example executed in the real reader, and the
+console output checked against what the text says it prints. Chapter 40 is a reference shelf of
 hand-checked external links rather than a taught chapter. The audiobook
 uses the browser's own speech engine (Web Speech API): nothing is downloaded
 and no key is needed.
@@ -126,8 +132,21 @@ comparisons with zero disagreements.
   Flexbox, Grid, pseudo-classes, pseudo-elements, attribute selectors,
   form styling, CSS variables, responsive web design, animations,
   transitions (textbook chapters 22&ndash;39, reference shelf in 40)
+- **Unit 4** &mdash; JavaScript fundamentals: introduction, variables and
+  constants, data types, operators, strings, numbers and booleans,
+  conditionals, functions, scope, arrays, objects
+  (textbook chapters 41&ndash;51)
+- **Unit 5** &mdash; Interactive web development: loops, higher-order
+  functions and callbacks, the DOM and events, dynamic content,
+  accessibility, form validation, regular expressions, dates, media,
+  web storage, fetch, geolocation, drag-and-drop
+  (textbook chapters 52&ndash;67)
+- **Unit 6** &mdash; Web application development and deployment:
+  debugging and DevTools, error handling, interface and application design,
+  code organisation, performance, Git and GitHub, GitHub Pages, best
+  practices, GitHub Copilot (textbook chapters 68&ndash;78)
 
-Units 4&ndash;6 (JavaScript, the DOM, deployment) are not here yet.
+The mock test still covers Units 1&ndash;3 (the CA2 paper is HTML and CSS).
 
 ---
 

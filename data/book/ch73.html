@@ -1,0 +1,932 @@
+<article class="chapter" data-ch="73">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 73 &middot; Code Organization</p>
+  <h1>Code Organization</h1>
+  <p class="lead">A page that works is only half the job. The other half is finding the button handler next month, fixing one bug without causing two more, and letting a friend work on the design while you work on the logic. This chapter shows how developers lay out a project: which file holds what, where each file lives, how to cut one giant function into small ones, and how ES modules let files share code safely.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>&lt;script src="app.js"&gt;</code> loads JavaScript from its own file, and where the tag sits decides when the code runs (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li>A function packs a job under a name: parameters go in, a <code>return</code> value comes out, and you can call it as often as you like (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>A well-designed app keeps structure, presentation, behaviour and data as separate layers, changed through one state and drawn by one render function (<a href="book.html?ch=72">Chapter 72</a>).</li>
+      <li>A relative path such as <code>images/logo.png</code> is read from the folder of the current page; <code>../</code> means "go up one folder" (<a href="book.html?ch=8">Chapter 8</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name five problems one giant file causes.</li>
+      <li>Split a page into <code>index.html</code>, <code>css/styles.css</code> and <code>js/app.js</code>, connected with <code>&lt;link&gt;</code> and <code>&lt;script defer&gt;</code> in the head.</li>
+      <li>Lay out a project folder and name files so they work on a real server.</li>
+      <li>Refactor a do-everything handler into small single-job functions, with named constants at the top.</li>
+      <li>Write comments that explain <i>why</i>, and keep formatting consistent.</li>
+      <li>Share code with <code>export</code>, <code>import</code> and <code>type="module"</code>, and explain why module pages need <code>http://</code>, not <code>file://</code>.</li>
+      <li>Import named and default exports correctly.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>73.1 Why organise code?</h2>
+  <p>Every project starts small: thirty lines in one <code>index.html</code>, a little CSS in a <code>&lt;style&gt;</code> block, a little JavaScript in a <code>&lt;script&gt;</code> block. Then you add a search box, a dark theme, a friend's login form. A month later the file looks like this:</p>
+  <pre class="code">&lt;!-- index.html - 1,214 lines --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+  &lt;style&gt;
+    /* 380 lines of CSS */
+    .card { ... }  .btn-new { ... }  .btn-new2 { ... }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;!-- 450 lines of HTML --&gt;
+  &lt;script&gt;
+    // 384 lines of JavaScript
+    let x = 0; let data2; let temp;
+    function doStuff()  { /* 140 lines */ }
+    function doStuff2() { /* a copy of doStuff with two changes */ }
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>Nothing here is broken. The trouble starts the moment anyone has to <i>change</i> it:</p>
+  <table class="tbl">
+    <thead><tr><th>Problem</th><th>What it looks like in the 1,214-line file</th></tr></thead>
+    <tbody>
+      <tr><td><b>Readability</b></td><td>You scroll a thousand lines to find one button handler.</td></tr>
+      <tr><td><b>Debugging</b></td><td>The error is on line 873. Which feature is that?</td></tr>
+      <tr><td><b>Teamwork</b></td><td>Two students edit the same file and their changes collide (a merge conflict &mdash; Chapter 75).</td></tr>
+      <tr><td><b>Reusability</b></td><td><code>formatDate()</code> is buried in this page, so the next page gets a copy that slowly drifts apart.</td></tr>
+      <tr><td><b>Maintenance</b></td><td>You change one style for the search box and three unrelated parts change with it.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Code organisation</b> is the set of habits that prevents all five: separate files for separate jobs, a predictable folder layout, small functions with clear names, comments that explain decisions, and modules that share code on purpose. None of it changes what the page <i>does</i>. Reorganising working code without changing its behaviour is called <span class="jw" data-def="Rearranging code so it is easier to read and change, without changing what it does. Same output, tidier inside.">refactoring</span>; you will do a full refactor in section 73.9.</p>
+  <div class="callout analogy"><b>Picture this.</b> A kitchen where rice, salt, spoons, electricity bills and medicines all live in one enormous drawer. You can still cook, but every meal starts with ten minutes of digging, and a guest cannot help without asking where things are. Now picture labelled jars on labelled shelves: spices on one, grains on another, utensils in their own drawer. Same food, same recipes &mdash; but anyone, including you a month from now, finds the salt in five seconds. Organising code is labelling the jars.</div>
+  <div class="callout why"><b>Key idea.</b> Organisation makes the <i>next</i> change cheap. You read code far more often than you write it, so arranging it pays back every time someone opens the file.</div>
+</section>
+
+<section id="s2">
+  <h2>73.2 Three languages, three files</h2>
+  <p>You met the first rule in Chapter 1: HTML gives structure, CSS presentation, JavaScript behaviour. Keeping those jobs apart is called <span class="jw" data-def="Giving each part of a program one kind of job, and keeping the parts apart, so a change to one does not ripple into the others.">separation of concerns</span>. An organised project puts each job in its own file, and each kind of file in its own folder:</p>
+  <table class="tbl">
+    <thead><tr><th>File or folder</th><th>Holds</th><th>Typical contents</th></tr></thead>
+    <tbody>
+      <tr><td><code>index.html</code></td><td>Structure and content</td><td>Headings, cards, forms, buttons. The entry page servers look for.</td></tr>
+      <tr><td><code>css/styles.css</code></td><td>Presentation</td><td>Colours, fonts, layout, spacing, responsive rules.</td></tr>
+      <tr><td><code>js/app.js</code></td><td>Behaviour</td><td>Event listeners, state, rendering, fetch calls.</td></tr>
+      <tr><td><code>images/</code>, <code>assets/</code></td><td>Static files</td><td>Logos, photos, icons, fonts, PDFs.</td></tr>
+    </tbody>
+  </table>
+  <p>Separation also means no smuggling: a colour or a click handler typed into an HTML tag is CSS or JavaScript hiding inside the structure file. Compare:</p>
+  <pre class="code">&lt;!-- MIXED: presentation and behaviour hiding inside the HTML --&gt;
+&lt;button style="background:#0B2545; color:#fff" onclick="addTask()"&gt;Add&lt;/button&gt;
+
+&lt;!-- SEPARATED: index.html only says what the thing is --&gt;
+&lt;button class="btn" id="addBtn"&gt;Add&lt;/button&gt;
+
+/* css/styles.css says how it looks */
+.btn { background: #0B2545; color: #fff; }
+
+// js/app.js says what it does
+document.querySelector("#addBtn").addEventListener("click", addTask);</pre>
+  <p>The separated version is two lines longer, and worth it:</p>
+  <table class="tbl">
+    <thead><tr><th>Benefit</th><th>One file</th><th>Separated files</th></tr></thead>
+    <tbody>
+      <tr><td>Finding code</td><td>Scroll and search</td><td>Open the file that owns it</td></tr>
+      <tr><td>Reuse</td><td>Every page carries its own CSS</td><td>Ten pages link one <code>styles.css</code>: change a colour once, every page follows</td></tr>
+      <tr><td>Teamwork</td><td>Everyone edits <code>index.html</code></td><td>The designer edits CSS while the developer edits JavaScript</td></tr>
+      <tr><td>Caching</td><td>Everything is downloaded again</td><td>The browser keeps <code>styles.css</code> and <code>app.js</code> for the next page (Chapter 74)</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>HTML says <b>what is there</b>, CSS says <b>how it looks</b>, JavaScript says <b>what it does</b> &mdash; each in its own file. If you catch yourself typing a colour or an <code>onclick="..."</code> into a tag, move it to the file whose job it is.</p>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>73.3 Connecting the files: link and script</h2>
+  <p>Separate files do nothing until <code>index.html</code> tells the browser to fetch them. Two tags do it, both in the <code>&lt;head&gt;</code>:</p>
+  <pre class="code">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Student Dashboard&lt;/title&gt;
+  &lt;link rel="stylesheet" href="./css/styles.css"&gt;
+  &lt;script src="./js/app.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  ...
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Piece</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><code>rel="stylesheet"</code></td><td>What kind of link this is. Without it, nothing is styled.</td></tr>
+      <tr><td><code>href="./css/styles.css"</code></td><td>Where the CSS is. <code>./</code> means "from this page's folder".</td></tr>
+      <tr><td><code>src="./js/app.js"</code></td><td>Where the JavaScript is. The tag itself stays empty.</td></tr>
+      <tr><td><code>defer</code></td><td>Download now, run only after the whole HTML is read, in the order written.</td></tr>
+    </tbody>
+  </table>
+  <p><b>Why the stylesheet goes in the head.</b> The browser will not draw the page until the CSS it knows about has arrived. Linked in the head, it is fetched first, so the page is styled from the first frame instead of flashing up as plain text.</p>
+  <h3>Why the script needs defer</h3>
+  <p>The browser reads your HTML from top to bottom, building the page as it goes; the part that does this reading is the <span class="jw" data-def="The part of the browser that reads the HTML text from top to bottom and builds the page's elements from it.">parser</span>. When it meets an ordinary <code>&lt;script src&gt;</code>, it <b>stops</b>: it waits for the file to download, runs it, and only then reads on. So the page sits half-built during the download, and the script runs before the elements below it exist: <code>document.querySelector("#addBtn")</code> returns <code>null</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Timeline: a plain script in the head pauses HTML parsing; a deferred script downloads in parallel and runs after parsing">
+      <text x="20" y="22" class="t b mono">&lt;script src="app.js"&gt;   no defer, in the head</text>
+      <text x="600" y="22" class="t s" text-anchor="end">time &#8594;</text>
+      <rect x="20" y="32" width="110" height="32" rx="6" class="box gry"/>
+      <text x="75" y="53" class="t c">Parse HTML</text>
+      <rect x="130" y="32" width="130" height="32" rx="6" class="box red"/>
+      <text x="195" y="53" class="t c b">Download JS</text>
+      <rect x="260" y="32" width="80" height="32" rx="6" class="box saf"/>
+      <text x="300" y="53" class="t c b">Run JS</text>
+      <rect x="340" y="32" width="260" height="32" rx="6" class="box gry"/>
+      <text x="470" y="53" class="t c">Parse the rest of the HTML</text>
+      <text x="195" y="80" class="t c s">parsing paused</text>
+      <text x="20" y="102" class="t s">Reading the page stops while the script downloads and runs; it cannot see the HTML below it.</text>
+      <text x="20" y="138" class="t b mono">&lt;script src="app.js" defer&gt;   in the head</text>
+      <rect x="20" y="148" width="420" height="32" rx="6" class="box grn"/>
+      <text x="230" y="169" class="t c">Parse HTML (never paused)</text>
+      <rect x="446" y="148" width="100" height="32" rx="6" class="box saf"/>
+      <text x="496" y="169" class="t c b">Run JS</text>
+      <rect x="90" y="186" width="200" height="26" rx="6" class="box blu"/>
+      <text x="190" y="204" class="t c">Download JS (in parallel)</text>
+      <path d="M292 199 L496 199 L496 186" class="edge dash" marker-end="url(#arr)"/>
+      <text x="380" y="194" class="t c s">waits for parsing to end</text>
+      <text x="20" y="232" class="t s">The download overlaps parsing; the script runs after the whole page is parsed, in order.</text>
+    </svg>
+    <figcaption><b>Figure 73.1</b> The same script, loaded two ways. Without <code>defer</code> the parser stops and the script runs too early; with <code>defer</code> the download overlaps parsing and the script runs once every element exists.</figcaption>
+  </figure>
+  <p>Watch the "too early" problem happen: two inline scripts look for the same paragraph, one in the head, one at the end of the body.</p>
+  <pre class="code" data-run data-title="Too early and just right - read the Console" data-h="160">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;When does a script run?&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+    #status { background: #FFF1E0; padding: 10px 14px; border-radius: 8px; }
+  &lt;/style&gt;
+  &lt;script&gt;
+    // Script A sits in the head. The parser has not reached the body yet.
+    const early = document.querySelector("#status");
+    console.log("Script A (in the head) found:", early);
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;p id="status"&gt;Waiting for a script...&lt;/p&gt;
+  &lt;script&gt;
+    // Script B sits after the paragraph, so the paragraph already exists.
+    const late = document.querySelector("#status");
+    console.log("Script B (end of body) found:", late);
+    late.textContent = "Script B found me and changed this text.";
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>The Console shows <code>Script A (in the head) found: null</code> and then <code>Script B (end of body) found: &lt;p id="status"&gt;</code>. Now add <code>early.addEventListener("click", () =&gt; {});</code> at the end of Script A and press Run again: the Console reports <code>Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')</code> &mdash; the most common beginner error, and the heart of Chapter 69's TechFest case study.</p>
+  <div class="plain">
+    <p>A script can only find elements the browser has already read. <code>defer</code> means "fetch this file now, but run it only after reading the whole page". So a deferred script in the head always finds every element, and the page never waits for it.</p>
+  </div>
+  <h3>Every way to load a script, compared</h3>
+  <table class="tbl">
+    <thead><tr><th>How it is written</th><th>Downloads</th><th>Runs</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;script src&gt;</code> in the head</td><td>At once, page paused</td><td>At once; elements below missing</td><td>Almost never</td></tr>
+      <tr><td><code>&lt;script src&gt;</code> at the end of the body</td><td>Near the end (browsers often start a little earlier)</td><td>After the HTML above it</td><td>Older sites; still works</td></tr>
+      <tr><td><b><code>&lt;script src defer&gt;</code> in the head</b></td><td><b>At once, in parallel</b></td><td><b>After parsing, in the order written</b></td><td><b>Your own app code</b></td></tr>
+      <tr><td><code>&lt;script src async&gt;</code></td><td>At once, in parallel</td><td>On arrival, in any order</td><td>Independent extras (analytics)</td></tr>
+      <tr><td><code>&lt;script type="module" src&gt;</code></td><td>At once, in parallel</td><td>After parsing, in order (deferred automatically)</td><td>Modules (section 73.8)</td></tr>
+    </tbody>
+  </table>
+  <p>"In the order written" matters once you have two files: if <code>app.js</code> uses a function from <code>utils.js</code>, write <code>utils.js</code>'s tag first, and two deferred scripts always run in tag order. <code>async</code> makes no such promise, so it is wrong for code that depends on other code.</p>
+  <div class="callout warn"><b>defer only works with src.</b> On an inline script &mdash; <code>&lt;script defer&gt; ...code... &lt;/script&gt;</code> &mdash; the browser ignores <code>defer</code> and runs the code immediately. That is why the example above could not simply add <code>defer</code> to Script A. Put inline code at the end of the body; in real projects, move it into a file.</div>
+  <details class="qc"><summary><span>Quick check: <code>&lt;script src="js/app.js"&gt;&lt;/script&gt;</code> sits in the head with no <code>defer</code>, and its first line is <code>document.querySelector("#addBtn").addEventListener("click", addTask);</code>. What happens, and what is the one-word fix?</span></summary><p>The script runs before the parser reaches the button, so <code>querySelector</code> returns <code>null</code> and the line throws <code>TypeError: Cannot read properties of null (reading 'addEventListener')</code>. The fix: <b><code>defer</code></b>.</p></details>
+  <h3>Paths between the files</h3>
+  <p><code>href</code> and <code>src</code> hold relative paths, read from the page's own folder (Chapter 8):</p>
+  <table class="tbl">
+    <thead><tr><th>Written as</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td><code>css/styles.css</code> or <code>./css/styles.css</code></td><td>The <code>css</code> folder next to this page; the two forms are identical.</td></tr>
+      <tr><td><code>../css/styles.css</code></td><td>Up one folder, then into <code>css</code>: needed from a page in a subfolder, such as <code>pages/about.html</code>.</td></tr>
+      <tr><td><code>/css/styles.css</code></td><td>From the root of the whole website. Works on <code>localhost</code>, but breaks on a GitHub Pages project site, which lives under <code>/repository-name/</code> (Chapter 76). Prefer relative paths.</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s4">
+  <h2>73.4 A project folder, and names that never break</h2>
+  <p>Once a project has a few files, give each kind its own folder. There is no single law, but most small projects use this layout, so anyone opening it knows where to look:</p>
+  <pre class="code">student-dashboard/            the project folder (the repository, in Chapter 75)
+&#9500;&#9472;&#9472; index.html                the home page - always at the top level
+&#9500;&#9472;&#9472; about.html                any other pages sit beside it
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; styles.css            all the presentation
+&#9500;&#9472;&#9472; js/
+&#9474;   &#9500;&#9472;&#9472; app.js                the entry point: wires the page together
+&#9474;   &#9492;&#9472;&#9472; utils.js              small helpers shared by other files
+&#9500;&#9472;&#9472; images/
+&#9474;   &#9500;&#9472;&#9472; logo.png
+&#9474;   &#9492;&#9472;&#9472; campus-gate.jpg
+&#9492;&#9472;&#9472; assets/
+    &#9500;&#9472;&#9472; fonts/
+    &#9492;&#9472;&#9472; docs/timetable.pdf</pre>
+  <p>Three rules make this layout work:</p>
+  <ol>
+    <li><b><code>index.html</code> lives at the top level.</b> When an address ends at a folder &mdash; <code>https://asha.github.io/student-dashboard/</code> &mdash; the server sends that folder's <code>index.html</code>. Name the home page anything else and visitors get a 404 or a bare file list.</li>
+    <li><b>One folder per kind of file.</b> <code>css/</code> for stylesheets, <code>js/</code> for scripts, <code>images/</code> for pictures, <code>assets/</code> for other files served as-is (fonts, icons, PDFs). Some teams put <code>images/</code> inside <code>assets/</code>, as the course slides do; either is fine if the whole team agrees.</li>
+    <li><b>Names are lowercase, words are joined with hyphens, and there are no spaces.</b> This style is called <i>kebab-case</i>: <code>campus-gate.jpg</code>, <code>student-card.js</code>.</li>
+  </ol>
+  <p>The third rule is not fussiness; it prevents two common "works on my laptop, broken online" bugs.</p>
+  <p><b>Capital letters.</b> Windows and macOS normally treat <code>Logo.png</code> and <code>logo.png</code> as the same file, so on your laptop a mismatch goes unnoticed. The Linux servers that host most websites, GitHub Pages included, are <span class="jw" data-def="Treating capital and small letters as different. To a case-sensitive server, Logo.png and logo.png are two different files.">case-sensitive</span>: the HTML asks for <code>logo.png</code>, the server has only <code>Logo.png</code>, and the visitor sees a broken image and a 404. All-lowercase names make the mismatch impossible.</p>
+  <p><b>Spaces.</b> A URL cannot contain a space, so <code>my photo.jpg</code> travels as <code>my%20photo.jpg</code>: easy to mistype, ugly to share, and awkward in command lines. A hyphen costs nothing.</p>
+  <table class="tbl">
+    <thead><tr><th>Avoid</th><th>Prefer</th><th>Why</th></tr></thead>
+    <tbody>
+      <tr><td><code>Home Page.html</code></td><td><code>index.html</code></td><td>Servers look for <code>index.html</code>; no space</td></tr>
+      <tr><td><code>My Photo.JPG</code></td><td><code>my-photo.jpg</code></td><td>Lowercase, hyphen, lowercase extension</td></tr>
+      <tr><td><code>StyleSheet FINAL(2).css</code></td><td><code>styles.css</code></td><td>No versions in names; Git keeps versions (Chapter 75)</td></tr>
+      <tr><td><code>script1.js</code>, <code>new.js</code></td><td><code>search.js</code>, <code>cart.js</code></td><td>A name says what is inside</td></tr>
+      <tr><td><code>IMG_20261012_0931.jpg</code></td><td><code>campus-gate.jpg</code></td><td>Describes the picture, not when it was taken</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary><span>Quick check: the logo shows on Rahul's laptop but not on his GitHub Pages site. His HTML says <code>images/logo.png</code>; the file in the folder is <code>images/Logo.PNG</code>. Why?</span></summary><p>His laptop ignores the difference between capital and small letters; the server does not. To the server, <code>logo.png</code> and <code>Logo.PNG</code> are different files, so the request gets a 404. Renaming the file to <code>logo.png</code> fixes it for good.</p></details>
+</section>
+
+<section id="s5">
+  <h2>73.5 Organising JavaScript: small functions with one job</h2>
+  <p>Splitting files is the easy half; the harder half happens <i>inside</i> <code>app.js</code>. Here is the live search from Chapter 71, written the way almost everyone writes it the first time:</p>
+  <pre class="code">// app.js - one function does everything
+searchInput.addEventListener("input", async () =&gt; {
+  const res = await fetch("students.json");          // every key press!
+  const data = await res.json();
+  const list = document.querySelector("#list");
+  list.innerHTML = "";
+  for (const s of data) {
+    const q = searchInput.value.toLowerCase();
+    if (s.name.toLowerCase().includes(q)) {
+      const li = document.createElement("li");
+      li.textContent = s.name + " - " + s.course;
+      list.appendChild(li);
+    }
+  }
+  document.querySelector("#msg").textContent = list.children.length + " found";
+});</pre>
+  <p>It works. Read it as a reviewer: this one handler <b>(1)</b> loads the data, <b>(2)</b> filters it by the search text, <b>(3)</b> builds the list and <b>(4)</b> updates the message. The tangle hides a real problem: the network request runs on <b>every key press</b>. Type "Meera" and the browser downloads the same file five times; on a slow phone the list lags behind the typing.</p>
+  <p>The tangle also means you cannot test the filtering without typing into a box, cannot reuse it for a second search box, and must edit the middle of an event handler if the server address changes.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 262" role="img" aria-label="Before: one input handler doing four jobs. After: four small functions with one job each, and a short handler that calls them">
+      <text x="150" y="22" class="t c b">BEFORE: one handler, four jobs</text>
+      <rect x="16" y="32" width="268" height="214" rx="12" class="box red"/>
+      <text x="150" y="54" class="t c s mono">the input handler, 15 lines</text>
+      <rect x="32" y="66" width="236" height="36" rx="8" class="box"/>
+      <text x="150" y="89" class="t c">1. load the data (every key!)</text>
+      <rect x="32" y="110" width="236" height="36" rx="8" class="box"/>
+      <text x="150" y="133" class="t c">2. filter by the search text</text>
+      <rect x="32" y="154" width="236" height="36" rx="8" class="box"/>
+      <text x="150" y="177" class="t c">3. build the list items</text>
+      <rect x="32" y="198" width="236" height="36" rx="8" class="box"/>
+      <text x="150" y="221" class="t c">4. update the message</text>
+      <path d="M288 139 L312 139" class="edge" marker-end="url(#arr)"/>
+      <text x="465" y="22" class="t c b">AFTER: one job each</text>
+      <rect x="320" y="32" width="140" height="56" rx="10" class="box grn"/>
+      <text x="390" y="56" class="t c b mono" style="font-size:12px">loadStudents()</text>
+      <text x="390" y="75" class="t c s">fetch once, at start</text>
+      <rect x="470" y="32" width="140" height="56" rx="10" class="box saf"/>
+      <text x="540" y="56" class="t c b mono" style="font-size:12px">filterStudents()</text>
+      <text x="540" y="75" class="t c s">data in, data out</text>
+      <rect x="320" y="98" width="140" height="56" rx="10" class="box saf"/>
+      <text x="390" y="122" class="t c b mono" style="font-size:12px">renderStudents()</text>
+      <text x="390" y="141" class="t c s">draw the list</text>
+      <rect x="470" y="98" width="140" height="56" rx="10" class="box saf"/>
+      <text x="540" y="122" class="t c b mono" style="font-size:12px">showMessage()</text>
+      <text x="540" y="141" class="t c s">one line of text</text>
+      <rect x="320" y="178" width="290" height="68" rx="10" class="box blu"/>
+      <text x="465" y="200" class="t c b">the input handler: 3 lines</text>
+      <text x="465" y="220" class="t c s mono">filter &#8594; render &#8594; show</text>
+      <text x="465" y="236" class="t c s">it reads like a sentence</text>
+    </svg>
+    <figcaption><b>Figure 73.2</b> The same behaviour, reorganised. Each function now has one job and one reason to change, and the data is fetched once at start-up instead of on every key press.</figcaption>
+  </figure>
+  <p>The reorganised version gives each job its own, well-named function. Run it, then type in the box. The data comes from a pretend server inside the example, because the classroom network may be offline; in a real project <code>DATA_URL</code> would simply be <code>"students.json"</code>.</p>
+  <pre class="code" data-run data-title="The live search, one job per function - type in the box and watch the Console" data-h="280">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 14px; }
+  input { padding: 6px 10px; font-size: 15px; }
+  #msg { color: #6B7A90; font-size: 14px; }
+  li { margin: 3px 0; }
+&lt;/style&gt;
+&lt;label for="search"&gt;Search students&lt;/label&gt;
+&lt;input id="search" type="search" placeholder="Try: ra"&gt;
+&lt;p id="msg"&gt;Loading...&lt;/p&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;script&gt;
+  // ---- pretend server: in a real project this is the file students.json ----
+  const data = [
+    { name: "Asha Verma", course: "CSE326" },
+    { name: "Rahul Singh", course: "CSE305" },
+    { name: "Meera Iyer", course: "CSE326" },
+    { name: "Arjun Nair", course: "CSE201" },
+    { name: "Kavya Rao", course: "CSE326" }
+  ];
+  const DATA_URL = URL.createObjectURL(
+    new Blob([JSON.stringify(data)], { type: "application/json" }));
+
+  // ---- elements, looked up once ----
+  const searchInput = document.querySelector("#search");
+  const list = document.querySelector("#list");
+  const msg = document.querySelector("#msg");
+
+  // ---- state ----
+  let students = [];
+  let fetchCount = 0;
+
+  // ---- one job each ----
+  async function loadStudents() {
+    const res = await fetch(DATA_URL);
+    students = await res.json();
+    fetchCount++;
+  }
+
+  function filterStudents(query) {
+    const q = query.trim().toLowerCase();
+    return students.filter((s) =&gt; s.name.toLowerCase().includes(q));
+  }
+
+  function renderStudents(items) {
+    list.replaceChildren();                    // clear the old items
+    items.forEach((s) =&gt; {
+      const li = document.createElement("li");
+      li.textContent = `${s.name} - ${s.course}`;
+      list.append(li);
+    });
+  }
+
+  function showMessage(text) {
+    msg.textContent = text;
+  }
+
+  // ---- wiring: the handler now reads like a sentence ----
+  searchInput.addEventListener("input", () =&gt; {
+    const matches = filterStudents(searchInput.value);
+    renderStudents(matches);
+    showMessage(`${matches.length} found`);
+    console.log(`"${searchInput.value}": ${matches.length} found (fetches so far: ${fetchCount})`);
+  });
+
+  // ---- start-up: load once, then show everyone ----
+  loadStudents().then(() =&gt; {
+    renderStudents(students);
+    showMessage(`${students.length} students`);
+    console.log("Loaded", students.length, "students with", fetchCount, "fetch");
+    console.log('filterStudents("ra") returns', filterStudents("ra").map((s) =&gt; s.name));
+  });
+&lt;/script&gt;</pre>
+  <p>On Run the Console prints <code>Loaded 5 students with 1 fetch</code> and <code>filterStudents("ra") returns ['Rahul Singh', 'Meera Iyer', 'Kavya Rao']</code> &mdash; the filter answered <i>without anyone typing</i>, which makes it testable. Type a few letters and every line ends <code>fetches so far: 1</code>: typing only filters now.</p>
+  <h3>One job, one reason to change</h3>
+  <p>The principle behind the split is <span class="jw" data-def="A design rule: each function (or file) should do one job, so it has only one reason to ever need changing.">single responsibility</span>: each function does one job, so it has one reason to change. A new server address changes only <code>loadStudents</code>; a new list design, only <code>renderStudents</code>; matching course codes too, only <code>filterStudents</code>. Nothing else is opened, so nothing else can break by accident.</p>
+  <p>Good names do half the work: functions are verb phrases, data is nouns, true/false values read like a question:</p>
+  <table class="tbl">
+    <thead><tr><th>Kind of name</th><th>Good</th><th>Avoid</th></tr></thead>
+    <tbody>
+      <tr><td>Functions: verb + thing</td><td><code>loadStudents</code>, <code>calculateTotal</code>, <code>formatRupees</code></td><td><code>doStuff</code>, <code>process2</code></td></tr>
+      <tr><td>Data: nouns</td><td><code>students</code>, <code>totalPrice</code>, <code>searchInput</code></td><td><code>data2</code>, <code>temp</code>, <code>x</code></td></tr>
+      <tr><td>True/false: a question</td><td><code>isOpen</code>, <code>hasError</code>, <code>canSubmit</code></td><td><code>flag</code>, <code>status</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Describe each function in one sentence. If the sentence needs <b>"and"</b> &mdash; "it loads the data <i>and</i> filters it <i>and</i> draws the list" &mdash; the function is doing more than one job and should probably be split.</p>
+  </div>
+</section>
+
+<section id="s6">
+  <h2>73.6 Inside one file: constants first, grouped by feature, no stray globals</h2>
+  <p>Functions are the rooms; the file is the house, and it needs a floor plan. Well-kept JavaScript files follow the same top-to-bottom order, so a reader always knows where to look. Here it is for the notebook order calculator from Chapter 68:</p>
+  <pre class="code">// js/app.js - notebook order calculator
+
+// ===== 1. Settings: fixed values, named once =====
+const PRICE = 250;          // rupees per notebook
+const TAX_RATE = 0.05;      // 5% tax
+const MAX_QTY = 20;         // the shop sells at most 20 per order
+
+// ===== 2. Elements, looked up once =====
+const qtyInput = document.querySelector("#qty");
+const calcBtn = document.querySelector("#calcBtn");
+const totalEl = document.querySelector("#total");
+
+// ===== 3. Calculations (no DOM in here) =====
+function calculateTotal(qty) {
+  const subtotal = qty * PRICE;
+  return subtotal * (1 + TAX_RATE);
+}
+
+// ===== 4. Display =====
+function showTotal(total) {
+  totalEl.textContent = `Total: &#8377;${total.toFixed(2)}`;
+}
+
+// ===== 5. Event handlers =====
+function handleCalculate() {
+  const qty = Math.min(Number(qtyInput.value), MAX_QTY);
+  showTotal(calculateTotal(qty));
+}
+
+// ===== 6. Wiring and start-up =====
+calcBtn.addEventListener("click", handleCalculate);
+showTotal(0);</pre>
+  <p>A quantity of 2 shows <code>Total: &#8377;525.00</code>, as in Chapter 68's debugging challenge. Three habits are visible.</p>
+  <p><b>Constants at the top.</b> A bare number inside a calculation &mdash; <code>total = qty * 250 * 1.05;</code> &mdash; is a <span class="jw" data-def="A number typed straight into a calculation with no name, so a reader cannot tell what it means or where else it is used.">magic number</span>: nobody knows what 250 or 1.05 mean, and a price change means hunting for every copy. Name each fixed value once, at the top, in <code>UPPER_SNAKE_CASE</code>, and the calculation explains itself: <code>qty * PRICE * (1 + TAX_RATE)</code>.</p>
+  <p><b>Grouped by feature.</b> Calculations, display functions and handlers each sit together. A group big enough to scroll past is ready to become its own file &mdash; <code>cart.js</code>, <code>search.js</code> &mdash; which is what modules are for (section 73.8). The calculation group never touches the page, so <code>calculateTotal</code> can be tested without any HTML.</p>
+  <p><b>No stray globals.</b> A <b>global variable</b> is declared outside every function, at the top level of a script. Every ordinary script on a page shares <i>one</i> global space (Chapter 49), so two files written by two people can quietly overwrite each other's names. Watch it happen:</p>
+  <pre class="code" data-run data-title="Two scripts, one name - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Two scripts written by two students, loaded on one page. Read the Console.&lt;/p&gt;
+&lt;script&gt;
+  // ---- counter.js, written by Asha ----
+  var total = 0;
+  function reset() { total = 0; console.log("Asha's reset: counter back to 0"); }
+  total = total + 3;
+  console.log("Asha's counter after 3 clicks:", total);
+&lt;/script&gt;
+&lt;script&gt;
+  // ---- cart.js, written by Rahul: same names, different meaning ----
+  var total = 500;
+  function reset() { total = 500; console.log("Rahul's reset: cart back to 500"); }
+  console.log("Rahul's cart total:", total);
+&lt;/script&gt;
+&lt;script&gt;
+  // ---- back in Asha's code, one more click ----
+  total = total + 1;
+  console.log("Asha expects 4, gets:", total);
+  reset();   // whose reset runs?
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Asha's counter after 3 clicks: 3</code>, <code>Rahul's cart total: 500</code>, <code>Asha expects 4, gets: 501</code> and <code>Rahul's reset: cart back to 500</code>. Rahul's file silently replaced both Asha's <code>total</code> and her <code>reset</code>, with no error to warn anyone &mdash; which is what makes this bug so expensive to find.</p>
+  <p>Three habits keep globals under control:</p>
+  <ul>
+    <li><b>Declare variables inside the function that uses them</b> whenever you can; other files cannot see them.</li>
+    <li><b>Use <code>const</code> and <code>let</code>, never <code>var</code>.</b> Had both files used <code>let total</code>, the second script would stop with <code>SyntaxError: Identifier 'total' has already been declared</code>: still broken, but loudly and at once &mdash; far better than a wrong number nobody notices.</li>
+    <li><b>Give each file its own private space with modules</b> &mdash; the real cure, in section 73.8.</li>
+  </ul>
+  <details class="qc"><summary><span>Quick check: in the example above, why did <code>reset()</code> in the third script run Rahul's version?</span></summary><p>Ordinary scripts on one page share a single global space. The second script declared a function with the same name, <code>reset</code>, which replaced Asha's, so only Rahul's existed when the third script called it.</p></details>
+</section>
+
+<section id="s7">
+  <h2>73.7 Comments that explain why, and formatting that never varies</h2>
+  <p>The code already says <i>what</i> it does. A comment earns its place by saying what the code cannot: <b>why</b> it is written this way, which rule it follows, what trap it avoids.</p>
+  <pre class="code">// NOT USEFUL: these repeat the code in English
+i = i + 1;                 // add 1 to i
+const t = 0.05;            // t is 0.05
+
+// USEFUL: these explain a reason the code cannot show
+const GROUP_SIZE = 3;      // fest committee rule: 10% off from 3 tickets, not 4
+li.textContent = s.name;   // textContent, not innerHTML: names come from users
+
+// Load once at start-up: fetching on every key press made search lag on phones.
+loadStudents();
+
+const month = 9;           // Date months start at 0, so 9 means October</pre>
+  <p>A few working rules:</p>
+  <ul>
+    <li><b>One header comment per file</b>: <code>// js/search.js - filters the student list as the user types</code>.</li>
+    <li><b>A short comment above a function</b> when its name does not say everything. For functions other files use, write a <i>documentation comment</i>; VS Code shows it when you hover over the name:</li>
+  </ul>
+  <pre class="code">/**
+ * Adds a tip to a bill.
+ * @param {number} bill        the bill in rupees
+ * @param {number} tipPercent  the tip as a percentage, e.g. 10 for 10%
+ * @returns {number}           the bill plus the tip, in rupees
+ */
+function calculateTotal(bill, tipPercent) {
+  return bill * (1 + tipPercent / 100);
+}</pre>
+  <ul>
+    <li><b>Delete commented-out code.</b> Old versions belong in Git's history (Chapter 75), not at the bottom of the file.</li>
+    <li><b>Keep comments true.</b> Change the comment when you change the code; readers believe a wrong comment.</li>
+    <li><b><code>// TODO:</code></b> marks a known gap: <code>// TODO: show a message when the list is empty</code>.</li>
+  </ul>
+  <div class="plain">
+    <p>Code tells you <b>how</b>; a good comment tells you <b>why</b>. If a comment only translates the line beside it into English, delete it. Where a future reader would ask "why is it done like this?", a comment belongs.</p>
+  </div>
+  <h3>Formatting: same shape everywhere</h3>
+  <p>These two pieces of code are identical to the computer. Only one is pleasant to debug:</p>
+  <pre class="code">// squashed
+function calculateTotal(bill,tipPercent){return bill*(1+tipPercent/100)}
+calc.addEventListener("click",()=&gt;{const b=Number(bill.value),t=Number(tip.value)
+result.textContent='Total: '+formatRupees(calculateTotal(b,t))})
+
+// formatted
+function calculateTotal(bill, tipPercent) {
+  return bill * (1 + tipPercent / 100);
+}
+
+calc.addEventListener("click", () =&gt; {
+  const b = Number(bill.value);
+  const t = Number(tip.value);
+  result.textContent = "Total: " + formatRupees(calculateTotal(b, t));
+});</pre>
+  <p>Consistent formatting means the same indentation everywhere (two spaces is common), one statement per line, spaces around operators and after commas, a semicolon after each statement, one kind of quote, and a blank line between groups. You need not do it by hand: VS Code's <b>Format Document</b> (<kbd>Shift</kbd>+<kbd>Alt</kbd>+<kbd>F</kbd> on Windows, <kbd>Shift</kbd>+<kbd>Option</kbd>+<kbd>F</kbd> on a Mac) reformats the whole file, and the Prettier extension with "Format on Save" does it on every save.</p>
+  <p>Names need a consistent style too. Most JavaScript projects follow these conventions:</p>
+  <table class="tbl">
+    <thead><tr><th>Thing</th><th>Style</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Variables and functions</td><td>camelCase</td><td><code>totalPrice</code>, <code>renderList</code></td></tr>
+      <tr><td>Fixed settings</td><td>UPPER_SNAKE_CASE</td><td><code>TAX_RATE</code>, <code>MAX_QTY</code></td></tr>
+      <tr><td>Classes</td><td>PascalCase</td><td><code>StudentCard</code></td></tr>
+      <tr><td>File and folder names</td><td>kebab-case, lowercase</td><td><code>student-card.js</code>, <code>campus-gate.jpg</code></td></tr>
+      <tr><td>CSS classes</td><td>kebab-case</td><td><code>.card-title</code>, <code>.is-open</code></td></tr>
+    </tbody>
+  </table>
+  <p>Which style matters less than everyone using the same one. On Chapter 69's TechFest page the HTML said <code>id="buyBtn"</code>, the JavaScript asked for <code>#buy-btn</code>, and the Buy button did nothing &mdash; a bug one agreed naming style makes far less likely.</p>
+</section>
+
+<section id="s8">
+  <h2>73.8 ES modules: files that share on purpose</h2>
+  <p>Ordinary scripts have two weaknesses: they share one global space, and they must be listed in the right order so each one's helpers exist in time. <b>ES modules</b> (ES is short for ECMAScript, the official name of the JavaScript standard) fix both. A <b>module</b> is a JavaScript file loaded as a module. Each gets its own private space: nothing inside is visible to another file unless the module <b>exports</b> it and that file <b>imports</b> it.</p>
+  <p>Here is the smallest example, from the course slides:</p>
+  <pre class="code">module-demo/
+&#9500;&#9472;&#9472; index.html
+&#9500;&#9472;&#9472; app.js
+&#9492;&#9472;&#9472; utils.js
+
+// ---- utils.js: export marks what other files may use ----
+export function formatName(name) {
+  return name.trim();
+}
+
+// ---- app.js: import says what this file needs, and from where ----
+import { formatName } from "./utils.js";
+console.log(formatName("  Rahul  "));     // Rahul
+
+&lt;!-- ---- index.html: only the entry file is mentioned ---- --&gt;
+&lt;script type="module" src="./app.js"&gt;&lt;/script&gt;</pre>
+  <p>Served from a local web server, the Console shows <code>Rahul</code>. <code>utils.js</code> offers <code>formatName</code>; <code>app.js</code> asks for it; <code>index.html</code> loads <code>app.js</code> as a module, and the browser fetches <code>utils.js</code> itself because <code>app.js</code> imports it.</p>
+  <h3>The rules, one at a time</h3>
+  <ol>
+    <li><b><code>export</code> goes in front of what you want to share</b> &mdash; a function, a <code>const</code>, a class. Everything else stays private to its file.</li>
+    <li><b><code>import { name } from "./file.js";</code></b> uses curly braces and the exact exported name. In the browser the path must start with <code>./</code>, <code>../</code> or <code>/</code> (or be a full <code>https://</code> address) and give the exact file name, <code>.js</code> included; the browser never guesses. (Bare names such as <code>"utils"</code> work only with an <i>import map</i>, which this course does not use.)</li>
+    <li><b>Import lines sit at the top level of the file</b>, never inside a function or an <code>if</code>, and by habit at the very top.</li>
+    <li><b>Only the entry file needs <code>type="module"</code></b> in the HTML. Every file it imports, and every file those import, is fetched automatically.</li>
+    <li><b>Module scripts are deferred automatically</b>: no <code>defer</code> needed.</li>
+    <li><b>Module code runs in <span class="jw" data-def="A stricter mode of JavaScript that turns silent mistakes, such as assigning to a name you never declared, into real errors.">strict mode</span></b>, so mistakes ordinary scripts let slide, such as assigning to an undeclared variable, become visible errors.</li>
+    <li><b>Each module runs once</b>, however many files import it, and the page must be served over <code>http://</code> or <code>https://</code> (below).</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 280" role="img" aria-label="index.html loads app.js as a module; app.js imports from data.js, search.js and ui.js">
+      <rect x="12" y="98" width="160" height="64" rx="10" class="box gry"/>
+      <text x="92" y="120" class="t c b mono">index.html</text>
+      <text x="92" y="138" class="t c s mono">&lt;script type="module"</text>
+      <text x="92" y="152" class="t c s mono">src="js/app.js"&gt;</text>
+      <path d="M174 130 L226 130" class="edge" marker-end="url(#arr)"/>
+      <text x="200" y="121" class="t c s">loads</text>
+      <rect x="232" y="98" width="150" height="64" rx="10" class="box saf"/>
+      <text x="307" y="122" class="t c b mono">js/app.js</text>
+      <text x="307" y="140" class="t c s">the entry point:</text>
+      <text x="307" y="154" class="t c s">wires everything up</text>
+      <path d="M384 114 L448 52" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M384 130 L448 130" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M384 146 L448 210" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="415" y="124" class="t c s">import</text>
+      <rect x="452" y="12" width="156" height="64" rx="10" class="box grn"/>
+      <text x="530" y="34" class="t c b mono">js/data.js</text>
+      <text x="530" y="52" class="t c s mono">export loadStudents</text>
+      <text x="530" y="67" class="t c s">talks to the server</text>
+      <rect x="452" y="98" width="156" height="64" rx="10" class="box grn"/>
+      <text x="530" y="120" class="t c b mono">js/search.js</text>
+      <text x="530" y="138" class="t c s mono">export filterStudents</text>
+      <text x="530" y="153" class="t c s">pure logic, no page</text>
+      <rect x="452" y="184" width="156" height="64" rx="10" class="box blu"/>
+      <text x="530" y="206" class="t c b mono">js/ui.js</text>
+      <text x="530" y="224" class="t c s mono">export renderStudents</text>
+      <text x="530" y="239" class="t c s mono">export showMessage</text>
+      <text x="310" y="272" class="t c s">Nothing leaves a file unless it is exported; nothing enters unless it is imported.</text>
+    </svg>
+    <figcaption><b>Figure 73.3</b> The live search from section 73.5, grown into modules grouped by feature. <code>index.html</code> mentions only the entry point; <code>app.js</code> imports what it needs from three files, each a separate request the browser must make.</figcaption>
+  </figure>
+  <h3>Seeing the module rules for yourself</h3>
+  <p>Importing needs several real files, which one example frame cannot hold. But a module written inside the page (an <i>inline</i> module) follows the same rules about timing, strict mode and privacy:</p>
+  <pre class="code" data-run data-title="A module script: deferred, strict and private - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  h2 { font-size: 16px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console. The numbers show the real order.&lt;/p&gt;
+
+&lt;script type="module"&gt;
+  // A MODULE script, written FIRST on the page.
+  const heading = document.querySelector("#below");
+  console.log("2. The module runs after parsing, so it finds the heading below it:", heading !== null);
+
+  const courseCode = "CSE326";      // private to this module
+
+  try {
+    marks = 95;                     // oops: no const or let
+  } catch (err) {
+    console.log("3. Strict mode turns the typo into an error:", err.name + ": " + err.message);
+  }
+&lt;/script&gt;
+
+&lt;h2 id="below"&gt;I am written below the module script&lt;/h2&gt;
+
+&lt;script&gt;
+  // An ORDINARY script, written LAST - but it runs the moment the parser reaches it.
+  console.log("1. The ordinary script runs first, even though it is written last");
+
+  document.addEventListener("DOMContentLoaded", () =&gt; {
+    console.log("4. Can the ordinary script see courseCode?", typeof courseCode);
+  });
+&lt;/script&gt;</pre>
+  <p>The Console prints four lines in this order:</p>
+  <pre class="code">1. The ordinary script runs first, even though it is written last
+2. The module runs after parsing, so it finds the heading below it: true
+3. Strict mode turns the typo into an error: ReferenceError: marks is not defined
+4. Can the ordinary script see courseCode? undefined</pre>
+  <p>Line 2 shows the module was <b>deferred</b>: written above the heading, it still ran after the page was read. Line 3 shows <b>strict mode</b>: in an ordinary script <code>marks = 95</code> would quietly create a global; in a module it is a <code>ReferenceError</code>. Line 4 shows <b>privacy</b>: <code>courseCode</code> never left the module (<code>typeof</code> gives <code>"undefined"</code> for a missing name instead of throwing). As modules, Asha's and Rahul's two <code>total</code> variables would never have met.</p>
+  <div class="plain">
+    <p>A module is a file with a locked door. <code>export</code> puts something on the doorstep for others to collect; <code>import</code> collects it from a named doorstep. Everything else stays inside.</p>
+  </div>
+  <h3>Why double-clicking index.html is not enough</h3>
+  <p>Double-click <code>index.html</code> and the address bar shows <code>file:///C:/Users/.../index.html</code>: the page came from your disk, not a server. Browsers fetch module files with the same safety check they use for other websites' data (the CORS check), which a <code>file://</code> page fails. Chrome and Edge show a red error like this:</p>
+  <pre class="code">Access to script at 'file:///C:/Users/Meera/tip-calculator/js/app.js' from origin 'null'
+has been blocked by CORS policy</pre>
+  <p>The fix is to run a small web server on your own computer and open the page through it:</p>
+  <ul>
+    <li><b>VS Code Live Server</b>: right-click <code>index.html</code> &rarr; <i>Open with Live Server</i>. The address becomes <code>http://127.0.0.1:5500/index.html</code>.</li>
+    <li><b>Node.js</b> installed: in the project folder, run <code>npx serve</code>.</li>
+    <li><b>Python</b> installed: in the project folder, run <code>python -m http.server</code>, then open <code>http://localhost:8000</code>.</li>
+  </ul>
+  <div class="callout warn"><b>"Works on Live Server, blank when double-clicked."</b> Not a bug in your code: it is the <code>file://</code> rule. On GitHub Pages (Chapter 76) the site is served over <code>https://</code> and modules load normally.</div>
+  <h3>Named exports and default exports</h3>
+  <p>Everything so far used <b>named exports</b>: the import must use the exported name inside curly braces, and a file can have as many as it likes. A file can also have <b>one default export</b>, its "main thing", imported <i>without</i> braces under any name you choose.</p>
+  <pre class="code">// ---- money.js: two NAMED exports ----
+export const CURRENCY = "&#8377;";
+export function formatRupees(n) {
+  return CURRENCY + n.toFixed(2);
+}
+
+// ---- greet.js: one DEFAULT export ----
+export default function greet(name) {
+  return `Namaste, ${name}!`;
+}
+
+// ---- app.js ----
+import { formatRupees, CURRENCY } from "./money.js";   // named: braces, exact names
+import greet from "./greet.js";                         // default: no braces
+
+console.log(formatRupees(99));     // &#8377;99.00
+console.log(greet("Asha"));        // Namaste, Asha!</pre>
+  <table class="tbl">
+    <thead><tr><th>You want to...</th><th>Write</th></tr></thead>
+    <tbody>
+      <tr><td>Rename a named import</td><td><code>import { formatRupees as rupees } from "./money.js";</code></td></tr>
+      <tr><td>Import a default under another name</td><td><code>import sayHello from "./greet.js";</code></td></tr>
+      <tr><td>Import everything as one object</td><td><code>import * as money from "./money.js";</code> then <code>money.formatRupees(99)</code></td></tr>
+      <tr><td>Export a list at the bottom of a file</td><td><code>export { formatRupees, CURRENCY };</code></td></tr>
+    </tbody>
+  </table>
+  <div class="callout exam"><b>Exam tip.</b> Braces mean <b>named</b>; no braces means <b>default</b>. A named import must match the exported name exactly (or rename it with <code>as</code>); a default import can be called anything. Many named exports per file, but only one default.</div>
+  <details class="qc"><summary><span>Quick check: <code>utils.js</code> contains <code>export default function formatName(name) { ... }</code>. <code>app.js</code> says <code>import { formatName } from "./utils.js";</code>. What happens?</span></summary><p>It fails: <code>SyntaxError: The requested module './utils.js' does not provide an export named 'formatName'</code>. The braces ask for a <i>named</i> export, but <code>formatName</code> is the <i>default</i>. Drop the braces &mdash; <code>import formatName from "./utils.js";</code> &mdash; or remove <code>default</code> from the export.</p></details>
+  <h3>When modules go wrong</h3>
+  <table class="tbl">
+    <thead><tr><th>Console message</th><th>Cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td><code>Cannot use import statement outside a module</code></td><td>Script tag lacks <code>type="module"</code></td><td><code>&lt;script type="module" src="js/app.js"&gt;</code></td></tr>
+      <tr><td><code>Failed to resolve module specifier "utils"</code></td><td>Path does not start with <code>./</code>, <code>../</code> or <code>/</code></td><td><code>from "./utils.js"</code></td></tr>
+      <tr><td><code>404 (Not Found)</code> for <code>js/utils</code></td><td><code>.js</code> missing, or the case differs</td><td>The exact file name</td></tr>
+      <tr><td><code>does not provide an export named 'formatName'</code></td><td>Misspelt, not exported, or a default</td><td>Match the export, or drop the braces</td></tr>
+      <tr><td><code>Unexpected token 'export'</code></td><td>A module loaded as an ordinary script</td><td>Load the entry file with <code>type="module"</code>; import the rest</td></tr>
+      <tr><td><code>... blocked by CORS policy</code> on <code>file:///</code></td><td>Page opened by double-clicking</td><td>Use a local server</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="s9">
+  <h2>73.9 Practical: refactor the tip calculator</h2>
+  <p>Here is the exercise from the course slides: a working tip calculator, all in one file. (The bill box is pre-filled with 500 so you can press Calculate at once.)</p>
+  <pre class="code" data-run data-title="The starting point: everything in one file - press Calculate" data-h="210">&lt;style&gt;
+  body { font-family: system-ui; margin: 40px; }
+  .result { font-size: 1.5rem; font-weight: bold; }
+&lt;/style&gt;
+&lt;label for="bill"&gt;Bill (&#8377;)&lt;/label&gt;
+&lt;input id="bill" type="number" value="500"&gt;
+&lt;label for="tip"&gt;Tip %&lt;/label&gt;
+&lt;input id="tip" type="number" value="10"&gt;
+&lt;button id="calc"&gt;Calculate&lt;/button&gt;
+&lt;p class="result" id="result"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const bill = document.querySelector("#bill");
+  const tip = document.querySelector("#tip");
+  const result = document.querySelector("#result");
+  const calc = document.querySelector("#calc");
+  function formatRupees(n) { return "&#8377;" + n.toFixed(2); }
+  calc.addEventListener("click", () =&gt; {
+    const b = Number(bill.value), t = Number(tip.value);
+    const total = b * (1 + t / 100);
+    result.textContent = "Total: " + formatRupees(total);
+    console.log("Bill", b, "tip", t + "%", "-&gt;", result.textContent);
+  });
+&lt;/script&gt;</pre>
+  <p>Press Calculate and the page shows <b>Total: &#8377;550.00</b>; the Console logs <code>Bill 500 tip 10% -&gt; Total: &#8377;550.00</code>. Your task is to split it into this structure <b>without changing what it does</b>:</p>
+  <pre class="code">tip-calculator/
+&#9500;&#9472;&#9472; index.html
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; styles.css
+&#9492;&#9472;&#9472; js/
+    &#9500;&#9472;&#9472; app.js
+    &#9492;&#9472;&#9472; utils.js</pre>
+  <ol>
+    <li>Move the CSS into <code>css/styles.css</code> and link it from the head.</li>
+    <li>Move the JavaScript into <code>js/app.js</code>.</li>
+    <li>Move <code>formatRupees</code>, and the tip formula as a new function <code>calculateTotal</code>, into <code>js/utils.js</code>.</li>
+    <li><code>export</code> both, and <code>import</code> them into <code>app.js</code>.</li>
+    <li>Test through Live Server: 500 with a 10% tip must still give <b>&#8377;550.00</b>.</li>
+  </ol>
+  <p>Try it yourself first. Here is the solution.</p>
+  <pre class="code">&lt;!-- ===== index.html ===== --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;meta name="viewport" content="width=device-width, initial-scale=1"&gt;
+  &lt;title&gt;Tip Calculator&lt;/title&gt;
+  &lt;link rel="stylesheet" href="./css/styles.css"&gt;
+  &lt;script type="module" src="./js/app.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;label for="bill"&gt;Bill (&#8377;)&lt;/label&gt;
+  &lt;input id="bill" type="number"&gt;
+  &lt;label for="tip"&gt;Tip %&lt;/label&gt;
+  &lt;input id="tip" type="number" value="10"&gt;
+  &lt;button id="calc"&gt;Calculate&lt;/button&gt;
+  &lt;p class="result" id="result"&gt;&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+/* ===== css/styles.css ===== */
+body { font-family: system-ui; margin: 40px; }
+.result { font-size: 1.5rem; font-weight: bold; }
+
+// ===== js/utils.js - pure helpers: numbers in, results out, no page =====
+export function formatRupees(n) {
+  return "&#8377;" + n.toFixed(2);
+}
+
+export function calculateTotal(bill, tipPercent) {
+  return bill * (1 + tipPercent / 100);
+}
+
+// ===== js/app.js - wires the page to the helpers =====
+import { formatRupees, calculateTotal } from "./utils.js";
+
+const bill = document.querySelector("#bill");
+const tip = document.querySelector("#tip");
+const result = document.querySelector("#result");
+const calc = document.querySelector("#calc");
+
+calc.addEventListener("click", () =&gt; {
+  const total = calculateTotal(Number(bill.value), Number(tip.value));
+  result.textContent = "Total: " + formatRupees(total);
+});</pre>
+  <p>What changed: the <code>&lt;style&gt;</code> block became <code>styles.css</code>, linked in the head. The <code>&lt;script&gt;</code> block became <code>app.js</code>, loaded with <code>type="module"</code>; modules are deferred, so that tag can sit in the head (the slides put it at the end of the body; both work). The buried formula now has a name, and <code>app.js</code> is pure wiring: find the elements, listen for the click, call the helpers, show the answer.</p>
+  <p>The biggest win is <code>calculateTotal</code>, a <span class="jw" data-def="A function whose answer depends only on what you pass in, and which changes nothing outside itself. Same input, same output, every time.">pure function</span>: numbers go in, a number comes out, and it never touches the page. So you can test it with no HTML, typing or clicking &mdash; just call it with values whose answers you know. Run the tests below (the functions are pasted in without <code>export</code>, because this frame is a single page):</p>
+  <pre class="code" data-run data-title="Testing the helpers without any page - read the results" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; font-size: 14px; }
+  .pass { color: #138808; }
+  .fail { color: #C42B2B; font-weight: 700; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;Test results&lt;/b&gt;&lt;/p&gt;
+&lt;ol id="out"&gt;&lt;/ol&gt;
+&lt;script&gt;
+  // the two helpers from js/utils.js
+  function formatRupees(n) {
+    return "&#8377;" + n.toFixed(2);
+  }
+  function calculateTotal(bill, tipPercent) {
+    return bill * (1 + tipPercent / 100);
+  }
+
+  // a tiny test helper: compare what we got with what we expected
+  function check(label, actual, expected) {
+    const passed = actual === expected;
+    const line = passed
+      ? `PASS ${label} -&gt; ${actual}`
+      : `FAIL ${label} -&gt; expected ${expected} but got ${actual}`;
+    if (passed) console.log(line); else console.error(line);
+    const li = document.createElement("li");
+    li.className = passed ? "pass" : "fail";
+    li.textContent = line;
+    document.querySelector("#out").append(li);
+  }
+
+  check("bill 500, tip 10%", formatRupees(calculateTotal(500, 10)), "&#8377;550.00");
+  check("bill 800, tip 25%", formatRupees(calculateTotal(800, 25)), "&#8377;1000.00");
+  check("bill 250, tip 5%", formatRupees(calculateTotal(250, 5)), "&#8377;262.50");
+  check("bill 0, tip 10%", formatRupees(calculateTotal(0, 10)), "&#8377;0.00");
+
+  // a "quick fix" someone might try - the test catches it at once
+  function calculateTotalWrong(bill, tipPercent) {
+    return bill + tipPercent;          // adds the tip as rupees, not as a percentage
+  }
+  check("the wrong formula", formatRupees(calculateTotalWrong(500, 10)), "&#8377;550.00");
+&lt;/script&gt;</pre>
+  <p>Four lines pass and the fifth fails with <code>FAIL the wrong formula -&gt; expected &#8377;550.00 but got &#8377;510.00</code>: adding the tip <i>percentage</i> as if it were rupees is the same logical error as Chapter 68's 500 &minus; 10 discount bug, caught in a second with no clicking. That is what organisation buys: three focused files, one testable function, the same behaviour.</p>
+</section>
+
+<section id="mistakes">
+  <h2>73.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "defer works on any script tag."</b><br>It is ignored on inline scripts, which run immediately wherever they sit.</div>
+    <div class="r"><b>&#10003; "defer works only with src."</b><br>Load a file with <code>&lt;script src="js/app.js" defer&gt;</code>, or use <code>type="module"</code>, which is deferred automatically.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "If the images show on my laptop, my file names are fine."</b><br>Windows and macOS ignore capital letters in file names, so mismatches stay hidden until you deploy.</div>
+    <div class="r"><b>&#10003; "Servers are case-sensitive, so I name everything in lowercase."</b><br>On GitHub Pages <code>Logo.png</code> and <code>logo.png</code> are different files.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Double-clicking index.html is a fine way to test a module page."</b><br>A <code>file://</code> page cannot load module files; Chrome and Edge block them with a CORS error.</div>
+    <div class="r"><b>&#10003; "Module pages are tested through a local server."</b><br>Live Server, <code>npx serve</code> or <code>python -m http.server</code>, so the address starts with <code>http://</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Splitting into many small functions makes the program slower."</b><br>Calling a function costs a tiny fraction of a millisecond.</div>
+    <div class="r"><b>&#10003; "Small functions make the program easier to read, test and change."</b><br>Real speed problems come from things like downloading data on every key press, which organising helps you spot (Chapter 74).</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary><span>Which attribute lets an external script download during HTML parsing and run only after parsing finishes, in the order the scripts are written?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>async</code></li><li>B. <code>defer</code></li><li>C. <code>type="text/javascript"</code></li><li>D. <code>lazy</code></li></ul>
+    <p><b>Answer: B.</b> <code>async</code> also downloads in parallel, but runs each script on arrival, in any order, possibly before parsing ends. <code>type="text/javascript"</code> is the old default and changes nothing; <code>lazy</code> is not a script attribute.</p></div></details>
+  <details class="q"><summary><span>Which file name is the safest choice for an image in a web project?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>Campus Photo.JPG</code></li><li>B. <code>campus_photo final.jpg</code></li><li>C. <code>campus-photo.jpg</code></li><li>D. <code>CampusPhoto.JPG</code></li></ul>
+    <p><b>Answer: C.</b> Lowercase, hyphen-joined, no spaces. A and B contain spaces (<code>%20</code> in URLs); A and D mix capitals, which break on case-sensitive servers when the HTML spells the name differently.</p></div></details>
+  <details class="q"><summary><span>Why is <code>&lt;link rel="stylesheet"&gt;</code> normally placed in the <code>&lt;head&gt;</code>?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. So the CSS arrives before the page is first drawn, and it never flashes up unstyled</li><li>B. A stylesheet link in the body is a syntax error</li><li>C. So the CSS runs after the JavaScript</li><li>D. Browsers ignore CSS linked from the body</li></ul>
+    <p><b>Answer: A.</b> The browser waits for the CSS it knows about before drawing, so linking it early gives a styled first frame. B and D are false: a stylesheet linked lower down is still applied, but content above it may show unstyled first. C makes no sense: CSS does not "run".</p></div></details>
+  <details class="q"><summary><span>Three ordinary scripts are loaded on one page, in this order. What does the Console show?<br><code>&lt;script&gt; var count = 10; function show() { console.log("A:", count); } &lt;/script&gt;</code><br><code>&lt;script&gt; var count = 99; function show() { console.log("B:", count); } &lt;/script&gt;</code><br><code>&lt;script&gt; show(); &lt;/script&gt;</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>B: 99</code>.</b> Ordinary scripts share one global space. The second script's <code>var count</code> overwrote the first, and its <code>show</code> replaced the first, so the third script finds only the second versions. As modules, neither name would leak out.</p></div></details>
+  <details class="q"><summary><span><code>utils.js</code> contains <code>export default function formatRupees(n) { ... }</code>. Which line in <code>app.js</code> imports it correctly?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>import { formatRupees } from "./utils.js";</code></li><li>B. <code>import formatRupees from "./utils.js";</code></li><li>C. <code>import formatRupees from "utils";</code></li><li>D. <code>import default from "./utils.js";</code></li></ul>
+    <p><b>Answer: B.</b> A default export is imported without braces. A asks for a <i>named</i> export and fails ("does not provide an export named 'formatRupees'"); C lacks <code>./</code> and <code>.js</code>, so the browser cannot resolve it; D is invalid, because <code>default</code> is a reserved word.</p></div></details>
+  <details class="q"><summary><span>Meera double-clicks <code>index.html</code>. The address bar shows <code>file:///C:/Users/Meera/tip-calculator/index.html</code> and the Console says the module <code>js/app.js</code> "has been blocked by CORS policy". What should she do?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Rename <code>app.js</code> to <code>app.mjs</code></li><li>B. Remove <code>type="module"</code> from the script tag</li><li>C. Move the script tag to the end of the body</li><li>D. Open the folder through a local web server such as Live Server, so the page loads over <code>http://</code></li></ul>
+    <p><b>Answer: D.</b> Module files cannot be loaded into a page opened from <code>file://</code>. B swaps that error for "Cannot use import statement outside a module"; A and C do not change where the page was loaded from.</p></div></details>
+  <details class="q"><summary><span>Which comment is the most useful?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>count = count + 1; // add one to count</code></li><li>B. <code>const TAX = 0.05; // TAX is 0.05</code></li><li>C. <code>const GROUP_SIZE = 3; // fest rule: 10% off from 3 tickets, not 4</code></li><li>D. <code>// function</code>, written above a function</li></ul>
+    <p><b>Answer: C.</b> It records a rule the code cannot explain, and warns the next reader off the tempting change to 4. A and B repeat the code in English; D says nothing.</p></div></details>
+  <details class="q"><summary><span>One <code>input</code> handler fetches <code>students.json</code>, filters the students, builds the list items and updates a message. Which change is the best reorganisation?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Split it into <code>loadStudents</code>, <code>filterStudents</code>, <code>renderStudents</code> and <code>showMessage</code>; load once at start-up; the handler only filters, renders and shows</li><li>B. Add a comment above each part of the handler</li><li>C. Move the handler, still one function, into another file</li><li>D. Rename the handler <code>doEverything</code></li></ul>
+    <p><b>Answer: A.</b> Each function gets one job and one reason to change, the filter can be tested alone, and the data is no longer downloaded on every key press. B and C leave every problem in place; D only names it.</p></div></details>
+  <details class="q"><summary><span>The page loads <code>app.js</code> with <code>type="module"</code> and is served by Live Server. What does the Console show?<br><code>utils.js</code>: <code>export function double(n) { return n * 2; }</code> and <code>const SECRET = 42;</code><br><code>app.js</code>: <code>import { double } from "./utils.js"; console.log(double(21)); console.log(typeof SECRET);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>42</code>, then <code>undefined</code>.</b> <code>double</code> was exported and imported, so <code>double(21)</code> is 42. <code>SECRET</code> was never exported, so it stays private to <code>utils.js</code>; in <code>app.js</code> the name does not exist, and <code>typeof</code> then gives <code>"undefined"</code> instead of an error.</p></div></details>
+  <details class="q"><summary><span>The Console shows <code>Uncaught SyntaxError: Cannot use import statement outside a module</code>. What is the most likely cause?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>utils.js</code> does not export anything</li><li>B. The import path is missing <code>./</code></li><li>C. The page was opened from <code>file://</code></li><li>D. The <code>&lt;script&gt;</code> tag that loads <code>app.js</code> is missing <code>type="module"</code></li></ul>
+    <p><b>Answer: D.</b> Without <code>type="module"</code>, <code>app.js</code> is an ordinary script, where <code>import</code> is not allowed. A gives "does not provide an export named ...", B "Failed to resolve module specifier", C a CORS error.</p></div></details>
+  <details class="q"><summary><span>Which statement about <code>&lt;script type="module"&gt;</code> is FALSE?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is deferred automatically, so it runs after the page is parsed</li><li>B. Its code runs in strict mode</li><li>C. Its top-level variables become global variables that every other script can use</li><li>D. The module files it loads must come over <code>http://</code> or <code>https://</code>, not <code>file://</code></li></ul>
+    <p><b>Answer: C.</b> The opposite is true: a module's top-level names stay private unless exported and imported &mdash; the main reason to use modules.</p></div></details>
+  <details class="q"><summary><span>Why is <code>calculateTotal(bill, tipPercent)</code> in the refactored tip calculator easier to test than the original click handler, and what does <code>formatRupees(calculateTotal(800, 25))</code> return?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> it is a <b>pure function</b> &mdash; numbers in, a number out, no page &mdash; so you can call it with values whose answers you know, with no typing or clicking. <code>calculateTotal(800, 25)</code> is 800 &times; 1.25 = 1000, and <code>formatRupees(1000)</code> returns <b><code>"&#8377;1000.00"</code></b>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Organising code does not change what it does; it makes the next change cheap.</li>
+    <li>HTML in <code>index.html</code>, CSS in <code>css/styles.css</code>, JavaScript in <code>js/app.js</code>; link the CSS and load the script with <code>defer</code>, both in the head.</li>
+    <li><code>defer</code> downloads in parallel and runs after parsing, in order. It works only with <code>src</code>.</li>
+    <li><code>index.html</code> at the top level, one folder per kind of file, lowercase hyphenated names with no spaces: servers are case-sensitive.</li>
+    <li>Small single-job functions with verb names; named constants instead of magic numbers; related code grouped; few globals.</li>
+    <li>Comments explain <i>why</i>; formatting is the same everywhere, and a formatter can do it.</li>
+    <li>ES modules: <code>export</code> to share, <code>import { x } from "./file.js"</code> to use, <code>type="module"</code> on the entry script. Modules are deferred, strict and private, and need <code>http://</code>, not <code>file://</code>.</li>
+    <li>Named exports: braces, exact names, many per file. Default export: no braces, any name, one per file.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;link rel="stylesheet" href="./css/styles.css"&gt;</code></td><td>Applies an external stylesheet; in the head</td></tr>
+      <tr><td><code>&lt;script src="./js/app.js" defer&gt;&lt;/script&gt;</code></td><td>Downloads during parsing, runs after it, in order</td></tr>
+      <tr><td><code>&lt;script src="..." async&gt;&lt;/script&gt;</code></td><td>Runs on arrival, any order (independent extras)</td></tr>
+      <tr><td><code>&lt;script type="module" src="./js/app.js"&gt;&lt;/script&gt;</code></td><td>Entry module: deferred, strict, private</td></tr>
+      <tr><td><code>const TAX_RATE = 0.05;</code></td><td>Named constant instead of a magic number</td></tr>
+      <tr><td><code>export function formatRupees(n) { ... }</code></td><td>Named export</td></tr>
+      <tr><td><code>import { formatRupees } from "./utils.js";</code></td><td>Named import: braces, exact name, <code>./</code> and <code>.js</code></td></tr>
+      <tr><td><code>export default function greet() { ... }</code></td><td>The file's one default export</td></tr>
+      <tr><td><code>import greet from "./greet.js";</code></td><td>Default import: no braces, any name</td></tr>
+      <tr><td><code>import { formatRupees as rupees } from "./money.js";</code></td><td>Rename a named import</td></tr>
+      <tr><td><code>python -m http.server</code> or Live Server</td><td>Serve the folder over <code>http://</code> so modules load</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Modules" target="_blank" rel="noopener noreferrer">MDN &mdash; JavaScript modules<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The complete guide: export and import forms, defaults, and why modules need a server.</span></li>
+    <li><a href="https://javascript.info/modules-intro" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Modules, introduction<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A gentle walk through module scope, strict mode and deferred loading.</span></li>
+    <li><a href="https://javascript.info/import-export" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Export and Import<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every way to write export and import, including renaming.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTML/Reference/Elements/script" target="_blank" rel="noopener noreferrer">MDN &mdash; The script element<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact behaviour of defer, async and type="module", attribute by attribute.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

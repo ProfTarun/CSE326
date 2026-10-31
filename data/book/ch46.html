@@ -1,0 +1,716 @@
+<article class="chapter" data-ch="46">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 46 &middot; Numbers and Boolean Values</p>
+  <h1>Numbers and Boolean Values</h1>
+  <p class="lead">Marks, prices, percentages and counts are numbers. <i>Has she passed? Is it in stock? Is he logged in?</i> are yes-or-no answers. Those two kinds of value do most of the quiet work on any web page. This chapter shows how JavaScript keeps them, the few surprises numbers hold (why 0.1 + 0.2 is not quite 0.3), how to turn typed text into a number safely, and the short rule that decides when any value counts as true.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A variable is a named box for a value: <code>const</code> when it never changes, <code>let</code> when it will (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>Every value has a type &mdash; number, string, boolean, undefined, null &mdash; and <code>typeof</code> names it (<a href="book.html?ch=43">Chapter 43</a>).</li>
+      <li><code>+ - * / % **</code> do arithmetic, and anything a user types arrives as a string, so <code>"40" + 5</code> is <code>"405"</code> (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>A comparison such as <code>marks &gt;= 40</code> answers <code>true</code> or <code>false</code>, and <code>&amp;&amp;</code>, <code>||</code> and <code>!</code> combine such answers (<a href="book.html?ch=44">Chapter 44</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say where <code>Infinity</code> and <code>NaN</code> come from in JavaScript's single number type.</li>
+      <li>Explain why <code>0.1 + 0.2</code> is not exactly <code>0.3</code>, and show a tidy result with <code>toFixed</code>, which returns a string.</li>
+      <li>Turn text into a number with <code>Number()</code>, <code>parseInt()</code> or <code>parseFloat()</code>, and pick the right one for <code>"42px"</code>.</li>
+      <li>Test a value with <code>Number.isNaN()</code> and <code>Number.isInteger()</code>, and say why the older <code>isNaN()</code> misleads.</li>
+      <li>Round numbers and make a random whole number between two limits with the <code>Math</code> object.</li>
+      <li>Work out a percentage, a discount and a pass/fail result from marks.</li>
+      <li>List the eight falsy values and predict what <code>Boolean()</code> gives for any value.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>46.1 One number type for everything</h2>
+  <p>Many languages keep whole numbers and decimals in separate types. JavaScript has one, <b>number</b>, for marks, prices, temperatures, head-counts and pi alike. The slide's four examples:</p>
+  <pre class="code">const marks = 25;      // an integer: a whole number
+const pi = 3.14;       // a decimal
+const loss = -10;      // a negative number
+const nothing = 0;     // zero
+
+console.log(typeof marks, typeof pi, typeof loss, typeof nothing);
+// number number number number</pre>
+  <p>A whole number is called an <span class="jw" data-def="A whole number with no fraction part, such as 7, 0 or -12.">integer</span>. To JavaScript, <code>25</code> and <code>25.0</code> are the very same number (<code>25 === 25.0</code> is <code>true</code>), so when a division of whole numbers does not come out even, nothing is lost: <code>7 / 2</code> is simply <code>3.5</code>.</p>
+  <p>Three writing rules. A number has <b>no quotes</b>: <code>"25"</code> is a string (Chapter 45). It has <b>no commas or symbols</b>: <code>1,000</code> and <code>&#8377;500</code> are not numbers to JavaScript. To make a long number readable you may put <b>underscores</b> between digits, which JavaScript ignores: <code>1_00_000</code> is one lakh.</p>
+
+  <h3>How a number is stored</h3>
+  <p>The slide says ordinary numbers are <i>double-precision floating-point</i>. In plain terms, every number gets the same 64 bits of memory: about 15&ndash;17 significant digits plus a note of where the decimal point sits. Because the point can sit anywhere, one format holds 0.000001 and 6,00,00,000 equally well. This is <span class="jw" data-def="The way computers store decimals: a fixed number of significant digits plus a note of where the decimal point goes, so the point can 'float' to any position.">floating-point</span> storage, and it has two consequences:</p>
+  <ul>
+    <li>Whole numbers are exact up to <code>Number.MAX_SAFE_INTEGER</code>, 9007199254740991. Past that the digits run out: write <code>9007199254740993</code> and JavaScript stores 9007199254740992.</li>
+    <li>Many everyday decimals, such as 0.1, can only be stored <i>very nearly</i>. Section 46.3 shows what that does.</li>
+  </ul>
+  <p>For exact whole numbers beyond the limit there is a second, rarely needed numeric type, <b>BigInt</b>, written with an <code>n</code> on the end: <code>9007199254740993n</code> is exact, and <code>typeof 10n</code> is <code>"bigint"</code>. Its zero, <code>0n</code>, reappears in section 46.9.</p>
+
+  <h3>Arithmetic, one more time</h3>
+  <p>Chapter 44 taught the six arithmetic operators. The slide runs them on <code>a = 10</code> and <code>b = 3</code>. Press Run and read each answer.</p>
+  <pre class="code" data-run data-title="The slide's arithmetic, and one type for every number" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  // the slide's six operators
+  const a = 10;
+  const b = 3;
+  console.log("Addition:", a + b);
+  console.log("Subtraction:", a - b);
+  console.log("Multiplication:", a * b);
+  console.log("Division:", a / b);
+  console.log("Remainder:", a % b);
+  console.log("Exponentiation:", a ** b);
+
+  // one type for every kind of number
+  console.log(typeof 25, typeof 3.14, typeof -10, typeof 0);
+  console.log("25 === 25.0:", 25 === 25.0);
+  console.log("One lakh:", 1_00_000);
+
+  // whole numbers are exact up to this limit ...
+  console.log("Safe limit:", Number.MAX_SAFE_INTEGER);
+  console.log("Past it:", 9007199254740993);
+  // ... and BigInt goes beyond it
+  console.log("BigInt:", 9007199254740993n, typeof 10n);
+&lt;/script&gt;</pre>
+  <p>You should see 13, 7, 30, <code>3.3333333333333335</code>, 1 and 1000, then <code>number number number number</code>, <code>true</code>, <code>100000</code>, the limit, <code>9007199254740992</code> (one less than typed) and <code>9007199254740993n bigint</code>. Look at the division: ten thirds should be 3.333&hellip; for ever, but only about 17 digits fit, and the final 5 is rounding showing through. Section 46.3 explains it.</p>
+</section>
+
+<section id="s2">
+  <h2>46.2 Two special numbers: Infinity and NaN</h2>
+  <p>Arithmetic on ordinary numbers never stops a JavaScript program with an error. When a calculation has no ordinary answer, you get one of two special values instead, both of type number.</p>
+  <h3>Infinity: too big to hold</h3>
+  <p><code>Infinity</code> means "larger than any number". You get it by dividing a non-zero number by zero, or by going past the largest number that can be stored (about 1.8 &times; 10<sup>308</sup>). <code>-Infinity</code> is its negative twin.</p>
+  <pre class="code">console.log(10 / 0);       // Infinity
+console.log(-10 / 0);      // -Infinity
+console.log(2 ** 1024);    // Infinity - too big to store</pre>
+  <p>So a divide-by-zero bug crashes nothing; it just shows <i>Infinity%</i> on the page.</p>
+  <h3>NaN: Not a Number</h3>
+  <p><code>NaN</code> is the answer to a calculation that has no numeric answer at all. It turns up in four common ways:</p>
+  <table class="tbl">
+    <thead><tr><th>How it happens</th><th>Example</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td>A sum with no answer</td><td><code>0 / 0</code>, <code>Math.sqrt(-1)</code></td><td><code>NaN</code></td></tr>
+      <tr><td>Maths on text that is not a number</td><td><code>"abc" * 2</code></td><td><code>NaN</code></td></tr>
+      <tr><td>Converting text that is not a number</td><td><code>Number("Hello")</code></td><td><code>NaN</code></td></tr>
+      <tr><td>Maths on a missing value</td><td><code>undefined + 1</code></td><td><code>NaN</code></td></tr>
+    </tbody>
+  </table>
+  <p>Three facts about <code>NaN</code> catch everybody once:</p>
+  <ul>
+    <li><b>NaN is a number.</b> <code>typeof NaN</code> is <code>"number"</code> &mdash; the quirk Chapter 44 promised to explain. The name means "a number-shaped answer that is not a real number".</li>
+    <li><b>NaN spreads.</b> Any arithmetic that touches <code>NaN</code> gives <code>NaN</code>, so one bad value early on spoils the final total.</li>
+    <li><b>NaN equals nothing, not even itself.</b> <code>NaN === NaN</code> is <code>false</code>, so <code>===</code> cannot detect it; section 46.5 gives the proper test.</li>
+  </ul>
+  <pre class="code" data-run data-title="Infinity and NaN - where they come from" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  // Infinity: too big to hold
+  console.log("10 / 0 =", 10 / 0);
+  console.log("-10 / 0 =", -10 / 0);
+  console.log("2 ** 1024 =", 2 ** 1024);
+
+  // NaN: no numeric answer at all
+  console.log("0 / 0 =", 0 / 0);
+  console.log("Math.sqrt(-1) =", Math.sqrt(-1));
+  console.log('"abc" * 2 =', "abc" * 2);
+  console.log('Number("Hello") =', Number("Hello"));
+  console.log("undefined + 1 =", undefined + 1);
+
+  // NaN spreads through everything it touches
+  const total = 40 + Number("fifty") + 10;
+  console.log("total =", total);
+
+  // the strange facts
+  console.log("typeof NaN:", typeof NaN);
+  console.log("NaN === NaN:", NaN === NaN);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Infinity</code>, <code>-Infinity</code> and <code>Infinity</code>, then <code>NaN</code> five times, <code>total = NaN</code> (the 40 and the 10 were swallowed), <code>typeof NaN: number</code> and <code>NaN === NaN: false</code>.</p>
+  <details class="qc"><summary>Quick check: what do <code>0 / 0</code> and <code>5 / 0</code> give?</summary><p><code>0 / 0</code> is <code>NaN</code>: there is no sensible answer at all. <code>5 / 0</code> is <code>Infinity</code>: the answer grows without limit. Neither one is an error.</p></details>
+</section>
+
+<section id="s3">
+  <h2>46.3 Why 0.1 + 0.2 is not 0.3</h2>
+  <p>Now the most famous surprise in JavaScript. Python, Java and C do exactly the same, because they store decimals the same way:</p>
+  <pre class="code">console.log(0.1 + 0.2);            // 0.30000000000000004
+console.log(0.1 + 0.2 === 0.3);    // false</pre>
+  <p>This is not a bug. Computers store numbers in <span class="jw" data-def="Counting with only two digits, 0 and 1. Inside a computer every number is stored this way.">binary</span>, and in binary a fraction must be built out of halves, quarters, eighths, sixteenths and so on. Some fractions are built exactly: 0.5 is one half, 0.75 is a half plus a quarter. One tenth cannot be built exactly from those pieces, however many you use &mdash; just as one third cannot be written exactly in decimal, where 0.3333&hellip; never ends. So JavaScript stores the nearest value it can, about 0.1000000000000000055. The same happens to 0.2. Add two numbers that are each a hair off and, now and then, the two hairs add up to one you can see.</p>
+  <div class="callout analogy"><b>Picture this.</b> A kitchen drawer holds measuring spoons of 1, &frac12;, &frac14;, &frac18; and 1/16 teaspoon, and smaller and smaller halves after that &mdash; nothing else. The recipe says <i>exactly one tenth of a teaspoon</i>. You can get close: 1/16 + 1/32 + 1/256 + 1/512 comes to 0.0996, and more tiny spoons bring you closer still. But no pile of halves, quarters and eighths ever makes exactly one tenth. A computer's number is that drawer of spoons. It builds every fraction from halves of halves, so a tenth is always very nearly right and never exactly right, while &frac12; or &frac34; comes out perfect.</div>
+  <div class="plain"><p>0.1 is kept as a number a tiny bit different from 0.1, the way 0.333 is a tiny bit different from one third. After a sum the difference occasionally shows in the 17th digit. Whole numbers, and fractions made of halves and quarters such as 0.75, are exact and never show it.</p></div>
+
+  <h3>Fixing the display: toFixed</h3>
+  <p>The answer is right for every practical purpose; you only need to <b>show</b> it sensibly. <code>toFixed(digits)</code> rounds to that many decimal places and returns the result <b>as a string</b>:</p>
+  <pre class="code">const sum = 0.1 + 0.2;
+console.log(sum.toFixed(2));        // 0.30
+console.log((2.456).toFixed(2));    // 2.46   rounded
+console.log((5).toFixed(2));        // 5.00   padded with zeros
+console.log(Math.PI.toFixed(2));    // 3.14</pre>
+  <p>Put a typed-in number in brackets before the dot: <code>5.toFixed(2)</code> is a SyntaxError, because JavaScript reads that dot as a decimal point.</p>
+  <div class="callout warn"><b>toFixed gives you text.</b> So the Chapter 44 trap is back: <code>sum.toFixed(2) + 1</code> is <code>"0.301"</code>. Call <code>toFixed</code> only at the end, to show a value, or turn its text back with <code>Number()</code>. Its rounding is not perfect either: <code>(1.005).toFixed(2)</code> is <code>"1.00"</code>, because 1.005 itself is stored as 1.00499999&hellip;. That is why payment systems count whole <b>paise</b>, which are exact, and divide by 100 only to display.</div>
+  <p>Never test decimal arithmetic with <code>===</code>. Round both sides first, or ask whether the two are <i>close enough</i>: <code>Math.abs(a - b) &lt; 0.000001</code> (<code>Math.abs</code>, the size without the sign, is in section 46.6).</p>
+  <pre class="code" data-run data-title="Floating-point surprises, and how to show a tidy answer" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  console.log("0.1 + 0.2 =", 0.1 + 0.2);
+  console.log("equal to 0.3?", 0.1 + 0.2 === 0.3);
+  console.log("0.5 + 0.25 =", 0.5 + 0.25);      // halves and quarters are exact
+  console.log("1.1 + 2.2 =", 1.1 + 2.2);
+
+  // toFixed rounds for display - and returns a STRING
+  const sum = 0.1 + 0.2;
+  const shown = sum.toFixed(2);
+  console.log("Shown:", shown, typeof shown);
+  console.log("Wrong:", shown + 1);              // joins text
+  console.log("Right:", Number(shown) + 1);      // back to a number first
+
+  // close enough? compare the gap, not the numbers
+  console.log("Close to 0.3?", Math.abs(sum - 0.3) &lt; 0.000001);
+
+  // money: count whole paise, divide by 100 only to show
+  const pricePaise = 1999;                       // &#8377;19.99
+  const totalPaise = pricePaise * 3;
+  console.log(`Three items: &#8377;${(totalPaise / 100).toFixed(2)}`);
+&lt;/script&gt;</pre>
+  <p>Expected: <code>0.30000000000000004</code>, <code>false</code>, <code>0.75</code> (exact), <code>3.3000000000000003</code>, then <code>Shown: 0.30 string</code>, <code>Wrong: 0.301</code>, <code>Right: 1.3</code>, <code>Close to 0.3? true</code> and <code>Three items: &#8377;59.97</code>.</p>
+</section>
+
+<section id="s4">
+  <h2>46.4 From text to number: Number, parseInt and parseFloat</h2>
+  <p>Everything a user types arrives as a string, even when it looks like a number (Chapter 44). Before you do maths with it, you convert it. JavaScript has three tools, and the slide shows all three:</p>
+  <pre class="code">console.log(Number("25"));            // 25
+console.log(Number("Hello"));         // NaN
+console.log(parseInt("25px", 10));    // 25
+console.log(parseFloat("3.14kg"));    // 3.14</pre>
+  <p>They differ in how much of the text each insists on reading. To <span class="jw" data-def="To read text carefully, piece by piece, and work out what it means.">parse</span> text is to read it piece by piece and work out what it says:</p>
+  <ul>
+    <li><b><code>Number(text)</code> is strict.</b> The whole text, apart from spaces at either end, must be a number. One stray letter and the answer is <code>NaN</code>.</li>
+    <li><b><code>parseInt(text, 10)</code></b> skips any spaces at the start, reads from the left, digit by digit, and stops at the first character that is not a digit. It returns the whole number it has read so far, so it never returns decimals. If the very first character is not a digit (or a sign), it returns <code>NaN</code>.</li>
+    <li><b><code>parseFloat(text)</code></b> reads from the left in the same way but accepts one decimal point, so it can return decimals.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 232" role="img" aria-label="The text 42.5px read three ways: Number gives NaN, parseInt gives 42, parseFloat gives 42.5">
+      <text x="310" y="20" class="t c b mono">const typed = "42.5px";</text>
+      <rect x="190" y="32" width="40" height="38" rx="6" class="box"/>
+      <rect x="232" y="32" width="40" height="38" rx="6" class="box"/>
+      <rect x="274" y="32" width="40" height="38" rx="6" class="box"/>
+      <rect x="316" y="32" width="40" height="38" rx="6" class="box"/>
+      <rect x="358" y="32" width="40" height="38" rx="6" class="box gry"/>
+      <rect x="400" y="32" width="40" height="38" rx="6" class="box gry"/>
+      <text x="210" y="57" class="t c b mono" style="font-size:17px">4</text>
+      <text x="252" y="57" class="t c b mono" style="font-size:17px">2</text>
+      <text x="294" y="57" class="t c b mono" style="font-size:17px">.</text>
+      <text x="336" y="57" class="t c b mono" style="font-size:17px">5</text>
+      <text x="378" y="57" class="t c b mono" style="font-size:17px">p</text>
+      <text x="420" y="57" class="t c b mono" style="font-size:17px">x</text>
+      <text x="20" y="99" class="t mono" style="font-size:12px">Number(typed)</text>
+      <rect x="190" y="86" width="250" height="16" rx="4" class="box red"/>
+      <text x="456" y="99" class="t b">&#8594; NaN</text>
+      <text x="190" y="119" class="t s">must be a number from end to end; "px" spoils it</text>
+      <text x="20" y="147" class="t mono" style="font-size:12px">parseInt(typed, 10)</text>
+      <rect x="190" y="134" width="82" height="16" rx="4" class="box saf"/>
+      <text x="456" y="147" class="t b">&#8594; 42</text>
+      <text x="190" y="167" class="t s">reads digits from the left and stops at the "."</text>
+      <text x="20" y="195" class="t mono" style="font-size:12px">parseFloat(typed)</text>
+      <rect x="190" y="182" width="166" height="16" rx="4" class="box grn"/>
+      <text x="456" y="195" class="t b">&#8594; 42.5</text>
+      <text x="190" y="215" class="t s">also accepts one decimal point, then stops at the "p"</text>
+    </svg>
+    <figcaption><b>Figure 46.1</b> One piece of text, three readers. <code>Number()</code> wants the whole text to be a number; <code>parseInt()</code> and <code>parseFloat()</code> read from the left and keep whatever number they find before the first character that does not fit.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Text</th><th><code>Number(t)</code></th><th><code>parseInt(t, 10)</code></th><th><code>parseFloat(t)</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>"42"</code></td><td><code>42</code></td><td><code>42</code></td><td><code>42</code></td></tr>
+      <tr><td><code>"42px"</code></td><td><code>NaN</code></td><td><code>42</code></td><td><code>42</code></td></tr>
+      <tr><td><code>"3.75"</code></td><td><code>3.75</code></td><td><code>3</code></td><td><code>3.75</code></td></tr>
+      <tr><td><code>" 7 "</code></td><td><code>7</code></td><td><code>7</code></td><td><code>7</code></td></tr>
+      <tr><td><code>""</code> (empty)</td><td><code>0</code> (!)</td><td><code>NaN</code></td><td><code>NaN</code></td></tr>
+      <tr><td><code>"1,000"</code></td><td><code>NaN</code></td><td><code>1</code></td><td><code>1</code></td></tr>
+      <tr><td><code>"px42"</code></td><td><code>NaN</code></td><td><code>NaN</code></td><td><code>NaN</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><code>Number()</code> says: <i>"the whole thing is a number, or it is NaN."</i> <code>parseInt()</code> and <code>parseFloat()</code> say: <i>"read from the left and keep the number you find before the first thing that does not fit."</i> <code>parseInt</code> keeps only the whole-number part; <code>parseFloat</code> keeps the decimals too.</p></div>
+  <h3>Which one should you use?</h3>
+  <ul>
+    <li><b>A box that should hold just a number</b> (marks, age, quantity): <code>Number()</code>. It refuses junk, so <code>"8O"</code>, with a letter O typed for a zero, becomes a catchable <code>NaN</code> instead of being quietly read as 8 by <code>parseInt</code>.</li>
+    <li><b>A measurement with a unit</b>, such as the CSS value <code>"42.5px"</code>: <code>parseFloat()</code>, or <code>parseInt()</code> for the whole part only.</li>
+  </ul>
+  <p>Watch the empty-string row: <code>Number("")</code> is <code>0</code>, so an empty marks box looks like a mark of zero. Form validation (Chapter 60) checks for empty boxes first.</p>
+  <h3>The 10 in parseInt</h3>
+  <p>The second argument of <code>parseInt</code> is the <span class="jw" data-def="The counting base a number is written in: 10 for ordinary numbers, 2 for binary, 16 for hexadecimal.">radix</span>, the counting base the text is written in. Always pass 10. Without it, text that starts with <code>0x</code> is read as base 16: <code>parseInt("0x1A")</code> is 26, while <code>parseInt("0x1A", 10)</code> is 0. <code>parseFloat</code> has no radix; it reads only ordinary decimal.</p>
+  <h3>Converting values that are not text</h3>
+  <p><code>Number()</code> converts other types too, and these four results are worth knowing:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>Number(true)</code> / <code>Number(false)</code></td><td><code>1</code> / <code>0</code></td></tr>
+      <tr><td><code>Number(null)</code></td><td><code>0</code></td></tr>
+      <tr><td><code>Number(undefined)</code></td><td><code>NaN</code></td></tr>
+    </tbody>
+  </table>
+  <p>The unary plus from Chapter 44, <code>+"42"</code>, does exactly what <code>Number("42")</code> does. The reverse trip, number to text, is <code>String(n)</code> or a template literal (Chapter 45).</p>
+  <details class="qc"><summary>Quick check: what do <code>parseInt("12.9kg", 10)</code> and <code>parseFloat("12.9kg")</code> return?</summary><p><code>12</code> and <code>12.9</code>. Both read from the left; <code>parseInt</code> stops at the dot, <code>parseFloat</code> reads past it and stops at the <i>k</i>. <code>Number("12.9kg")</code> would be <code>NaN</code>.</p></details>
+</section>
+
+<section id="s5">
+  <h2>46.5 Checking a number: Number.isNaN and Number.isInteger</h2>
+  <p>After a conversion, a careful program checks that it really got a number. Since <code>NaN === NaN</code> is false, the test has to be a function.</p>
+  <h3>Number.isNaN against isNaN</h3>
+  <p><code>Number.isNaN(value)</code> asks one precise question: <i>is this value the special NaN number?</i> The older global function <code>isNaN(value)</code> first converts the value with <code>Number()</code> and only then asks. That hidden conversion makes it answer a different question &mdash; <i>would this become NaN if converted?</i> &mdash; and the answers mislead:</p>
+  <pre class="code">console.log(Number.isNaN(NaN));        // true
+console.log(Number.isNaN("Hello"));    // false - "Hello" is a string, not NaN
+console.log(isNaN("Hello"));           // true  - converted first: Number("Hello") is NaN
+console.log(isNaN(""));                // false - converted first: Number("") is 0</pre>
+  <p>The clean habit is to convert on purpose, then check with <code>Number.isNaN</code>:</p>
+  <pre class="code">const marks = Number("8O");            // a letter O, not a zero
+console.log(Number.isNaN(marks));      // true - the text was not a number</pre>
+  <div class="callout exam"><b>Exam tip.</b> <code>isNaN</code> converts first; <code>Number.isNaN</code> never converts. So for a string that is not a number, such as <code>"Hello"</code>, <code>isNaN</code> says <code>true</code> and <code>Number.isNaN</code> says <code>false</code>. Asked which is the precise test, choose <code>Number.isNaN</code>.</div>
+  <h3>Number.isInteger</h3>
+  <p><code>Number.isInteger(value)</code> is true only when the value is a number with no fraction part. Like <code>Number.isNaN</code>, it never converts:</p>
+  <pre class="code">console.log(Number.isInteger(5));      // true
+console.log(Number.isInteger(5.0));    // true  - 5.0 is the same number as 5
+console.log(Number.isInteger(5.5));    // false
+console.log(Number.isInteger("5"));    // false - a string, not a number</pre>
+  <p>Use it where only whole numbers make sense: a roll number, a number of tickets, a count of students.</p>
+  <pre class="code" data-run data-title="Convert, then check - the slide's lines and the tests" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  // the slide's four lines
+  console.log(Number("25"));
+  console.log(Number("Hello"));
+  console.log(parseInt("25px", 10));
+  console.log(parseFloat("3.14kg"));
+
+  // one piece of text, three readers
+  const typed = "42.5px";
+  console.log("Number:", Number(typed));
+  console.log("parseInt:", parseInt(typed, 10));
+  console.log("parseFloat:", parseFloat(typed));
+
+  // where they disagree
+  console.log('Number(""):', Number(""));
+  console.log('parseInt(""):', parseInt("", 10));
+  console.log('parseInt("1,000"):', parseInt("1,000", 10));
+
+  // checking the result
+  const marks = Number("8O");             // a letter O, not a zero
+  console.log("marks:", marks);
+  console.log("isNaN('Hello'):", isNaN("Hello"));
+  console.log("Number.isNaN('Hello'):", Number.isNaN("Hello"));
+  console.log("Number.isNaN(marks):", Number.isNaN(marks));
+  console.log("isInteger:", Number.isInteger(5), Number.isInteger(5.5), Number.isInteger("5"));
+&lt;/script&gt;</pre>
+  <p>Expected: <code>25 NaN 25 3.14</code>, one per line; <code>NaN</code>, <code>42</code> and <code>42.5</code> for the three readers; <code>0</code>, <code>NaN</code> and <code>1</code> for the disagreements; then <code>marks: NaN</code>, <code>true</code>, <code>false</code>, <code>true</code> and <code>isInteger: true false false</code>.</p>
+</section>
+
+<section id="s6">
+  <h2>46.6 The Math toolbox</h2>
+  <p>JavaScript has a built-in object called <code>Math</code>, holding ready-made maths functions and constants. You just write <code>Math</code>, a dot and the name: <code>Math.round(4.7)</code>, <code>Math.PI</code>. (An object is a bundle of named values; Chapter 51 builds your own.)</p>
+  <h3>Four ways to get a whole number</h3>
+  <table class="tbl">
+    <thead><tr><th>Function</th><th>Rule</th><th>4.7</th><th>4.2</th><th>&minus;4.7</th></tr></thead>
+    <tbody>
+      <tr><td><code>Math.round(x)</code></td><td>nearest whole number; a .5 goes up</td><td>5</td><td>4</td><td>&minus;5</td></tr>
+      <tr><td><code>Math.floor(x)</code></td><td>always down</td><td>4</td><td>4</td><td>&minus;5</td></tr>
+      <tr><td><code>Math.ceil(x)</code></td><td>always up</td><td>5</td><td>5</td><td>&minus;4</td></tr>
+      <tr><td><code>Math.trunc(x)</code></td><td>chop off the decimals (towards zero)</td><td>4</td><td>4</td><td>&minus;4</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 252" role="img" aria-label="Two number lines. 4.7 goes down to 4 with floor and trunc, up to 5 with ceil and round. Minus 4.7 goes down to minus 5 with floor and round, up to minus 4 with ceil and trunc.">
+      <text x="170" y="22" class="t c b">4.7 lies between 4 and 5</text>
+      <text x="450" y="22" class="t c b">&#8722;4.7 lies between &#8722;5 and &#8722;4</text>
+      <path d="M310 34 L310 204" class="edge dash"/>
+      <text x="137" y="54" class="t c s">floor, trunc</text>
+      <path d="M214 62 L66 62" class="edge" marker-end="url(#arr)"/>
+      <text x="246" y="54" class="t c s">ceil, round</text>
+      <path d="M214 62 L274 62" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M214 68 L214 92" class="edge dash"/>
+      <path d="M60 100 L280 100 M60 92 L60 108 M280 92 L280 108" class="edge"/>
+      <circle cx="214" cy="100" r="6" fill="#E07B1E"/>
+      <text x="60" y="126" class="t c b">4</text>
+      <text x="214" y="126" class="t c b mono">4.7</text>
+      <text x="280" y="126" class="t c b">5</text>
+      <text x="170" y="146" class="t c s">(zero is off to the left)</text>
+      <text x="100" y="174" class="t c mono" style="font-size:12px">floor &#8594; 4</text>
+      <text x="100" y="194" class="t c mono" style="font-size:12px">trunc &#8594; 4</text>
+      <text x="240" y="174" class="t c mono" style="font-size:12px">ceil &#8594; 5</text>
+      <text x="240" y="194" class="t c mono" style="font-size:12px">round &#8594; 5</text>
+      <text x="374" y="54" class="t c s">floor, round</text>
+      <path d="M406 62 L346 62" class="edge" marker-end="url(#arr)"/>
+      <text x="482" y="54" class="t c s">ceil, trunc</text>
+      <path d="M406 62 L554 62" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M406 68 L406 92" class="edge dash"/>
+      <path d="M340 100 L560 100 M340 92 L340 108 M560 92 L560 108" class="edge"/>
+      <circle cx="406" cy="100" r="6" fill="#E07B1E"/>
+      <text x="340" y="126" class="t c b">&#8722;5</text>
+      <text x="406" y="126" class="t c b mono">&#8722;4.7</text>
+      <text x="560" y="126" class="t c b">&#8722;4</text>
+      <text x="450" y="146" class="t c s">(zero is off to the right)</text>
+      <text x="390" y="174" class="t c mono" style="font-size:12px">floor &#8594; &#8722;5</text>
+      <text x="390" y="194" class="t c mono" style="font-size:12px">round &#8594; &#8722;5</text>
+      <text x="520" y="174" class="t c mono" style="font-size:12px">ceil &#8594; &#8722;4</text>
+      <text x="520" y="194" class="t c mono" style="font-size:12px">trunc &#8594; &#8722;4</text>
+      <text x="310" y="228" class="t c s">floor always goes down the number line and ceil always goes up;</text>
+      <text x="310" y="244" class="t c s">trunc chops the decimals off (towards zero); round goes to the nearest whole number.</text>
+    </svg>
+    <figcaption><b>Figure 46.2</b> For positive numbers <code>floor</code> and <code>trunc</code> agree. For negative numbers they part company: <code>floor</code> still goes down, away from zero, while <code>trunc</code> heads towards zero.</figcaption>
+  </figure>
+  <p>"A .5 goes up" means up the number line: <code>Math.round(2.5)</code> is 3, but <code>Math.round(-2.5)</code> is &minus;2. To round to decimal places and <b>keep a number</b> (unlike <code>toFixed</code>), multiply, round and divide: <code>Math.round(3.14159 * 100) / 100</code> is <code>3.14</code>.</p>
+  <h3>Biggest, smallest, size, powers and roots</h3>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>Math.max(85, 92, 78)</code></td><td><code>92</code></td><td>The largest of any number of values</td></tr>
+      <tr><td><code>Math.min(85, 92, 78)</code></td><td><code>78</code></td><td>The smallest</td></tr>
+      <tr><td><code>Math.abs(-7)</code></td><td><code>7</code></td><td>The size without the sign (the absolute value)</td></tr>
+      <tr><td><code>Math.pow(2, 10)</code></td><td><code>1024</code></td><td>2 to the power 10, the same as <code>2 ** 10</code></td></tr>
+      <tr><td><code>Math.sqrt(144)</code></td><td><code>12</code></td><td>Square root; <code>Math.sqrt(-1)</code> is <code>NaN</code></td></tr>
+      <tr><td><code>Math.PI</code></td><td><code>3.141592653589793</code></td><td>The constant &pi;, a property, so no brackets</td></tr>
+    </tbody>
+  </table>
+  <h3>Random numbers</h3>
+  <p><code>Math.random()</code> returns a new random decimal on every call, from 0 up to <b>but never including</b> 1: perhaps 0.7391&hellip;, then 0.0528&hellip;. To turn that into a dice roll, take four steps:</p>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th>Code</th><th>Possible values</th></tr></thead>
+    <tbody>
+      <tr><td>1. A random decimal</td><td><code>Math.random()</code></td><td>0 to 0.999&hellip;</td></tr>
+      <tr><td>2. Stretch it by 6</td><td><code>Math.random() * 6</code></td><td>0 to 5.999&hellip;</td></tr>
+      <tr><td>3. Chop the decimals</td><td><code>Math.floor(Math.random() * 6)</code></td><td>0, 1, 2, 3, 4 or 5</td></tr>
+      <tr><td>4. Shift up by 1</td><td><code>Math.floor(Math.random() * 6) + 1</code></td><td>1, 2, 3, 4, 5 or 6</td></tr>
+    </tbody>
+  </table>
+  <p>The general recipe, for any two limits:</p>
+  <pre class="code">// a random whole number from min to max, both included
+Math.floor(Math.random() * (max - min + 1)) + min</pre>
+  <p><code>max - min + 1</code> is <i>how many</i> different answers you want. From 10 to 20 there are 11 numbers, not 10; forget the <code>+ 1</code> and 20 can never come up.</p>
+  <div class="plain"><p>Stretch, chop, shift. Multiply the random decimal by how many answers you want, chop off the decimals with <code>Math.floor</code>, then add the smallest answer.</p></div>
+  <div class="callout warn"><b>Why not Math.round?</b> <code>Math.round(Math.random() * 6)</code> gives 0 to 6 &mdash; seven answers, not six &mdash; and 0 and 6 come up only half as often as the rest, because only half a step rounds to each of them. Use <code>Math.floor</code>.</div>
+  <details class="qc"><summary>Quick check: what are <code>Math.floor(-2.5)</code> and <code>Math.trunc(-2.5)</code>?</summary><p><code>-3</code> and <code>-2</code>. <code>floor</code> always goes down the number line, and below &minus;2.5 comes &minus;3. <code>trunc</code> just chops off the <code>.5</code>, which moves towards zero.</p></details>
+  <pre class="code" data-run data-title="The Math toolbox - and a dice to roll" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  button { font: inherit; font-weight: 700; padding: 8px 16px; border: 0;
+           border-radius: 8px; background: #0B2545; color: #fff; cursor: pointer; }
+  #face { font-size: 44px; font-weight: 800; margin: 6px 0; }
+&lt;/style&gt;
+&lt;button id="roll"&gt;Roll the dice&lt;/button&gt;
+&lt;p id="face"&gt;?&lt;/p&gt;
+&lt;script&gt;
+  // four ways to get a whole number: 4.7, 4.2 and -4.7
+  console.log(`round: ${Math.round(4.7)} ${Math.round(4.2)} ${Math.round(-4.7)}`);
+  console.log(`floor: ${Math.floor(4.7)} ${Math.floor(4.2)} ${Math.floor(-4.7)}`);
+  console.log(`ceil: ${Math.ceil(4.7)} ${Math.ceil(4.2)} ${Math.ceil(-4.7)}`);
+  console.log(`trunc: ${Math.trunc(4.7)} ${Math.trunc(4.2)} ${Math.trunc(-4.7)}`);
+
+  // round to 2 places and keep a number
+  console.log("2 places:", Math.round(3.14159 * 100) / 100);
+
+  // biggest, smallest, size, power, root
+  console.log("max:", Math.max(85, 92, 78), "min:", Math.min(85, 92, 78));
+  console.log("abs:", Math.abs(-7), "pow:", Math.pow(2, 10), "sqrt:", Math.sqrt(144));
+
+  // a random decimal from 0 up to (not including) 1
+  console.log("random():", Math.random());
+
+  // a random whole number from min to max, both included
+  const min = 1;
+  const max = 6;
+  console.log("A dice roll:", Math.floor(Math.random() * (max - min + 1)) + min);
+
+  // The button. "() =&gt; { ... }" is a function (Chapter 48), and
+  // addEventListener runs it on every click (Chapter 57).
+  document.getElementById("roll").addEventListener("click", () =&gt; {
+    const roll = Math.floor(Math.random() * (max - min + 1)) + min;
+    document.getElementById("face").textContent = roll;
+    console.log("Rolled", roll);
+  });
+&lt;/script&gt;</pre>
+  <p>The first lines are fixed: <code>round: 5 4 -5</code>, <code>floor: 4 4 -5</code>, <code>ceil: 5 5 -4</code>, <code>trunc: 4 4 -4</code>, <code>2 places: 3.14</code>, <code>max: 92 min: 78</code> and <code>abs: 7 pow: 1024 sqrt: 12</code>. The random lines change every time you press Run. Click the button a dozen times: you will see every face from 1 to 6, and never 0 or 7.</p>
+</section>
+
+<section id="s7">
+  <h2>46.7 Worked example: marks, percentages and prices</h2>
+  <p>The slide names the everyday uses: marks and percentages, prices and discounts, counting. Here is a results page, step by step. Asha's five subject marks, each out of 100, are 78, 85, 92, 66 and 81.</p>
+  <pre class="code">const total = 78 + 85 + 92 + 66 + 81;        // 402
+const maximum = 5 * 100;                      // 500
+const percentage = total / maximum * 100;     // 80.4
+console.log(`${percentage.toFixed(1)}%`);     // 80.4%</pre>
+  <p>A percentage is <i>part divided by whole, times 100</i>; <code>/</code> and <code>*</code> run left to right, so 402 &divide; 500 is 0.804, then times 100 is 80.4. The <code>%</code> inside the backticks is only text, not the remainder operator.</p>
+  <p>The result is a yes-or-no question, so it is a boolean:</p>
+  <pre class="code">const hasPassed = percentage &gt;= 40;           // true
+const distinction = percentage &gt;= 75;         // true
+console.log(hasPassed ? "PASS" : "FAIL");     // PASS - the ternary from Chapter 44</pre>
+  <p>Turning 80.4 into a letter grade &mdash; O, A+, A, B &mdash; needs a ladder of decisions, which is where Chapter 47 begins. Math already helps with <i>how many more marks for a distinction?</i> 75% of 500 is 375; half a mark cannot be scored, and a negative shortfall should show as 0:</p>
+  <pre class="code">const needed = Math.max(0, Math.ceil(maximum * 0.75 - total));   // 0 for Asha</pre>
+  <p>Prices work the same way. A &#8377;1299 shirt with 15% off: the discount is <code>1299 * 15 / 100</code>, or 194.85, so you pay 1104.15. Show money with <code>toFixed(2)</code>, so that &#8377;59.5 appears as &#8377;59.50.</p>
+  <p>Now all of it together, plus a small calculator that reads two boxes and converts them with <code>Number()</code>. The button is wired as in section 46.6.</p>
+  <pre class="code" data-run data-title="Build it: a result calculator - try 350, then eighty, then an empty box" data-h="300" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  label { display: inline-block; margin: 0 12px 8px 0; font-weight: 700; }
+  input { width: 70px; padding: 6px 8px; font-size: 15px;
+          border: 1px solid #94A3B8; border-radius: 8px; }
+  button { font: inherit; font-weight: 700; padding: 8px 16px; border: 0;
+           border-radius: 8px; background: #E07B1E; color: #fff; cursor: pointer; }
+  pre { background: #F1F5F9; padding: 10px 12px; border-radius: 8px; font-size: 14px; }
+&lt;/style&gt;
+&lt;label&gt;Marks obtained &lt;input id="got" value="402"&gt;&lt;/label&gt;
+&lt;label&gt;Out of &lt;input id="max" value="500"&gt;&lt;/label&gt;
+&lt;button id="go"&gt;Work it out&lt;/button&gt;
+&lt;pre id="out"&gt;Press the button.&lt;/pre&gt;
+&lt;script&gt;
+  // Asha's five subjects, each out of 100
+  const total = 78 + 85 + 92 + 66 + 81;
+  const percentage = total / 500 * 100;
+  console.log("Total:", total, "Percentage:", percentage.toFixed(1) + "%");
+  console.log("Best:", Math.max(78, 85, 92, 66, 81), "Weakest:", Math.min(78, 85, 92, 66, 81));
+  const hasPassed = percentage &gt;= 40;
+  const distinction = percentage &gt;= 75;
+  console.log("Passed:", hasPassed, "Distinction:", distinction, hasPassed ? "PASS" : "FAIL");
+
+  // a 15% discount on a &#8377;1299 shirt
+  const price = 1299;
+  const discount = price * 15 / 100;
+  console.log("Discount:", discount, "To pay:", "&#8377;" + (price - discount).toFixed(2));
+
+  // the calculator: the same steps on whatever is typed
+  document.getElementById("go").addEventListener("click", () =&gt; {
+    const got = Number(document.getElementById("got").value);   // text to number
+    const max = Number(document.getElementById("max").value);
+    const pct = got / max * 100;
+    const needed = Math.max(0, Math.ceil(max * 0.75 - got));     // short of 75%
+    document.getElementById("out").textContent =
+      `Percentage:  ${pct.toFixed(1)}%\n` +
+      `Passed:      ${pct &gt;= 40}\n` +
+      `Distinction: ${pct &gt;= 75}\n` +
+      `Short of 75% by ${needed} marks\n` +
+      `Typed a real number? ${!Number.isNaN(got)}`;
+    console.log("got:", got, "max:", max, "pct:", pct);
+  });
+&lt;/script&gt;</pre>
+  <p>The Console starts with <code>Total: 402 Percentage: 80.4%</code>, <code>Best: 92 Weakest: 66</code>, <code>Passed: true Distinction: true PASS</code> and <code>Discount: 194.85 To pay: &#8377;1104.15</code>. Press the button and the box shows 80.4%, <code>true</code>, <code>true</code> and a shortfall of 0. Now experiment:</p>
+  <ul>
+    <li>Type <b>350</b>: 70.0%, passed, no distinction, short by 25 marks.</li>
+    <li>Type <b>eighty</b>: <code>Number("eighty")</code> is <code>NaN</code>, and it spreads &mdash; <code>NaN%</code>, <code>false</code>, <code>false</code>, short by <code>NaN</code>, and <code>Typed a real number? false</code>.</li>
+    <li>Empty the first box: <code>Number("")</code> is <code>0</code>, so the calculator cheerfully reports 0.0% and says you typed a real number. That is the empty-string trap from section 46.4.</li>
+    <li>Type <b>0</b> in <i>Out of</i>: 402 &divide; 0 is <code>Infinity</code>, so the box shows <code>Infinity%</code> &mdash; and awards a distinction.</li>
+  </ul>
+  <p>Each odd answer is input your program should refuse; Chapter 47's <code>if</code> statement does that.</p>
+</section>
+
+<section id="s8">
+  <h2>46.8 Boolean values: true and false</h2>
+  <p>A boolean has exactly two possible values, <code>true</code> and <code>false</code>, and is named after George Boole, who worked out the algebra of yes and no. Both are reserved words, written without quotes, and each answers a yes-or-no question. The slide's examples: <i>Is the student eligible? Has the user logged in? Are the marks at least 40? Is the product available?</i></p>
+  <pre class="code">const isLoggedIn = true;
+const isAvailable = false;
+console.log(typeof isLoggedIn);    // boolean</pre>
+  <p>Booleans are rarely typed by hand. Mostly they come out of comparisons, which always produce one (Chapter 44). The slide's example:</p>
+  <pre class="code">const marks = 85;
+const passingMarks = 40;
+console.log(marks &gt;= passingMarks);    // true
+console.log(marks &lt; passingMarks);     // false
+console.log(marks === 85);             // true</pre>
+  <p>Store such an answer in a variable named like a question &mdash; <code>isEligible</code>, <code>hasPassed</code>, <code>canVote</code> &mdash; so that the code reads like English: <code>const hasPassed = marks &gt;= passingMarks;</code>. Chapter 47's <code>if (hasPassed)</code> then says exactly what it means.</p>
+  <p><b><code>true</code> is not <code>"true"</code>.</b> With quotes it is a four-letter string, so <code>true === "true"</code> is <code>false</code>. Values read from an input box's <code>value</code> or from browser storage (Chapter 64) arrive as the <i>text</i> <code>"true"</code> or <code>"false"</code>, and the text <code>"false"</code> does not behave like <code>false</code> (section 46.9). Compare to get a real boolean: <code>const isDark = saved === "true";</code></p>
+</section>
+
+<section id="s9">
+  <h2>46.9 Truthy and falsy: Boolean() and the falsy eight</h2>
+  <p>Booleans are not the only values that can answer a yes-or-no question. Wherever JavaScript expects <code>true</code> or <code>false</code> &mdash; in the condition of an <code>if</code> (Chapter 47), and around <code>&amp;&amp;</code>, <code>||</code> and <code>!</code> (Chapter 44) &mdash; it accepts <i>any</i> value and treats it as true or false. <code>Boolean(value)</code> does the same conversion out loud, so you can see the result:</p>
+  <pre class="code">console.log(Boolean(1));         // true
+console.log(Boolean("Asha"));    // true
+console.log(Boolean(0));         // false
+console.log(Boolean(""));        // false</pre>
+  <p>The rule is short. There are exactly eight <span class="jw" data-def="A value that behaves like false wherever a yes-or-no answer is expected. There are exactly eight of them.">falsy</span> values. Every other value in JavaScript is <span class="jw" data-def="A value that behaves like true wherever a yes-or-no answer is expected: anything that is not one of the eight falsy values.">truthy</span>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 232" role="img" aria-label="Left box: the eight falsy values false, 0, -0, 0n, empty string, null, undefined, NaN. Right box: truthy examples such as the string 0, a space, the string false, -1, 3.14, Infinity, an empty array and an empty object.">
+      <text x="155" y="24" class="t c b">FALSY &#8212; exactly eight values</text>
+      <text x="465" y="24" class="t c b">TRUTHY &#8212; everything else</text>
+      <rect x="20" y="36" width="270" height="162" rx="12" class="box red"/>
+      <rect x="330" y="36" width="270" height="162" rx="12" class="box grn"/>
+      <rect x="38" y="50" width="110" height="28" rx="6" class="box"/>
+      <rect x="38" y="86" width="110" height="28" rx="6" class="box"/>
+      <rect x="38" y="122" width="110" height="28" rx="6" class="box"/>
+      <rect x="38" y="158" width="110" height="28" rx="6" class="box"/>
+      <rect x="162" y="50" width="110" height="28" rx="6" class="box"/>
+      <rect x="162" y="86" width="110" height="28" rx="6" class="box"/>
+      <rect x="162" y="122" width="110" height="28" rx="6" class="box"/>
+      <rect x="162" y="158" width="110" height="28" rx="6" class="box"/>
+      <text x="93" y="69" class="t c b mono">false</text>
+      <text x="93" y="105" class="t c b mono">0</text>
+      <text x="93" y="141" class="t c b mono">-0</text>
+      <text x="93" y="177" class="t c b mono">0n</text>
+      <text x="217" y="69" class="t c b mono">""</text>
+      <text x="217" y="105" class="t c b mono">null</text>
+      <text x="217" y="141" class="t c b mono">undefined</text>
+      <text x="217" y="177" class="t c b mono">NaN</text>
+      <rect x="348" y="50" width="110" height="28" rx="6" class="box"/>
+      <rect x="348" y="86" width="110" height="28" rx="6" class="box"/>
+      <rect x="348" y="122" width="110" height="28" rx="6" class="box"/>
+      <rect x="348" y="158" width="110" height="28" rx="6" class="box"/>
+      <rect x="472" y="50" width="110" height="28" rx="6" class="box"/>
+      <rect x="472" y="86" width="110" height="28" rx="6" class="box"/>
+      <rect x="472" y="122" width="110" height="28" rx="6" class="box"/>
+      <rect x="472" y="158" width="110" height="28" rx="6" class="box"/>
+      <text x="403" y="69" class="t c b mono">"0"</text>
+      <text x="403" y="105" class="t c b mono">" "</text>
+      <text x="403" y="141" class="t c b mono">"false"</text>
+      <text x="403" y="177" class="t c b mono">-1</text>
+      <text x="527" y="69" class="t c b mono">3.14</text>
+      <text x="527" y="105" class="t c b mono">Infinity</text>
+      <text x="527" y="141" class="t c b mono">[]</text>
+      <text x="527" y="177" class="t c b mono">{}</text>
+      <text x="310" y="222" class="t c s">Boolean(value) tells you which side a value is on. Anything not on the left is on the right.</text>
+    </svg>
+    <figcaption><b>Figure 46.3</b> Learn the short list. Eight values are falsy; everything else is truthy, including text that <i>looks</i> like zero or false and an empty list or object.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Falsy value</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><code>false</code></td><td>The boolean itself</td></tr>
+      <tr><td><code>0</code> and <code>-0</code></td><td>Zero, and minus zero (from calculations such as <code>Math.round(-0.4)</code>; it behaves like 0)</td></tr>
+      <tr><td><code>0n</code></td><td>The BigInt zero (section 46.1)</td></tr>
+      <tr><td><code>""</code></td><td>The empty string</td></tr>
+      <tr><td><code>null</code></td><td>"Deliberately empty"</td></tr>
+      <tr><td><code>undefined</code></td><td>"Never given a value"</td></tr>
+      <tr><td><code>NaN</code></td><td>The not-a-number result (section 46.2)</td></tr>
+    </tbody>
+  </table>
+  <p>The surprises are all on the truthy side: <code>"0"</code> (a string holding the digit zero), <code>" "</code> (one space), <code>"false"</code> (five letters), <code>-1</code>, and an empty list <code>[]</code> or object <code>{}</code> (Chapters 50 and 51). An empty box is still a box: a value not among the eight is truthy, however empty or negative it looks. (Strictly, browsers keep one fossil falsy as well &mdash; the obsolete <code>document.all</code> object, so that very old pages still work. You will never need it.)</p>
+  <div class="plain"><p>Memorise the short list, not the long one. False, the three zeros (<code>0</code>, <code>-0</code>, <code>0n</code>), the empty string, <code>null</code>, <code>undefined</code> and <code>NaN</code> count as <i>no</i>. Everything else counts as <i>yes</i>.</p></div>
+  <p>You will also meet <code>!!value</code>, a shortcut for <code>Boolean(value)</code>: the first <code>!</code> converts and flips, the second flips it back. <code>!!"Asha"</code> is <code>true</code>.</p>
+  <p>You have met this rule already: <code>typedName || "Guest"</code> works because <code>""</code> is falsy, and a real score of 0 needed <code>??</code> because 0 is falsy too (Chapter 44). In Chapter 47, <code>if (typedName)</code> will mean <i>"if something was typed"</i>.</p>
+  <div class="callout exam"><b>Exam tip.</b> Options in quotes are the favourite trap. <code>"0"</code>, <code>" "</code> and <code>"false"</code> are non-empty strings, so they are <b>truthy</b>; so are <code>[]</code> and <code>{}</code>. Only <code>""</code>, with nothing at all between the quotes, is falsy.</div>
+  <details class="qc"><summary>Quick check: what are <code>Boolean("0")</code> and <code>Boolean(0)</code>?</summary><p><code>true</code> and <code>false</code>. <code>"0"</code> is a string with one character in it, so it is not on the falsy list. The number <code>0</code> is.</p></details>
+  <pre class="code" data-run data-title="Booleans, comparisons and the falsy eight - add your own values" data-h="140">&lt;p&gt;Press Run and read the Console below.&lt;/p&gt;
+&lt;script&gt;
+  // the slide's comparisons
+  const marks = 85;
+  const passingMarks = 40;
+  console.log(marks &gt;= passingMarks);
+  console.log(marks &lt; passingMarks);
+  console.log(marks === 85);
+
+  // store the answer in a question-shaped name
+  const hasPassed = marks &gt;= passingMarks;
+  console.log("hasPassed:", hasPassed, typeof hasPassed);
+  console.log('true === "true":', true === "true");
+
+  // the falsy eight
+  console.log("falsy:", Boolean(false), Boolean(0), Boolean(-0), Boolean(0n));
+  console.log("falsy:", Boolean(""), Boolean(null), Boolean(undefined), Boolean(NaN));
+
+  // everything else is truthy
+  console.log("truthy:", Boolean("0"), Boolean(" "), Boolean("false"), Boolean(-1));
+  console.log("truthy:", Boolean([]), Boolean({}), Boolean(Infinity));
+
+  // !! is a shortcut for Boolean()
+  console.log("!!:", !!"Asha", !!0);
+&lt;/script&gt;</pre>
+  <p>Expected: <code>true</code>, <code>false</code>, <code>true</code>, <code>hasPassed: true boolean</code>, <code>true === "true": false</code>, two <code>falsy:</code> lines of four <code>false</code>s, two <code>truthy:</code> lines of nothing but <code>true</code>, and <code>!!: true false</code>.</p>
+</section>
+
+<section id="mistakes">
+  <h2>46.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>0.1 + 0.2</code> is exactly <code>0.3</code>."</b><br>It is <code>0.30000000000000004</code>, because 0.1 and 0.2 are stored only very nearly. <code>0.1 + 0.2 === 0.3</code> is <code>false</code>.</div>
+    <div class="r"><b>&#10003; "Round for display, and compare decimals with a small tolerance."</b><br><code>sum.toFixed(2)</code> shows <code>0.30</code>; <code>Math.abs(sum - 0.3) &lt; 0.000001</code> tests closeness.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>toFixed(2)</code> gives me a rounded number."</b><br>It gives a string, so <code>(0.3).toFixed(2) + 1</code> is <code>"0.301"</code>.</div>
+    <div class="r"><b>&#10003; "<code>toFixed</code> is for showing; <code>Math.round(x * 100) / 100</code> rounds and keeps a number."</b><br>Or wrap it: <code>Number(x.toFixed(2))</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>Number()</code> and <code>parseInt()</code> do the same thing."</b><br><code>Number("42px")</code> is <code>NaN</code> but <code>parseInt("42px", 10)</code> is 42; <code>Number("")</code> is 0 but <code>parseInt("", 10)</code> is <code>NaN</code>; <code>parseInt</code> drops decimals.</div>
+    <div class="r"><b>&#10003; "<code>Number</code> needs the whole text; <code>parseInt</code>/<code>parseFloat</code> read a number off the front."</b><br>Use <code>Number</code> for input boxes, <code>parseFloat</code> for values with units.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>x === NaN</code> tells me whether <code>x</code> is NaN."</b><br>It is always <code>false</code>: <code>NaN</code> equals nothing, not even itself.</div>
+    <div class="r"><b>&#10003; "<code>Number.isNaN(x)</code> is the test."</b><br>Not the older <code>isNaN(x)</code>, which converts first and calls <code>"Hello"</code> NaN.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>"0"</code>, <code>"false"</code> and <code>[]</code> are falsy."</b><br>A non-empty string and an empty list are both truthy.</div>
+    <div class="r"><b>&#10003; "Only eight values are falsy: <code>false</code>, <code>0</code>, <code>-0</code>, <code>0n</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, <code>NaN</code>."</b><br>Everything else is truthy.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most are four-option questions with exactly one correct answer; the last two ask you to predict the output.</p>
+  <details class="q"><summary>What does <code>typeof NaN</code> return?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. "NaN"</li><li>B. "number"</li><li>C. "undefined"</li><li>D. "object"</li></ul>
+    <p><b>Answer: B.</b> <code>NaN</code> is a special value of the number type. A is tempting because of the name, but <code>typeof</code> never returns <code>"NaN"</code>.</p></div></details>
+  <details class="q"><summary>What does <code>console.log(0.1 + 0.2 === 0.3);</code> print?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. true</li><li>B. 0.3</li><li>C. false</li><li>D. A SyntaxError</li></ul>
+    <p><b>Answer: C.</b> 0.1 and 0.2 are stored only very nearly, so their sum is <code>0.30000000000000004</code>, which is not the stored value of 0.3. B is wrong because <code>===</code> always gives a boolean.</p></div></details>
+  <details class="q"><summary>What does <code>parseInt("25px", 10)</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 25</li><li>B. NaN</li><li>C. "25"</li><li>D. 25px</li></ul>
+    <p><b>Answer: A.</b> <code>parseInt</code> reads digits from the left, stops at the <i>p</i> and returns the number 25. B is what <code>Number("25px")</code> gives; C is a string, but <code>parseInt</code> always returns a number.</p></div></details>
+  <details class="q"><summary>Which call turns the text <code>"42.5px"</code> into the number 42.5?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>Number("42.5px")</code></li><li>B. <code>parseInt("42.5px", 10)</code></li><li>C. <code>Boolean("42.5px")</code></li><li>D. <code>parseFloat("42.5px")</code></li></ul>
+    <p><b>Answer: D.</b> <code>parseFloat</code> reads from the left, accepts one decimal point and stops at the <i>p</i>. A gives <code>NaN</code> because the whole text is not a number; B stops at the dot and gives 42; C gives <code>true</code>.</p></div></details>
+  <details class="q"><summary>What do <code>isNaN("Hello")</code> and <code>Number.isNaN("Hello")</code> return, in that order?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. true, true</li><li>B. false, false</li><li>C. false, true</li><li>D. true, false</li></ul>
+    <p><b>Answer: D.</b> <code>isNaN</code> converts first: <code>Number("Hello")</code> is <code>NaN</code>, so it says true. <code>Number.isNaN</code> does not convert, and the string <code>"Hello"</code> is not the value <code>NaN</code>, so it says false.</p></div></details>
+  <details class="q"><summary>What does <code>Math.floor(-4.2)</code> return?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. -4</li><li>B. 4</li><li>C. -5</li><li>D. -4.2</li></ul>
+    <p><b>Answer: C.</b> <code>floor</code> always goes down the number line, and the next whole number below &minus;4.2 is &minus;5. A is what <code>Math.trunc</code> or <code>Math.ceil</code> would give, because they move towards zero here.</p></div></details>
+  <details class="q"><summary>Which expression gives a random whole number from 1 to 6, each equally likely?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>Math.random() * 6</code></li><li>B. <code>Math.floor(Math.random() * 6) + 1</code></li><li>C. <code>Math.floor(Math.random() * 6)</code></li><li>D. <code>Math.round(Math.random() * 6)</code></li></ul>
+    <p><b>Answer: B.</b> Stretch by 6, chop to 0&ndash;5 with <code>floor</code>, shift by 1. A gives decimals; C gives 0 to 5; D gives 0 to 6, with 0 and 6 only half as likely as the rest.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const p = (2.456).toFixed(2); console.log(p, typeof p);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 2.46 string</li><li>B. 2.46 number</li><li>C. 2.45 string</li><li>D. 2.5 string</li></ul>
+    <p><b>Answer: A.</b> <code>toFixed(2)</code> rounds to two places (2.456 becomes 2.46, not 2.45) and returns the result as a <b>string</b>. B is the commonest wrong belief about <code>toFixed</code>.</p></div></details>
+  <details class="q"><summary>What does <code>Boolean("false")</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. false</li><li>B. "false"</li><li>C. NaN</li><li>D. true</li></ul>
+    <p><b>Answer: D.</b> <code>"false"</code> is a five-letter string, and only the empty string is falsy. <code>Boolean</code> always returns a real boolean, so B and C are impossible.</p></div></details>
+  <details class="q"><summary>Which of these gives the number 0?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>parseInt("", 10)</code></li><li>B. <code>Number("")</code></li><li>C. <code>parseFloat("")</code></li><li>D. <code>Number("zero")</code></li></ul>
+    <p><b>Answer: B.</b> <code>Number</code> treats an empty string as 0 &mdash; the empty-box trap. <code>parseInt</code> and <code>parseFloat</code> find no digits and return <code>NaN</code>, and D is <code>NaN</code> because <code>"zero"</code> is a word.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>console.log(10 / 0, -10 / 0, 0 / 0);</code><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: <code>Infinity -Infinity NaN</code>.</b> Dividing a non-zero number by zero gives <code>Infinity</code> with the matching sign; <code>0 / 0</code> has no answer at all, so it is <code>NaN</code>. None of them is an error.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>const total = 402; const pct = total / 500 * 100; console.log(pct.toFixed(1), pct &gt;= 40, Math.ceil(375 - total));</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>80.4 true -27</code>.</b> 402 &divide; 500 &times; 100 is 80.4, shown as the string <code>"80.4"</code>; 80.4 &gt;= 40 is <code>true</code>; 375 &minus; 402 is &minus;27, already whole, so <code>Math.ceil</code> leaves it alone. That negative shortfall is why section 46.7 wraps it in <code>Math.max(0, ...)</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>One number type holds integers and decimals as double-precision floating point, exact for whole numbers up to <code>Number.MAX_SAFE_INTEGER</code>; BigInt (<code>10n</code>) goes beyond.</li>
+    <li><code>10 / 0</code> is <code>Infinity</code>; <code>0 / 0</code> and <code>Number("Hello")</code> are <code>NaN</code>, whose type is <code>"number"</code>. <code>NaN</code> spreads through sums and <code>NaN === NaN</code> is false.</li>
+    <li>Decimals such as 0.1 are stored very nearly, so <code>0.1 + 0.2</code> is <code>0.30000000000000004</code>. <code>toFixed(n)</code> rounds for display and returns a <b>string</b>.</li>
+    <li><code>Number()</code> needs the whole text to be a number (and turns <code>""</code> into 0). <code>parseInt(t, 10)</code> reads a whole number off the front; <code>parseFloat(t)</code> reads a decimal off the front.</li>
+    <li><code>Number.isNaN</code> and <code>Number.isInteger</code> never convert; the older <code>isNaN</code> converts first, so <code>isNaN("Hello")</code> is true.</li>
+    <li><code>Math.round</code>, <code>floor</code> (down), <code>ceil</code> (up) and <code>trunc</code> (towards zero) make whole numbers. A random whole number from min to max is <code>Math.floor(Math.random() * (max - min + 1)) + min</code>.</li>
+    <li>Comparisons produce booleans, <code>true</code> or <code>false</code>. Eight values are falsy &mdash; <code>false</code>, <code>0</code>, <code>-0</code>, <code>0n</code>, <code>""</code>, <code>null</code>, <code>undefined</code>, <code>NaN</code> &mdash; and everything else, even <code>"0"</code>, <code>"false"</code> and <code>[]</code>, is truthy.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>10 / 3</code></td><td><code>3.3333333333333335</code></td></tr>
+      <tr><td><code>10 / 0</code> / <code>0 / 0</code></td><td><code>Infinity</code> / <code>NaN</code></td></tr>
+      <tr><td><code>0.1 + 0.2</code></td><td><code>0.30000000000000004</code></td></tr>
+      <tr><td><code>(2.456).toFixed(2)</code></td><td><code>"2.46"</code> &mdash; a string</td></tr>
+      <tr><td><code>Number("42px")</code></td><td><code>NaN</code></td></tr>
+      <tr><td><code>parseInt("42.5px", 10)</code></td><td><code>42</code></td></tr>
+      <tr><td><code>parseFloat("42.5px")</code></td><td><code>42.5</code></td></tr>
+      <tr><td><code>Number("")</code></td><td><code>0</code></td></tr>
+      <tr><td><code>isNaN("Hello")</code> / <code>Number.isNaN("Hello")</code></td><td><code>true</code> / <code>false</code></td></tr>
+      <tr><td><code>Number.isInteger(5.0)</code></td><td><code>true</code></td></tr>
+      <tr><td><code>Math.round(4.5)</code> / <code>Math.round(-4.5)</code></td><td><code>5</code> / <code>-4</code></td></tr>
+      <tr><td><code>Math.floor(-4.7)</code> / <code>Math.ceil(-4.7)</code> / <code>Math.trunc(-4.7)</code></td><td><code>-5</code> / <code>-4</code> / <code>-4</code></td></tr>
+      <tr><td><code>Math.max(85, 92, 78)</code></td><td><code>92</code></td></tr>
+      <tr><td><code>Math.floor(Math.random() * 6) + 1</code></td><td>A whole number from 1 to 6</td></tr>
+      <tr><td><code>Boolean("0")</code> / <code>Boolean(NaN)</code></td><td><code>true</code> / <code>false</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Number" target="_blank" rel="noopener noreferrer">MDN &mdash; Number<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How numbers are stored, the safe-integer limit, and every method from <code>toFixed</code> to <code>Number.isInteger</code>.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Math" target="_blank" rel="noopener noreferrer">MDN &mdash; Math<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The whole toolbox in one list; the <code>Math.random</code> page has the random-integer recipe.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Falsy" target="_blank" rel="noopener noreferrer">MDN &mdash; Falsy<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official list of falsy values, with a short example of each.</span></li>
+    <li><a href="https://javascript.info/number" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Numbers<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a friendly second voice, with small tasks at the end.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

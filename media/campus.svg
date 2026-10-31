@@ -1,0 +1,20 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="600" height="300"
+     viewBox="0 0 600 300" role="img"
+     aria-label="A stylised campus scene, used as the photograph in the CSS background examples">
+  <defs>
+    <linearGradient id="sky" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#8ECAE6"/>
+      <stop offset="1" stop-color="#E9F5FB"/>
+    </linearGradient>
+  </defs>
+  <rect width="600" height="300" fill="url(#sky)"/>
+  <circle cx="497" cy="62" r="34" fill="#FFD166"/>
+  <path d="M0 300 L170 132 L330 300 Z" fill="#6B8E5A"/>
+  <path d="M230 300 L410 104 L600 300 Z" fill="#4F7042"/>
+  <rect x="120" y="196" width="150" height="104" fill="#F1F4F9"/>
+  <rect x="140" y="216" width="26" height="30" fill="#0B2545"/>
+  <rect x="182" y="216" width="26" height="30" fill="#0B2545"/>
+  <rect x="224" y="216" width="26" height="30" fill="#0B2545"/>
+  <rect x="182" y="258" width="26" height="42" fill="#E07B1E"/>
+  <rect x="0" y="286" width="600" height="14" fill="#3F5A36"/>
+</svg>

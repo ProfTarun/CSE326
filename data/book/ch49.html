@@ -1,0 +1,848 @@
+<article class="chapter" data-ch="49">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 49 &middot; Scope</p>
+  <h1>Scope</h1>
+  <p class="lead">Every variable you create lives somewhere. Make it inside a function and only that function can see it; make it at the top of the file and the whole page can. These rules, called scope, explain most "but I did define it!" errors, and two famous surprises: using a variable before the line that creates it, and a function that remembers things after it has finished.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>let</code> and <code>const</code> create variables; <code>var</code> is the older keyword you will still meet in old code and in exam questions (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>The curly braces <code>{ }</code> after an <code>if</code> or <code>else</code> group the lines that run together (<a href="book.html?ch=47">Chapter 47</a>).</li>
+      <li>A function is a named, reusable piece of code; you call it with <code>()</code>, and its parameters receive the values you pass in (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>A function can also be stored in a variable, as a function expression or an arrow function written with <code>=&gt;</code> (<a href="book.html?ch=48">Chapter 48</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say which parts of a program can see a variable, using the words global, function and block scope.</li>
+      <li>Predict what <code>var</code>, <code>let</code> and <code>const</code> do inside an <code>if</code> block and a <code>for</code> loop.</li>
+      <li>Follow the scope chain to work out which variable a name refers to, including when one name shadows another.</li>
+      <li>Predict the output of code that uses a variable or a function before its line (hoisting and the temporal dead zone).</li>
+      <li>Describe the creation and execution phases and draw the call stack for nested function calls.</li>
+      <li>Write a closure, such as a counter or a private wallet balance, and explain why it remembers.</li>
+      <li>Explain why global variables are risky, and fix the classic <code>var</code>-in-a-loop bug.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>49.1 Where can a name be seen?</h2>
+  <p>In Chapter 42 you learned that <code>let marks = 85;</code> creates a name, <code>marks</code>, and attaches a value to it. So far, every name you have made could be used on any later line of your program. That stops being true the moment a variable is created inside a function. Read this and predict the last line before you read on:</p>
+  <pre class="code">function calculate() {
+  const total = 85 + 90;
+  console.log("Inside:", total);     // Inside: 175
+}
+
+calculate();
+console.log("Outside:", total);      // ReferenceError: total is not defined</pre>
+  <p>Inside <code>calculate</code>, <code>total</code> works perfectly. On the last line JavaScript stops with an error: the variable was simply never visible from out there. The region of a program where a name can be seen and used is called its <span class="jw" data-def="The part of a program where a variable or function name can be seen and used.">scope</span>. The scope of <code>total</code> is the function <code>calculate</code>, and the last line is outside it.</p>
+  <p>The error is a <span class="jw" data-def="The error JavaScript throws when a line uses a name it cannot find from where it is, or a name it is not allowed to use yet.">ReferenceError</span>. It is JavaScript saying: <i>you referred to a name, and from where you are standing I cannot find it</i>. You will meet it often in this chapter, always for a reason you can predict.</p>
+  <div class="callout analogy"><b>Picture this.</b> An LPU hostel has notice boards at three levels: one on the door of your room, one in your hostel block's lobby, and the big board at the main gate. When you want the mess timings, you check your own door first, then the block lobby, then the main gate, and you stop at the first notice you find. A notice pinned inside Room 204 can never be read by someone standing at the main gate. JavaScript's scopes work the same way: every function and block has its own board, code reads <b>outward</b> from where it stands, it can never read <b>inward</b>, and a closer notice with the same title hides a farther one.</div>
+  <p>Why hide variables on purpose? Because it makes big programs possible:</p>
+  <ul>
+    <li><b>No trampling.</b> Ten functions can each have their own <code>total</code> without disturbing one another.</li>
+    <li><b>No meddling.</b> Outside code cannot reach in and change a function's working values by accident.</li>
+    <li><b>No clutter.</b> When a function finishes, its variables can normally be thrown away (section 49.8 shows the exception).</li>
+  </ul>
+</section>
+
+<section id="s2">
+  <h2>49.2 Three kinds of scope: global, function and block</h2>
+  <p>In an ordinary script a variable can live in one of three places. (A file loaded as a <i>module</i> gets a fourth, module scope; that belongs to Code Organization in Chapter 73.)</p>
+  <table class="tbl">
+    <thead><tr><th>Scope</th><th>You get it by declaring&hellip;</th><th>Who can see the name</th></tr></thead>
+    <tbody>
+      <tr><td><b>Global scope</b></td><td>outside every function and every block, at the top level of the script</td><td>Everyone: the rest of the script, and the inside of every function</td></tr>
+      <tr><td><b>Function scope</b> (also called <i>local</i> scope)</td><td>inside a function's braces; the function's parameters count too</td><td>Only code inside that function, including functions written inside it</td></tr>
+      <tr><td><b>Block scope</b></td><td>with <code>let</code> or <code>const</code> inside any other pair of braces: the block of an <code>if</code>, <code>else</code>, <code>for</code> or <code>while</code></td><td>Only code inside that block</td></tr>
+    </tbody>
+  </table>
+  <p>A <span class="jw" data-def="Any code between a pair of curly braces, such as the body of an if, an else or a for loop.">block</span> is simply a stretch of code between a pair of curly braces <code>{ }</code>. You have been writing blocks since Chapter 47 every time you wrote an <code>if</code>. Here is one program that uses all three kinds of scope:</p>
+  <pre class="code">const college = "LPU";                     // global scope
+
+function showRoom(dept) {                  // the parameter dept: function scope
+  const floor = 2;                         // function scope
+  if (floor &gt; 1) {
+    let room = "34-201";                   // block scope
+    console.log(college, dept, floor, room);   // LPU CSE 2 34-201
+  }
+  console.log(college, dept, floor);       // LPU CSE 2
+  console.log(room);                       // ReferenceError: room is not defined
+}
+
+showRoom("CSE");</pre>
+  <p>Read it from the inside out. The line inside the <code>if</code> block sees all four names. The line after the block sees three, because <code>room</code> ended at its block's closing brace. Code outside <code>showRoom</code> could see only <code>college</code>. The parameter <code>dept</code> behaves like a variable declared at the top of the function: local to it, and made afresh for every call.</p>
+  <div class="callout why"><b>Key idea.</b> Where a variable is <i>declared</i> decides where it can be <i>used</i>. The nearest pair of curly braces around the declaration is the variable's home. The one exception, <code>var</code>, is the subject of the next section.</div>
+</section>
+
+<section id="s3">
+  <h2>49.3 var is function-scoped; let and const are block-scoped</h2>
+  <p>Your slides put it in two lines. Variables declared with <code>var</code> have <b>function-level scope</b>: they are visible throughout the whole function, whatever blocks they sit in. Variables declared with <code>let</code> and <code>const</code> have <b>block-level scope</b>: they are limited to the block that declares them. The slides' own example:</p>
+  <pre class="code">function exampleFunction() {
+  if (true) {
+    var functionScopedVar = "I am function-scoped";
+  }
+  console.log(functionScopedVar);    // I am function-scoped
+}
+
+exampleFunction();
+console.log(functionScopedVar);      // ReferenceError: functionScopedVar is not defined</pre>
+  <p><code>var</code> ignores the braces of the <code>if</code>, so the line after it can still read the variable. But it <i>does</i> notice the function's braces: outside <code>exampleFunction</code> the name is not defined. Swap <code>var</code> for <code>let</code> (or <code>const</code>) and the variable stays inside the <code>if</code> block:</p>
+  <pre class="code">function exampleFunction() {
+  if (true) {
+    let blockScopedVar = "I am block-scoped";
+  }
+  console.log(blockScopedVar);       // ReferenceError: blockScopedVar is not defined
+}
+
+exampleFunction();</pre>
+  <p>The same rule applies to the counter of a <code>for</code> loop (loops get their own Chapter 52). <code>for (let i = 1; i &lt;= 3; i++) { ... }</code> means: <i>start <code>i</code> at 1; while <code>i</code> is at most 3, run the block; after each run, add 1 to <code>i</code></i>. The block runs with 1, 2 and 3, and the loop stops when <code>i</code> becomes 4. Declared with <code>let</code>, <code>i</code> disappears when the loop ends. Declared with <code>var</code>, it leaks out, still holding the 4 that stopped the loop.</p>
+  <p>To show an error and carry on, the examples use <code>try { ... } catch (err) { ... }</code>: <i>try this block; if it throws, do not stop, hand the error to the catch block as <code>err</code></i>. <code>err.name</code> is the kind of error and <code>err.message</code> its text. Error handling proper is Chapter 70.</p>
+  <pre class="code" data-run data-title="var leaks out of blocks, let stays in - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // 1. var inside an if block belongs to the WHOLE function
+  function varDemo() {
+    if (true) {
+      var message = "made inside the if block";
+    }
+    console.log("1. var after the block:", message);
+  }
+  varDemo();
+
+  // 2. let inside an if block belongs to that block only
+  function letDemo() {
+    if (true) {
+      let note = "made inside the if block";
+      console.log("2. let inside the block:", note);
+    }
+    try {
+      console.log(note);
+    } catch (err) {
+      console.log("3. let after the block threw", err.name + ": " + err.message);
+    }
+  }
+  letDemo();
+
+  // 3. a loop counter made with var survives the loop...
+  for (var a = 1; a &lt;= 3; a++) {
+    // empty body: we only care about the counter
+  }
+  console.log("4. var a after the loop:", a);
+
+  // ...a counter made with let does not
+  for (let b = 1; b &lt;= 3; b++) {
+    // empty body again
+  }
+  try {
+    console.log(b);
+  } catch (err) {
+    console.log("5. let b after the loop threw", err.name + ": " + err.message);
+  }
+
+  // 4. var still respects the walls of a function
+  try {
+    console.log(message);
+  } catch (err) {
+    console.log("6. message outside varDemo threw", err.name + ": " + err.message);
+  }
+&lt;/script&gt;</pre>
+  <p>The Console should show exactly this:</p>
+  <pre class="code">1. var after the block: made inside the if block
+2. let inside the block: made inside the if block
+3. let after the block threw ReferenceError: note is not defined
+4. var a after the loop: 4
+5. let b after the loop threw ReferenceError: b is not defined
+6. message outside varDemo threw ReferenceError: message is not defined</pre>
+  <p>One more case: outside every function, <code>if (true) { var level = 1; }</code> makes <code>level</code> a <b>global</b> variable, visible to the entire page.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>var</code></th><th><code>let</code></th><th><code>const</code></th></tr></thead>
+    <tbody>
+      <tr><td>Scope</td><td>Function (or global, if outside every function)</td><td>Block</td><td>Block</td></tr>
+      <tr><td>Stays inside an <code>if</code> or <code>for</code> block?</td><td>No, it leaks out</td><td>Yes</td><td>Yes</td></tr>
+      <tr><td>Can be reassigned?</td><td>Yes</td><td>Yes</td><td>No</td></tr>
+      <tr><td>Can be declared twice in the same scope?</td><td>Yes, silently</td><td>No, SyntaxError</td><td>No, SyntaxError</td></tr>
+      <tr><td>Used before its line (section 49.6)</td><td>Gives <code>undefined</code></td><td>ReferenceError</td><td>ReferenceError</td></tr>
+      <tr><td>At the top level, becomes a property of <code>window</code>?</td><td>Yes</td><td>No</td><td>No</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p><code>var</code> only notices the walls of a <b>function</b>. <code>let</code> and <code>const</code> notice <b>every</b> pair of curly braces. That is the whole difference between function scope and block scope, and it is why you should write <code>const</code> by default, <code>let</code> when the value must change, and <code>var</code> only when you are reading someone else's old code.</p>
+  </div>
+  <details class="qc"><summary>Quick check: a var is declared inside an if block inside a function. Can the line straight after the if block read it? Can code outside the function?</summary><p>The line after the block: <b>yes</b>, because <code>var</code> belongs to the whole function, not to the block. Code outside the function: <b>no</b>, because <code>var</code> still stops at the function's walls, so it gets <code>ReferenceError: ... is not defined</code>.</p></details>
+</section>
+
+<section id="s4">
+  <h2>49.4 The scope chain: looking outward, never inward</h2>
+  <p>Scopes sit inside one another like boxes inside boxes: a block inside a function, a function inside the global scope. When a line uses a name, JavaScript searches in a fixed order:</p>
+  <ol>
+    <li>the scope the line is in;</li>
+    <li>if the name is not there, the scope around that one;</li>
+    <li>and so on, one level further out each time, up to the global scope;</li>
+    <li>if the global scope does not have it either, the search fails with a ReferenceError.</li>
+  </ol>
+  <p>The search stops at the <b>first</b> match. This inside-to-outside path is the <b>scope chain</b>, and it runs one way only: inner code sees outer names, outer code never sees inner names, just like the notice boards in section 49.1.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 262" role="img" aria-label="Three nested scopes. The global scope holds college and contains the function department, which holds dept and contains an if block that holds room. A line in the block finds room in its own block, dept one level out and college two levels out. Outer code cannot see inner names.">
+      <rect x="10" y="10" width="600" height="242" rx="14" class="box gry"/>
+      <text x="26" y="34" class="t b">GLOBAL SCOPE</text>
+      <text x="26" y="54" class="t mono">const college = "LPU";</text>
+      <rect x="26" y="68" width="410" height="172" rx="12" class="box saf"/>
+      <text x="42" y="92" class="t b">FUNCTION SCOPE &#8212; department()</text>
+      <text x="42" y="112" class="t mono">const dept = "CSE";</text>
+      <rect x="42" y="126" width="378" height="102" rx="10" class="box grn"/>
+      <text x="58" y="148" class="t b">BLOCK SCOPE &#8212; the if block { }</text>
+      <text x="58" y="168" class="t mono">let room = "34-201";</text>
+      <text x="58" y="190" class="t mono">console.log(room, dept, college);</text>
+      <text x="58" y="214" class="t s">room: here &#183; dept: one box out &#183; college: two out</text>
+      <path d="M398 214 L398 26" class="edge grn" marker-end="url(#arr-grn)"/>
+      <circle cx="398" cy="186" r="10" class="box grn"/><text x="398" y="190" class="t c b s">1</text>
+      <circle cx="398" cy="98" r="10" class="box grn"/><text x="398" y="102" class="t c b s">2</text>
+      <circle cx="398" cy="44" r="10" class="box grn"/><text x="398" y="48" class="t c b s">3</text>
+      <text x="523" y="92" class="t c b">Inner looks out</text>
+      <text x="523" y="112" class="t c s">1 its own block</text>
+      <text x="523" y="128" class="t c s">2 the function around it</text>
+      <text x="523" y="144" class="t c s">3 the global scope</text>
+      <text x="523" y="178" class="t c b">Never inward</text>
+      <text x="523" y="196" class="t c s">department cannot see room</text>
+      <text x="523" y="212" class="t c s">global code cannot see</text>
+      <text x="523" y="228" class="t c s">dept or room</text>
+    </svg>
+    <figcaption><b>Figure 49.1</b> The scope chain. A line in the inner block searches its own box first, then each box around it in turn, and stops at the first match; nothing ever searches inward.</figcaption>
+  </figure>
+  <p>The example below builds exactly the boxes in Figure 49.1, then adds a second test that surprises many students.</p>
+  <pre class="code" data-run data-title="The scope chain, and lexical scope - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  const college = "LPU";                      // global scope
+
+  function department() {
+    const dept = "CSE";                       // department's function scope
+
+    if (dept === "CSE") {
+      let room = "34-201";                    // block scope
+      console.log("Inside the block:", room, dept, college);
+    }
+
+    console.log("Inside department:", dept, college);
+    try {
+      console.log(room);                      // looking INWARD: not allowed
+    } catch (err) {
+      console.log("Looking inward threw", err.name + ": " + err.message);
+    }
+  }
+
+  department();
+
+  // Lexical scope: where a function is WRITTEN decides what it can see
+  const who = "the global who";
+
+  function sayWho() {
+    console.log("sayWho sees:", who);
+  }
+
+  function caller() {
+    const who = "caller's own who";
+    sayWho();                                 // called from in here...
+  }
+
+  caller();                                   // ...but which who does it print?
+&lt;/script&gt;</pre>
+  <pre class="code">Inside the block: 34-201 CSE LPU
+Inside department: CSE LPU
+Looking inward threw ReferenceError: room is not defined
+sayWho sees: the global who</pre>
+  <p>The first three lines are the scope chain at work. The last needs a closer look. <code>sayWho</code> was <i>called</i> from inside <code>caller</code>, which has its own <code>who</code>, yet it printed the global one. The scope chain follows <b>where a function is written</b>, not where it is called from. <code>sayWho</code> is written at the top level, so the box around it is the global scope. This rule is <b>lexical scope</b> (<i>lexical</i> means "to do with the written text"), and JavaScript always uses it.</p>
+  <div class="plain">
+    <p>A function always looks outward from <b>the spot where it was written</b>, wherever it is called from. Put your finger on the function's own code and look at the boxes around it.</p>
+  </div>
+  <div class="callout exam"><b>Exam tip.</b> "What does this print?" questions love to put a same-named variable inside the <i>calling</i> function. Ignore it.</div>
+</section>
+
+<section id="s5">
+  <h2>49.5 Shadowing: same name, different variable</h2>
+  <p>You may declare a variable inside a function with the same name as one outside it. You then get <b>two different variables</b> that share a name. Inside the inner scope the inner one wins, because the scope chain stops at the first match; the outer one is hidden there but unharmed. This is <b>shadowing</b>: the local variable casts a shadow over the global one. Your slides show it with <code>var</code>:</p>
+  <pre class="code">var shadowedVar = "I am global";
+
+function exampleFunction() {
+  var shadowedVar = "I am local";
+  console.log(shadowedVar);    // I am local
+}
+
+exampleFunction();
+console.log(shadowedVar);      // I am global</pre>
+  <p>It works the same with <code>let</code> and <code>const</code>, and with blocks. The example shadows one name twice, in a function and in a block inside it, then shows something that looks similar but is not shadowing at all.</p>
+  <pre class="code" data-run data-title="Shadowing, and the missing-let trap - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  let message = "I am global";
+
+  function exampleFunction() {
+    let message = "I am local";             // a NEW variable with the same name
+    console.log("Inside the function:", message);
+
+    if (true) {
+      let message = "I am in the block";    // and another, one level deeper
+      console.log("Inside the block:", message);
+    }
+
+    console.log("Back in the function:", message);
+  }
+
+  exampleFunction();
+  console.log("Outside:", message);         // the global one was never touched
+
+  // NOT shadowing: there is no let, so this CHANGES the outer variable
+  let score = 10;
+
+  function addBonus() {
+    score = score + 5;                      // no let here
+  }
+
+  addBonus();
+  console.log("score after addBonus():", score);
+&lt;/script&gt;</pre>
+  <pre class="code">Inside the function: I am local
+Inside the block: I am in the block
+Back in the function: I am local
+Outside: I am global
+score after addBonus(): 15</pre>
+  <div class="callout warn"><b>One word makes all the difference.</b> <code>let score = 15;</code> inside a function <b>creates a new local variable</b> that shadows the outer one. <code>score = 15;</code> with no keyword <b>declares nothing</b>: JavaScript walks the scope chain, finds the outer <code>score</code>, and changes it. If it finds no <code>score</code> anywhere, a normal script quietly creates a brand-new <i>global</i> variable, which section 49.9 explains is a real problem.</div>
+  <p>Shadowing is legal, but same-named variables in nearby scopes are easy to confuse; when you can, give them different names.</p>
+  <details class="qc"><summary>Quick check: <code>let points = 5;</code> is global. A function contains the single line <code>points = 8;</code> and is called once. What is <code>points</code> afterwards? What if the line had been <code>let points = 8;</code>?</summary><p>Without <code>let</code>, the line changes the global variable, so <code>points</code> is <b>8</b>. With <code>let</code>, the function gets its own local <code>points</code> that shadows the global one, and the global <code>points</code> is still <b>5</b>.</p></details>
+</section>
+
+<section id="s6">
+  <h2>49.6 Hoisting: using a name before its line</h2>
+  <p>Your slides define <b>hoisting</b> as declarations being treated as if moved to the top of their scope before the code runs, so a name can be used before the line that declares it. The key detail: <b>only the declarations are hoisted, not the initialisations</b>.</p>
+  <p>Nothing is literally moved. Before running the first line of a scope, JavaScript reads the whole scope and notes every name declared in it. That is <span class="jw" data-def="JavaScript noting every declared name in a scope before running its first line, so the names already exist when the code starts.">hoisting</span>. What a name <i>holds</i> before its own line depends on how it was declared, and that is what the exam asks about.</p>
+  <h3>var: hoisted, holding undefined</h3>
+  <pre class="code">console.log(x);   // undefined
+var x = 5;
+console.log(x);   // 5</pre>
+  <p>The first line prints <code>undefined</code>, not an error. <code>var x</code> was noted in advance with the starting value <code>undefined</code>; the assignment <code>x = 5</code> stays where it was written. It behaves as if you had written:</p>
+  <pre class="code">var x;            // the declaration, noted before anything runs
+console.log(x);   // undefined
+x = 5;            // the initialisation happens on its own line
+console.log(x);   // 5</pre>
+  <p>A <code>var</code> is hoisted to the top of its <b>function</b> (or of the script, if it is outside every function), not to the top of its block, which matches what you saw in section 49.3.</p>
+  <h3>let and const: hoisted, but not ready</h3>
+  <pre class="code">console.log(y);   // ReferenceError: Cannot access 'y' before initialization
+let y = 10;
+console.log(y);   // 10</pre>
+  <p><code>let</code> and <code>const</code> are hoisted too, but <b>not given a starting value</b>. From the top of its scope until its declaration line runs, the name is in the <span class="jw" data-def="The stretch of code between the start of a scope and the line that declares a let or const name, where the name exists but must not be touched yet.">temporal dead zone</span> (TDZ). Touching it there throws a ReferenceError with a particular message, <i>Cannot access 'y' before initialization</i>: the name <i>does</i> exist, it just is not ready. Compare <i>y is not defined</i>, which means no such name exists at all. (Firefox says "can't access lexical declaration 'y' before initialization"; same error.)</p>
+  <p>How can we be sure <code>let</code> is really hoisted, not just ignored until its line? This program proves it:</p>
+  <pre class="code">let city = "Delhi";
+
+function showCity() {
+  console.log(city);      // ReferenceError: Cannot access 'city' before initialization
+  let city = "Phagwara";
+}
+
+showCity();</pre>
+  <p>If the inner <code>let city</code> were not hoisted, the first line would walk out along the scope chain and print "Delhi". Instead it throws, because JavaScript knows from the top of the function that it has its own <code>city</code>, still in its dead zone.</p>
+  <h3>Functions: declarations are hoisted whole, expressions are not</h3>
+  <pre class="code">hello();                       // Hello, world!
+
+function hello() {
+  console.log("Hello, world!");
+}</pre>
+  <p>A <b>function declaration</b> is hoisted with its whole body, so this slide example works. A <b>function expression</b> or <b>arrow function</b> is just a value stored in a variable, so it follows the rules of that variable's keyword. With <code>var</code>, the name holds <code>undefined</code> early, and calling <code>undefined</code> gives <i>TypeError: greet is not a function</i>. With <code>let</code> or <code>const</code>, the name is in its dead zone, and you get a ReferenceError.</p>
+  <table class="tbl">
+    <thead><tr><th>Declared like this</th><th>Hoisted?</th><th>Used before its line</th></tr></thead>
+    <tbody>
+      <tr><td><code>var x = 5;</code></td><td>Yes, with the value <code>undefined</code></td><td>Quietly gives <code>undefined</code></td></tr>
+      <tr><td><code>let y = 10;</code></td><td>Yes, but left uninitialised (TDZ)</td><td>ReferenceError: Cannot access 'y' before initialization</td></tr>
+      <tr><td><code>const z = 1;</code></td><td>Yes, but left uninitialised (TDZ)</td><td>ReferenceError: Cannot access 'z' before initialization</td></tr>
+      <tr><td><code>function hello() { }</code></td><td>Yes, the whole function</td><td>Works normally</td></tr>
+      <tr><td><code>var greet = function () { };</code></td><td>Only the name, holding <code>undefined</code></td><td>TypeError: greet is not a function</td></tr>
+      <tr><td><code>const wave = () =&gt; { };</code></td><td>Only the name, uninitialised (TDZ)</td><td>ReferenceError: Cannot access 'wave' before initialization</td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Four declarations and what each name holds after the creation phase and after the execution phase. var x holds undefined and then 5; let y and const wave are not ready, in the temporal dead zone, and then hold 10 and an arrow function; function hello holds the whole function in both phases.">
+      <rect x="10" y="14" width="180" height="180" rx="12" class="box gry"/>
+      <text x="100" y="36" class="t c b">THE CODE</text>
+      <text x="100" y="52" class="t c s">one scope, top to bottom</text>
+      <text x="22" y="80" class="t mono" style="font-size:12px">var x = 5;</text>
+      <text x="22" y="112" class="t mono" style="font-size:12px">let y = 10;</text>
+      <text x="22" y="144" class="t mono" style="font-size:12px">function hello() {..}</text>
+      <text x="22" y="176" class="t mono" style="font-size:12px">const wave = () =&gt; 1;</text>
+      <path d="M192 104 L207 104" class="edge" marker-end="url(#arr)"/>
+      <rect x="210" y="14" width="190" height="180" rx="12" class="box saf"/>
+      <text x="305" y="36" class="t c b">1 CREATION PHASE</text>
+      <text x="305" y="52" class="t c s">names set up, no line run yet</text>
+      <rect x="220" y="62" width="170" height="26" rx="6" class="box"/>
+      <text x="305" y="80" class="t c" style="font-size:12px">x = undefined</text>
+      <rect x="220" y="94" width="170" height="26" rx="6" class="box red"/>
+      <text x="305" y="112" class="t c" style="font-size:12px">y = not ready (TDZ)</text>
+      <rect x="220" y="126" width="170" height="26" rx="6" class="box"/>
+      <text x="305" y="144" class="t c" style="font-size:12px">hello = whole function</text>
+      <rect x="220" y="158" width="170" height="26" rx="6" class="box red"/>
+      <text x="305" y="176" class="t c" style="font-size:12px">wave = not ready (TDZ)</text>
+      <path d="M402 104 L417 104" class="edge" marker-end="url(#arr)"/>
+      <rect x="420" y="14" width="190" height="180" rx="12" class="box grn"/>
+      <text x="515" y="36" class="t c b">2 EXECUTION PHASE</text>
+      <text x="515" y="52" class="t c s">lines run top to bottom</text>
+      <rect x="430" y="62" width="170" height="26" rx="6" class="box"/>
+      <text x="515" y="80" class="t c" style="font-size:12px">x = 5</text>
+      <rect x="430" y="94" width="170" height="26" rx="6" class="box"/>
+      <text x="515" y="112" class="t c" style="font-size:12px">y = 10</text>
+      <rect x="430" y="126" width="170" height="26" rx="6" class="box"/>
+      <text x="515" y="144" class="t c" style="font-size:12px">hello = whole function</text>
+      <rect x="430" y="158" width="170" height="26" rx="6" class="box"/>
+      <text x="515" y="176" class="t c" style="font-size:12px">wave = arrow function</text>
+      <text x="310" y="218" class="t c s">TDZ (temporal dead zone): the name exists, but reading it before its line throws a ReferenceError.</text>
+      <text x="310" y="236" class="t c s">A var read too early quietly gives undefined. A function declaration works from the very first line.</text>
+    </svg>
+    <figcaption><b>Figure 49.2</b> Hoisting is just the creation phase finishing before any line runs: every name already exists, but only <code>var</code> names (as <code>undefined</code>) and function declarations (complete) are usable before their lines.</figcaption>
+  </figure>
+  <p>Run the whole table at once. Every early use is wrapped in <code>try</code> so that you can see each error and the program still reaches the end.</p>
+  <pre class="code" data-run data-title="Hoisting lab: what each name holds before its line" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // A. var: the name exists from the start, holding undefined
+  console.log("1. x before its line:", x);
+  var x = 5;
+  console.log("2. x after its line:", x);
+
+  // B. let: the name exists, but it is in the temporal dead zone
+  try {
+    console.log(y);
+  } catch (err) {
+    console.log("3. reading y early threw", err.name + ": " + err.message);
+  }
+  let y = 10;
+  console.log("4. y after its line:", y);
+
+  // C. a function declaration is hoisted whole
+  hello();
+  function hello() {
+    console.log("5. hello() called before its line: Hello, world!");
+  }
+
+  // D. a function expression stored in var: only the name is hoisted
+  try {
+    greet();
+  } catch (err) {
+    console.log("6. calling greet() early threw", err.name + ": " + err.message);
+  }
+  var greet = function () {
+    console.log("7. greet() after its line: Hi!");
+  };
+  greet();
+
+  // E. an arrow function stored in const: temporal dead zone again
+  try {
+    wave();
+  } catch (err) {
+    console.log("8. calling wave() early threw", err.name + ": " + err.message);
+  }
+  const wave = () =&gt; console.log("9. wave() after its line: Bye!");
+  wave();
+&lt;/script&gt;</pre>
+  <pre class="code">1. x before its line: undefined
+2. x after its line: 5
+3. reading y early threw ReferenceError: Cannot access 'y' before initialization
+4. y after its line: 10
+5. hello() called before its line: Hello, world!
+6. calling greet() early threw TypeError: greet is not a function
+7. greet() after its line: Hi!
+8. calling wave() early threw ReferenceError: Cannot access 'wave' before initialization
+9. wave() after its line: Bye!</pre>
+  <div class="plain">
+    <p>Before running a scope, JavaScript writes down every name declared in it. A <code>var</code> name starts as <code>undefined</code>. A <code>let</code> or <code>const</code> name starts as "do not touch" until its line runs. A function declaration starts out complete and ready to call. Everything else in hoisting follows from those three sentences.</p>
+  </div>
+  <p>Your slides end with good advice: declare variables at the top of their scope, so nobody has to think about hoisting. Used too early, a <code>var</code> gives a silent <code>undefined</code>, while <code>let</code> stops you with an error on the exact line: a loud error beats a silent wrong answer.</p>
+  <details class="qc"><summary>Quick check: one of these prints undefined and the other throws an error. Which is which? (a) <code>console.log(a); var a = 1;</code> (b) <code>console.log(b); let b = 1;</code></summary><p>(a) prints <b>undefined</b>: a <code>var</code> is hoisted with the starting value <code>undefined</code>. (b) throws <b>ReferenceError: Cannot access 'b' before initialization</b>, because <code>b</code> is in its temporal dead zone until its line runs.</p></details>
+</section>
+
+<section id="s7">
+  <h2>49.7 Execution context and the call stack</h2>
+  <p>The machinery behind hoisting is simple. Whenever JavaScript runs a piece of code, it first sets up an <span class="jw" data-def="The workspace JavaScript sets up to run a piece of code: that code's variables, plus a note of which line it has reached.">execution context</span>: a private workspace holding that code's variables and a note of which line it has reached. A script starts with the <b>global execution context</b>; every function <i>call</i> gets a <b>new</b> one of its own.</p>
+  <p>Each execution context is set up in two phases:</p>
+  <ol>
+    <li><b>Creation phase.</b> JavaScript reads the code without running it and makes room for every declared name: <code>var</code> names get <code>undefined</code>, function declarations get the whole function, <code>let</code> and <code>const</code> names are noted but left uninitialised (their dead zone), and, for a function call, each parameter receives the argument that was passed in.</li>
+    <li><b>Execution phase.</b> JavaScript runs the lines from top to bottom, assigning values and calling functions as it reaches them.</li>
+  </ol>
+  <p>That is all hoisting is: the creation phase finishes before the execution phase begins (Figure 49.2 pictures both phases).</p>
+  <h3>The call stack</h3>
+  <p>A function can call another, which can call a third. JavaScript tracks whose turn it is with the <span class="jw" data-def="The list of execution contexts in progress. A new function call goes on top; when it returns, it is removed and the one underneath carries on.">call stack</span>, a pile of execution contexts with the newest on top. A call puts its context on top, and only the top one runs. When the function returns, its context is removed and the one underneath carries on from the line where it paused.</p>
+  <pre class="code" data-run data-title="Watch the call stack grow and shrink - read the Console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  function greet(name) {
+    console.log("3. inside greet | stack: global &rarr; welcome &rarr; greet");
+    return "Hello, " + name;
+  }
+
+  function welcome(name) {
+    console.log("2. inside welcome | stack: global &rarr; welcome");
+    const line = greet(name);        // welcome pauses here until greet returns
+    console.log("4. back in welcome | stack: global &rarr; welcome");
+    return line + "! Welcome to CSE326.";
+  }
+
+  console.log("1. global code | stack: global");
+  const result = welcome("Asha");
+  console.log("5. global code again | stack: global");
+  console.log("Result:", result);
+&lt;/script&gt;</pre>
+  <pre class="code">1. global code | stack: global
+2. inside welcome | stack: global &rarr; welcome
+3. inside greet | stack: global &rarr; welcome &rarr; greet
+4. back in welcome | stack: global &rarr; welcome
+5. global code again | stack: global
+Result: Hello, Asha! Welcome to CSE326.</pre>
+  <table class="tbl">
+    <thead><tr><th>Moment</th><th>Call stack (bottom &rarr; top)</th><th>Running now</th></tr></thead>
+    <tbody>
+      <tr><td>The script starts</td><td>global</td><td>The global code</td></tr>
+      <tr><td><code>welcome("Asha")</code> is called</td><td>global &rarr; welcome</td><td><code>welcome</code></td></tr>
+      <tr><td><code>welcome</code> calls <code>greet(name)</code></td><td>global &rarr; welcome &rarr; greet</td><td><code>greet</code>; <code>welcome</code> is paused, waiting</td></tr>
+      <tr><td><code>greet</code> returns "Hello, Asha"</td><td>global &rarr; welcome</td><td><code>welcome</code>, from the line where it paused</td></tr>
+      <tr><td><code>welcome</code> returns</td><td>global</td><td>The global code</td></tr>
+      <tr><td>The last line has run</td><td>(empty)</td><td>Nothing: the browser waits for events (Chapter 54)</td></tr>
+    </tbody>
+  </table>
+  <p><code>welcome</code> and <code>greet</code> each have a parameter called <code>name</code>, and they do not clash, because each call has its own context. Likewise, a local variable that starts at 0 starts at 0 again on every call. A function that calls itself forever grows the stack until the browser gives up (Chrome says <i>RangeError: Maximum call stack size exceeded</i>; Firefox, <i>too much recursion</i>): the call stack has overflowed.</p>
+  <div class="plain">
+    <p>Every function call gets a fresh workspace: first the names are filled in, then the lines run. Workspaces pile up as functions call functions; only the top one runs, and when it finishes it is cleared away, normally taking its local variables with it.</p>
+  </div>
+</section>
+
+<section id="s8">
+  <h2>49.8 Closures: a function that remembers</h2>
+  <p>Section 49.7 said local variables "normally" go. Here is the exception. Suppose a function creates another function inside itself and hands it back with <code>return</code>. The outer function finishes and its context leaves the stack, but the inner function is still alive, and it uses one of the outer function's variables.</p>
+  <pre class="code">function makeCounter() {
+  let count = 0;
+  return function () {
+    count = count + 1;
+    return count;
+  };
+}
+
+const counterA = makeCounter();
+console.log(counterA());   // 1
+console.log(counterA());   // 2</pre>
+  <p>Follow it slowly. Calling <code>makeCounter()</code> creates <code>count</code> set to 0, creates a small function that adds 1 to it, and returns that function, which we store in <code>counterA</code>. <code>makeCounter</code> has now finished, yet every call of <code>counterA()</code> finds <code>count</code> and adds 1: 1, then 2. The variable was <b>not</b> thrown away, because a living function still needs it.</p>
+  <p>A function together with the outside variables it remembers is a <span class="jw" data-def="A function together with the variables it remembers from the scope where it was created, even after that scope has finished running.">closure</span>. Every function remembers the scope it was written in (lexical scope, section 49.4); you only <i>notice</i> it when the function outlives the place that made it. Two facts matter more than any definition:</p>
+  <ul>
+    <li><b>It is a live link, not a copy.</b> The inner function holds on to the variable itself, not a snapshot of its value, so it sees every change.</li>
+    <li><b>Each call of the outer function makes a new set of variables.</b> Call <code>makeCounter()</code> twice and you get two counters, each with its own <code>count</code>.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="counterA is linked to its own count, which is 3, made by the first call of makeCounter. counterB is linked to a separate count, which is 1, made by the second call. Both calls of makeCounter have finished.">
+      <text x="310" y="22" class="t c b">After counterA() is called three times and counterB() once</text>
+      <rect x="20" y="44" width="160" height="56" rx="10" class="box blu"/>
+      <text x="100" y="68" class="t c b mono">counterA</text>
+      <text x="100" y="86" class="t c s">the inner function</text>
+      <rect x="20" y="134" width="160" height="56" rx="10" class="box blu"/>
+      <text x="100" y="158" class="t c b mono">counterB</text>
+      <text x="100" y="176" class="t c s">another inner function</text>
+      <path d="M182 72 L336 72" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="259" y="64" class="t c s">remembers</text>
+      <path d="M182 162 L336 162" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="259" y="154" class="t c s">remembers</text>
+      <rect x="340" y="44" width="230" height="56" rx="10" class="box saf"/>
+      <text x="455" y="68" class="t c b mono">count = 3</text>
+      <text x="455" y="86" class="t c s">from the 1st makeCounter() call</text>
+      <rect x="340" y="134" width="230" height="56" rx="10" class="box saf"/>
+      <text x="455" y="158" class="t c b mono">count = 1</text>
+      <text x="455" y="176" class="t c s">from the 2nd makeCounter() call</text>
+      <text x="310" y="212" class="t c s">Both makeCounter() calls have finished, yet each count survives, because a function still uses it.</text>
+      <text x="310" y="230" class="t c s">Outside code has no name for count: calling the function is the only way to reach it.</text>
+    </svg>
+    <figcaption><b>Figure 49.3</b> Two closures from the same function. Each call of <code>makeCounter()</code> made its own <code>count</code>, and each returned function keeps a live link to its own one.</figcaption>
+  </figure>
+  <h3>Closures keep data private</h3>
+  <p>Code outside <code>makeCounter</code> cannot read or change <code>count</code> directly; the only way in is the function it was given. That makes closures JavaScript's natural tool for <b>private data</b>. The example builds a wallet whose balance can be read and topped up only through two functions, and the top-up refuses bad amounts. The two functions come out inside a small object (a bundle of named values, Chapter 51), used with a dot: <code>rahul.addMoney(50)</code>.</p>
+  <pre class="code" data-run data-title="Closures: a counter, and a wallet nobody can cheat" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // ---- Part 1: a counter that remembers ----
+  function makeCounter() {
+    let count = 0;                   // a variable of makeCounter
+    return function () {             // an inner function, handed back
+      count = count + 1;             // it uses count from the scope outside it
+      return count;
+    };
+  }
+
+  const counterA = makeCounter();    // makeCounter has finished by now...
+  console.log("A:", counterA());     // ...yet count is still there: 1
+  console.log("A:", counterA());     // 2
+  console.log("A:", counterA());     // 3
+
+  const counterB = makeCounter();    // a second call makes a second count
+  console.log("B:", counterB());     // 1
+  console.log("A:", counterA());     // 4: A's count was never disturbed
+
+  // ---- Part 2: private data ----
+  function makeWallet(owner, opening) {
+    let balance = opening;           // private: only the two functions below reach it
+
+    function addMoney(amount) {
+      if (amount &lt;= 0) {
+        console.log("Refused: a top-up must be more than 0");
+        return;
+      }
+      balance = balance + amount;
+      console.log(`${owner} added &#8377;${amount}`);
+    }
+
+    function getBalance() {
+      return balance;
+    }
+
+    // hand out just these two functions, in a small object (Chapter 51)
+    return { addMoney: addMoney, getBalance: getBalance };
+  }
+
+  const rahul = makeWallet("Rahul", 100);
+  rahul.addMoney(50);
+  rahul.addMoney(-500);
+  console.log("Rahul's balance: &#8377;" + rahul.getBalance());
+
+  rahul.balance = 1000000;           // try to cheat from outside...
+  console.log("After the cheat: &#8377;" + rahul.getBalance());   // ...still 150
+&lt;/script&gt;</pre>
+  <pre class="code">A: 1
+A: 2
+A: 3
+B: 1
+A: 4
+Rahul added &#8377;50
+Refused: a top-up must be more than 0
+Rahul's balance: &#8377;150
+After the cheat: &#8377;150</pre>
+  <p>The "cheat" only sticks a new property called <code>balance</code> onto the object holding the two functions. The real <code>balance</code> is a variable inside the closure, which nothing outside can name; only <code>addMoney</code> can change it, and it checks every amount.</p>
+  <div class="plain">
+    <p>A function never forgets where it was born. A variable it uses from the function that made it stays alive as long as it does, even after the maker has finished. Each run of the maker makes fresh variables, so every function it hands out has its own private memory.</p>
+  </div>
+  <p>A function that returns another function is one kind of <i>higher-order function</i>; Chapter 53 builds on exactly this idea.</p>
+  <details class="qc"><summary>Quick check: after the example above, you write <code>const counterC = makeCounter();</code> and call <code>counterC()</code> once. What does it return, and does it change counterA's count?</summary><p>It returns <b>1</b>. The third call of <code>makeCounter()</code> creates a brand-new <code>count</code> starting at 0, so counterA's count (4) is untouched.</p></details>
+</section>
+
+<section id="s9">
+  <h2>49.9 Why global variables are risky</h2>
+  <p>A global variable is the easiest kind to make, and every function can use it. That convenience is exactly the problem: on a real site, with several script files written by several people, globals cause some of the hardest bugs to find.</p>
+  <ul>
+    <li><b>Anyone can change it.</b> If a global holds the wrong value, any line in any file might be responsible.</li>
+    <li><b>Names collide.</b> All ordinary script files on one page share a single global scope. Two files that each pick a common name like <code>total</code> will fight over it.</li>
+    <li><b>A missing <code>let</code> makes a new one</b> (section 49.5), as shown below.</li>
+    <li><b>It lives for the life of the page.</b> A local variable is cleared when its function finishes; a global sits in memory until the tab is closed.</li>
+  </ul>
+  <p>Here is a name collision. A page loads two scripts, and both declare <code>total</code> at the top level:</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;script src="marks.js"&gt;&lt;/script&gt;
+&lt;script src="quiz.js"&gt;&lt;/script&gt;
+
+// marks.js
+let total = 0;
+
+// quiz.js, written by a classmate
+let total = 10;    // SyntaxError: Identifier 'total' has already been declared
+                   // and NOTHING in quiz.js runs</pre>
+  <p>With <code>let</code> the clash is at least loud. If both files had used <code>var</code>, there would be no error at all: <code>quiz.js</code> would silently replace the value, and the marks page would show wrong totals with nothing to warn you.</p>
+  <p>Here is the accidental global, created by a typing mistake:</p>
+  <pre class="code">function setTotal() {
+  totl = 500;          // typo, and no let: a normal script quietly creates a GLOBAL totl
+}
+
+setTotal();
+console.log(totl);     // 500: a stray global now exists</pre>
+  <p>You can make JavaScript refuse to do this. Put the line <code>"use strict";</code> at the very top of the file and the script runs in <b>strict mode</b>, where assigning to an undeclared name is an error instead of a silent new global. Modules (Chapter 73) are always strict, without the line.</p>
+  <pre class="code">"use strict";
+
+function setTotal() {
+  totl = 500;          // ReferenceError: totl is not defined
+}
+
+setTotal();</pre>
+  <p>There is one more trap. In a browser, a top-level <code>var</code> (or function declaration) also becomes a property of the <code>window</code> object, the browser's own global object, where it can bump into names the browser already uses. A top-level <code>let</code> or <code>const</code> is still global, but it does not become a <code>window</code> property:</p>
+  <pre class="code">var city = "Jalandhar";
+let state = "Punjab";
+
+console.log(window.city);    // Jalandhar: the top-level var became a property of window
+console.log(window.state);   // undefined: the top-level let did not</pre>
+  <p>The cure is a handful of habits:</p>
+  <ul>
+    <li>Declare every variable with <code>const</code> or <code>let</code>, and never assign to a name you have not declared.</li>
+    <li>Keep each variable in the <b>smallest scope that works</b>: declare it inside the function, or the block, that actually uses it.</li>
+    <li>Pass values <b>in</b> as parameters and send results <b>out</b> with <code>return</code>, instead of having functions share a global.</li>
+    <li>Keep data that must be protected in a closure (section 49.8) or a module (Chapter 73).</li>
+  </ul>
+</section>
+
+<section id="s10">
+  <h2>49.10 The classic bug: var in a loop</h2>
+  <p>This bug, an interview and exam favourite, brings the whole chapter together. A loop schedules three small tasks to run a moment later, and each task prints the loop counter. The only new tool is <code>setTimeout(task, ms)</code>, which means "run this task once, after <code>ms</code> milliseconds". Timers and callbacks are explained in Chapter 54; all you need here is that the loop finishes long before any task runs.</p>
+  <pre class="code" data-run data-title="The classic var-in-a-loop bug, and the let fix" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then watch the Console panel for a moment.&lt;/p&gt;
+&lt;script&gt;
+  // setTimeout(task, ms) means: "run task once, ms milliseconds from now".
+  // Both loops finish in a split second; the tasks run afterwards.
+
+  for (var i = 1; i &lt;= 3; i++) {
+    setTimeout(function () {
+      console.log("var loop says:", i);
+    }, 100);
+  }
+
+  for (let j = 1; j &lt;= 3; j++) {
+    setTimeout(function () {
+      console.log("let loop says:", j);
+    }, 200);
+  }
+
+  console.log("Both loops have finished. Now wait for the tasks...");
+&lt;/script&gt;</pre>
+  <pre class="code">Both loops have finished. Now wait for the tasks...
+var loop says: 4
+var loop says: 4
+var loop says: 4
+let loop says: 1
+let loop says: 2
+let loop says: 3</pre>
+  <p>Most people expect 1, 2, 3 from the first loop. Here is why it prints 4 three times:</p>
+  <ul>
+    <li>Each task is a function written inside the loop, so it is a closure: it uses the variable <code>i</code> from outside itself (section 49.8).</li>
+    <li><code>var</code> ignores the loop's braces (section 49.3), so there is <b>only one <code>i</code></b> for the whole loop, and all three tasks are linked to that same variable.</li>
+    <li>A closure holds a live link, not a copy. By the time the tasks run, the loop has long finished and that single <code>i</code> holds 4, the value that stopped the loop. All three tasks read the same 4.</li>
+  </ul>
+  <p>With <code>let</code>, the loop makes <b>a fresh <code>j</code> for every lap</b>, starting from the previous lap's value. Each task is linked to the <code>j</code> of its own lap, which nothing changes afterwards, so they print 1, 2 and 3. Changing one keyword fixes the bug, and this was one of the main reasons <code>let</code> was added to the language in 2015.</p>
+  <table class="tbl">
+    <thead><tr><th>Loop written with</th><th>How many counter variables?</th><th>What the tasks print later</th></tr></thead>
+    <tbody>
+      <tr><td><code>for (var i = 1; i &lt;= 3; i++)</code></td><td>One, shared by every lap and every task</td><td>4, 4, 4</td></tr>
+      <tr><td><code>for (let j = 1; j &lt;= 3; j++)</code></td><td>A new one for each lap</td><td>1, 2, 3</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>49.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Hoisting physically moves my code to the top of the file."</b><br>Nothing moves, and assignments certainly stay where you wrote them.</div>
+    <div class="r"><b>&#10003; "Before running a scope, JavaScript notes every name declared in it."</b><br>That is the creation phase; only what each name holds early differs.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "let and const are not hoisted."</b><br>Then the <code>showCity</code> example in section 49.6 would have printed "Delhi".</div>
+    <div class="r"><b>&#10003; "let and const are hoisted but left uninitialised: the temporal dead zone."</b><br>The message <i>Cannot access 'x' before initialization</i> proves the name already exists.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A variable declared inside an if block is always private to that block."</b><br>Not if it was declared with <code>var</code>.</div>
+    <div class="r"><b>&#10003; "let and const stay in their block; var belongs to the whole function."</b><br>And a <code>var</code> outside every function becomes global, block or no block.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Writing x = 5 inside a function makes a new local x."</b><br>Only a declaration (<code>let</code>, <code>const</code> or <code>var</code>) makes a new variable.</div>
+    <div class="r"><b>&#10003; "A plain assignment changes the nearest x it can find along the scope chain."</b><br>If there is none, a normal script creates an accidental global; strict mode throws a ReferenceError.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A function can see the variables of whoever calls it."</b><br>The caller's local variables are invisible to it.</div>
+    <div class="r"><b>&#10003; "A function sees the scopes around the place where it was written."</b><br>That is lexical scope.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A closure takes a copy of the outer variable when it is created."</b><br>Then the counter would return 1 every time, and the var loop would print 1, 2, 3.</div>
+    <div class="r"><b>&#10003; "A closure keeps a live link to the variable itself."</b><br>It sees every later change, which is why the counter counts and why the var loop prints 4, 4, 4.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the "what does this print?" questions, trace the code line by line on paper first.</p>
+  <details class="q"><summary><span>Which keyword declares a variable that ignores the braces of an <code>if</code> block and belongs to the whole enclosing function?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. let</li><li>B. const</li><li>C. var</li><li>D. static</li></ul>
+    <p><b>Answer: C.</b> <code>var</code> is function-scoped. <code>let</code> and <code>const</code> are block-scoped, so they stay inside the <code>if</code> block; <code>static</code> is not a way to declare a variable in JavaScript.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>function test() {</code><br><code>&nbsp;&nbsp;if (true) { var a = 1; let b = 2; }</code><br><code>&nbsp;&nbsp;console.log(a);</code><br><code>&nbsp;&nbsp;console.log(b);</code><br><code>}</code><br><code>test();</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 1, then 2</li><li>B. 1, then ReferenceError: b is not defined</li><li>C. ReferenceError: a is not defined</li><li>D. undefined, then 2</li></ul>
+    <p><b>Answer: B.</b> <code>a</code> is a <code>var</code>, so it belongs to the whole function and prints 1. <code>b</code> is a <code>let</code>, which ended at the block's closing brace, so the second line throws. A forgets that <code>let</code> is block-scoped.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>console.log(n);</code><br><code>var n = 7;</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. undefined</li><li>B. 7</li><li>C. ReferenceError: n is not defined</li><li>D. null</li></ul>
+    <p><b>Answer: A.</b> The declaration <code>var n</code> is hoisted with the value <code>undefined</code>; the assignment of 7 happens on its own line, after the log. It is not an error, because the name already exists.</p></div></details>
+  <details class="q"><summary><span>What happens when this runs?<br><code>console.log(m);</code><br><code>let m = 7;</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It prints undefined</li><li>B. It prints 7</li><li>C. It prints null</li><li>D. ReferenceError: Cannot access 'm' before initialization</li></ul>
+    <p><b>Answer: D.</b> <code>m</code> is hoisted but left uninitialised, so it is in the temporal dead zone until its line runs. A is the answer for <code>var</code>, not <code>let</code>.</p></div></details>
+  <details class="q"><summary><span>What happens when this runs?<br><code>sayHi();</code><br><code>var sayHi = function () { console.log("Hi"); };</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It prints Hi</li><li>B. ReferenceError: sayHi is not defined</li><li>C. TypeError: sayHi is not a function</li><li>D. Nothing is printed and there is no error</li></ul>
+    <p><b>Answer: C.</b> This is a function <i>expression</i> stored in a <code>var</code>, so only the name is hoisted, holding <code>undefined</code>. Calling <code>undefined</code> is a TypeError. A would be right only for a function <i>declaration</i>, <code>function sayHi() { ... }</code>.</p></div></details>
+  <details class="q"><summary><span>When JavaScript cannot find a name in the scope of the current line, what does it do next?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Looks in the scope that encloses it, then further outward until the global scope</li><li>B. Looks inside the functions that the current function contains</li><li>C. Throws a ReferenceError at once</li><li>D. Creates the name with the value undefined</li></ul>
+    <p><b>Answer: A.</b> That outward search is the scope chain. It never looks inward (B), and it throws a ReferenceError (C) only after even the global scope has failed.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const level = "outer";</code><br><code>function show() { console.log(level); }</code><br><code>function run() { const level = "inner"; show(); }</code><br><code>run();</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. inner</li><li>B. outer</li><li>C. ReferenceError: level is not defined</li><li>D. undefined</li></ul>
+    <p><b>Answer: B.</b> Scope is lexical: <code>show</code> is written at the top level, so it looks outward from there and finds the global <code>level</code>. The <code>level</code> inside <code>run</code>, the caller, is invisible to it. A is the trap.</p></div></details>
+  <details class="q"><summary><span>Predict both lines:<br><code>let x = "global";</code><br><code>function f() { let x = "local"; console.log(x); }</code><br><code>f();</code><br><code>console.log(x);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: local, then global.</b> The <code>let</code> inside <code>f</code> creates a second variable that shadows the global one inside the function. The global <code>x</code> is never touched, so the last line prints "global".</p></div></details>
+  <details class="q"><summary><span>What does this print, and which one-word change makes it print 0 1 2?<br><code>for (var i = 0; i &lt; 3; i++) {</code><br><code>&nbsp;&nbsp;setTimeout(() =&gt; console.log(i), 0);</code><br><code>}</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 0 1 2</li><li>B. 0 0 0</li><li>C. 2 2 2</li><li>D. 3 3 3</li></ul>
+    <p><b>Answer: D.</b> Even with a delay of 0, the tasks run after the loop has finished. There is one shared <code>var i</code>, and by then it holds 3, the value that stopped the loop. Change <code>var</code> to <code>let</code>: each lap then gets its own <code>i</code>, and the output becomes 0 1 2.</p></div></details>
+  <details class="q"><summary><span>Function <code>a</code> calls <code>b</code>, and <code>b</code> calls <code>c</code>. While <code>c</code> is running, what does the call stack look like?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. c's context is on top, with b, a and the global context below it</li><li>B. a's context is on top, with c at the bottom</li><li>C. Only c's context is on the stack</li><li>D. The global context is on top, because it started first</li></ul>
+    <p><b>Answer: A.</b> Each call puts a new execution context on top, so the newest call, <code>c</code>, is on top and the global context is at the bottom; <code>b</code> and <code>a</code> are paused below it.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>function makeCounter() {</code><br><code>&nbsp;&nbsp;let count = 0;</code><br><code>&nbsp;&nbsp;return () =&gt; { count = count + 1; return count; };</code><br><code>}</code><br><code>const c1 = makeCounter();</code><br><code>const c2 = makeCounter();</code><br><code>console.log(c1(), c1(), c2(), c1());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 1 2 1 3.</b> Each call of <code>makeCounter()</code> creates its own <code>count</code>, and each returned arrow function is a closure over its own one. <code>c1</code> goes 1, 2, 3; <code>c2</code>, with its separate count, starts again at 1.</p></div></details>
+  <details class="q"><summary><span>In an ordinary script without "use strict", what does this print?<br><code>function setMarks() { marks = 90; }</code><br><code>setMarks();</code><br><code>console.log(marks);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. ReferenceError: marks is not defined</li><li>B. 90, because assigning to an undeclared name silently created a global</li><li>C. undefined, because marks was local to setMarks</li><li>D. SyntaxError, because marks was never declared</li></ul>
+    <p><b>Answer: B.</b> No <code>let</code>, <code>const</code> or <code>var</code> means nothing was declared, so a normal script makes an accidental global. With <code>"use strict";</code> at the top, the assignment would instead throw A's ReferenceError, which is why strict mode is safer.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Scope is where a name can be seen. There are three kinds in a script: <b>global</b>, <b>function</b> (local) and <b>block</b>.</li>
+    <li><code>var</code> is function-scoped and leaks out of <code>if</code> and <code>for</code> blocks; <code>let</code> and <code>const</code> are block-scoped. Use <code>const</code> by default, <code>let</code> when the value changes.</li>
+    <li>The <b>scope chain</b> searches outward from where the code is <i>written</i> (lexical scope), stops at the first match, and never looks inward. Not found anywhere means a ReferenceError.</li>
+    <li><b>Shadowing:</b> an inner declaration with the same name makes a second variable that hides the outer one inside its scope. A plain assignment without a keyword changes the outer one instead.</li>
+    <li><b>Hoisting:</b> <code>var</code> names start as <code>undefined</code>; <code>let</code>/<code>const</code> names sit in the temporal dead zone (ReferenceError); function declarations are hoisted whole; function expressions and arrows follow their variable's keyword.</li>
+    <li>Every run of code gets an <b>execution context</b>: a creation phase sets up the names, then an execution phase runs the lines. Function calls pile up on the <b>call stack</b>; only the top one runs.</li>
+    <li>A <b>closure</b> is a function that keeps a live link to the variables of the scope that created it, even after that scope has finished. It gives counters memory and keeps data private.</li>
+    <li>Globals are risky: anyone can change them, names collide, and a missing <code>let</code> creates them by accident. <code>let</code> in a loop gives each lap its own variable, which fixes the classic bug.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>if (ok) { var v = 1; }</code></td><td><code>v</code> belongs to the whole function (or is global), not to the block</td></tr>
+      <tr><td><code>if (ok) { let v = 1; }</code></td><td><code>v</code> exists only inside the block</td></tr>
+      <tr><td><code>for (let i = 0; i &lt; 3; i++) { }</code></td><td>A fresh <code>i</code> for each lap; gone after the loop</td></tr>
+      <tr><td><code>console.log(a); var a = 1;</code></td><td>Prints <code>undefined</code>: hoisted, but not yet assigned</td></tr>
+      <tr><td><code>console.log(b); let b = 1;</code></td><td>ReferenceError: Cannot access 'b' before initialization (TDZ)</td></tr>
+      <tr><td><code>hi(); function hi() { }</code></td><td>Works: a function declaration is hoisted whole</td></tr>
+      <tr><td><code>hi(); const hi = () =&gt; { };</code></td><td>ReferenceError: an arrow function is not hoisted as a function</td></tr>
+      <tr><td><code>let x = 1; function f() { let x = 2; }</code></td><td>Shadowing: two different variables called <code>x</code></td></tr>
+      <tr><td><code>function f() { x = 2; }</code></td><td>Changes the outer <code>x</code>, or creates an accidental global if there is none</td></tr>
+      <tr><td><code>function make() { let n = 0; return () =&gt; ++n; }</code></td><td>Closure: the returned function remembers its own <code>n</code></td></tr>
+      <tr><td><code>"use strict";</code></td><td>First line of a file: assigning to an undeclared name becomes an error</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/Scope" target="_blank" rel="noopener noreferrer">MDN &mdash; Scope<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A short, exact definition of global, function, block and module scope.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/let" target="_blank" rel="noopener noreferrer">MDN &mdash; let<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official behaviour of let, including a careful section on the temporal dead zone.</span></li>
+    <li><a href="https://javascript.info/closure" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Variable scope, closure<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Step-by-step pictures of how a function remembers its outer variables. The best second explanation of closures.</span></li>
+    <li><a href="https://javascript.info/var" target="_blank" rel="noopener noreferrer">javascript.info &mdash; The old "var"<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly how var differs from let, for when you have to read older code.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

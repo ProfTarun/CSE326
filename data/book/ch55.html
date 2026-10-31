@@ -1,0 +1,674 @@
+<article class="chapter" data-ch="55">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 55 &middot; DOM Fundamentals</p>
+  <h1>DOM Fundamentals</h1>
+  <p class="lead">So far your JavaScript has talked only to the Console. This chapter connects it to the page. When the browser reads your HTML it builds a living model of the page in memory, the Document Object Model, and every change a script makes to a page &mdash; a new heading, a red error message, a score that updates &mdash; is a change to that model. Learn its shape once and the next five chapters fall into place.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Elements nest: the outer one is the parent, the inner one the child, and the browser turns the whole page into a tree (<a href="book.html?ch=4">Chapter 4</a>).</li>
+      <li>An <code>id</code> names exactly one element on a page; it must be unique (<a href="book.html?ch=5">Chapter 5</a>).</li>
+      <li>A <code>&lt;script&gt;</code> element holds JavaScript, and <code>console.log()</code> prints values to the Console (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li>An object is a bundle of named properties read with a dot, such as <code>student.name</code>; a method is a property that holds a function (<a href="book.html?ch=51">Chapter 51</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what the DOM is, how the browser builds it from HTML, and why it is a tree.</li>
+      <li>Start from <code>document</code>, read <code>document.title</code>, <code>tagName</code>, <code>id</code> and <code>className</code>, and make a first change with <code>textContent</code>.</li>
+      <li>Name the four main kinds of node and identify each with <code>nodeType</code> and <code>nodeName</code>.</li>
+      <li>Walk the tree with <code>parentElement</code>, <code>children</code>, <code>firstElementChild</code> and the sibling properties, and explain why <code>childNodes</code> holds extra text nodes.</li>
+      <li>Say what <code>window</code> is and how it differs from <code>document</code>.</li>
+      <li>Explain why the live DOM can differ from the source code, and see the difference in DevTools.</li>
+      <li>Diagnose the <code>null</code> error from a script that runs too early, and fix it three ways.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>55.1 From text to a tree</h2>
+  <p>When you open a page, the server sends your browser text: a long string of characters with angle brackets in it (Chapter 1). Text is a good way to store and send a page, and a poor way to work on one. To find "the second paragraph" inside a string, a program would have to count angle brackets. So the browser does something cleverer. It reads the text once, top to bottom, and <span class="jw" data-def="Reads text by its rules to work out its structure. A browser parses HTML to work out which element sits inside which.">parses</span> it into a model of the page in memory: one object for every element and every piece of text, each linked to the objects around it. That model is the <b>Document Object Model</b>, the <b>DOM</b>.</p>
+  <p>Your slides define it in one sentence: the DOM represents an HTML document as a <b>tree of objects</b> that JavaScript can access and modify. Take the name one word at a time:</p>
+  <ul>
+    <li><b>Document</b> &mdash; the web page itself, as written in its HTML.</li>
+    <li><b>Object</b> &mdash; every part of the page becomes a JavaScript object, with properties you read with a dot, exactly like the objects of Chapter 51.</li>
+    <li><b>Model</b> &mdash; a working copy that stands for the page. The screen is drawn from the model, so when the model changes, the screen changes to match.</li>
+  </ul>
+  <p>Here is the slides' example. This HTML:</p>
+  <pre class="code">&lt;html&gt;
+&lt;head&gt;&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello Students&lt;/h1&gt;
+  &lt;p&gt;Welcome to JavaScript.&lt;/p&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>becomes the tree in Figure 55.1.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="Left: the HTML text of a small page. Right: the tree the browser builds from it. document is at the top, then html, then head and body side by side, then h1 and p under body, and under each of those a text node holding its words.">
+      <text x="121" y="20" class="t c s">TEXT: what the server sends</text>
+      <rect x="10" y="30" width="222" height="168" rx="10" class="box gry"/>
+      <text x="22" y="56" class="t mono" style="font-size:11px">&lt;html&gt;</text>
+      <text x="22" y="78" class="t mono" style="font-size:11px">&lt;head&gt;&lt;/head&gt;</text>
+      <text x="22" y="100" class="t mono" style="font-size:11px">&lt;body&gt;</text>
+      <text x="22" y="122" class="t mono" style="font-size:11px">&lt;h1&gt;Hello Students&lt;/h1&gt;</text>
+      <text x="22" y="144" class="t mono" style="font-size:11px">&lt;p&gt;Welcome to JavaScript.&lt;/p&gt;</text>
+      <text x="22" y="166" class="t mono" style="font-size:11px">&lt;/body&gt;</text>
+      <text x="22" y="188" class="t mono" style="font-size:11px">&lt;/html&gt;</text>
+      <text x="121" y="218" class="t c s">one long string of characters</text>
+      <text x="121" y="234" class="t c s">(View Source shows this)</text>
+      <text x="281" y="36" class="t c s">parse</text>
+      <path d="M236 44 L326 44" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="462" y="20" class="t c s">TREE: what the browser builds (the DOM)</text>
+      <rect x="330" y="30" width="110" height="28" rx="8" class="box ink"/>
+      <text x="385" y="49" class="t c b w mono">document</text>
+      <path d="M385 58 L385 78" class="edge"/>
+      <rect x="345" y="78" width="80" height="28" rx="8" class="box saf"/>
+      <text x="385" y="97" class="t c b mono">html</text>
+      <path d="M370 106 L300 126" class="edge"/>
+      <path d="M400 106 L465 126" class="edge"/>
+      <rect x="255" y="126" width="80" height="28" rx="8" class="box saf"/>
+      <text x="295" y="145" class="t c b mono">head</text>
+      <rect x="430" y="126" width="80" height="28" rx="8" class="box saf"/>
+      <text x="470" y="145" class="t c b mono">body</text>
+      <path d="M455 154 L405 174" class="edge"/>
+      <path d="M485 154 L537 174" class="edge"/>
+      <rect x="370" y="174" width="60" height="28" rx="8" class="box saf"/>
+      <text x="400" y="193" class="t c b mono">h1</text>
+      <rect x="512" y="174" width="60" height="28" rx="8" class="box saf"/>
+      <text x="542" y="193" class="t c b mono">p</text>
+      <path d="M400 202 L400 222" class="edge"/>
+      <path d="M542 202 L542 222" class="edge"/>
+      <rect x="340" y="222" width="120" height="40" rx="8" class="box gry"/>
+      <text x="400" y="238" class="t c s mono">#text</text>
+      <text x="400" y="255" class="t c" style="font-size:12px">"Hello Students"</text>
+      <rect x="468" y="222" width="148" height="40" rx="8" class="box gry"/>
+      <text x="542" y="238" class="t c s mono">#text</text>
+      <text x="542" y="255" class="t c" style="font-size:11px">"Welcome to JavaScript."</text>
+      <text x="310" y="282" class="t c s">dark = the document object &#183; orange = element nodes &#183; grey = text nodes</text>
+    </svg>
+    <figcaption><b>Figure 55.1</b> The browser reads the text once and builds a tree of objects. Every tag becomes an element node, the words inside become text nodes, and <code>document</code> sits on top. (The invisible text nodes between tags are left out here; Section 55.5 brings them back.)</figcaption>
+  </figure>
+  <p>Each box in the tree is a <span class="jw" data-def="One item in the DOM tree: an element, a piece of text, the document itself, or a rarer kind such as a comment. Every node is a JavaScript object.">node</span>. At the top sits <code>document</code>, which stands for the whole page. Below it is the <code>html</code> element; below that its two children, <code>head</code> and <code>body</code>; below <code>body</code> come the <code>h1</code> and the <code>p</code>; and below each of those hangs the text it holds. The tree is drawn upside down, root at the top, like the family tree of Chapter 4.</p>
+  <p>Why a tree, and not a list? Because HTML nests. Every element sits inside exactly one other element (the <code>html</code> element sits directly under <code>document</code>), and "every item has exactly one parent" is what makes a tree. You have walked this tree before without knowing it: the CSS selector <code>ul li</code> (Chapter 23) means "an li somewhere below a ul". Now JavaScript walks it too, and once it is in, it can change the text, the style, the attributes and the structure of any element.</p>
+  <div class="plain"><p>The browser reads your HTML once and builds a tree of objects from it. JavaScript never edits your HTML file. It edits that tree, and the browser redraws the screen from the tree.</p></div>
+  <div class="callout analogy"><b>Picture this.</b> An architect draws the plan of a house on paper; a building crew reads it and puts up a real house of bricks. The plan is your HTML file; the house is the DOM. Three things follow. Once the house stands, <b>renovation is done on the house, not on the plan</b>: JavaScript changes the DOM, and the file on the server is untouched. If the plan has a small mistake, say a doorway with no frame drawn, <b>an experienced crew fits the frame anyway</b>, so the house does not always match the plan line for line. And <b>a painter who arrives while the crew is still on the foundations cannot paint the bedroom</b>, because its walls do not exist yet. Section 55.8 is about that painter.</div>
+</section>
+
+<section id="s2">
+  <h2>55.2 document: your way into the tree</h2>
+  <p>JavaScript reaches the tree through one ready-made object called <code>document</code>. You never create it. The browser makes it for each page and leaves it where every script on the page can use it by name. Every journey into the tree starts there:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Gives you</th></tr></thead>
+    <tbody>
+      <tr><td><code>document</code></td><td>The whole page: the root of the tree</td></tr>
+      <tr><td><code>document.documentElement</code></td><td>The <code>&lt;html&gt;</code> element</td></tr>
+      <tr><td><code>document.head</code></td><td>The <code>&lt;head&gt;</code> element</td></tr>
+      <tr><td><code>document.body</code></td><td>The <code>&lt;body&gt;</code> element</td></tr>
+      <tr><td><code>document.title</code></td><td>The text of the <code>&lt;title&gt;</code>, which the browser shows on the tab</td></tr>
+      <tr><td><code>document.getElementById("greeting")</code></td><td>The one element with <code>id="greeting"</code>, or <code>null</code> if there is none</td></tr>
+    </tbody>
+  </table>
+  <p><code>getElementById</code> is the only finder this chapter needs. Give it an id as a string, without the <code>#</code> that CSS puts in front, and it hands back that element's object. An id must be unique on the page, so it returns one element, never a list, and <code>null</code> when no element has that id. Chapter 56 adds <code>querySelector</code> and its relatives, which find elements by any CSS selector.</p>
+  <p>Once you hold an element's object, its properties describe it. Four are enough for now:</p>
+  <ul>
+    <li><code>tagName</code> &mdash; the element's tag in capital letters: <code>"H1"</code>, <code>"P"</code>, <code>"LI"</code>. For HTML elements the DOM reports tag names in upper case, however you typed them.</li>
+    <li><code>id</code> &mdash; the value of its <code>id</code> attribute.</li>
+    <li><code>className</code> &mdash; the value of its <code>class</code> attribute as one string, such as <code>"title big"</code> for two classes. The property was named <code>className</code>, not <code>class</code>, because <code>class</code> is a <span class="jw" data-def="A word JavaScript keeps for its own grammar, such as if, const or class, so it cannot be used as an ordinary name.">reserved word</span> in JavaScript.</li>
+    <li><code>textContent</code> &mdash; all the text inside the element.</li>
+  </ul>
+  <p>And here is the moment that makes this chapter worth reading. These properties are not only for reading. <b>Assign to one and the page on the screen changes at once.</b></p>
+  <pre class="code" data-run data-title="Your first DOM change: read the page, then rewrite it - edit the strings and Run again" data-h="150">&lt;title&gt;My first DOM page&lt;/title&gt;
+&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  h1 { color: #0B2545; margin: 0 0 6px; }
+&lt;/style&gt;
+&lt;h1 id="greeting" class="title big"&gt;Hello Students&lt;/h1&gt;
+&lt;p id="msg"&gt;Welcome to JavaScript.&lt;/p&gt;
+&lt;script&gt;
+  // document is the root; three shortcuts lead to the three big elements
+  console.log("1.", document, document.documentElement, document.head, document.body);
+
+  // reading
+  console.log("2. Title:", document.title);
+  const heading = document.getElementById("greeting");   // find ONE element by its id
+  console.log("3. Found:", heading);
+  console.log("4. tagName:", heading.tagName, "| id:", heading.id, "| className:", heading.className);
+  console.log("5. Text:", heading.textContent);
+
+  // writing: the page changes at once
+  heading.textContent = "Hello, CSE326!";
+  document.getElementById("msg").textContent = "This sentence was written by JavaScript.";
+  document.title = "DOM Lab";
+  console.log("6. Title now:", document.title);
+  console.log("7. Text now:", heading.textContent);
+
+  // asking for an id nobody has
+  console.log("8. No such id:", document.getElementById("marks"));
+&lt;/script&gt;</pre>
+  <pre class="code">1. #document &lt;html&gt; &lt;head&gt; &lt;body&gt;
+2. Title: My first DOM page
+3. Found: &lt;h1 id="greeting" class="title big"&gt;
+4. tagName: H1 | id: greeting | className: title big
+5. Text: Hello Students
+6. Title now: DOM Lab
+7. Text now: Hello, CSE326!
+8. No such id: null</pre>
+  <p>Line 1 shows the four objects the shortcuts lead to; <code>document</code> prints as <code>#document</code>, the name of its kind of node (next section). Lines 2 to 5 only read. Then three assignments change the heading and the paragraph on the screen, with no reload and nothing sent to any server: the browser changed objects in its tree and redrew. The title changed too (line 6), but a preview frame has no tab to show it on; on a real site the tab would now say <i>DOM Lab</i>. Line 8 is the polite failure: no element has the id <code>marks</code>, so the answer is <code>null</code>, not an error.</p>
+  <details class="qc"><summary>Quick check: the page has <code>&lt;p id="msg"&gt;</code>. What does <code>document.getElementById("#msg")</code> return?</summary><p><b><code>null</code>.</b> The <code>#</code> belongs to CSS selectors. <code>getElementById</code> wants the bare id, <code>"msg"</code>, so it looks for an element whose id is literally <code>#msg</code> and finds none.</p></details>
+</section>
+
+<section id="s3">
+  <h2>55.3 Four kinds of node</h2>
+  <p>Every box in the tree is a node, but not every node is an element. Four kinds matter, and every node object reports its kind through two properties: <code>nodeType</code>, a number, and <code>nodeName</code>, a string.</p>
+  <table class="tbl">
+    <thead><tr><th>Kind</th><th>Made from</th><th><code>nodeType</code></th><th><code>nodeName</code></th></tr></thead>
+    <tbody>
+      <tr><td><b>Document</b></td><td>The whole page (one per page)</td><td>9</td><td><code>"#document"</code></td></tr>
+      <tr><td><b>Element</b></td><td>Each tag, such as <code>&lt;p id="intro"&gt;</code></td><td>1</td><td>The tag in capitals: <code>"P"</code></td></tr>
+      <tr><td><b>Text</b></td><td>Each run of text between tags</td><td>3</td><td><code>"#text"</code></td></tr>
+      <tr><td><b>Attribute</b></td><td>Each attribute on a tag, such as <code>id="intro"</code></td><td>2</td><td>The attribute's name: <code>"id"</code></td></tr>
+    </tbody>
+  </table>
+  <p>Element nodes are the branches of the tree. Text nodes are the leaves: a piece of text cannot contain anything, so a text node never has children. Text inside a <code>&lt;b&gt;</code> belongs to the <code>b</code> element, not to the paragraph around it.</p>
+  <p>Attribute nodes are the odd ones out. They belong to an element but are <b>not its children</b>; they are stored with the element, not inside it. You will rarely touch them directly, because properties such as <code>id</code> and <code>className</code> read them for you, and Chapter 56 adds <code>getAttribute</code> and <code>setAttribute</code>. HTML comments become nodes too (type 8, <code>"#comment"</code>).</p>
+  <div class="plain"><p>Tags become element nodes. The words between tags become text nodes. Attributes become extra information stored on their element. The document node sits above everything.</p></div>
+  <pre class="code" data-run data-title="Ask each node what kind it is - then add another b element and Run again" data-h="110">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+&lt;/style&gt;
+&lt;p id="intro" class="lead"&gt;Marks are out of &lt;b&gt;100&lt;/b&gt;.&lt;/p&gt;
+&lt;script&gt;
+  const p = document.getElementById("intro");
+
+  console.log("1. document:", document.nodeType, document.nodeName);
+  console.log("2. the p element:", p.nodeType, p.nodeName);
+  console.log("3. p's child nodes:", p.childNodes);
+
+  const words = p.firstChild;                     // the text before &lt;b&gt;
+  console.log("4. first child:", words.nodeType, words.nodeName);
+  console.log("5. it holds:", words.textContent + "|");   // the | shows where the text ends
+  console.log("6. the b element:", p.children[0].nodeName, "- its text:", p.children[0].textContent);
+  console.log("7. all text inside p:", p.textContent);
+
+  const idAttr = p.attributes[0];                 // attributes are stored on the element
+  console.log("8. attributes:", p.attributes.length, "| first:", idAttr.name, "=", idAttr.value, "| nodeType", idAttr.nodeType);
+&lt;/script&gt;</pre>
+  <pre class="code">1. document: 9 #document
+2. the p element: 1 P
+3. p's child nodes: NodeList(3) [#text, &lt;b&gt;, #text]
+4. first child: 3 #text
+5. it holds: Marks are out of |
+6. the b element: B - its text: 100
+7. all text inside p: Marks are out of 100.
+8. attributes: 2 | first: id = intro | nodeType 2</pre>
+  <p>Read line 3 slowly: the paragraph has <b>three</b> child nodes, not one. The text before <code>&lt;b&gt;</code> is one text node, the <code>b</code> element is the second, and the full stop after it is a third. The "100" is not among them; it is a child of the <code>b</code>. Line 5 adds a <code>|</code> to show where the first text node ends, and you can see that it includes the space before <code>100</code>. Line 7 shows that <code>textContent</code> collects the text of every node below an element, at every depth. Line 8 finds two attributes on the element, and line 3 confirms that neither appeared among its children.</p>
+</section>
+
+<section id="s4">
+  <h2>55.4 Parents, children and siblings</h2>
+  <p>Nodes are linked like the members of a family, and the DOM uses family words for the links. An element's <b>parent</b> is the node directly above it. Its <b>children</b> are the nodes directly below it. Its <b>siblings</b> are the other children of the same parent, the nodes beside it. Six properties let you step from any element to its relatives:</p>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Gives</th><th>When there is nobody there</th></tr></thead>
+    <tbody>
+      <tr><td><code>parentElement</code></td><td>The element directly above</td><td><code>null</code> (in a page, only for <code>&lt;html&gt;</code>, whose parent is the document, not an element)</td></tr>
+      <tr><td><code>children</code></td><td>All the child elements, as a list</td><td>An empty list, <code>length</code> 0</td></tr>
+      <tr><td><code>firstElementChild</code></td><td>The first child element</td><td><code>null</code></td></tr>
+      <tr><td><code>lastElementChild</code></td><td>The last child element</td><td><code>null</code></td></tr>
+      <tr><td><code>previousElementSibling</code></td><td>The element just before it, with the same parent</td><td><code>null</code></td></tr>
+      <tr><td><code>nextElementSibling</code></td><td>The element just after it, with the same parent</td><td><code>null</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>children</code> gives an <span class="jw" data-def="A list-like object of elements handed out by the DOM. It has length and [0], [1]... like an array, and for...of works on it, but most array methods such as map do not.">HTMLCollection</span>: not an array, but close enough for now. It has a <code>length</code>, its items are read with <code>[0]</code>, <code>[1]</code> and so on, and a <code>for...of</code> loop (Chapter 52) visits each one. Figure 55.2 shows all six steps, starting from Rahul's list item.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 280" role="img" aria-label="A ul element with three li children: Asha, Rahul and Meera. From the ul, firstElementChild points to Asha and lastElementChild to Meera. From Rahul, parentElement points up to the ul, previousElementSibling points left to Asha and nextElementSibling points right to Meera. Below, the seven childNodes of the list: four whitespace text nodes alternating with the three li elements.">
+      <rect x="250" y="14" width="120" height="34" rx="8" class="box blu"/>
+      <text x="310" y="36" class="t c b mono">ul</text>
+      <path d="M270 48 L110 108" class="edge" marker-end="url(#arr)"/>
+      <text x="84" y="66" class="t mono" style="font-size:11px">firstElementChild</text>
+      <path d="M350 48 L510 108" class="edge" marker-end="url(#arr)"/>
+      <text x="424" y="66" class="t mono" style="font-size:11px">lastElementChild</text>
+      <path d="M310 108 L310 52" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="318" y="86" class="t mono" style="font-size:11px">parentElement</text>
+      <rect x="40" y="110" width="120" height="40" rx="8" class="box saf"/>
+      <text x="100" y="125" class="t c s mono">li</text>
+      <text x="100" y="143" class="t c b">Asha</text>
+      <rect x="250" y="110" width="120" height="40" rx="8" class="box ink"/>
+      <text x="310" y="125" class="t c s w mono">li id="rahul"</text>
+      <text x="310" y="143" class="t c b w">Rahul</text>
+      <rect x="460" y="110" width="120" height="40" rx="8" class="box saf"/>
+      <text x="520" y="125" class="t c s mono">li</text>
+      <text x="520" y="143" class="t c b">Meera</text>
+      <path d="M248 130 L164 130" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M372 130 L456 130" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="206" y="170" class="t c mono" style="font-size:11px">previousElementSibling</text>
+      <text x="414" y="170" class="t c mono" style="font-size:11px">nextElementSibling</text>
+      <text x="310" y="200" class="t c s">list.childNodes: 7 nodes (the grey ones are whitespace text)</text>
+      <rect x="81" y="210" width="50" height="28" rx="6" class="box gry"/>
+      <text x="106" y="228" class="t c s mono">#text</text>
+      <rect x="139" y="210" width="70" height="28" rx="6" class="box saf"/>
+      <text x="174" y="229" class="t c b mono">li</text>
+      <rect x="217" y="210" width="50" height="28" rx="6" class="box gry"/>
+      <text x="242" y="228" class="t c s mono">#text</text>
+      <rect x="275" y="210" width="70" height="28" rx="6" class="box saf"/>
+      <text x="310" y="229" class="t c b mono">li</text>
+      <rect x="353" y="210" width="50" height="28" rx="6" class="box gry"/>
+      <text x="378" y="228" class="t c s mono">#text</text>
+      <rect x="411" y="210" width="70" height="28" rx="6" class="box saf"/>
+      <text x="446" y="229" class="t c b mono">li</text>
+      <rect x="489" y="210" width="50" height="28" rx="6" class="box gry"/>
+      <text x="514" y="228" class="t c s mono">#text</text>
+      <text x="310" y="262" class="t c s">list.children: 3 elements (only the orange ones)</text>
+    </svg>
+    <figcaption><b>Figure 55.2</b> Up, down and sideways from Rahul's item. Every step lands on an element. The bottom row is the same list counted by <code>childNodes</code>, which also includes the whitespace between the tags (Section 55.5).</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Walk the family from Rahul's item - then delete Meera's line and predict what line 4 does" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  h2 { margin: 0; color: #0B2545; }
+&lt;/style&gt;
+&lt;h2&gt;K23 toppers&lt;/h2&gt;
+&lt;ul&gt;
+  &lt;li&gt;Asha&lt;/li&gt;
+  &lt;li id="rahul"&gt;Rahul&lt;/li&gt;
+  &lt;li&gt;Meera&lt;/li&gt;
+&lt;/ul&gt;
+&lt;script&gt;
+  const rahul = document.getElementById("rahul");      // start in the middle
+  console.log("1. Start at:", rahul.textContent);
+
+  // up and sideways
+  console.log("2. parentElement:", rahul.parentElement);
+  console.log("3. previousElementSibling:", rahul.previousElementSibling.textContent);
+  console.log("4. nextElementSibling:", rahul.nextElementSibling.textContent);
+  console.log("5. after Meera:", rahul.nextElementSibling.nextElementSibling);
+
+  // down from the list
+  const list = rahul.parentElement;
+  console.log("6. children:", list.children);
+  console.log("7. how many:", list.children.length, "| children[0]:", list.children[0].textContent);
+  console.log("8. first:", list.firstElementChild.textContent, "| last:", list.lastElementChild.textContent);
+
+  // steps chain, read left to right
+  console.log("9. the list's sibling above:", list.previousElementSibling);
+  console.log("10. two levels up:", rahul.parentElement.parentElement);
+
+  // visit every child, then change one
+  for (const li of list.children) {
+    console.log("child:", li.textContent);
+  }
+  list.firstElementChild.textContent = "Asha (rank 1)";
+&lt;/script&gt;</pre>
+  <pre class="code">1. Start at: Rahul
+2. parentElement: &lt;ul&gt;
+3. previousElementSibling: Asha
+4. nextElementSibling: Meera
+5. after Meera: null
+6. children: HTMLCollection(3) [&lt;li&gt;, &lt;li id="rahul"&gt;, &lt;li&gt;]
+7. how many: 3 | children[0]: Asha
+8. first: Asha | last: Meera
+9. the list's sibling above: &lt;h2&gt;
+10. two levels up: &lt;body&gt;
+child: Asha
+child: Rahul
+child: Meera</pre>
+  <p>Every step returns another element object, so steps chain, read from left to right as in Chapter 51: <code>rahul.parentElement.parentElement</code> is "Rahul's parent's parent", the body. When a relative does not exist the property gives <code>null</code> (line 5), never an error. The error comes one step later, if you ask <code>null</code> for something: <code>rahul.nextElementSibling.nextElementSibling.textContent</code> stops the script with a TypeError, because the second step already gave <code>null</code>. The script's last line shows that a step can lead to a change: the first item on the page now reads <i>Asha (rank 1)</i>.</p>
+  <div class="plain"><p>Up is <code>parentElement</code>. Down is <code>children</code>, or <code>firstElementChild</code> and <code>lastElementChild</code> for the two ends. Sideways is <code>previousElementSibling</code> and <code>nextElementSibling</code>. Each one gives <code>null</code> when there is nobody there.</p></div>
+  <details class="qc"><summary>Quick check: in the same list, what is <code>list.lastElementChild.previousElementSibling.textContent</code>?</summary><p><b>"Rahul".</b> Read it left to right: the list's last element child is Meera's item; the element just before Meera is Rahul's item; its text is "Rahul".</p></details>
+</section>
+
+<section id="s5">
+  <h2>55.5 The invisible text nodes</h2>
+  <p>Every property in that table has <b>Element</b> in its name, and the word is doing real work. Each one has an older twin without it: <code>parentNode</code>, <code>childNodes</code>, <code>firstChild</code>, <code>lastChild</code>, <code>previousSibling</code> and <code>nextSibling</code>. The twins count <b>every</b> node, text nodes included. And a page has more text nodes than you would guess.</p>
+  <p>Look at how you normally write a list: each <code>&lt;li&gt;</code> on its own line, indented. Between one <code>&lt;/li&gt;</code> and the next <code>&lt;li&gt;</code> there is a line break and a few spaces. Those characters are <span class="jw" data-def="Characters you cannot see: spaces, tabs and line breaks.">whitespace</span>, and the parser keeps them. They make no difference to what you see, because the browser squeezes runs of whitespace together when it draws text, but each run becomes a text node in the tree. So a list of three items written on separate lines has <b>seven</b> child nodes: four runs of whitespace with the three items between them.</p>
+  <pre class="code" data-run data-title="childNodes counts the gaps, children does not - indent the tight list and Run again" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+&lt;/style&gt;
+&lt;ul id="list"&gt;
+  &lt;li&gt;Asha&lt;/li&gt;
+  &lt;li&gt;Rahul&lt;/li&gt;
+  &lt;li&gt;Meera&lt;/li&gt;
+&lt;/ul&gt;
+&lt;ul id="tight"&gt;&lt;li&gt;Asha&lt;/li&gt;&lt;li&gt;Rahul&lt;/li&gt;&lt;li&gt;Meera&lt;/li&gt;&lt;/ul&gt;
+&lt;script&gt;
+  const list = document.getElementById("list");
+  console.log("1. childNodes:", list.childNodes);
+  console.log("2. children:", list.children);
+  console.log("3. firstChild:", list.firstChild, "| firstElementChild:", list.firstElementChild);
+
+  const gap = list.firstChild;                     // the whitespace before Asha
+  console.log("4. That text node holds", gap.textContent.length, "characters:", JSON.stringify(gap.textContent));
+
+  const asha = list.firstElementChild;
+  console.log("5. nextSibling:", asha.nextSibling, "| nextElementSibling:", asha.nextElementSibling.textContent);
+
+  const tight = document.getElementById("tight");
+  console.log("6. Tight list:", tight.childNodes.length, "childNodes,", tight.children.length, "children");
+&lt;/script&gt;</pre>
+  <pre class="code">1. childNodes: NodeList(7) [#text, &lt;li&gt;, #text, &lt;li&gt;, #text, &lt;li&gt;, #text]
+2. children: HTMLCollection(3) [&lt;li&gt;, &lt;li&gt;, &lt;li&gt;]
+3. firstChild: #text | firstElementChild: &lt;li&gt;
+4. That text node holds 3 characters: "\n  "
+5. nextSibling: #text | nextElementSibling: Rahul
+6. Tight list: 3 childNodes, 3 children</pre>
+  <p>Line 1 is the list with its gaps: text, item, text, item, text, item, text. (<code>childNodes</code> gives a NodeList, a list-like object much like the HTMLCollection; Chapter 56 explains how the two differ.) <code>children</code>, on line 2, skips the gaps. Line 4 opens the first gap: three characters, which <code>JSON.stringify</code> (Chapter 51) spells out as <code>\n</code>, the line break, followed by the two spaces of indentation. Line 5 is the trap that catches everyone: the <code>nextSibling</code> of Asha's item is not Rahul's item but the whitespace between them. The tight list on line 6 has no gaps between its tags, so both counts agree &mdash; but squashing your HTML is not the fix. Use the right property.</p>
+  <table class="tbl">
+    <thead><tr><th>Any kind of node (text and comments too)</th><th>Counts elements only &mdash; use these</th></tr></thead>
+    <tbody>
+      <tr><td><code>parentNode</code></td><td><code>parentElement</code></td></tr>
+      <tr><td><code>childNodes</code></td><td><code>children</code></td></tr>
+      <tr><td><code>firstChild</code> / <code>lastChild</code></td><td><code>firstElementChild</code> / <code>lastElementChild</code></td></tr>
+      <tr><td><code>previousSibling</code> / <code>nextSibling</code></td><td><code>previousElementSibling</code> / <code>nextElementSibling</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p>When you want elements, and you almost always do, use the names with <b>Element</b> in them, plus <code>children</code>. The shorter twins include the whitespace between your tags, so they land on the gaps instead of the elements.</p></div>
+  <div class="callout exam"><b>Exam tip.</b> To count <code>childNodes</code>, count the gaps as well as the elements. When n elements sit on their own lines inside a parent, there are n + 1 runs of whitespace, so <code>childNodes.length</code> is 2n + 1 while <code>children.length</code> is n. A comment is a node too: it shows up in <code>childNodes</code> but never in <code>children</code>.</div>
+  <details class="qc"><summary>Quick check: <code>&lt;div&gt;&lt;p&gt;A&lt;/p&gt; &lt;p&gt;B&lt;/p&gt;&lt;/div&gt;</code> is written on one line, with a single space between the two paragraphs. How long are the div's <code>childNodes</code> and <code>children</code>?</summary><p><b>3 and 2.</b> The childNodes are the first <code>p</code>, a text node holding the single space, and the second <code>p</code>. The children are just the two paragraphs.</p></details>
+</section>
+
+<section id="s6">
+  <h2>55.6 window and document</h2>
+  <p><code>document</code> has a bigger neighbour. <code>window</code> is the object for the browser tab, or the frame, that the page is showing in, and <code>document</code> is one of its properties: <code>window.document</code> is the very same object as <code>document</code>.</p>
+  <p><code>window</code> is also the <span class="jw" data-def="The object that holds everything a script can use without declaring it first. In a browser it is window.">global object</span>. The things you have used without ever declaring them, such as <code>alert</code>, <code>console</code> and <code>setTimeout</code> (Chapter 54), are properties of <code>window</code>. That is why <code>alert("Hi")</code> works: when JavaScript cannot find a name among your variables, it looks on <code>window</code>, so it runs <code>window.alert("Hi")</code>. Plain <code>document</code> is found the same way.</p>
+  <pre class="code">console.log(typeof window);                  // object
+console.log(window.document === document);   // true  - one object, two ways to reach it
+console.log(window.alert === alert);         // true  - alert lives on window
+console.log(window.innerWidth);              // e.g. 1280 - the tab's visible width in pixels
+console.log(document.body.tagName);          // BODY  - the page itself belongs to document</pre>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>window</code></th><th><code>document</code></th></tr></thead>
+    <tbody>
+      <tr><td>Stands for</td><td>The browser tab (or a frame) and the browser's tools</td><td>The page loaded inside that tab</td></tr>
+      <tr><td>Typical members</td><td><code>alert()</code>, <code>setTimeout()</code>, <code>innerWidth</code>, <code>location</code> (the address)</td><td><code>title</code>, <code>body</code>, <code>head</code>, <code>getElementById()</code></td></tr>
+      <tr><td>The DOM tree</td><td>Not part of it; it holds <code>document</code></td><td>The root of the tree</td></tr>
+      <tr><td>How many</td><td>One per tab, and one for each frame inside a page</td><td>One per page; load another page in the tab and it gets a new document</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><code>window</code> is the tab. <code>document</code> is the page inside the tab. The DOM tree hangs from <code>document</code>.</p></div>
+</section>
+
+<section id="s7">
+  <h2>55.7 The DOM is not your source code</h2>
+  <p>Go back to the house and its plan. Two things make the house differ from the plan, and you should expect both.</p>
+  <p><b>The browser repairs your HTML.</b> HTML parsers are forgiving. When the text breaks a rule, the browser does not refuse the page; it follows repair rules in the HTML standard and builds the tree the author most probably meant. Three repairs you will meet:</p>
+  <ul>
+    <li>A table written without <code>&lt;tbody&gt;</code> gets one, because the HTML parser puts every table row it reads inside a table section (Chapter 19).</li>
+    <li>A paragraph left open is closed when the next <code>&lt;p&gt;</code> begins, because a paragraph cannot contain another paragraph.</li>
+    <li>A page with no <code>&lt;html&gt;</code>, <code>&lt;head&gt;</code> or <code>&lt;body&gt;</code> tags still gets all three. Most runnable examples in this book rely on that.</li>
+  </ul>
+  <p><b>JavaScript changes the tree.</b> After Example 1 ran, the heading in the DOM said "Hello, CSE326!" while the source still said "Hello Students".</p>
+  <p>The example below shows both. It uses one new property, <code>outerHTML</code>, only for reading: it writes an element and everything inside it back out as HTML text, built from the tree as it is right now. It is the quickest way to see what the browser actually built.</p>
+  <pre class="code" data-run data-title="What you wrote versus what the browser built - delete the closing p tag of #two as well: nothing breaks" data-h="160">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  td { border: 1px solid #94A3B8; padding: 4px 10px; }
+&lt;/style&gt;
+&lt;table id="marks"&gt;&lt;tr&gt;&lt;td&gt;Asha&lt;/td&gt;&lt;td&gt;82&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;
+&lt;p id="one"&gt;First paragraph, never closed
+&lt;p id="two"&gt;Second paragraph&lt;/p&gt;
+&lt;script&gt;
+  // the source has no tbody; the tree does
+  const table = document.getElementById("marks");
+  console.log("1. Table's first child:", table.firstElementChild.tagName);
+  console.log("2. As the browser built it:", table.outerHTML);
+
+  // the open p was closed for you, so #two is NOT inside #one
+  const two = document.getElementById("two");
+  console.log("3. Parent of #two:", two.parentElement.tagName);
+
+  // no html, head or body tags were written, yet all three exist
+  console.log("4.", document.documentElement.tagName, document.head.tagName, document.body.tagName);
+
+  // JavaScript changes the tree, never the source text above
+  const one = document.getElementById("one");
+  one.textContent = "This text was changed by JavaScript.";
+  console.log("5. #one now:", one.outerHTML);
+&lt;/script&gt;</pre>
+  <pre class="code">1. Table's first child: TBODY
+2. As the browser built it: &lt;table id="marks"&gt;&lt;tbody&gt;&lt;tr&gt;&lt;td&gt;Asha&lt;/td&gt;&lt;td&gt;82&lt;/td&gt;&lt;/tr&gt;&lt;/tbody&gt;&lt;/table&gt;
+3. Parent of #two: BODY
+4. HTML HEAD BODY
+5. #one now: &lt;p id="one"&gt;This text was changed by JavaScript.&lt;/p&gt;</pre>
+  <p>Compare line 2 with the source: a <code>&lt;tbody&gt;</code> has appeared that nobody typed. Line 3 shows the second paragraph is a child of the body, a sibling of the first, not nested inside it. Line 4 names three elements the example never wrote. Line 5 shows the tree after JavaScript's change, while the source in the box above still says <i>First paragraph, never closed</i>.</p>
+  <h3>Seeing the live DOM</h3>
+  <p>Your browser lets you look at both versions. <b>View Source</b> (<kbd>Ctrl</kbd>+<kbd>U</kbd>) shows the text exactly as the server sent it. The <b>Elements</b> panel of the <span class="jw" data-def="The developer tools built into every browser, opened with F12. They let you inspect and change a page while it runs.">DevTools</span> (press <kbd>F12</kbd>, or right-click any part of a page and choose <b>Inspect</b>) shows the live tree: the repairs, and every change JavaScript makes, the moment it makes it. Chapter 69 tours DevTools properly.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>View Source (<kbd>Ctrl</kbd>+<kbd>U</kbd>)</th><th>DevTools Elements panel (<kbd>F12</kbd>)</th></tr></thead>
+    <tbody>
+      <tr><td>Shows</td><td>The text the server sent</td><td>The tree in memory, right now</td></tr>
+      <tr><td>The browser's repairs (<code>tbody</code>, closed tags)</td><td>Not shown</td><td>Shown</td></tr>
+      <tr><td>Changes made by JavaScript</td><td>Never shown</td><td>Shown as they happen</td></tr>
+      <tr><td>After a reload</td><td>The same text</td><td>A fresh tree, built again from that text</td></tr>
+    </tbody>
+  </table>
+  <p>Try this on any real website. Open DevTools, click the <b>Console</b> tab, type <code>document.title = "Hello from me"</code> and press <kbd>Enter</kbd>. The text on the tab changes. Now reload: it is back to normal. You changed the tree in your own browser's memory. The website's file was never touched, and the reload simply built a fresh tree from it.</p>
+  <details class="qc"><summary>Quick check: a script changes a heading's text, and then you press <kbd>Ctrl</kbd>+<kbd>U</kbd>. Which text does View Source show?</summary><p><b>The original text.</b> View Source shows the file as the server sent it. The change exists only in the DOM, so you would see it in the Elements panel, and it disappears on reload.</p></details>
+</section>
+
+<section id="s8">
+  <h2>55.8 When the script runs before the elements exist</h2>
+  <p>Now the painter. The browser builds the tree as it reads, from top to bottom, and it runs each ordinary <code>&lt;script&gt;</code> the moment it reaches it, pausing the reading until the script has finished (Chapter 74 shows the pause). So a script can see only the part of the tree built above it. A script in the <code>&lt;head&gt;</code> runs before a single element of the body exists.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 262" role="img" aria-label="Two snapshots of the tree. A, a script in the head runs: only html, head, title and the running script exist, and body is not read yet, so getElementById status gives null. B, a script at the end of body runs: html, head, body, h1, the paragraph with id status and the running script exist, so getElementById status finds the paragraph.">
+      <rect x="10" y="10" width="290" height="222" rx="12" class="box red"/>
+      <text x="155" y="34" class="t c b">A. A script in the head</text>
+      <text x="155" y="52" class="t c s">the tree built so far:</text>
+      <rect x="115" y="62" width="80" height="26" rx="7" class="box"/>
+      <text x="155" y="80" class="t c b mono">html</text>
+      <path d="M140 88 L85 110" class="edge"/>
+      <path d="M170 88 L230 110" class="edge dash"/>
+      <rect x="40" y="110" width="80" height="26" rx="7" class="box"/>
+      <text x="80" y="128" class="t c b mono">head</text>
+      <rect x="190" y="110" width="90" height="26" rx="7" class="box gry" style="stroke-dasharray:4 4"/>
+      <text x="235" y="127" class="t c s">body: not read</text>
+      <path d="M70 136 L52 152" class="edge"/>
+      <path d="M95 136 L138 152" class="edge"/>
+      <rect x="22" y="152" width="60" height="36" rx="7" class="box"/>
+      <text x="52" y="174" class="t c mono" style="font-size:11px">title</text>
+      <rect x="92" y="152" width="96" height="36" rx="7" class="box ink"/>
+      <text x="140" y="167" class="t c b w mono">script</text>
+      <text x="140" y="182" class="t c s w">running now</text>
+      <text x="155" y="208" class="t c mono" style="font-size:11px">getElementById("status")</text>
+      <text x="155" y="224" class="t c b mono" style="font-size:11px">&#8594; null</text>
+      <rect x="320" y="10" width="290" height="222" rx="12" class="box grn"/>
+      <text x="465" y="34" class="t c b">B. A script at the end of body</text>
+      <text x="465" y="52" class="t c s">the tree built so far:</text>
+      <rect x="425" y="62" width="80" height="26" rx="7" class="box"/>
+      <text x="465" y="80" class="t c b mono">html</text>
+      <path d="M450 88 L380 110" class="edge"/>
+      <path d="M480 88 L515 110" class="edge"/>
+      <rect x="340" y="110" width="70" height="26" rx="7" class="box"/>
+      <text x="375" y="128" class="t c b mono">head</text>
+      <rect x="480" y="110" width="80" height="26" rx="7" class="box"/>
+      <text x="520" y="128" class="t c b mono">body</text>
+      <path d="M505 136 L444 152" class="edge"/>
+      <path d="M520 136 L513 152" class="edge"/>
+      <path d="M535 136 L582 152" class="edge"/>
+      <rect x="420" y="152" width="44" height="36" rx="7" class="box"/>
+      <text x="442" y="174" class="t c mono" style="font-size:11px">h1</text>
+      <rect x="470" y="152" width="84" height="36" rx="7" class="box saf"/>
+      <text x="512" y="174" class="t c b mono" style="font-size:11px">p#status</text>
+      <rect x="560" y="152" width="46" height="36" rx="7" class="box ink"/>
+      <text x="583" y="167" class="t c b w mono" style="font-size:11px">script</text>
+      <text x="583" y="182" class="t c s w">running</text>
+      <text x="465" y="208" class="t c mono" style="font-size:11px">getElementById("status")</text>
+      <text x="465" y="224" class="t c b mono" style="font-size:11px">&#8594; &lt;p id="status"&gt;</text>
+      <text x="310" y="252" class="t c s">Code inside a DOMContentLoaded listener waits for the whole tree, so it is always in picture B.</text>
+    </svg>
+    <figcaption><b>Figure 55.3</b> What a script can see depends on where it sits. When a head script runs, the body has not been read, so the paragraph does not exist yet and the search gives <code>null</code>.</figcaption>
+  </figure>
+  <p>In that situation <code>getElementById</code> finds nothing and returns <code>null</code>, the value that means "nothing here" (Chapter 43). Asking <code>null</code> for a property is an error, so the very next line stops the script with <i>TypeError: Cannot set properties of null (setting 'textContent')</i>, or <i>Cannot read properties of null</i> if the line was reading. It is the most common error in beginner JavaScript, and often the id is spelled perfectly. The script simply looked too early.</p>
+  <pre class="code" data-run data-title="Too early, at the end, and after DOMContentLoaded - then un-comment the crash line" data-h="150">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Too early&lt;/title&gt;
+  &lt;style&gt;
+    body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  &lt;/style&gt;
+  &lt;script&gt;
+    // A: runs in the head - the body has not been read yet
+    const early = document.getElementById("status");
+    console.log("A. Head script found:", early);
+
+    // C: the same search, but only once the whole page has been read
+    document.addEventListener("DOMContentLoaded", () =&gt; {
+      const later = document.getElementById("status");
+      console.log("C. DOMContentLoaded code found:", later);
+      later.textContent = "Found by the DOMContentLoaded code (C), which ran last.";
+    });
+
+    // the real-life crash: delete the two slashes on the next line, then Run again
+    // early.textContent = "Hello";
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Results&lt;/h1&gt;
+  &lt;p id="status"&gt;Waiting for JavaScript...&lt;/p&gt;
+  &lt;script&gt;
+    // B: at the end of the body - everything above already exists
+    const found = document.getElementById("status");
+    console.log("B. End-of-body script found:", found);
+    found.textContent = "Found by the end-of-body script (B).";
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <pre class="code">A. Head script found: null
+B. End-of-body script found: &lt;p id="status"&gt;
+C. DOMContentLoaded code found: &lt;p id="status"&gt;</pre>
+  <p>The lines arrive in the order the browser reached the code. A runs while the head is being read, and finds nothing. B runs when the parser reaches the end of the body, and finds the paragraph above it. C is written before B but runs last, because it was handed to the browser to call once the whole page had been read; that is why the page ends up showing C's sentence. Now delete the two slashes in front of <code>early.textContent = "Hello";</code> and Run again. A red line joins the Console: <i>Uncaught TypeError: Cannot set properties of null (setting 'textContent') (line 22)</i>. B and C still work: the listener was set up before the crash, and B is a separate script.</p>
+  <h3>Three fixes</h3>
+  <p><b>1. Put the script at the end of the body</b>, just before <code>&lt;/body&gt;</code>. Everything above it has been built when it runs. It is simple, and it works both for code written between the tags and for a file loaded with <code>src</code>.</p>
+  <p><b>2. Load an external file with <code>defer</code></b>, in the head:</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;head&gt;
+  &lt;script src="js/app.js" defer&gt;&lt;/script&gt;
+&lt;/head&gt;
+
+// js/app.js - when this runs, the whole tree already exists
+document.getElementById("status").textContent = "Found by a deferred script.";</pre>
+  <p><code>defer</code> means "start downloading this file now, but run it only after the whole HTML has been read". Chapters 73 and 74 make it the standard for real projects.</p>
+  <div class="callout warn"><b><code>defer</code> needs <code>src</code>.</b> On a script written between its tags, <code>&lt;script defer&gt; ... &lt;/script&gt;</code>, the browser ignores <code>defer</code> completely and runs the code at once, too early. Adding the word to an inline head script fixes nothing.</div>
+  <p><b>3. Wait for <code>DOMContentLoaded</code></b>, as part C did. An <span class="jw" data-def="Something that happens in the browser, such as a click, a key press or the page finishing loading, which code can be set to respond to.">event</span> is something that happens which code can respond to, and <code>DOMContentLoaded</code> happens once, when the browser has finished reading the HTML and building the tree. <code>document.addEventListener("DOMContentLoaded", () =&gt; { ... })</code> hands the browser a function, a callback (Chapter 54), to call when that happens. It works anywhere, even inline in the head. The window's <code>load</code> event is different: it also waits for every image and stylesheet to download, which finding elements does not need. Chapter 57 covers <code>addEventListener</code> fully.</p>
+  <table class="tbl">
+    <thead><tr><th>Fix</th><th>Where the script sits</th><th>Works for inline code?</th><th>Best for</th></tr></thead>
+    <tbody>
+      <tr><td>End of body</td><td>Just before <code>&lt;/body&gt;</code></td><td>Yes</td><td>Small pages and examples</td></tr>
+      <tr><td><code>defer</code></td><td>In the head, with <code>src</code></td><td>No: <code>defer</code> needs <code>src</code></td><td>Your own script files in real projects</td></tr>
+      <tr><td><code>DOMContentLoaded</code></td><td>Anywhere</td><td>Yes</td><td>Code that must sit above the elements it needs</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p>A script can only find what the browser has already built. Put the script after the elements, defer the file, or wait for <code>DOMContentLoaded</code>, and the elements exist when the script looks for them.</p></div>
+  <div class="callout exam"><b>Exam tip.</b> A <code>null</code> from <code>getElementById</code> has two usual causes: the script ran too early, or the id is wrong &mdash; a typo, a <code>#</code> inside the string, or different capital letters, since ids are case-sensitive. A question that shows a head script and an element in the body is testing the first.</div>
+</section>
+
+<section id="mistakes">
+  <h2>55.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The DOM is my HTML file."</b><br>Changes made through the DOM never reach the file, and View Source never shows them.</div>
+    <div class="r"><b>&#10003; "The DOM is a tree of objects in memory, built from the file."</b><br>A reload throws the tree away and builds a fresh one from the file.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "childNodes and children are the same list."</b><br>A list of three items on separate lines has seven childNodes.</div>
+    <div class="r"><b>&#10003; "children holds child elements only; childNodes holds every child node."</b><br>The extra ones are text nodes of whitespace, plus any comments.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "firstChild gives the first element."</b><br>It often gives the whitespace before it.</div>
+    <div class="r"><b>&#10003; "firstElementChild gives the first element."</b><br>The same goes for every twin: use the names with Element in them.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "getElementById gave null, so the id must be misspelt."</b><br>It may be spelled perfectly.</div>
+    <div class="r"><b>&#10003; "First ask whether the script ran before the element was built."</b><br>Then check the spelling, the capitals and any stray <code>#</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Adding defer to any script tag makes it wait."</b><br>An inline script ignores it.</div>
+    <div class="r"><b>&#10003; "defer works only with src."</b><br>For inline code, use the end of the body or <code>DOMContentLoaded</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "window and document are the same thing."</b><br>One holds the other.</div>
+    <div class="r"><b>&#10003; "window is the tab and the global object; document is the page inside it."</b><br><code>window.document === document</code> is <code>true</code>.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the "what does this print?" questions, draw the tree first, and remember the whitespace.</p>
+  <details class="q"><summary><span>What does DOM stand for?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Data Object Map</li><li>B. Document Object Model</li><li>C. Dynamic Output Method</li><li>D. Document Order Markup</li></ul>
+    <p><b>Answer: B.</b> Document Object Model: the page (document) turned into objects, arranged as a working model of the page that JavaScript can read and change.</p></div></details>
+  <details class="q"><summary><span>Which statement best describes the DOM?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The HTML file as it is stored on the server</li><li>B. A stylesheet language that controls layout</li><li>C. A tree of objects the browser builds in memory from the HTML, which JavaScript can read and change</li><li>D. A list of the scripts on a page, in the order they run</li></ul>
+    <p><b>Answer: C.</b> The browser parses the HTML into a tree of node objects. A is the tempting wrong answer: the file is only the plan the tree is built from, and changing the DOM never changes the file.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>&lt;ul id="u"&gt;</code><br><code>&nbsp;&nbsp;&lt;li&gt;A&lt;/li&gt;</code><br><code>&nbsp;&nbsp;&lt;li&gt;B&lt;/li&gt;</code><br><code>&lt;/ul&gt;</code><br><code>&lt;script&gt;</code><br><code>&nbsp;&nbsp;const u = document.getElementById("u");</code><br><code>&nbsp;&nbsp;console.log(u.childNodes.length, u.children.length);</code><br><code>&lt;/script&gt;</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>5 2</code>.</b> Each item sits on its own line, so there are three runs of whitespace: before A, between A and B, and after B. Those three text nodes plus the two <code>li</code> elements make 5 childNodes; <code>children</code> counts only the 2 elements.</p></div></details>
+  <details class="q"><summary><span>Which property gives the first child that is an element, skipping any whitespace text node?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>firstElementChild</code></li><li>B. <code>firstChild</code></li><li>C. <code>childNodes[0]</code></li><li>D. <code>parentNode</code></li></ul>
+    <p><b>Answer: A.</b> <code>firstChild</code> and <code>childNodes[0]</code> count every node, so on an indented list both give the whitespace text node before the first element. <code>parentNode</code> goes up, not down.</p></div></details>
+  <details class="q"><summary><span>What happens when this page loads?<br><code>&lt;head&gt;</code><br><code>&nbsp;&nbsp;&lt;script&gt;</code><br><code>&nbsp;&nbsp;&nbsp;&nbsp;document.getElementById("msg").textContent = "Hi";</code><br><code>&nbsp;&nbsp;&lt;/script&gt;</code><br><code>&lt;/head&gt;</code><br><code>&lt;body&gt;</code><br><code>&nbsp;&nbsp;&lt;p id="msg"&gt;Hello&lt;/p&gt;</code><br><code>&lt;/body&gt;</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The paragraph shows Hi</li><li>B. The paragraph shows Hello, and the Console shows <i>TypeError: Cannot set properties of null (setting 'textContent')</i></li><li>C. The browser waits until the paragraph exists, then shows Hi</li><li>D. Nothing at all: no text and no error</li></ul>
+    <p><b>Answer: B.</b> The head script runs before the body has been read, so <code>getElementById</code> returns <code>null</code>, and setting a property on <code>null</code> is a TypeError. An ordinary script never waits for later elements, so C is wrong; the paragraph is built afterwards with its original text.</p></div></details>
+  <details class="q"><summary><span>Which change does NOT fix the page in the previous question?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Moving the script to just before <code>&lt;/body&gt;</code></li><li>B. Moving the code into <code>js/app.js</code> and loading it in the head with <code>&lt;script src="js/app.js" defer&gt;&lt;/script&gt;</code></li><li>C. Wrapping the line in <code>document.addEventListener("DOMContentLoaded", () =&gt; { ... });</code></li><li>D. Writing <code>&lt;script defer&gt;</code> on the same inline script</li></ul>
+    <p><b>Answer: D.</b> <code>defer</code> works only on a script with <code>src</code>; on an inline script it is ignored and the code still runs too early. A, B and C each make the code run after the paragraph has been built.</p></div></details>
+  <details class="q"><summary><span>What is the <code>nodeType</code> of a text node?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 1</li><li>B. 2</li><li>C. 9</li><li>D. 3</li></ul>
+    <p><b>Answer: D.</b> Elements are 1, attributes 2, text nodes 3 and the document 9. A text node's <code>nodeName</code> is <code>"#text"</code>.</p></div></details>
+  <details class="q"><summary><span>The source is <code>&lt;table id="t"&gt;&lt;tr&gt;&lt;td&gt;1&lt;/td&gt;&lt;/tr&gt;&lt;/table&gt;</code>. What does <code>console.log(document.getElementById("t").firstElementChild.tagName);</code> print?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. TBODY</li><li>B. TR</li><li>C. TD</li><li>D. undefined</li></ul>
+    <p><b>Answer: A.</b> The parser puts every table row inside a table section, so it adds a <code>tbody</code> nobody typed. The live DOM is not the source. B is what you would answer from reading the source alone.</p></div></details>
+  <details class="q"><summary><span>Which statement about <code>window</code> and <code>document</code> is true?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. They are two names for the same object</li><li>B. <code>alert</code> and <code>setTimeout</code> are properties of <code>document</code></li><li>C. <code>document</code> is a property of <code>window</code>, so <code>window.document === document</code> is <code>true</code></li><li>D. Every element on the page has a <code>window</code> of its own</li></ul>
+    <p><b>Answer: C.</b> <code>window</code> stands for the tab and is the global object; the page, <code>document</code>, is one of its properties. <code>alert</code> and <code>setTimeout</code> belong to <code>window</code>, not to <code>document</code>.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>&lt;h1 id="t" class="big red"&gt;Hi&lt;/h1&gt;</code><br><code>&lt;script&gt;</code><br><code>&nbsp;&nbsp;const h = document.getElementById("t");</code><br><code>&nbsp;&nbsp;console.log(h.tagName, h.id, h.className);</code><br><code>&lt;/script&gt;</code></span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: <code>H1 t big red</code>.</b> <code>tagName</code> is the tag in capitals, <code>id</code> is the id's value, and <code>className</code> is the whole class attribute as one string, both classes included.</p></div></details>
+  <details class="q"><summary><span>A script has just changed a heading's text. Where can you see the new text?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. In the DevTools Elements panel</li><li>B. In View Source (<kbd>Ctrl</kbd>+<kbd>U</kbd>)</li><li>C. In the HTML file on the server</li><li>D. Nowhere until the page is reloaded</li></ul>
+    <p><b>Answer: A.</b> The Elements panel shows the live DOM. View Source and the server's file both show the original text, and a reload throws the change away rather than revealing it.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>&lt;ol&gt;</code><br><code>&nbsp;&nbsp;&lt;li&gt;Asha&lt;/li&gt;</code><br><code>&nbsp;&nbsp;&lt;li id="m"&gt;Meera&lt;/li&gt;</code><br><code>&lt;/ol&gt;</code><br><code>&lt;script&gt;</code><br><code>&nbsp;&nbsp;const m = document.getElementById("m");</code><br><code>&nbsp;&nbsp;console.log(m.previousElementSibling.textContent, m.nextElementSibling, m.parentElement.tagName);</code><br><code>&lt;/script&gt;</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>Asha null OL</code>.</b> The element before Meera's item is Asha's. Meera's item is the last child, so there is no next element sibling: <code>null</code>, not an error. Its parent is the <code>ol</code>, reported in capitals.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>The browser parses your HTML into the DOM, a tree of node objects in memory. JavaScript changes the tree, the screen follows, and the file never changes.</li>
+    <li><code>document</code> is the way in: <code>documentElement</code>, <code>head</code>, <code>body</code>, <code>title</code>, and <code>getElementById("id")</code>, which gives <code>null</code> when nothing matches.</li>
+    <li>Node types: element 1, attribute 2 (stored on an element, never among its children), text 3, document 9. Tag names are reported in capitals.</li>
+    <li>Walk with <code>parentElement</code>, <code>children</code>, <code>firstElementChild</code>, <code>lastElementChild</code>, <code>previousElementSibling</code> and <code>nextElementSibling</code>. Each gives <code>null</code> where there is nobody.</li>
+    <li>The twins without <i>Element</i> in their names count text nodes too, including the whitespace between tags: three items on separate lines make seven childNodes.</li>
+    <li><code>window</code> is the tab and the global object; <code>document</code> is <code>window.document</code>, the page inside it.</li>
+    <li>The live DOM can differ from the source: the browser's repairs (such as <code>tbody</code>) and JavaScript's changes. View Source shows the text; the DevTools Elements panel shows the tree.</li>
+    <li>A script finds only what has been built above it. Fix early scripts with the end of the body, an external file with <code>defer</code>, or <code>DOMContentLoaded</code>.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>document</code></td><td>The whole page, the root of the DOM tree</td></tr>
+      <tr><td><code>document.documentElement</code> / <code>.head</code> / <code>.body</code></td><td>The <code>html</code>, <code>head</code> and <code>body</code> elements</td></tr>
+      <tr><td><code>document.title = "DOM Lab";</code></td><td>Reads or changes the text on the browser tab</td></tr>
+      <tr><td><code>document.getElementById("msg")</code></td><td>The element with that id, or <code>null</code></td></tr>
+      <tr><td><code>el.tagName</code>, <code>el.id</code>, <code>el.className</code></td><td><code>"P"</code>, the id's value, the class attribute as one string</td></tr>
+      <tr><td><code>el.textContent = "Hi";</code></td><td>Reads or replaces all the text inside an element</td></tr>
+      <tr><td><code>node.nodeType</code> / <code>node.nodeName</code></td><td>1 element, 2 attribute, 3 text, 9 document / <code>"P"</code>, <code>"#text"</code>, <code>"#document"</code></td></tr>
+      <tr><td><code>el.parentElement</code></td><td>The element directly above</td></tr>
+      <tr><td><code>el.children</code></td><td>Child elements only (an HTMLCollection)</td></tr>
+      <tr><td><code>el.firstElementChild</code> / <code>el.lastElementChild</code></td><td>The first / last child element</td></tr>
+      <tr><td><code>el.previousElementSibling</code> / <code>el.nextElementSibling</code></td><td>The element just before / after, same parent</td></tr>
+      <tr><td><code>el.childNodes</code>, <code>el.firstChild</code>, <code>el.nextSibling</code></td><td>Every node, whitespace text included</td></tr>
+      <tr><td><code>el.outerHTML</code></td><td>The element written back out as HTML, from the live tree</td></tr>
+      <tr><td><code>&lt;script src="js/app.js" defer&gt;&lt;/script&gt;</code></td><td>Downloads now, runs after the HTML is read (needs <code>src</code>)</td></tr>
+      <tr><td><code>document.addEventListener("DOMContentLoaded", () =&gt; { ... });</code></td><td>Runs the function once the whole tree is built</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document_Object_Model/Introduction" target="_blank" rel="noopener noreferrer">MDN &mdash; Introduction to the DOM<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official overview: what the DOM is, how it relates to JavaScript, and its core objects.</span></li>
+    <li><a href="https://javascript.info/dom-nodes" target="_blank" rel="noopener noreferrer">javascript.info &mdash; DOM tree<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Node kinds, whitespace text nodes and the browser's auto-correction, with pictures of real trees.</span></li>
+    <li><a href="https://javascript.info/dom-navigation" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Walking the DOM<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every parent, child and sibling property, and the element-only versions, with small tasks at the end.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/DOMContentLoaded_event" target="_blank" rel="noopener noreferrer">MDN &mdash; DOMContentLoaded event<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly when it fires, and how it differs from the load event.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

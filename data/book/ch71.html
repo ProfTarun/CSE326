@@ -1,0 +1,885 @@
+<article class="chapter" data-ch="71">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 71 &middot; Interactive User Interface Development</p>
+  <h1>Interactive User Interface Development</h1>
+  <p class="lead">A notice board shows the same sheet until somebody walks up and pins a new one. The pages you use every day behave differently: they answer every click and keystroke at once, show you what they are doing, and let you take a mistake back. This chapter joins up everything Unit 5 taught about events and the DOM into four small, complete apps, and the habits that keep such code tidy.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>addEventListener("click", fn)</code> leaves a function with the browser to call later, and one listener on a parent can serve all its children (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li>A <code>render()</code> function turns an array into page content with <code>createElement</code> and <code>textContent</code>; user text never goes into <code>innerHTML</code> (<a href="book.html?ch=58">Chapter 58</a>).</li>
+      <li>In a submit handler, <code>event.preventDefault()</code> stops the page reloading so your script can check the form (<a href="book.html?ch=60">Chapter 60</a>).</li>
+      <li><code>array.filter(fn)</code> keeps only the items for which <code>fn</code> returns <code>true</code> (<a href="book.html?ch=53">Chapter 53</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what makes an interface interactive &mdash; feedback, responsiveness and state you can see &mdash; and name the common interactive components.</li>
+      <li>Trace the event-driven chain: user action, browser event, handler, state change, updated screen.</li>
+      <li>Write an event listener correctly, and explain why <code>addEventListener("click", greet())</code> is a bug.</li>
+      <li>Build a counter, a live search and a form with live error messages, all with the pattern <i>event &rarr; change state &rarr; render()</i>.</li>
+      <li>Pick the right feedback for an action: a disabled button, loading text, a success message or an undo.</li>
+      <li>Apply six DOM habits: select once, <code>textContent</code> for text, classes not styles, delegation, no inline handlers, data as the source of truth.</li>
+      <li>Build the task manager: add, complete, delete, search, count and an empty state.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>71.1 What makes an interface interactive</h2>
+  <p>Open the university exam notice: a heading, some paragraphs, a table of dates. You can only read it, and the one way to see something different is to load a different page. That is a <b>static</b> interface. Now open a course list with buttons for <i>All</i>, <i>CSE</i> and <i>ECE</i> and a search box. Press <i>CSE</i> and the list changes at once; type two letters and it narrows while you type. Nothing reloaded. That is an <b>interactive</b> interface: it answers what the user does, immediately, inside the same page.</p>
+  <p>You use eight interactive components every day:</p>
+  <table class="tbl">
+    <thead><tr><th>Component</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td>Buttons</td><td>Trigger an action: save, add, like</td></tr>
+      <tr><td>Navigation menus</td><td>A hamburger icon opens the menu on a phone</td></tr>
+      <tr><td>Tabs</td><td>Switch views without reloading</td></tr>
+      <tr><td>Forms</td><td>Check what you type as you type it</td></tr>
+      <tr><td>Search fields</td><td>Filter results live</td></tr>
+      <tr><td>Modals</td><td>A dialog over the page: "Delete this file?"</td></tr>
+      <tr><td>Expandable panels</td><td>A question opens to show its answer</td></tr>
+      <tr><td>Dynamic lists</td><td>Items added, removed, re-ordered</td></tr>
+    </tbody>
+  </table>
+  <p>Every good one of these shares three qualities:</p>
+  <ol>
+    <li><b>Feedback.</b> Every action gets a visible answer. A button changes, a number moves, a message appears.</li>
+    <li><b>Responsiveness.</b> The answer comes <i>at once</i>. About a tenth of a second feels instant; anything slower than a second needs a sign that work is going on.</li>
+    <li><b>State you can see.</b> The screen always shows the current situation: which tab is open, how many items are in the cart, whether something is still saving. The data that describes that situation is the page's <span class="jw" data-def="The facts that decide what the page should show right now: the count, the list of tasks, the word in the search box.">state</span>.</li>
+  </ol>
+  <div class="callout analogy"><b>Picture this.</b> You press the call button for the lift on the ground floor of your block. A good lift answers you three ways: the button lights up the moment you touch it (<i>feedback</i>: "I heard you"), the panel over the door counts down the floors as the lift comes (<i>state you can see</i>), and then the doors open (the <i>result</i>). Now picture a button that does not light up. People press it again, and again, ten times &mdash; not because they are impatient, but because nothing told them the first press worked. A web page without feedback gets the same treatment: a Submit button pressed three times, three orders, three payments.</div>
+  <details class="qc"><summary>Quick check: a Save button saves the data correctly but nothing on the screen changes. Which of the three qualities is missing?</summary><p><b>Feedback.</b> The work was done, but the user cannot tell, so they will press it again or assume it failed. A message such as "Saved" or a button that briefly says "Saving..." fixes it.</p></details>
+</section>
+
+<section id="s2">
+  <h2>71.2 The event-driven model: wait, react, update</h2>
+  <p>A program you might imagine runs from its first line to its last and stops. Browser JavaScript is different. When the page loads, your script runs once, top to bottom: it finds the elements it needs, registers its handlers, and draws the starting screen. Then it has nothing more to do. The page sits there, waiting. Only when the user does something does the browser wake a piece of your code up. This style is called <span class="jw" data-def="A way of writing programs where the code mostly waits, and small functions run only when something happens, such as a click or a key press.">event-driven</span> programming, and every interactive page follows the same five-step chain:</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Five steps in a row: the user acts, the browser fires an event, your handler runs, it changes the state and renders, and the screen shows the new value; then the page waits for the next event">
+      <text x="310" y="18" class="t c s">Set up once at page load, then repeated for every action</text>
+      <rect x="8" y="30" width="100" height="86" rx="10" class="box saf"/>
+      <text x="58" y="56" class="t c b">1 Action</text>
+      <text x="58" y="78" class="t c s">Riya clicks</text>
+      <text x="58" y="94" class="t c s">the + button</text>
+      <rect x="135" y="30" width="100" height="86" rx="10" class="box blu"/>
+      <text x="185" y="56" class="t c b">2 Event</text>
+      <text x="185" y="78" class="t c s">browser fires</text>
+      <text x="185" y="94" class="t c s">a click event</text>
+      <rect x="262" y="30" width="100" height="86" rx="10" class="box"/>
+      <text x="312" y="56" class="t c b">3 Handler</text>
+      <text x="312" y="78" class="t c s">your function</text>
+      <text x="312" y="94" class="t c s mono">count++</text>
+      <rect x="389" y="30" width="100" height="86" rx="10" class="box grn"/>
+      <text x="439" y="56" class="t c b">4 Update</text>
+      <text x="439" y="78" class="t c s">change state,</text>
+      <text x="439" y="94" class="t c s mono">then render()</text>
+      <rect x="516" y="30" width="100" height="86" rx="10" class="box gry"/>
+      <text x="566" y="56" class="t c b">5 Screen</text>
+      <text x="566" y="78" class="t c s">shows the</text>
+      <text x="566" y="94" class="t c s">new number</text>
+      <path d="M108 73 L133 73" class="edge" marker-end="url(#arr)"/>
+      <path d="M235 73 L260 73" class="edge" marker-end="url(#arr)"/>
+      <path d="M362 73 L387 73" class="edge" marker-end="url(#arr)"/>
+      <path d="M489 73 L514 73" class="edge" marker-end="url(#arr)"/>
+      <path d="M566 118 L566 150 L58 150 L58 120" class="edge dash" marker-end="url(#arr)"/>
+      <text x="312" y="172" class="t c s">then the page waits again &mdash; the next click goes round the same chain</text>
+    </svg>
+    <figcaption><b>Figure 71.1</b> The event-driven chain. Your code only ever runs in steps 3 and 4; the browser does the waiting and the noticing.</figcaption>
+  </figure>
+  <p>The function that runs in step 3 is the <b>event handler</b>. It does two things: it changes the data, then it updates the page from that data. The browser repaints the screen once your handler has finished. Five events cover nearly everything in this chapter:</p>
+  <table class="tbl">
+    <thead><tr><th>Event</th><th>Fires when&hellip;</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>click</code></td><td>An element is clicked or tapped (or Enter/Space is pressed on a focused button)</td><td>Buttons, menu toggles, cards</td></tr>
+      <tr><td><code>input</code></td><td>The value of a box changes &mdash; every keystroke, paste or clear</td><td>Live search, character counters</td></tr>
+      <tr><td><code>change</code></td><td>A value is <i>committed</i>: a select or checkbox is changed, or a text box is left after editing</td><td>Dropdown filters, tick boxes</td></tr>
+      <tr><td><code>submit</code></td><td>A form is sent, by its submit button or by Enter in one of its fields</td><td>Checking a form before it goes</td></tr>
+      <tr><td><code>keydown</code></td><td>A key is pressed down</td><td>Shortcuts, Escape to close a dialog</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Your script is not a film that plays from start to finish. It is a set of notes left with the browser: "when <i>this</i> happens, run <i>that</i>". The browser watches; your functions run only when their moment comes, change the data, and redraw the page.</p>
+  </div>
+</section>
+
+<section id="s3">
+  <h2>71.3 Event listener syntax, one more time</h2>
+  <p>Every listener in this chapter has the same three parts:</p>
+  <pre class="code">const button = document.querySelector("#myButton");
+
+button.addEventListener("click", () =&gt; {
+  console.log("Button clicked");
+});</pre>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>What it is</th></tr></thead>
+    <tbody>
+      <tr><td><code>querySelector("#myButton")</code></td><td><b>The selector.</b> Finds the first element matching the CSS selector &mdash; or gives <code>null</code> if there is none.</td></tr>
+      <tr><td><code>"click"</code></td><td><b>The event type</b>, a string naming what to listen for.</td></tr>
+      <tr><td><code>() =&gt; { ... }</code></td><td><b>The <span class="jw" data-def="A function you hand over to be run later; here the browser runs it each time the event happens.">callback</span>.</b> The browser stores this function and calls it each time the event happens.</td></tr>
+    </tbody>
+  </table>
+  <p>The first trap is <code>null</code>. If the <code>&lt;script&gt;</code> tag sits in the <code>&lt;head&gt;</code>, it runs before the browser has read the button, so <code>querySelector</code> finds nothing and the next line fails with <code>TypeError: Cannot read properties of null (reading 'addEventListener')</code>. Put the script at the end of the <code>&lt;body&gt;</code>, or write <code>&lt;script src="app.js" defer&gt;&lt;/script&gt;</code> so it waits until the HTML has been read.</p>
+  <p>The second trap is the most common beginner bug in this whole unit: <b>calling</b> a function when you meant to <b>pass</b> it. <code>greet</code> is the function itself, a recipe handed over to be used later. <code>greet()</code> means "run it <i>now</i>", and what you hand over is whatever it returns &mdash; here, <code>undefined</code>. The browser quietly accepts <code>undefined</code> and simply has nothing to run when the click comes. Predict what this page does before you press Run:</p>
+  <pre class="code" data-run data-title="Passing a function vs calling it - predict, Run, then click both buttons" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { padding: 8px 14px; margin-right: 6px; cursor: pointer; }
+&lt;/style&gt;
+&lt;button id="broken"&gt;Broken button&lt;/button&gt;
+&lt;button id="fixed"&gt;Fixed button&lt;/button&gt;
+&lt;p id="out"&gt;Clicks so far: 0&lt;/p&gt;
+
+&lt;script&gt;
+  const brokenBtn = document.querySelector("#broken");
+  const fixedBtn = document.querySelector("#fixed");
+  const out = document.querySelector("#out");
+  let clicks = 0;
+
+  function greet() {
+    clicks++;
+    out.textContent = `Clicks so far: ${clicks}`;
+    console.log("Hi!");
+  }
+
+  brokenBtn.addEventListener("click", greet());   // BUG: greet() runs NOW
+  fixedBtn.addEventListener("click", greet);      // right: hand the function over
+  console.log("Listeners attached. clicks =", clicks);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Hi!</code> and then <code>Listeners attached. clicks = 1</code>, and the page already says <b>Clicks so far: 1</b> &mdash; before you have touched anything. That one <code>Hi!</code> came from <code>greet()</code> running while the listener was being set up. Click <b>Broken button</b> as often as you like: nothing happens. Click <b>Fixed button</b>: <code>Hi!</code> again and <b>Clicks so far: 2</b>. When a handler needs arguments, wrap the call in a new arrow function, which is passed and not called: <code>btn.addEventListener("click", () =&gt; greet("Asha"));</code></p>
+  <details class="qc"><summary>Quick check: a page has btn.addEventListener("click", showMenu()); where showMenu opens a menu. What does the user see?</summary><p>The menu opens once by itself as the page loads (because <code>showMenu()</code> ran then), and clicking the button afterwards does nothing. The fix is <code>btn.addEventListener("click", showMenu);</code> &mdash; no brackets.</p></details>
+</section>
+
+<section id="s4">
+  <h2>71.4 Build 1: the interactive counter</h2>
+  <p>Chapter 57 built a counter; here is the lecture's version, laid out the way a real project is, plus the lab task. The structure comes first:</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;main class="counter"&gt;
+  &lt;h1&gt;Click Counter&lt;/h1&gt;
+  &lt;p id="count" class="count" aria-live="polite"&gt;0&lt;/p&gt;
+  &lt;div class="actions"&gt;
+    &lt;button id="decrement"&gt;&amp;minus;&lt;/button&gt;
+    &lt;button id="reset"&gt;Reset&lt;/button&gt;
+    &lt;button id="increment"&gt;+&lt;/button&gt;
+  &lt;/div&gt;
+&lt;/main&gt;
+&lt;script src="counter.js" defer&gt;&lt;/script&gt;
+
+/* styles.css (the part that matters) */
+.count          { font-size: 4rem; font-weight: 700; }
+.count.negative { color: #dc2626; }</pre>
+  <p>Three decisions in this HTML are worth copying into every project:</p>
+  <ul>
+    <li><b>One source of truth.</b> The number lives in a JavaScript variable; <code>#count</code> only <i>displays</i> it.</li>
+    <li><b>Real <code>&lt;button&gt;</code> elements.</b> Tab, Enter, Space and screen-reader support come free; a clickable <code>&lt;div&gt;</code> has none of them (Chapter 59).</li>
+    <li><b>Style by class.</b> JavaScript adds or removes the class <code>negative</code>; the CSS decides that negative means red. <code>aria-live="polite"</code> asks screen readers to announce the new number whenever it changes.</li>
+  </ul>
+  <p>The lecture's <code>counter.js</code> grabs the elements once, keeps <code>let count = 0</code> as the state, and puts every page update into one <code>render()</code>. Each handler changes the state, then calls <code>render()</code>, so the screen can never disagree with the data. Here it is with the lab task done &mdash; a <b>+5</b> button, and a floor at <b>&minus;10</b>:</p>
+  <pre class="code" data-run data-title="The counter with the lab task done: +5, and never below -10" data-h="290">&lt;style&gt;
+  .counter { max-width: 320px; margin: 10px auto; text-align: center;
+             font-family: system-ui, sans-serif; }
+  .count { font-size: 4rem; font-weight: 700; margin: 6px 0; }
+  .count.negative { color: #dc2626; }
+  .actions { display: flex; gap: 8px; justify-content: center; }
+  button { padding: 8px 16px; font-size: 1.25rem; cursor: pointer; }
+  .note { color: #64748b; font-size: 14px; min-height: 20px; }
+&lt;/style&gt;
+&lt;main class="counter"&gt;
+  &lt;h1&gt;Click Counter&lt;/h1&gt;
+  &lt;p id="count" class="count" aria-live="polite"&gt;0&lt;/p&gt;
+  &lt;div class="actions"&gt;
+    &lt;button id="decrement" aria-label="Decrease"&gt;&amp;minus;&lt;/button&gt;
+    &lt;button id="reset"&gt;Reset&lt;/button&gt;
+    &lt;button id="increment" aria-label="Increase"&gt;+&lt;/button&gt;
+    &lt;button id="plus5"&gt;+5&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;p id="note" class="note"&gt;&lt;/p&gt;
+&lt;/main&gt;
+
+&lt;script&gt;
+  const MIN = -10;                                 // the lab task: the floor
+  const countEl  = document.querySelector("#count");
+  const noteEl   = document.querySelector("#note");
+  const incBtn   = document.querySelector("#increment");
+  const decBtn   = document.querySelector("#decrement");
+  const resetBtn = document.querySelector("#reset");
+  const plus5Btn = document.querySelector("#plus5");
+
+  let count = 0;                                   // the state
+
+  function render() {                              // state -&gt; screen, nothing else
+    countEl.textContent = count;
+    countEl.classList.toggle("negative", count &lt; 0);
+    decBtn.disabled = count &lt;= MIN;                // feedback: you cannot go lower
+    noteEl.textContent = count &lt;= MIN ? `Lowest allowed is ${MIN}.` : "";
+    console.log("count =", count);
+  }
+
+  function change(step) {
+    count = Math.max(MIN, count + step);           // the data can never pass the floor
+    render();
+  }
+
+  incBtn.addEventListener("click", () =&gt; change(1));
+  decBtn.addEventListener("click", () =&gt; change(-1));
+  plus5Btn.addEventListener("click", () =&gt; change(5));
+  resetBtn.addEventListener("click", () =&gt; { count = 0; render(); });
+
+  render();                                        // draw the starting state
+&lt;/script&gt;</pre>
+  <p>On Run, the last line draws the starting state and the Console shows <code>count = 0</code>. Press <b>+5</b> twice (<code>count = 5</code>, <code>count = 10</code>), then <b>Reset</b> (<code>count = 0</code>). Now press <b>&minus;</b> repeatedly: at <code>count = -1</code> the number turns red, and at <code>count = -10</code> the &minus; button greys out and the note says <b>Lowest allowed is -10.</b></p>
+  <p><code>classList.toggle("negative", count &lt; 0)</code> takes a second argument: when it is <code>true</code> the class is added, when <code>false</code> it is removed. The floor has <b>two guards</b> doing two jobs: <code>decBtn.disabled</code> <i>tells the user</i> they have reached the end, and <code>Math.max(MIN, count + step)</code> <i>protects the data</i> &mdash; <code>Math.max(-10, -11)</code> is <code>-10</code> &mdash; even if some other code calls <code>change(-1)</code>.</p>
+  <div class="callout why"><b>Key idea.</b> The pattern to remember for every interactive page: <b>event &rarr; change state &rarr; render()</b>. Handlers never touch the page directly; only <code>render()</code> does.</div>
+</section>
+
+<section id="s5">
+  <h2>71.5 Build 2: live search</h2>
+  <p>A live search narrows a list while you type. Four steps run on <i>every</i> keystroke:</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 260" role="img" aria-label="Four steps on every keystroke: the input event fires, the value is read and lower-cased, the array is filtered, the matches are rendered. Below, seven students filtered by the query an leave four on screen.">
+      <rect x="10" y="16" width="135" height="70" rx="10" class="box saf"/>
+      <text x="77" y="40" class="t c b">1 input event</text>
+      <text x="77" y="60" class="t c s">every key, paste</text>
+      <text x="77" y="74" class="t c s">or clear</text>
+      <rect x="165" y="16" width="135" height="70" rx="10" class="box blu"/>
+      <text x="232" y="40" class="t c b">2 Read value</text>
+      <text x="232" y="60" class="t c s mono">trim()</text>
+      <text x="232" y="74" class="t c s mono">toLowerCase()</text>
+      <rect x="320" y="16" width="135" height="70" rx="10" class="box"/>
+      <text x="387" y="40" class="t c b">3 Filter</text>
+      <text x="387" y="60" class="t c s">keep names that</text>
+      <text x="387" y="74" class="t c s mono">includes(query)</text>
+      <rect x="475" y="16" width="135" height="70" rx="10" class="box grn"/>
+      <text x="542" y="40" class="t c b">4 Render</text>
+      <text x="542" y="60" class="t c s">one &lt;li&gt; per match,</text>
+      <text x="542" y="74" class="t c s">or the empty state</text>
+      <path d="M145 51 L163 51" class="edge" marker-end="url(#arr)"/>
+      <path d="M300 51 L318 51" class="edge" marker-end="url(#arr)"/>
+      <path d="M455 51 L473 51" class="edge" marker-end="url(#arr)"/>
+      <rect x="10" y="110" width="180" height="140" rx="10" class="box gry"/>
+      <text x="100" y="130" class="t c b">students (7)</text>
+      <text x="100" y="148" class="t c s">Aarav Sharma</text>
+      <text x="100" y="162" class="t c s">Diya Patel</text>
+      <text x="100" y="176" class="t c s">Ishaan Gupta</text>
+      <text x="100" y="190" class="t c s">Kavya Nair</text>
+      <text x="100" y="204" class="t c s">Rohan Mehta</text>
+      <text x="100" y="218" class="t c s">Saanvi Iyer</text>
+      <text x="100" y="232" class="t c s">Vivaan Singh</text>
+      <rect x="225" y="150" width="170" height="60" rx="10" class="box saf"/>
+      <text x="310" y="174" class="t c mono">query = "an"</text>
+      <text x="310" y="194" class="t c s">filter keeps 4 names</text>
+      <rect x="430" y="110" width="180" height="140" rx="10" class="box grn"/>
+      <text x="520" y="130" class="t c b">on screen (4)</text>
+      <text x="520" y="152" class="t c s">Ishaan Gupta</text>
+      <text x="520" y="168" class="t c s">Rohan Mehta</text>
+      <text x="520" y="184" class="t c s">Saanvi Iyer</text>
+      <text x="520" y="200" class="t c s">Vivaan Singh</text>
+      <text x="520" y="228" class="t c s">4 of 7 students match</text>
+      <path d="M190 180 L223 180" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M395 180 L428 180" class="edge grn" marker-end="url(#arr-grn)"/>
+    </svg>
+    <figcaption><b>Figure 71.2</b> The same four steps run on each keystroke. With <code>"an"</code> typed, only names that contain those two letters side by side survive the filter.</figcaption>
+  </figure>
+  <p>The HTML is a labelled search box and an empty list: <code>&lt;label for="search"&gt;Search students&lt;/label&gt;</code>, <code>&lt;input id="search" type="search"&gt;</code>, <code>&lt;ul id="results"&gt;&lt;/ul&gt;</code>. Here is the lecture's code, with one addition &mdash; a status line that counts the matches:</p>
+  <pre class="code" data-run data-title="Live search - type an, then SH, then xyz, then clear the box" data-h="330">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  label { display: block; font-weight: 600; margin-bottom: 4px; }
+  input { font-size: 15px; padding: 6px 8px; width: 240px; max-width: 100%; }
+  #status { color: #475569; font-size: 14px; }
+&lt;/style&gt;
+&lt;label for="search"&gt;Search students&lt;/label&gt;
+&lt;input id="search" type="search"&gt;
+&lt;p id="status" role="status"&gt;&lt;/p&gt;
+&lt;ul id="results"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  // The data
+  const students = [
+    "Aarav Sharma", "Diya Patel", "Ishaan Gupta", "Kavya Nair",
+    "Rohan Mehta", "Saanvi Iyer", "Vivaan Singh",
+  ];
+  const input = document.querySelector("#search");
+  const list = document.querySelector("#results");
+  const statusEl = document.querySelector("#status");
+
+  // Draws whatever array it is given - it does not care where the array came from
+  function renderStudents(items) {
+    list.replaceChildren();                        // clear the list
+    if (items.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "No students found";
+      list.append(li);
+      return;
+    }
+    items.forEach((name) =&gt; {
+      const li = document.createElement("li");
+      li.textContent = name;
+      list.append(li);
+    });
+  }
+
+  // Works out the matches, then asks renderStudents to draw them
+  function search() {
+    const query = input.value.trim().toLowerCase();
+    const matches = students.filter((name) =&gt; name.toLowerCase().includes(query));
+    renderStudents(matches);
+    statusEl.textContent = query === ""
+      ? `All ${students.length} students`
+      : `${matches.length} of ${students.length} students match "${query}"`;
+    console.log(`search "${query}":`, matches.length, "of", students.length);
+  }
+
+  input.addEventListener("input", search);
+  search();                                        // show everyone at the start
+&lt;/script&gt;</pre>
+  <p>On Run the Console shows <code>search "": 7 of 7</code> and all seven names appear. Why does an empty box match everyone? Because <i>every</i> string includes the empty string: <code>"Diya Patel".includes("")</code> is <code>true</code>. That is exactly what you want &mdash; clear the box and the whole list comes back with no special code.</p>
+  <p>Type <b>an</b>: <code>search "an": 4 of 7</code>, showing Ishaan Gupta, Rohan Mehta, Saanvi Iyer and Vivaan Singh (Kavya Nair is left out: its <i>a</i> and <i>n</i> have a space between them). Type <b>xyz</b>: <code>search "xyz": 0 of 7</code>, and the list shows <b>No students found</b>. That message is the list's <span class="jw" data-def="What a list or page shows when there is nothing to show, such as 'No students found', instead of a blank white box.">empty state</span>; without it the user sees a blank box and assumes the page is broken.</p>
+  <div class="plain">
+    <p>Each keystroke: read the box, tidy it (strip spaces, make it small letters), keep only the names containing it, and redraw the list from those names. Lower-casing <i>both</i> sides is what makes <b>AN</b>, <b>An</b> and <b>an</b> all find Ishaan.</p>
+  </div>
+  <p><code>list.replaceChildren()</code> with empty brackets removes every child of the list in one call. And the work is split on purpose: <code>renderStudents</code> only <i>draws</i> an array, <code>search</code> only works out <i>which</i> array. Each can be tested alone, and <code>renderStudents</code> could draw a list from a server tomorrow unchanged.</p>
+  <details class="qc"><summary>Quick check: Meera types SH (capitals) into the box. Which names are shown, and what does the status line say?</summary><p>The query becomes <code>"sh"</code>. It is inside <b>Aarav Sharma</b> and inside <b>Ishaan Gupta</b> (i-<b>sh</b>-aan), so two names show and the status says <b>2 of 7 students match "sh"</b>. Vivaan Singh does not match: <i>s</i> is followed by <i>i</i>, not <i>h</i>.</p></details>
+</section>
+
+<section id="s6">
+  <h2>71.6 Build 3: form validation feedback</h2>
+  <p>The third build is a registration form that tells the user, in plain words and right under the field, what is wrong. The HTML gives every field three things: a real <code>&lt;label&gt;</code> (clicking it focuses the box), the input, and its own empty error paragraph. <code>novalidate</code> on the form switches off the browser's own pop-up bubbles, so your messages look the same in every browser. A <code>role="status"</code> paragraph at the bottom reports the overall result.</p>
+  <p>The JavaScript has two parts. <code>getError(field, value)</code> holds <b>all the rules in one place</b> and returns a message, or an empty string when the value is fine. The submit handler stops the page reloading, checks <b>every</b> field (so the user sees all the problems at once, not one per attempt), writes each message under its field, marks the field with <code>aria-invalid</code> so screen readers say "invalid entry", and reports success only when everything passes.</p>
+  <p>The lecture checks only on Submit. One small addition makes the feedback <i>real-time</i>: once a field is showing an error, it is re-checked on every keystroke, so the red message disappears the instant the user fixes it. Chapter 60 calls this <i>late to complain, quick to forgive</i>: never scold someone for a half-typed email, but never leave a message up after the mistake is fixed.</p>
+  <pre class="code" data-run data-title="Registration form - press Create account empty, then fix one field at a time" data-h="380">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  label { display: block; font-weight: 600; margin-top: 10px; }
+  input { font-size: 15px; padding: 6px 8px; width: 240px; max-width: 100%;
+          border: 2px solid #94a3b8; border-radius: 6px; }
+  input[aria-invalid="true"] { border-color: #dc2626; }
+  .error { color: #dc2626; font-size: 14px; margin: 3px 0 0; min-height: 18px; }
+  button { margin-top: 12px; padding: 8px 14px; cursor: pointer; }
+&lt;/style&gt;
+&lt;form id="registerForm" novalidate&gt;
+  &lt;label for="name"&gt;Full name&lt;/label&gt;
+  &lt;input id="name" autocomplete="name"&gt;
+  &lt;p class="error" id="name-error"&gt;&lt;/p&gt;
+
+  &lt;label for="email"&gt;Email&lt;/label&gt;
+  &lt;input id="email" type="email"&gt;
+  &lt;p class="error" id="email-error"&gt;&lt;/p&gt;
+
+  &lt;label for="password"&gt;Password&lt;/label&gt;
+  &lt;input id="password" type="password"&gt;
+  &lt;p class="error" id="password-error"&gt;&lt;/p&gt;
+
+  &lt;button type="submit"&gt;Create account&lt;/button&gt;
+  &lt;p id="form-status" role="status"&gt;&lt;/p&gt;
+&lt;/form&gt;
+
+&lt;script&gt;
+  const form = document.querySelector("#registerForm");
+  const statusEl = document.querySelector("#form-status");
+  const fields = ["name", "email", "password"];
+
+  // The rules, in one place: a message, or "" when the value is fine
+  function getError(field, value) {
+    if (field === "name" &amp;&amp; value.length &lt; 2) return "Enter at least 2 characters.";
+    if (field === "email" &amp;&amp; !value.includes("@")) return "Enter a valid email address.";
+    if (field === "password" &amp;&amp; value.length &lt; 8) return "Use at least 8 characters.";
+    return "";                                     // no problem
+  }
+
+  // Check one field, show the result under it, say whether it passed
+  function checkField(field) {
+    const input = document.querySelector(`#${field}`);
+    const errorEl = document.querySelector(`#${field}-error`);
+    const message = getError(field, input.value.trim());
+    errorEl.textContent = message;
+    input.setAttribute("aria-invalid", message !== "");
+    return message === "";
+  }
+
+  form.addEventListener("submit", (event) =&gt; {
+    event.preventDefault();                        // stay on this page
+    let valid = true;
+    fields.forEach((field) =&gt; {                    // check EVERY field
+      if (!checkField(field)) valid = false;
+    });
+    statusEl.textContent = valid
+      ? "Account created! (demo &mdash; nothing was sent)"
+      : "Please fix the errors above.";
+    console.log("Submit pressed. valid =", valid);
+  });
+
+  // Real-time: a field that is showing an error is re-checked on every key
+  fields.forEach((field) =&gt; {
+    const input = document.querySelector(`#${field}`);
+    input.addEventListener("input", () =&gt; {
+      if (input.getAttribute("aria-invalid") === "true") checkField(field);
+    });
+  });
+
+  // The rules can be tested with no clicking at all
+  console.log("Rule test 1:", getError("email", "ravi.college.edu"));
+  console.log("Rule test 2:", getError("email", "ravi@college.edu") === "" ? "(no error)" : "error");
+&lt;/script&gt;</pre>
+  <p>On Run, the two test lines prove the rules work on their own: <code>Rule test 1: Enter a valid email address.</code> and <code>Rule test 2: (no error)</code>. Now press <b>Create account</b> with everything empty. All three messages appear at once, three borders turn red, the status says <b>Please fix the errors above.</b> and the Console logs <code>Submit pressed. valid = false</code>.</p>
+  <p>Type <b>A</b> into Full name: the message stays (one character is still too short). Type a second letter and it vanishes on that keystroke, because the field was marked invalid and the <code>input</code> listener re-checked it. Fill in a real email and an 8-character password, press the button again, and you get <b>Account created!</b> and <code>valid = true</code>.</p>
+  <p><code>setAttribute</code> turns the true/false into the text <code>"true"</code> or <code>"false"</code>, and the CSS rule <code>input[aria-invalid="true"]</code> paints the red border: one attribute serves screen readers and the styling together.</p>
+  <div class="callout warn"><b>Not a security check.</b> Anyone can switch JavaScript off, edit your code in DevTools, or send data straight to the server without using your form. Browser validation exists for <i>instant, friendly feedback</i>. When a real server receives the data, it <b>must</b> check every rule again.</div>
+</section>
+
+<section id="s7">
+  <h2>71.7 Feedback patterns: busy, done, and undo</h2>
+  <p>The three builds each answered the user at once. Some actions cannot finish at once &mdash; sending a form to a server can take seconds &mdash; and some actions are dangerous, like deleting. Four patterns cover these cases:</p>
+  <table class="tbl">
+    <thead><tr><th>Pattern</th><th>Use it when</th><th>In code</th></tr></thead>
+    <tbody>
+      <tr><td><b>Disabled button while busy</b></td><td>An action takes time and must not run twice (submit, pay, send)</td><td><code>btn.disabled = true;</code> until the work finishes</td></tr>
+      <tr><td><b>Loading text</b></td><td>The wait is long enough to notice (about a second or more)</td><td><code>btn.textContent = "Submitting...";</code> or a status line</td></tr>
+      <tr><td><b>Success message</b></td><td>The action worked and nothing else shows it</td><td>Text in a <code>role="status"</code> element: "Submitted"</td></tr>
+      <tr><td><b>Undo</b></td><td>The action destroys something (delete, archive)</td><td>Do it at once, keep a copy for a few seconds, offer an Undo button</td></tr>
+    </tbody>
+  </table>
+  <p>Undo is kinder than an "Are you sure?" box. People click <i>OK</i> on confirmation boxes without reading them; an undo lets them act quickly and still recover. It usually appears as a <span class="jw" data-def="A small message that pops up near the edge of the screen for a few seconds, then disappears by itself.">toast</span>: "Deleted 'Email the mentor'. Undo". Error messages are the fifth pattern, and Chapter 70 covers them.</p>
+  <pre class="code" data-run data-title="Feedback patterns - press Submit assignment, then delete a note and Undo" data-h="330">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  h3 { margin: 10px 0 6px; font-size: 16px; }
+  button { padding: 6px 12px; cursor: pointer; }
+  button:disabled { cursor: wait; opacity: 0.6; }
+  li { margin: 4px 0; }
+  #toast { background: #0B2545; color: #fff; padding: 8px 12px; border-radius: 8px;
+           display: inline-block; }
+  #toast[hidden] { display: none; }
+&lt;/style&gt;
+&lt;h3&gt;1. Busy, then success&lt;/h3&gt;
+&lt;button id="saveBtn"&gt;Submit assignment&lt;/button&gt;
+&lt;p id="saveMsg" role="status"&gt;&lt;/p&gt;
+
+&lt;h3&gt;2. Delete with undo&lt;/h3&gt;
+&lt;ul id="notes"&gt;&lt;/ul&gt;
+&lt;p id="toast" role="status" hidden&gt;
+  &lt;span id="toastText"&gt;&lt;/span&gt; &lt;button id="undoBtn"&gt;Undo&lt;/button&gt;
+&lt;/p&gt;
+
+&lt;script&gt;
+  // ---- 1. Busy, then success ----
+  const saveBtn = document.querySelector("#saveBtn");
+  const saveMsg = document.querySelector("#saveMsg");
+
+  saveBtn.addEventListener("click", () =&gt; {
+    saveBtn.disabled = true;                      // a second click cannot start a second submit
+    saveBtn.textContent = "Submitting...";        // loading text
+    saveMsg.textContent = "";
+    console.log("Busy: button disabled");
+    setTimeout(() =&gt; {                            // pretend the server takes 1.5 seconds
+      saveBtn.disabled = false;
+      saveBtn.textContent = "Submit assignment";
+      saveMsg.textContent = "Submitted. You can close this page.";   // success
+      console.log("Done: button enabled again");
+    }, 1500);
+  });
+
+  // ---- 2. Delete with undo ----
+  let notes = ["Buy lab record", "Email the mentor", "Revise Unit 5"];
+  let lastDeleted = null;                         // { note, index } kept for undo
+  let toastTimer = null;
+  const list = document.querySelector("#notes");
+  const toast = document.querySelector("#toast");
+  const toastText = document.querySelector("#toastText");
+
+  function render() {
+    list.replaceChildren();
+    notes.forEach((note, i) =&gt; {
+      const li = document.createElement("li");
+      li.textContent = note + " ";
+      const btn = document.createElement("button");
+      btn.textContent = "Delete";
+      btn.dataset.index = i;                      // which note this button belongs to
+      li.append(btn);
+      list.append(li);
+    });
+    console.log("notes:", notes.join(" | "));
+  }
+
+  list.addEventListener("click", (event) =&gt; {     // one listener for every Delete
+    const btn = event.target.closest("button");
+    if (!btn) return;
+    const index = Number(btn.dataset.index);
+    lastDeleted = { note: notes[index], index };
+    notes.splice(index, 1);                       // delete at once - no "Are you sure?"
+    render();
+    toastText.textContent = `Deleted "${lastDeleted.note}".`;
+    toast.hidden = false;
+    clearTimeout(toastTimer);                     // restart the 5-second clock
+    toastTimer = setTimeout(() =&gt; {
+      toast.hidden = true;
+      lastDeleted = null;                         // too late to undo now
+    }, 5000);
+  });
+
+  document.querySelector("#undoBtn").addEventListener("click", () =&gt; {
+    if (!lastDeleted) return;
+    notes.splice(lastDeleted.index, 0, lastDeleted.note);   // put it back in its old place
+    lastDeleted = null;
+    toast.hidden = true;
+    render();
+  });
+
+  render();
+&lt;/script&gt;</pre>
+  <p>On Run the Console lists <code>notes: Buy lab record | Email the mentor | Revise Unit 5</code>. Press <b>Submit assignment</b>: the button greys out and says <b>Submitting...</b>, the Console says <code>Busy: button disabled</code>, and 1.5 seconds later <code>Done: button enabled again</code> with the success line on the page. Try to click it twice during the wait &mdash; you cannot.</p>
+  <p>Now delete <b>Email the mentor</b>: it goes at once (<code>notes: Buy lab record | Revise Unit 5</code>) and the toast appears. Press <b>Undo</b> within five seconds and it returns to the <i>middle</i>, because <code>splice(index, 0, note)</code> inserts at the old position, and the Console lists all three again. Wait longer and the toast leaves, taking the undo with it.</p>
+  <div class="plain">
+    <p>While something is working, say so and stop a second click. When it is done, say that too. When something is destroyed, keep a copy for a few seconds and offer it back. The user should never have to guess what the page is doing.</p>
+  </div>
+</section>
+
+<section id="s8">
+  <h2>71.8 DOM manipulation best practices</h2>
+  <p>Six DOM tools did all the work in this chapter:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Use it to&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td><code>querySelector()</code></td><td>Find one element with a CSS selector</td></tr>
+      <tr><td><code>createElement()</code></td><td>Make a new element in memory, not yet on the page</td></tr>
+      <tr><td><code>textContent</code></td><td>Set text safely &mdash; it is never treated as HTML</td></tr>
+      <tr><td><code>append()</code></td><td>Insert elements or text (<code>appendChild</code> takes exactly one node)</td></tr>
+      <tr><td><code>classList</code></td><td><code>add</code>, <code>remove</code> or <code>toggle</code> CSS classes</td></tr>
+      <tr><td><code>addEventListener()</code></td><td>Attach behaviour without writing <code>onclick</code> in the HTML</td></tr>
+    </tbody>
+  </table>
+  <p>Six habits turn those tools into code that stays correct as it grows.</p>
+  <h3>1. Select once, reuse the result</h3>
+  <p>Find each element once, near the top, and keep it in a <code>const</code>. Searching inside a handler repeats the search on every keystroke and scatters <code>"#results"</code> strings through the file.</p>
+  <h3>2. textContent for anything the user typed</h3>
+  <p><code>innerHTML</code> reads its text <i>as HTML</i>. Put a visitor's comment into it and the browser obeys any tags inside. If an attacker types this as a "comment", the broken image's <code>onerror</code> runs their script in the browser of everyone who views the page:</p>
+  <pre class="code">// UNSAFE: the text is parsed as HTML
+item.innerHTML = input.value;
+
+// The attacker types:  &lt;img src=x onerror="alert('hacked')"&gt;
+// innerHTML builds a real &lt;img&gt;, it fails to load, onerror runs the script.
+
+// SAFE: the same text is shown as plain characters
+item.textContent = input.value;</pre>
+  <p>Running an attacker's text as code in another user's browser is called <span class="jw" data-def="Cross-site scripting: an attack where text typed by an attacker gets run as JavaScript inside other people's browsers.">XSS</span>. The rule from Chapter 58: user data and data from a server go in with <code>textContent</code>; <code>innerHTML</code> is only for fixed markup you wrote yourself.</p>
+  <h3>3. Toggle classes, do not set styles</h3>
+  <p><code>countEl.style.color = "red"</code> hard-codes the look inside JavaScript. <code>countEl.classList.toggle("negative", count &lt; 0)</code> says only <i>what is true</i>; the CSS decides how that looks, so a designer can change red to orange without touching your script.</p>
+  <h3>4. Event delegation for lists</h3>
+  <p>A list whose items come and go should not get one listener per item. Put <b>one</b> listener on the parent that never changes, and ask which child was hit with <code>event.target.closest(...)</code>. This is <span class="jw" data-def="Putting one event listener on a parent element so it handles events from all its children, including children added later.">event delegation</span> (Chapter 57). It matters even more with <code>render()</code>: every redraw throws the old items away <i>together with any listeners on them</i>, but the listener on the parent survives every redraw.</p>
+  <h3>5. No inline handlers</h3>
+  <p>An <span class="jw" data-def="JavaScript written inside an HTML attribute, such as onclick=&quot;add()&quot;, instead of in the script file.">inline handler</span> such as <code>&lt;button onclick="addTask()"&gt;</code> mixes behaviour into the HTML, works only with global functions, and is blocked outright by sites that use a strict security policy. Keep the HTML for structure and attach every behaviour with <code>addEventListener</code> in the script.</p>
+  <h3>6. Keep the data as the source of truth</h3>
+  <p>Never read your state back out of the page. <code>count = Number(countEl.textContent) + 1</code> works until the display changes to "Count: 3", and then gives <code>NaN</code>. Counting tasks with <code>listEl.children.length</code> breaks as soon as a search hides some. The data lives in variables; the page is only a picture of it.</p>
+  <div class="plain">
+    <p>Find things once. Put user text in with <code>textContent</code>. Let CSS classes decide looks. Give a list one listener on its parent. Keep JavaScript out of the HTML. And treat the page as a picture of your data, never as the data itself.</p>
+  </div>
+  <details class="qc"><summary>Quick check: a task list adds a click listener to each Delete button inside render(). Why is one listener on the ul better?</summary><p>The <code>ul</code> is never rebuilt, so its single listener is attached once and keeps working for every button, including ones added later. Per-button listeners must be attached again on every redraw, and forgetting once leaves buttons that do nothing.</p></details>
+</section>
+
+<section id="s9">
+  <h2>71.9 The task-manager challenge, step by step</h2>
+  <p>The lab for this module brings everything together: a small to-do app. Try it yourself for 30&ndash;45 minutes before reading the solution. The feature checklist:</p>
+  <table class="tbl">
+    <thead><tr><th>Feature</th><th>What it must do</th></tr></thead>
+    <tbody>
+      <tr><td>Add task</td><td>With the Enter key or the button; ignore empty text</td></tr>
+      <tr><td>Mark completed</td><td>A checkbox toggles a strike-through</td></tr>
+      <tr><td>Delete task</td><td>Removes only that task</td></tr>
+      <tr><td>Search tasks</td><td>Live filter while typing</td></tr>
+      <tr><td>Empty state</td><td>"No tasks yet &mdash; add your first one above."</td></tr>
+      <tr><td>Counter</td><td>"X of Y done"</td></tr>
+      <tr><td>Accessible</td><td>Labels, real buttons, everything works with the keyboard</td></tr>
+      <tr><td>Bonus</td><td>Save to <code>localStorage</code></td></tr>
+    </tbody>
+  </table>
+  <p>The lecture's hint is the whole design in one line: <code>let tasks = [{ id, title, done }]</code> &rarr; <code>render()</code>. Build it in six steps.</p>
+  <p><b>Step 1 &mdash; the HTML.</b> Put the new-task box and its button inside a <code>&lt;form&gt;</code>. Enter in a form field submits the form, so one <code>submit</code> listener handles <i>both</i> Enter and the button. Add a labelled search box, an empty <code>&lt;ul&gt;</code>, a paragraph for the empty state and a <code>role="status"</code> paragraph for the counter.</p>
+  <p><b>Step 2 &mdash; the state and render().</b> The state is the <code>tasks</code> array plus the search word, <code>query</code>. <code>render()</code> filters the tasks by <code>query</code>, builds one <code>&lt;li&gt;</code> per visible task (a checkbox and the title inside a label, plus a Delete button), and fills in the empty state and the counter. Each <code>&lt;li&gt;</code> carries <code>data-id</code>, so an event can find its task.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 280" role="img" aria-label="The tasks array and query are the state; render draws the list on screen from them; four events on the screen change only the state, then call render again">
+      <rect x="10" y="40" width="220" height="150" rx="10" class="box saf"/>
+      <text x="120" y="62" class="t c b">STATE (the truth)</text>
+      <text x="22" y="88" class="t s mono">tasks = [</text>
+      <text x="22" y="106" class="t s mono">  {id:1, done:true},</text>
+      <text x="22" y="124" class="t s mono">  {id:2, done:false},</text>
+      <text x="22" y="142" class="t s mono">  {id:3, done:false} ]</text>
+      <text x="22" y="170" class="t s mono">query = ""</text>
+      <rect x="262" y="90" width="106" height="50" rx="10" class="box grn"/>
+      <text x="315" y="120" class="t c b mono">render()</text>
+      <rect x="400" y="40" width="210" height="150" rx="10" class="box"/>
+      <text x="505" y="62" class="t c b">SCREEN (a picture)</text>
+      <text x="414" y="90" class="t s">[x] Submit DBMS assignment</text>
+      <text x="414" y="110" class="t s">[ ] Read chapter 4 - Networks</text>
+      <text x="414" y="130" class="t s">[ ] Push portfolio to GitHub</text>
+      <text x="414" y="166" class="t s">1 of 3 done</text>
+      <path d="M230 115 L260 115" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M368 115 L398 115" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M505 192 L505 226 L120 226 L120 194" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="312" y="246" class="t c s">submit adds &#183; change ticks &#183; click Delete removes &#183; input sets query</text>
+      <text x="312" y="266" class="t c s">Events change only the state; then render() redraws the whole list.</text>
+    </svg>
+    <figcaption><b>Figure 71.3</b> The task manager's loop. Data flows one way, from state through <code>render()</code> to the screen; events flow back only into the state.</figcaption>
+  </figure>
+  <p><b>Step 3 &mdash; add.</b> In the <code>submit</code> handler: <code>preventDefault()</code>, <code>trim()</code> the text, <code>return</code> if it is empty, push a new task object, clear the box, render.</p>
+  <p><b>Step 4 &mdash; complete and delete, with delegation.</b> Two listeners on the <code>&lt;ul&gt;</code>: a <code>change</code> listener for the checkboxes and a <code>click</code> listener for the Delete buttons. Each one climbs from the element that was hit to its <code>&lt;li&gt;</code> with <code>closest("li")</code>, reads <code>data-id</code>, and finds the task in the array. Then it changes the <b>array</b> &mdash; never the page &mdash; and renders.</p>
+  <p><b>Step 5 &mdash; search.</b> An <code>input</code> listener on the search box sets <code>query</code> and renders. It is the live search from 71.5, applied to task titles.</p>
+  <p><b>Step 6 &mdash; the bonus.</b> <code>save()</code> writes <code>JSON.stringify(tasks)</code> to <code>localStorage</code> after every change; <code>load()</code> reads it back at start-up, with sample tasks as the default (Chapter 64). In this book's Run frame storage starts empty each Run; opened with Live Server, the tasks survive a reload.</p>
+  <pre class="code" data-run data-title="Task manager - add, tick, delete, search; watch the counter and the empty state" data-h="420">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; max-width: 460px; }
+  h2 { margin: 0 0 10px; }
+  form, .search { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
+  .lbl { width: 100%; font-weight: 600; }
+  input[type="text"], input[type="search"] { flex: 1; padding: 6px 8px; font-size: 15px; }
+  button { padding: 6px 10px; cursor: pointer; }
+  ul { list-style: none; padding: 0; margin: 0; }
+  li { display: flex; justify-content: space-between; align-items: center;
+       padding: 6px 4px; border-bottom: 1px solid #e2e8f0; }
+  li.done span { text-decoration: line-through; color: #64748b; }
+  #empty, #counter { color: #475569; font-size: 14px; }
+&lt;/style&gt;
+&lt;h2&gt;My Tasks&lt;/h2&gt;
+&lt;form id="addForm"&gt;
+  &lt;label class="lbl" for="newTask"&gt;What do you need to do?&lt;/label&gt;
+  &lt;input id="newTask" type="text" autocomplete="off"&gt;
+  &lt;button type="submit"&gt;Add task&lt;/button&gt;
+&lt;/form&gt;
+&lt;div class="search"&gt;
+  &lt;label class="lbl" for="search"&gt;Search tasks&lt;/label&gt;
+  &lt;input id="search" type="search"&gt;
+&lt;/div&gt;
+&lt;ul id="taskList"&gt;&lt;/ul&gt;
+&lt;p id="empty"&gt;&lt;/p&gt;
+&lt;p id="counter" role="status"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const addForm   = document.querySelector("#addForm");
+  const newTask   = document.querySelector("#newTask");
+  const searchBox = document.querySelector("#search");
+  const listEl    = document.querySelector("#taskList");
+  const emptyEl   = document.querySelector("#empty");
+  const counterEl = document.querySelector("#counter");
+
+  // ---- The state: the single source of truth ----
+  let tasks = load();
+  let query = "";
+
+  function load() {                                // bonus: read saved tasks, or use samples
+    try {
+      const saved = JSON.parse(localStorage.getItem("tasks"));
+      if (Array.isArray(saved)) return saved;
+    } catch (err) {
+      console.warn("Saved tasks were unreadable - starting fresh");
+    }
+    return [
+      { id: 1, title: "Submit DBMS assignment", done: true },
+      { id: 2, title: "Read chapter 4 - Networks", done: false },
+      { id: 3, title: "Push portfolio to GitHub", done: false },
+    ];
+  }
+
+  function save() {                                // bonus: write the state after each change
+    try {
+      localStorage.setItem("tasks", JSON.stringify(tasks));
+    } catch (err) {
+      console.warn("Could not save:", err.message);
+    }
+  }
+
+  // ---- render(): the only code that draws ----
+  function render() {
+    const visible = tasks.filter((t) =&gt; t.title.toLowerCase().includes(query));
+    listEl.replaceChildren();
+    visible.forEach((task) =&gt; {
+      const li = document.createElement("li");
+      li.dataset.id = task.id;
+      li.classList.toggle("done", task.done);
+
+      const label = document.createElement("label");
+      const box = document.createElement("input");
+      box.type = "checkbox";
+      box.checked = task.done;
+      const title = document.createElement("span");
+      title.textContent = task.title;              // user text: textContent, never innerHTML
+      label.append(box, " ", title);
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.className = "delete";
+      del.textContent = "Delete";
+      del.setAttribute("aria-label", `Delete ${task.title}`);
+
+      li.append(label, del);
+      listEl.append(li);
+    });
+
+    if (tasks.length === 0) {
+      emptyEl.textContent = "No tasks yet &mdash; add your first one above.";
+    } else if (visible.length === 0) {
+      emptyEl.textContent = `No tasks match "${query}".`;
+    } else {
+      emptyEl.textContent = "";
+    }
+    const doneCount = tasks.filter((t) =&gt; t.done).length;
+    counterEl.textContent = `${doneCount} of ${tasks.length} done`;
+    console.log(`render: ${visible.length} shown, ${doneCount} of ${tasks.length} done`);
+  }
+
+  // Which task does this element (inside a list item) belong to?
+  function taskFor(element) {
+    const id = Number(element.closest("li").dataset.id);
+    return tasks.find((t) =&gt; t.id === id);
+  }
+
+  // ---- Events: change the state, save, render ----
+  addForm.addEventListener("submit", (event) =&gt; {  // the button AND the Enter key
+    event.preventDefault();
+    const title = newTask.value.trim();
+    if (title === "") return;                      // ignore empty text
+    tasks.push({ id: Date.now(), title, done: false });
+    newTask.value = "";
+    save();
+    render();
+  });
+
+  listEl.addEventListener("change", (event) =&gt; {   // delegation: any checkbox in the list
+    if (event.target.type !== "checkbox") return;
+    const task = taskFor(event.target);
+    task.done = event.target.checked;
+    save();
+    render();
+    listEl.querySelector(`li[data-id="${task.id}"] input`).focus();   // keep keyboard focus
+  });
+
+  listEl.addEventListener("click", (event) =&gt; {    // delegation: any Delete button
+    const del = event.target.closest("button.delete");
+    if (!del) return;
+    const task = taskFor(del);
+    tasks = tasks.filter((t) =&gt; t.id !== task.id);
+    save();
+    render();
+    newTask.focus();                               // its button is gone: move focus somewhere useful
+  });
+
+  searchBox.addEventListener("input", () =&gt; {
+    query = searchBox.value.trim().toLowerCase();
+    render();
+  });
+
+  render();                                        // draw the starting state
+&lt;/script&gt;</pre>
+  <p>On Run, <code>load()</code> finds nothing saved (<code>JSON.parse(null)</code> is <code>null</code>, which is not an array), returns the three sample tasks, and the Console shows <code>render: 3 shown, 1 of 3 done</code>. The page matches the lecture's mock-up, with the first task struck through. Follow this path and check each Console line:</p>
+  <table class="tbl">
+    <thead><tr><th>You do</th><th>What changes in the state</th><th>Console</th></tr></thead>
+    <tbody>
+      <tr><td>Type <i>Revise Unit 6</i> and press Enter</td><td>A fourth task is pushed, <code>done: false</code></td><td><code>render: 4 shown, 1 of 4 done</code></td></tr>
+      <tr><td>Press Add task with the box empty</td><td>Nothing: the handler returns early</td><td>(no new line)</td></tr>
+      <tr><td>Tick <i>Push portfolio to GitHub</i></td><td>That task's <code>done</code> becomes <code>true</code></td><td><code>render: 4 shown, 2 of 4 done</code></td></tr>
+      <tr><td>Type <i>unit</i> in Search</td><td><code>query</code> builds up <code>"u"</code>, <code>"un"</code>, <code>"uni"</code>, <code>"unit"</code></td><td>One line per key; the last is <code>render: 1 shown, 2 of 4 done</code></td></tr>
+      <tr><td>Type <i>zzz</i> instead</td><td><code>query = "zzz"</code></td><td><code>render: 0 shown, 2 of 4 done</code> and <b>No tasks match "zzz".</b></td></tr>
+      <tr><td>Clear Search, delete all four tasks</td><td><code>tasks</code> shrinks to <code>[]</code></td><td>Ends with <code>render: 0 shown, 0 of 0 done</code> and <b>No tasks yet &mdash; add your first one above.</b></td></tr>
+    </tbody>
+  </table>
+  <p>The counter counts <code>tasks</code>, not <code>visible</code>: while you search for <i>unit</i> it still says <b>2 of 4 done</b>, because searching hides tasks without finishing any. The two empty-state messages differ on purpose: "no tasks yet" invites the user to add one; "no tasks match" says the search is why the list looks empty.</p>
+  <p>The rest of the checklist: <code>Date.now()</code>, the current time in milliseconds, gives each new task a different id. The label wraps the checkbox and title, so clicking the text ticks the box. Each Delete button's <code>aria-label</code> names its task, so a screen reader says "Delete Push portfolio to GitHub", not four identical "Delete"s. And since <code>render()</code> replaces the elements, the code puts keyboard focus back on purpose after a tick or a delete.</p>
+  <p>Chapter 72 takes this design one step further: it gathers <code>tasks</code>, <code>query</code> and anything else that can change into one <code>state</code> object, and plans every screen &mdash; empty, loading, error, success &mdash; before writing a line of code.</p>
+</section>
+
+<section id="mistakes">
+  <h2>71.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "addEventListener("click", save()) attaches save to the button."</b><br>The brackets run <code>save</code> immediately, once, and hand the browser its return value, usually <code>undefined</code>.</div>
+    <div class="r"><b>&#10003; "Pass the function: addEventListener("click", save)."</b><br>For arguments, pass a new arrow function: <code>() =&gt; save(task)</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The handler should change the page; the data can catch up later."</b><br>Then the page and the data drift apart, and the next redraw undoes the change.</div>
+    <div class="r"><b>&#10003; "Event &rarr; change state &rarr; render()."</b><br>Only <code>render()</code> touches the page, and it always draws from the data.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "After render() rebuilds the list, the old click listeners on the items still work."</b><br>The old elements are thrown away together with their listeners; the new ones have none.</div>
+    <div class="r"><b>&#10003; "One listener on the parent, which is never rebuilt."</b><br>Delegation with <code>event.target.closest(...)</code> works for every item, old or new.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "innerHTML is fine for user text if the text is short."</b><br>One short <code>&lt;img onerror&gt;</code> tag is enough to run an attacker's script.</div>
+    <div class="r"><b>&#10003; "User and server data go in with textContent."</b><br><code>innerHTML</code> is only for fixed markup you wrote yourself.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "My JavaScript validation keeps bad data away from the server."</b><br>Anyone can switch it off or skip the form entirely.</div>
+    <div class="r"><b>&#10003; "Browser validation is for friendly feedback; the server checks again."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "If the action worked, the user knows it worked."</b><br>Without a visible answer they press again, or assume it failed.</div>
+    <div class="r"><b>&#10003; "Every action gets feedback."</b><br>Disable and relabel while busy, confirm when done, offer undo after a delete.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary>A live search must update when the user types, pastes or clears the box. Which event should it listen for?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. click</li><li>B. change</li><li>C. input</li><li>D. submit</li></ul>
+    <p><b>Answer: C.</b> <code>input</code> fires on every change to the value. <code>change</code> (B) is the tempting one, but for a text box it fires only when the user leaves the box after editing &mdash; far too late for a live search.</p></div></details>
+  <details class="q"><summary><span>What does the Console show when this page loads, and what happens when the button is clicked twice? <code>function greet() { console.log("Hi!"); } btn.addEventListener("click", greet());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>Hi!</code> is printed <b>once</b>, on page load, and the two clicks print nothing. <code>greet()</code> ran while the listener was being set up, and its return value, <code>undefined</code>, was registered instead of a function. Fix: <code>btn.addEventListener("click", greet);</code></p></div></details>
+  <details class="q"><summary><code>document.querySelector("#myButton")</code> returns <code>null</code> although the button exists in the HTML. The most likely cause is:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The script is in the head without defer, so it ran before the button was read</li><li>B. querySelector only works with class names</li><li>C. The button needs an onclick attribute first</li><li>D. Buttons cannot have ids</li></ul>
+    <p><b>Answer: A.</b> The script ran before the browser had reached the button. Move the script to the end of the body or add <code>defer</code>. B is false: <code>#</code> selects by id.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const names = ["Asha", "Rahul", "Meera"]; console.log(names.filter((n) =&gt; n.toLowerCase().includes("ra")));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>["Rahul", "Meera"]</code>. Lower-cased, <i>rahul</i> starts with "ra" and <i>meera</i> ends with it; <i>asha</i> has no "r". The order of the original array is kept.</p></div></details>
+  <details class="q"><summary>After <code>countEl.classList.toggle("negative", count &lt; 0)</code> runs with <code>count</code> equal to 3, the element:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Gains the class negative</li><li>B. Does not have the class negative, whether or not it had it before</li><li>C. Switches the class to the opposite of what it was</li><li>D. Throws an error because 3 is not a boolean</li></ul>
+    <p><b>Answer: B.</b> With a second argument, <code>toggle</code> adds the class when it is <code>true</code> and removes it when <code>false</code>; <code>3 &lt; 0</code> is <code>false</code>. C describes <code>toggle</code> <i>without</i> the second argument.</p></div></details>
+  <details class="q"><summary>A comment box shows visitors' comments. Why must it use <code>textContent</code> rather than <code>innerHTML</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. textContent is the only way to show text</li><li>B. innerHTML cannot show more than 100 characters</li><li>C. innerHTML would run any tags an attacker typed, such as an img with an onerror script</li><li>D. textContent makes the page load faster</li></ul>
+    <p><b>Answer: C.</b> <code>innerHTML</code> parses its text as HTML, so attacker-written markup becomes real elements and can run script &mdash; cross-site scripting (XSS). <code>textContent</code> shows the same characters harmlessly.</p></div></details>
+  <details class="q"><summary>Pressing "Place order" takes three seconds to reach the server, and some users press it again. The best fix is to:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Show an alert telling users to press only once</li><li>B. Disable the button and show "Placing order..." until the reply arrives</li><li>C. Hide the button forever after the first press</li><li>D. Add a second Place order button</li></ul>
+    <p><b>Answer: B.</b> The disabled button stops a second order, and the loading text is the feedback that the first press worked. C stops a retry even if the order fails.</p></div></details>
+  <details class="q"><summary>A task list is rebuilt by <code>render()</code> after every change. Why put one click listener on the <code>&lt;ul&gt;</code> instead of one on each Delete button?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Buttons inside a list cannot have listeners</li><li>B. A listener on the ul runs before the button is drawn</li><li>C. It makes the Delete buttons keyboard-accessible</li><li>D. The ul is never rebuilt, so its listener survives every redraw and covers buttons added later</li></ul>
+    <p><b>Answer: D.</b> This is event delegation: the click bubbles up from the button to the <code>ul</code>, and <code>event.target.closest(...)</code> finds which button it was. C is wrong: real buttons are keyboard-accessible either way.</p></div></details>
+  <details class="q"><summary>Which line breaks the rule "keep the data as the source of truth"?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>count++; render();</code></li><li>B. <code>tasks = tasks.filter((t) =&gt; t.id !== id); render();</code></li><li>C. <code>count = Number(countEl.textContent) + 1;</code></li><li>D. <code>query = searchBox.value.trim().toLowerCase(); render();</code></li></ul>
+    <p><b>Answer: C.</b> It reads the state back out of the page. The moment the display changes (say to "Count: 3"), <code>Number(...)</code> gives <code>NaN</code>. A, B and D all change the data and then let <code>render()</code> draw it.</p></div></details>
+  <details class="q"><summary>In the registration form, why does the submit handler use <code>forEach</code> to check every field instead of stopping at the first error?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> So the user sees <b>all</b> the problems after one press and can fix them together. Stopping at the first error would show one message per attempt, and a form with three mistakes would need three failed submits to discover them.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An interactive interface answers the user inside the same page with <b>feedback</b>, <b>responsiveness</b> and <b>state you can see</b>.</li>
+    <li>Browser JavaScript is event-driven: set up once, then wait. Each action runs the chain user action &rarr; event &rarr; handler &rarr; state change and render &rarr; new screen.</li>
+    <li>A listener has three parts: selector, event type, callback. Pass the function (<code>greet</code>), never its call (<code>greet()</code>); put scripts at the end of the body or use <code>defer</code>.</li>
+    <li>The pattern for every build: <b>event &rarr; change state &rarr; render()</b>. Only <code>render()</code> touches the page.</li>
+    <li>Live search: <code>input</code> event, <code>trim().toLowerCase()</code>, <code>filter</code> with <code>includes</code>, redraw, and always an empty state.</li>
+    <li>Form feedback: rules in one function, check every field on submit, message under each field, <code>aria-invalid</code>, re-check an invalid field as the user types. The server must check again.</li>
+    <li>Busy actions: disable the button and show loading text; finish with a success message; follow a delete with undo.</li>
+    <li>Habits: select once, <code>textContent</code> for user text, classes not styles, delegation for lists, no inline handlers, data as the source of truth.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>btn.addEventListener("click", fn)</code></td><td>Run <code>fn</code> on every click (no brackets after <code>fn</code>)</td></tr>
+      <tr><td><code>&lt;script src="app.js" defer&gt;</code></td><td>Run the script after the HTML has been read</td></tr>
+      <tr><td><code>el.classList.toggle("negative", count &lt; 0)</code></td><td>Add the class if the condition is true, remove it if false</td></tr>
+      <tr><td><code>input.value.trim().toLowerCase()</code></td><td>Tidy the typed text for a case-insensitive search</td></tr>
+      <tr><td><code>items.filter((x) =&gt; x.toLowerCase().includes(q))</code></td><td>Keep the matches; an empty <code>q</code> keeps everything</td></tr>
+      <tr><td><code>list.replaceChildren()</code></td><td>Remove every child of the list in one call</td></tr>
+      <tr><td><code>event.preventDefault()</code></td><td>In a submit handler: stay on the page</td></tr>
+      <tr><td><code>input.setAttribute("aria-invalid", message !== "")</code></td><td>Mark a field invalid for screen readers and CSS</td></tr>
+      <tr><td><code>btn.disabled = true</code></td><td>Stop a second click while work is going on</td></tr>
+      <tr><td><code>event.target.closest("li").dataset.id</code></td><td>Delegation: which item the event came from</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/EventTarget/addEventListener" target="_blank" rel="noopener noreferrer">MDN &mdash; EventTarget.addEventListener()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every option of the method behind every build in this chapter.</span></li>
+    <li><a href="https://javascript.info/event-delegation" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Event delegation<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The one-listener-on-the-parent pattern, with more worked examples and exercises.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/replaceChildren" target="_blank" rel="noopener noreferrer">MDN &mdash; Element.replaceChildren()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How the list-clearing call used in every render() here works, and what else it can do.</span></li>
+    <li><a href="https://web.dev/articles/inp" target="_blank" rel="noopener noreferrer">web.dev &mdash; Interaction to Next Paint (INP)<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How browsers measure whether a page answers clicks and keys quickly enough.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

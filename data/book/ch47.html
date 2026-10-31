@@ -1,0 +1,751 @@
+<article class="chapter" data-ch="47">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 47 &middot; Conditional Statements</p>
+  <h1>Conditional Statements</h1>
+  <p class="lead">Until now every line of your programs has run, top to bottom, every time. Real programs choose: pass or fail, let in or turn away, the weekday timetable or the weekend one. This chapter teaches the statements that let JavaScript choose &mdash; <code>if</code>, <code>else</code>, <code>else if</code>, <code>switch</code> and the ternary operator &mdash; how to pick the right one for a job, and the handful of small slips that make a decision go quietly wrong.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A comparison such as <code>marks &gt;= 40</code> or <code>day === "Sun"</code> works out to <code>true</code> or <code>false</code> (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li><code>&amp;&amp;</code> is true only when both sides are true, <code>||</code> when at least one is, and <code>!</code> flips a value (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>One <code>=</code> stores a value; three, <code>===</code>, compare without converting types (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>The falsy values are <code>false</code>, <code>0</code>, <code>-0</code>, <code>0n</code>, <code>""</code>, <code>null</code>, <code>undefined</code> and <code>NaN</code>; every other value is truthy (<a href="book.html?ch=46">Chapter 46</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write <code>if</code>, <code>if...else</code> and <code>else if</code> statements and predict which block runs.</li>
+      <li>Order an <code>else if</code> ladder so that every branch can be reached.</li>
+      <li>Combine conditions with <code>&amp;&amp;</code> and <code>||</code>, and nest one decision inside another.</li>
+      <li>Write a <code>switch</code> with <code>case</code>, <code>break</code> and <code>default</code>, and explain fall-through.</li>
+      <li>Choose sensibly between an <code>if</code> ladder, a <code>switch</code> and the ternary operator.</li>
+      <li>Predict what a non-boolean value such as <code>""</code>, <code>0</code> or <code>"0"</code> does as a condition.</li>
+      <li>Say what <code>break</code> and <code>continue</code> do inside a loop.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>47.1 The if statement: run this only when&hellip;</h2>
+  <p>Every program you have written so far is a straight road. JavaScript starts at the first line, runs it, moves to the next, and carries on until the last. The order in which lines actually run is called the <span class="jw" data-def="The order in which the lines of a program actually run. Normally top to bottom; decisions and loops change it.">control flow</span>, and so far it has never changed.</p>
+  <p>Real programs need forks in the road. Show the certificate only if the student passed. Let a user in only if the password matches. Charge delivery only if the order is under &#8377;500. A <b>conditional statement</b> runs some code only when a condition is true. The simplest one is <code>if</code>. Here is the example from your lecture slides:</p>
+  <pre class="code">let age = 20;
+
+if (age &gt;= 18) {
+  console.log("You are eligible to vote.");
+}</pre>
+  <p>It has three parts, and you will write them thousands of times:</p>
+  <ul>
+    <li>The keyword <code>if</code>.</li>
+    <li>A <span class="jw" data-def="A question with a yes-or-no answer, written inside the round brackets after if. JavaScript works out whether it is true.">condition</span> inside round brackets: <code>(age &gt;= 18)</code>. The brackets are compulsory.</li>
+    <li>A <span class="jw" data-def="A group of statements between a pair of curly braces { }. They run together, or not at all.">block</span> inside curly braces: the statements to run when the condition is true.</li>
+  </ul>
+  <p>When JavaScript reaches the <code>if</code>, it works out the condition. <code>age &gt;= 18</code> is <code>20 &gt;= 18</code>, which is <code>true</code>, so the block runs and the message is printed. If <code>age</code> were 15, the condition would be <code>false</code>, the whole block would be skipped, and JavaScript would carry on with whatever comes after the closing brace. Either way the program does not stop. An <code>if</code> decides only whether its own block runs.</p>
+  <div class="plain"><p>An <code>if</code> is a question followed by a job. <i>Is age at least 18? If yes, print the message.</i> If the answer is no, the job is skipped and the program simply moves on to the next line after the closing brace.</p></div>
+  <div class="callout warn"><b>Always write the braces.</b> The indenting inside a block is for human eyes; JavaScript ignores it, and only the braces decide which lines belong to the <code>if</code>. You may leave them out for a single statement, as in <code>if (age &gt;= 18) console.log("Adult");</code>, but then only that <b>one</b> statement belongs to the <code>if</code>, and a second indented line added later runs every time. Braces cost two characters and make the boundary impossible to miss.</div>
+</section>
+
+<section id="s2">
+  <h2>47.2 if...else: one of two roads</h2>
+  <p>An <code>if</code> on its own either does something or does nothing. Often you want a choice between two jobs: print "Pass" <i>or</i> print "Fail". Add the keyword <code>else</code> and a second block, as slide 43 does:</p>
+  <pre class="code">let marks = 35;
+
+if (marks &gt;= 40) {
+  console.log("Pass");
+} else {
+  console.log("Fail");
+}</pre>
+  <p><code>35 &gt;= 40</code> is <code>false</code>, so the first block is skipped and the <code>else</code> block runs: the output is <code>Fail</code>. The <code>else</code> has no condition of its own. It means "in every other case", and it must follow the <code>if</code>'s block directly: no other statement may sit between that closing brace and the word <code>else</code>.</p>
+  <p>The property that matters: <b>exactly one of the two blocks runs</b>. Never both, never neither. Each possible road through a decision is called a <span class="jw" data-def="One of the possible paths through a decision. An if...else has two branches; exactly one of them runs.">branch</span>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="Flowchart of if...else: the condition marks &gt;= 40 is false for 35, so the else block runs, and both branches rejoin at the next line">
+      <rect x="225" y="12" width="170" height="32" rx="8" class="box gry"/>
+      <text x="310" y="33" class="t c mono">let marks = 35;</text>
+      <path d="M310 44 L310 60" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M310 64 L420 102 L310 140 L200 102 Z" class="box saf"/>
+      <text x="310" y="107" class="t c b mono">marks &gt;= 40 ?</text>
+      <path d="M200 102 L110 102 L110 166" class="edge dash" marker-end="url(#arr)"/>
+      <text x="152" y="93" class="t c s">true</text>
+      <path d="M420 102 L510 102 L510 166" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="468" y="93" class="t c s">false (35 &lt; 40)</text>
+      <rect x="30" y="170" width="160" height="46" rx="10" class="box grn"/>
+      <text x="110" y="190" class="t c b">if block</text>
+      <text x="110" y="207" class="t c s mono">console.log("Pass")</text>
+      <rect x="430" y="170" width="160" height="46" rx="10" class="box blu"/>
+      <text x="510" y="190" class="t c b">else block &#8212; runs</text>
+      <text x="510" y="207" class="t c s mono">console.log("Fail")</text>
+      <path d="M110 216 L110 241 L221 241" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M510 216 L510 241 L399 241" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="225" y="226" width="170" height="30" rx="8" class="box"/>
+      <text x="310" y="246" class="t c">the next line after }</text>
+    </svg>
+    <figcaption><b>Figure 47.1</b> The condition sends the program down exactly one branch. With 35 the orange path is taken; either way, both roads rejoin at the line after the closing brace.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> At a railway junction the pointsman sets the points before the train arrives. The train then goes down the left track or the right track &mdash; never both, and never neither &mdash; and a little further on the two tracks join again and the journey continues. An <code>if...else</code> is a set of points. The condition sets them, the program goes down exactly one branch, and after the closing brace both branches rejoin the main line. The <code>else if</code> ladder, coming next, is a row of junctions: the train takes the first turning set for it.</div>
+  <pre class="code" data-run data-title="if and if...else (slides 42-43) - change age and marks, then Run again" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // slide 42: an if on its own
+  let age = 20;
+  if (age &gt;= 18) {
+    console.log("You are eligible to vote.");
+  }
+  console.log("Age check finished.");      // runs either way
+
+  // slide 43: if...else - exactly one of the two blocks runs
+  let marks = 35;
+  if (marks &gt;= 40) {
+    console.log("Pass");
+  } else {
+    console.log("Fail");
+  }
+  console.log("Result check finished.");   // runs either way
+&lt;/script&gt;</pre>
+  <p>Change <code>age</code> to 15 and the first message disappears, while <code>Age check finished.</code> still prints: it sits outside the braces.</p>
+  <details class="qc"><summary>Quick check: with <code>let marks = 40;</code>, does the slide's code print Pass or Fail?</summary><p><b>Pass.</b> <code>40 &gt;= 40</code> is true, because <code>&gt;=</code> means "greater than <i>or equal to</i>". Had the rule been written <code>marks &gt; 40</code>, a mark of exactly 40 would fail. The boundary value is where decisions most often go wrong, so always test it.</p></details>
+</section>
+
+<section id="s3">
+  <h2>47.3 else if: choosing from many</h2>
+  <p>Grades need more than two roads. An <b>else if ladder</b> checks one condition after another. This is slide 44:</p>
+  <pre class="code">let marks = 85;
+
+if (marks &gt;= 90) {
+  console.log("Grade A+");
+} else if (marks &gt;= 75) {
+  console.log("Grade A");
+} else if (marks &gt;= 60) {
+  console.log("Grade B");
+} else {
+  console.log("Needs Improvement");
+}</pre>
+  <p>One rule explains every ladder: <b>JavaScript checks the conditions from the top, runs the block of the first one that is true, and skips everything else.</b> Trace it with 85:</p>
+  <ol>
+    <li><code>85 &gt;= 90</code>? False. Move down to the next rung.</li>
+    <li><code>85 &gt;= 75</code>? True. Print <code>Grade A</code>.</li>
+    <li>Stop. The <code>marks &gt;= 60</code> check is never even made, although 85 is also at least 60, and the <code>else</code> is skipped.</li>
+  </ol>
+  <p>The final <code>else</code> catches whatever fell past every check: here, any mark below 60. It is optional. Without it, a mark below 60 would simply print nothing.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 300" role="img" aria-label="Trace of the else if ladder for marks 85: the first check is false, the second is true so Grade A runs, and the remaining check and the else are never reached">
+      <rect x="30" y="16" width="220" height="46" rx="10" class="box saf"/>
+      <text x="140" y="35" class="t c b mono">marks &gt;= 90 ?</text>
+      <text x="140" y="53" class="t c s">85 &gt;= 90 is false, so go down</text>
+      <rect x="370" y="16" width="200" height="46" rx="10" class="box gry"/>
+      <text x="470" y="35" class="t c b">Grade A+</text>
+      <text x="470" y="53" class="t c s">skipped</text>
+      <path d="M250 39 L366 39" class="edge dash" marker-end="url(#arr)"/>
+      <text x="310" y="33" class="t c s">true</text>
+      <path d="M140 62 L140 88" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="150" y="80" class="t s">false</text>
+
+      <rect x="30" y="92" width="220" height="46" rx="10" class="box saf"/>
+      <text x="140" y="111" class="t c b mono">marks &gt;= 75 ?</text>
+      <text x="140" y="129" class="t c s">85 &gt;= 75 is true, so run its block</text>
+      <rect x="370" y="92" width="200" height="46" rx="10" class="box grn"/>
+      <text x="470" y="111" class="t c b">Grade A</text>
+      <text x="470" y="129" class="t c s">RUNS, then the ladder is over</text>
+      <path d="M250 115 L366 115" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="310" y="109" class="t c s">true</text>
+      <path d="M140 138 L140 164" class="edge dash" marker-end="url(#arr)"/>
+      <text x="150" y="156" class="t s">false</text>
+
+      <rect x="30" y="168" width="220" height="46" rx="10" class="box gry"/>
+      <text x="140" y="187" class="t c b mono">marks &gt;= 60 ?</text>
+      <text x="140" y="205" class="t c s">never checked</text>
+      <rect x="370" y="168" width="200" height="46" rx="10" class="box gry"/>
+      <text x="470" y="187" class="t c b">Grade B</text>
+      <text x="470" y="205" class="t c s">skipped, though 85 is &gt;= 60 too</text>
+      <path d="M250 191 L366 191" class="edge dash" marker-end="url(#arr)"/>
+      <text x="310" y="185" class="t c s">true</text>
+      <path d="M140 214 L140 240" class="edge dash" marker-end="url(#arr)"/>
+      <text x="150" y="232" class="t s">false</text>
+
+      <rect x="30" y="244" width="220" height="46" rx="10" class="box gry"/>
+      <text x="140" y="263" class="t c b mono">else</text>
+      <text x="140" y="281" class="t c s">never reached</text>
+      <rect x="370" y="244" width="200" height="46" rx="10" class="box gry"/>
+      <text x="470" y="263" class="t c b">Needs Improvement</text>
+      <text x="470" y="281" class="t c s">skipped</text>
+      <path d="M250 267 L366 267" class="edge dash" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption><b>Figure 47.2</b> A ladder is read from the top, and the first true condition wins. For 85 the second rung is true, so <code>Grade A</code> runs and nothing below it is even looked at.</figcaption>
+  </figure>
+  <div class="callout why"><b>Key idea.</b> Each rung already knows the answers above it. When JavaScript asks <code>marks &gt;= 75</code>, the mark must be below 90, or the first rung would have caught it. So this rung means "75 to 89" without anyone writing <code>marks &lt; 90</code>.</div>
+  <h3>The order of the rungs is part of the logic</h3>
+  <p>Because the first true condition wins, the order you write the rungs in changes the answer. Put the widest condition first and it swallows everything:</p>
+  <pre class="code">let marks = 95;
+
+if (marks &gt;= 60) {             // 95 &gt;= 60 is true, so this wins...
+  console.log("Grade B");
+} else if (marks &gt;= 75) {      // ...and these can never be reached
+  console.log("Grade A");
+} else if (marks &gt;= 90) {
+  console.log("Grade A+");
+}</pre>
+  <p>A topper with 95 is told "Grade B". Worse, <i>no</i> mark can ever reach the <code>Grade A</code> or <code>Grade A+</code> branches, because every mark of 75 or more is also 60 or more and the first rung takes it. Branches like these are <span class="jw" data-def="Code that can never run, whatever the values, because an earlier check always catches every case first.">unreachable</span>. JavaScript gives no warning; the program just hands out wrong grades.</p>
+  <div class="plain"><p>In a ladder, the first "yes" wins and the later questions are never asked. So ask the hardest question to pass first: 90 or more? Then 75 or more? Then 60 or more? Ask "60 or more?" first and nearly everyone says yes, and the questions after it are wasted.</p></div>
+  <p>The rule: <b>check the narrowest condition first and the widest last</b>. With <code>&gt;=</code> that means the highest threshold at the top; with <code>&lt;</code> it would mean the lowest. Then test the edges, not just one comfortable middle value: try 90 and 89, 75 and 74, 60 and 59.</p>
+  <pre class="code" data-run data-title="The right order and the wrong order - try 95, 85, 74 and 59" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let marks = 95;
+
+  // slide 44: highest threshold first - correct
+  if (marks &gt;= 90) {
+    console.log("Right order: Grade A+");
+  } else if (marks &gt;= 75) {
+    console.log("Right order: Grade A");
+  } else if (marks &gt;= 60) {
+    console.log("Right order: Grade B");
+  } else {
+    console.log("Right order: Needs Improvement");
+  }
+
+  // the same rungs, widest first - wrong
+  if (marks &gt;= 60) {
+    console.log("Wrong order: Grade B");
+  } else if (marks &gt;= 75) {
+    console.log("Wrong order: Grade A");      // unreachable
+  } else if (marks &gt;= 90) {
+    console.log("Wrong order: Grade A+");     // unreachable
+  } else {
+    console.log("Wrong order: Needs Improvement");
+  }
+&lt;/script&gt;</pre>
+  <p>With 95 it prints <code>Right order: Grade A+</code> and <code>Wrong order: Grade B</code>. Try 59 too: below 60 both ladders agree, which is how a bug like this survives a quick test.</p>
+</section>
+
+<section id="s4">
+  <h2>47.4 Combining conditions and nesting decisions</h2>
+  <p>Often one comparison is not enough. A student may sit the end-term exam only if attendance is at least 75% <b>and</b> the fees are paid. Join the two comparisons with <code>&amp;&amp;</code> and put the whole thing inside the brackets:</p>
+  <pre class="code">let attendance = 82;
+let feesPaid = true;
+
+if (attendance &gt;= 75 &amp;&amp; feesPaid) {
+  console.log("Hall ticket issued");
+} else {
+  console.log("Not eligible");
+}</pre>
+  <p><code>feesPaid</code> already holds <code>true</code> or <code>false</code>, so it needs no <code>=== true</code>. Use <code>||</code> when any one condition is enough, as in <code>if (day === "Sat" || day === "Sun")</code>, and <code>!</code> to turn one round: <code>if (!feesPaid)</code>. A range still needs two comparisons: <code>if (marks &gt;= 0 &amp;&amp; marks &lt;= 100)</code>.</p>
+  <h3>A decision inside a decision</h3>
+  <p>The <code>else</code> above says "Not eligible" but not <i>why</i>. To give a different message for each reason, put one decision inside a block of another. That is a <b>nested if</b>:</p>
+  <pre class="code">if (feesPaid) {
+  if (attendance &gt;= 75) {
+    console.log("Hall ticket issued");
+  } else {
+    console.log("Attendance below 75%");
+  }
+} else {
+  console.log("Please pay your fees first");
+}</pre>
+  <p>The inner <code>if</code> is reached only when the outer condition is true. Read nested code from the outside in, and use the braces to see which <code>else</code> belongs to which <code>if</code>: each <code>else</code> comes straight after the closing brace of its own <code>if</code> block.</p>
+  <div class="callout why"><b>Key idea.</b> <code>if (a) { if (b) { ... } }</code>, with no <code>else</code> anywhere, does exactly the same as <code>if (a &amp;&amp; b) { ... }</code>. Prefer the flat <code>&amp;&amp;</code> version. Nest only when the levels need their own <code>else</code> messages, as the hall-ticket check does. Two levels are fine; at three or four, readers lose track, and Section 47.8 shows a cleaner shape.</div>
+  <pre class="code" data-run data-title="Hall ticket check - change attendance and feesPaid, and watch the message change" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #ticket { padding: 10px 14px; border-radius: 10px; background: #F1F5F9; font-weight: 700; }
+&lt;/style&gt;
+&lt;p id="ticket"&gt;&lt;/p&gt;
+&lt;p&gt;Full details are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  const student = "Rahul";
+  let attendance = 68;
+  let feesPaid = true;
+
+  // flat: one combined condition, one yes-or-no answer
+  if (attendance &gt;= 75 &amp;&amp; feesPaid) {
+    console.log("Combined check: eligible");
+  } else {
+    console.log("Combined check: not eligible");
+  }
+
+  // nested: a different message for each reason
+  let message;              // declared BEFORE the decision, so it outlives the blocks
+  if (feesPaid) {
+    if (attendance &gt;= 75) {
+      message = `${student}: hall ticket issued`;
+    } else {
+      message = `${student}: attendance ${attendance}% is below 75%`;
+    }
+  } else {
+    message = `${student}: please pay your fees first`;
+  }
+  console.log("Nested check:", message);
+
+  // write it onto the page too (changing the page is taught in Chapter 56)
+  document.getElementById("ticket").textContent = message;
+&lt;/script&gt;</pre>
+  <p>It prints <code>Combined check: not eligible</code> and <code>Nested check: Rahul: attendance 68% is below 75%</code>. <code>message</code> is declared before the decision and only <i>assigned</i> inside it, because a <code>let</code> created inside a block disappears at that block's closing brace (Chapter 49).</p>
+</section>
+
+<section id="s5">
+  <h2>47.5 switch: one value, many exact matches</h2>
+  <p>Some decisions compare <b>one value</b> against a list of <b>fixed possibilities</b>. Turning a day number into a day name is the classic case: 0 is Sunday, 1 is Monday, and so on up to 6 for Saturday (JavaScript's own dates number the days this way, as Chapter 62 shows). An <code>else if</code> ladder could do it with seven <code>dayNumber === ...</code> checks, but <code>switch</code> says it more directly:</p>
+  <pre class="code">let dayNumber = 3;
+let dayName;
+
+switch (dayNumber) {
+  case 0:
+    dayName = "Sunday";
+    break;
+  case 1:
+    dayName = "Monday";
+    break;
+  case 2:
+    dayName = "Tuesday";
+    break;
+  case 3:
+    dayName = "Wednesday";
+    break;
+  // ... cases 4, 5 and 6 in the same way ...
+  default:
+    dayName = "Not a day number";
+}
+
+console.log(dayName);   // Wednesday</pre>
+  <p>How it runs, step by step:</p>
+  <ol>
+    <li>The expression in the brackets, <code>dayNumber</code>, is worked out <b>once</b>. It is 3.</li>
+    <li>That value is compared with each <code>case</code> value in turn, using <b>strict equality</b>, <code>===</code>. <code>3 === 0</code>? No. <code>3 === 1</code>? No. <code>3 === 2</code>? No. <code>3 === 3</code>? Yes.</li>
+    <li>JavaScript jumps in at the matching case and runs its statements: <code>dayName = "Wednesday"</code>.</li>
+    <li><code>break</code> jumps out of the whole <code>switch</code>, to the first line after its closing brace.</li>
+    <li>If no case matches, the <code>default</code> part runs instead. Like a final <code>else</code>, <code>default</code> is optional. It is usually written last, where it needs no <code>break</code>.</li>
+  </ol>
+  <p>Notice the punctuation: each case value is followed by a colon, and the statements under a case need no braces of their own.</p>
+  <div class="callout warn"><b>switch never converts types.</b> Because it compares with <code>===</code>, the string <code>"3"</code> does not match <code>case 3:</code>. Everything typed into a form box or a <code>prompt()</code> is a string (Chapter 44), so <code>switch (typed)</code> with number cases quietly falls to <code>default</code> every time. Convert first: <code>switch (Number(typed))</code>.</div>
+  <h3>Fall-through: what break is really for</h3>
+  <p>Step 4 hides the most famous trap in <code>switch</code>. A case does not stop by itself when the next <code>case</code> label arrives; only <code>break</code> stops it. <b>Leave the <code>break</code> out and JavaScript keeps going into the next case's statements</b>, without checking that case's value at all, and carries on until it meets a <code>break</code> or the end of the <code>switch</code>. This is called <span class="jw" data-def="In a switch, running on from one case into the statements of the next case, because there was no break to stop it.">fall-through</span>.</p>
+  <pre class="code">let dayNumber = 1;
+
+switch (dayNumber) {
+  case 1:
+    console.log("Monday");
+  case 2:
+    console.log("Tuesday");
+  case 3:
+    console.log("Wednesday");
+    break;
+  case 4:
+    console.log("Thursday");
+}
+// prints Monday, Tuesday, Wednesday - and then the break stops it</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="Two switches on the value 2. With break, only case 2 runs and the break jumps to the line after the switch. Without break, case 2, case 3 and default all run">
+      <text x="175" y="26" class="t c b">with break</text>
+      <text x="485" y="26" class="t c b">without break</text>
+      <path d="M310 14 L310 282" class="edge dash"/>
+
+      <rect x="80" y="44" width="190" height="36" rx="8" class="box gry"/>
+      <text x="175" y="67" class="t c">case 1 &#8212; no match</text>
+      <rect x="80" y="96" width="190" height="36" rx="8" class="box grn"/>
+      <text x="175" y="119" class="t c">case 2 &#8212; runs, then break</text>
+      <rect x="80" y="148" width="190" height="36" rx="8" class="box gry"/>
+      <text x="175" y="171" class="t c">case 3 &#8212; skipped</text>
+      <rect x="80" y="200" width="190" height="36" rx="8" class="box gry"/>
+      <text x="175" y="223" class="t c">default &#8212; skipped</text>
+      <rect x="80" y="250" width="190" height="28" rx="8" class="box"/>
+      <text x="175" y="269" class="t c s">the line after the switch</text>
+      <path d="M30 114 L76 114" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="30" y="106" class="t s">jump in</text>
+      <path d="M270 114 L292 114 L292 264 L274 264" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="274" y="106" class="t s">break</text>
+
+      <rect x="390" y="44" width="190" height="36" rx="8" class="box gry"/>
+      <text x="485" y="67" class="t c">case 1 &#8212; no match</text>
+      <rect x="390" y="96" width="190" height="36" rx="8" class="box grn"/>
+      <text x="485" y="119" class="t c">case 2 &#8212; runs</text>
+      <rect x="390" y="148" width="190" height="36" rx="8" class="box saf"/>
+      <text x="485" y="171" class="t c">case 3 &#8212; runs too!</text>
+      <rect x="390" y="200" width="190" height="36" rx="8" class="box saf"/>
+      <text x="485" y="223" class="t c">default &#8212; runs too!</text>
+      <rect x="390" y="250" width="190" height="28" rx="8" class="box"/>
+      <text x="485" y="269" class="t c s">the line after the switch</text>
+      <path d="M340 114 L386 114" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="340" y="106" class="t s">jump in</text>
+      <path d="M485 132 L485 145" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M485 184 L485 197" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M485 236 L485 247" class="edge saf" marker-end="url(#arr-saf)"/>
+    </svg>
+    <figcaption><b>Figure 47.3</b> A <code>switch</code> on the value 2. Both versions jump in at <code>case 2</code>; <code>break</code> is the only exit, so without it every case below the match runs as well.</figcaption>
+  </figure>
+  <div class="plain"><p>A <code>switch</code> finds the first case whose value matches <i>exactly</i> and starts running there. It then keeps running, straight down the page, until it reaches a <code>break</code>. The <code>case</code> labels below the match are not checked again; they are just signposts it walks past.</p></div>
+  <p>Fall-through is not always a bug. When several values should share one job, stack their cases with nothing between them, and every stacked case falls into the shared statements:</p>
+  <pre class="code">switch (dayNumber) {
+  case 0:
+  case 6:
+    console.log("Weekend: no classes");
+    break;
+  case 1:
+  case 2:
+  case 3:
+  case 4:
+  case 5:
+    console.log("Weekday: check your timetable");
+    break;
+  default:
+    console.log("Not a day number");
+}</pre>
+  <p>If you ever let a case that <i>has</i> statements fall into the next one on purpose, add a comment such as <code>// falls through</code>, so nobody "fixes" it later with a <code>break</code>.</p>
+  <div class="callout exam"><b>Exam tip.</b> For a predict-the-output question on <code>switch</code>, find the first case that matches with <code>===</code> (or <code>default</code>, if none does), then read straight down from there, printing everything you pass, until the first <code>break</code> or the closing brace.</div>
+  <pre class="code" data-run data-title="Day name from a number - try 0, 6, 9 and the string &quot;3&quot;" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let dayNumber = 3;
+
+  // 1. one case per value, each ending with break (short cases fit on one line)
+  let dayName;
+  switch (dayNumber) {
+    case 0: dayName = "Sunday"; break;
+    case 1: dayName = "Monday"; break;
+    case 2: dayName = "Tuesday"; break;
+    case 3: dayName = "Wednesday"; break;
+    case 4: dayName = "Thursday"; break;
+    case 5: dayName = "Friday"; break;
+    case 6: dayName = "Saturday"; break;
+    default: dayName = "Not a day number";
+  }
+  console.log("Day name:", dayName);
+
+  // 2. deliberate fall-through: stacked cases share one job
+  switch (dayNumber) {
+    case 0:
+    case 6:
+      console.log("Weekend: no classes");
+      break;
+    case 1:
+    case 2:
+    case 3:
+    case 4:
+    case 5:
+      console.log("Weekday: check your timetable");
+      break;
+    default:
+      console.log("Cannot tell");
+  }
+
+  // 3. the bug: no break anywhere, so everything below the match runs
+  switch (dayNumber) {
+    case 3:
+      console.log("Forgot break - case 3");
+    case 4:
+      console.log("Forgot break - case 4");
+    default:
+      console.log("Forgot break - default");
+  }
+&lt;/script&gt;</pre>
+  <p>With 3 it prints <code>Day name: Wednesday</code>, the weekday line and all three <code>Forgot break</code> lines. Now try <code>"3"</code>, with the quotes: all three switches fall to <code>default</code>, because a string never matches a number case.</p>
+  <details class="qc"><summary>Quick check: in the third switch above, what is printed when <code>dayNumber</code> is 4?</summary><p>Two lines: <code>Forgot break - case 4</code> and then <code>Forgot break - default</code>. The switch jumps in at <code>case 4</code> and, with no <code>break</code>, falls through into <code>default</code>. Case 3's line is above the match, so it never runs.</p></details>
+</section>
+
+<section id="s6">
+  <h2>47.6 The ternary operator, and choosing the right tool</h2>
+  <p>Chapter 44 introduced the only operator with three operands:</p>
+  <pre class="code">condition ? valueIfTrue : valueIfFalse</pre>
+  <p>Here is a job done first with <code>if...else</code>, which needs a variable and two assignments:</p>
+  <pre class="code">let result;
+if (marks &gt;= 40) {
+  result = "Pass";
+} else {
+  result = "Fail";
+}</pre>
+  <p>and here is the same job with the ternary, in one line:</p>
+  <pre class="code">const result = marks &gt;= 40 ? "Pass" : "Fail";</pre>
+  <p>Read <code>?</code> as "then" and <code>:</code> as "otherwise". An <code>if</code> is a statement: it <i>does</i> things. The ternary is an expression (Chapter 44): it <i>produces a value</i>, so it can sit anywhere a value can, even inside a template literal, and the variable can be a <code>const</code>.</p>
+  <pre class="code">const count = 1;
+console.log(`You have ${count} new ${count === 1 ? "message" : "messages"}`);
+// You have 1 new message</pre>
+  <div class="callout warn"><b>Use it to choose a value, not to do a job.</b> <code>marks &gt;= 40 ? console.log("Pass") : console.log("Fail");</code> works, but it is an <code>if...else</code> in disguise; write the <code>if</code>. Avoid nesting ternaries too: <code>m &gt;= 90 ? "A+" : m &gt;= 75 ? "A" : "B"</code> is legal, yet an <code>else if</code> ladder says the same thing in a way nobody misreads.</div>
+  <h3>Which one should I use?</h3>
+  <table class="tbl">
+    <thead><tr><th>Situation</th><th>Best tool</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>Do something, or nothing</td><td><code>if</code></td><td>Show a warning when attendance is below 75%</td></tr>
+      <tr><td>Choose between two jobs</td><td><code>if...else</code></td><td>Print a pass notice or a fail notice</td></tr>
+      <tr><td>Ranges, or conditions on different variables</td><td><code>else if</code> ladder</td><td>Grades from marks; eligibility from fees and attendance</td></tr>
+      <tr><td>One value against many fixed values</td><td><code>switch</code></td><td>Day name from a number; a menu choice 1 to 4</td></tr>
+      <tr><td>Pick one of two <i>values</i> inside an expression</td><td>ternary <code>? :</code></td><td><code>"message"</code> or <code>"messages"</code></td></tr>
+    </tbody>
+  </table>
+  <p>The deciding question for <code>switch</code> is: <i>is every check "is this one value exactly equal to that"?</i> If yes, a <code>switch</code> reads well. If any check is a range, uses <code>&amp;&amp;</code>, or looks at a second variable, use <code>if</code>. Each <code>case</code> asks only "exactly equal?", so a <code>switch</code> on <code>marks</code> has no way to say "75 or more".</p>
+</section>
+
+<section id="s7">
+  <h2>47.7 Truthy and falsy conditions</h2>
+  <p>The condition of an <code>if</code> does not have to be a comparison. It can be any expression, and JavaScript turns its value into <code>true</code> or <code>false</code> by exactly the rules of <code>Boolean()</code> from Chapter 46. The values that count as false are called <span class="jw" data-def="A value that counts as false when used as a condition: false, 0, -0, 0n, the empty string, null, undefined and NaN.">falsy</span>, and the list is short enough to learn by heart:</p>
+  <pre class="code">false    0    -0    0n    ""    null    undefined    NaN</pre>
+  <p>Every other value is truthy. That makes some conditions very short. Here <code>if (typedName)</code> reads "if a name was typed":</p>
+  <pre class="code">let typedName = "";
+
+if (typedName) {
+  console.log(`Welcome, ${typedName}`);
+} else {
+  console.log("Please enter your name");   // this runs: "" is falsy
+}</pre>
+  <p>Two surprises live on the truthy side. The strings <code>"0"</code> and <code>"false"</code> are truthy, because they are not empty: only the empty string is falsy. And a string holding just a space, <code>" "</code>, is truthy too, so trim typed text first (Chapter 45) if a box full of spaces should count as empty.</p>
+  <div class="callout warn"><b>0 is falsy, even when 0 is a real answer.</b> <code>if (marks)</code> looks like "if marks were entered", but a student who scored 0 fails that test and is treated as if nothing was entered at all. When 0, <code>""</code> or <code>false</code> can be a genuine value, say exactly what you mean: <code>if (marks !== undefined)</code>, or <code>if (typeof marks === "number")</code>.</div>
+  <div class="plain"><p>Putting a value straight into an <code>if</code> asks "is there something here?" Eight values answer no: <code>false</code>, the zeros, the empty string, <code>null</code>, <code>undefined</code> and <code>NaN</code>. Everything else answers yes. That is handy for names and dangerous for numbers, because a real mark of 0 also answers no.</p></div>
+  <pre class="code" data-run data-title="Truthy, falsy and the ternary: a login banner - set typedName to &quot;&quot;, &quot; &quot; and your name" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  #banner { padding: 10px 14px; border-radius: 10px; background: #FFF1E0; font-weight: 700; }
+&lt;/style&gt;
+&lt;p id="banner"&gt;&lt;/p&gt;
+&lt;p&gt;The truthy and falsy tests are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // Boolean() applies exactly the test that an if uses
+  console.log('Boolean(""):', Boolean(""));        // false
+  console.log('Boolean(" "):', Boolean(" "));      // true  - a space is something
+  console.log('Boolean("0"):', Boolean("0"));      // true  - a non-empty string
+  console.log("Boolean(0):", Boolean(0));          // false
+  console.log("Boolean(null):", Boolean(null));    // false
+
+  // the login message: a truthy test inside a ternary chooses the text
+  let typedName = "Meera";
+  const cleanName = typedName.trim();              // "   " becomes ""
+  const banner = cleanName ? `Welcome back, ${cleanName}!` : "Please log in to continue";
+  console.log("Banner:", banner);
+
+  // the 0 trap
+  let marks = 0;
+  if (marks) {
+    console.log("if (marks): marks entered");
+  } else {
+    console.log("if (marks): nothing entered? (wrong - she scored 0)");
+  }
+  if (typeof marks === "number") {
+    console.log("typeof check: marks entered:", marks);
+  }
+
+  document.getElementById("banner").textContent = banner;
+&lt;/script&gt;</pre>
+  <p>Set <code>typedName</code> to <code>"   "</code> and the banner asks you to log in: <code>trim()</code> leaves an empty string, which is falsy. The last two lines show the 0 trap and its cure.</p>
+  <details class="qc"><summary>Quick check: does <code>if ("false") { console.log("yes"); }</code> print yes?</summary><p><b>Yes.</b> <code>"false"</code> is a five-letter, non-empty string, so it is truthy. Only the boolean value <code>false</code>, written without quotes, is falsy.</p></details>
+</section>
+
+<section id="s8">
+  <h2>47.8 Guard clauses: deal with the odd cases first</h2>
+  <p>Nesting grows quickly. Check that marks are a number, then that they lie between 0 and 100, then grade them, and the code drifts further right with every check:</p>
+  <pre class="code">if (typeof marks === "number") {
+  if (marks &gt;= 0 &amp;&amp; marks &lt;= 100) {
+    if (marks &gt;= 90) {
+      grade = "A+";
+    } else if (marks &gt;= 75) {
+      grade = "A";
+    } else {
+      grade = "B or below";
+    }
+  } else {
+    grade = "Out of range";
+  }
+} else {
+  grade = "Invalid marks";
+}</pre>
+  <p>The message for the very first check ends up at the very bottom, far from the check that caused it. Experienced programmers turn the shape inside out with <span class="jw" data-def="A check at the start of a function that deals with a bad or special case and leaves straight away, so the main work below needs no nesting.">guard clauses</span>: handle each bad case first and leave at once, so the main work needs no nesting at all.</p>
+  <p>Leaving early needs a function, which Chapter 48 teaches properly. Two facts are enough for now. A <b>function</b> is a named block of code that runs when you call its name with brackets, such as <code>gradeFor(85)</code>; the value in the brackets arrives inside it as <code>marks</code>. And <b><code>return</code></b> hands a value back to whoever called the function and leaves the function on the spot: no later line of it runs.</p>
+  <pre class="code">function gradeFor(marks) {
+  if (typeof marks !== "number" || Number.isNaN(marks)) {
+    return "Invalid marks";      // guard 1: not a usable number
+  }
+  if (marks &lt; 0 || marks &gt; 100) {
+    return "Out of range";       // guard 2: impossible marks
+  }
+  if (marks &gt;= 90) {
+    return "A+";
+  }
+  if (marks &gt;= 75) {
+    return "A";
+  }
+  if (marks &gt;= 60) {
+    return "B";
+  }
+  return "Needs Improvement";
+}</pre>
+  <p>Every check now sits next to its own answer, and there is no <code>else</code> anywhere. None is needed: once a <code>return</code> has run, the function has already left, so each later <code>if</code> is reached only by marks that every earlier check let through. The first guard needs <code>Number.isNaN</code> because <code>typeof NaN</code> is <code>"number"</code> (Chapter 46).</p>
+  <pre class="code" data-run data-title="Guard clauses - one function, nine marks tested in a single Run" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  function gradeFor(marks) {
+    if (typeof marks !== "number" || Number.isNaN(marks)) {
+      return "Invalid marks";          // guard 1: not a usable number
+    }
+    if (marks &lt; 0 || marks &gt; 100) {
+      return "Out of range";           // guard 2: impossible marks
+    }
+    if (marks &gt;= 90) {
+      return "A+";
+    }
+    if (marks &gt;= 75) {
+      return "A";
+    }
+    if (marks &gt;= 60) {
+      return "B";
+    }
+    return "Needs Improvement";
+  }
+
+  console.log("95 gives", gradeFor(95));          // A+
+  console.log("90 gives", gradeFor(90));          // A+  (the boundary)
+  console.log("89.5 gives", gradeFor(89.5));      // A
+  console.log("60 gives", gradeFor(60));          // B
+  console.log("0 gives", gradeFor(0));            // Needs Improvement
+  console.log("-5 gives", gradeFor(-5));          // Out of range
+  console.log("105 gives", gradeFor(105));        // Out of range
+  console.log('"85" gives', gradeFor("85"));      // Invalid marks - a string
+  console.log("NaN gives", gradeFor(NaN));        // Invalid marks
+&lt;/script&gt;</pre>
+  <p>Because the decision lives in a function, one Run tests every boundary at once. Notice <code>"85"</code>: it looks like a mark but is a string, so the first guard rejects it.</p>
+</section>
+
+<section id="s9">
+  <h2>47.9 break and continue: a first look inside loops</h2>
+  <p>Your slides finish this topic with two statements that belong mostly to loops. A <b>loop</b> repeats a block; Chapter 52 teaches loops in full, and here you only need to read one line. <code>for (let i = 1; i &lt;= 5; i++) { ... }</code> means: <i>start <code>i</code> at 1; while <code>i</code> is at most 5, run the block; after each run, add 1 to <code>i</code></i>. So the block runs five times, with <code>i</code> equal to 1, 2, 3, 4 and 5 in turn.</p>
+  <p>Inside a loop, an <code>if</code> can change that plan:</p>
+  <ul>
+    <li><b><code>break</code></b> ends the whole loop at once. It is the same word that leaves a <code>switch</code>.</li>
+    <li><b><code>continue</code></b> skips only the rest of the current round, and goes straight on to the next round.</li>
+  </ul>
+  <pre class="code" data-run data-title="break and continue (slides 45-46) - change the 3 to 1 or 5 and predict first" data-h="140">&lt;p&gt;Press Run, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // slide 45: break ends the whole loop
+  for (let i = 1; i &lt;= 5; i++) {
+    if (i === 3) {
+      break;
+    }
+    console.log("break loop:", i);
+  }
+  console.log("break loop finished");
+
+  // slide 46: continue skips just one round
+  for (let i = 1; i &lt;= 5; i++) {
+    if (i === 3) {
+      continue;
+    }
+    console.log("continue loop:", i);
+  }
+  console.log("continue loop finished");
+&lt;/script&gt;</pre>
+  <p>Trace the first loop. At 1 and 2 the condition is false and the number is printed. At 3, <code>break</code> runs before the <code>console.log</code> line, and the loop is over: rounds 4 and 5 never happen. In the second loop, <code>continue</code> skips only round 3's <code>console.log</code>, so it prints 1, 2, 4 and 5, exactly as slide 46 says.</p>
+  <p>Slide 47 sums up the whole topic:</p>
+  <table class="tbl">
+    <thead><tr><th>Statement</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>if</code></td><td>Runs code when a condition is true</td></tr>
+      <tr><td><code>if...else</code></td><td>Chooses between two alternatives</td></tr>
+      <tr><td><code>else if</code></td><td>Checks several conditions in order; the first true one wins</td></tr>
+      <tr><td><code>switch</code></td><td>Matches one value against fixed cases</td></tr>
+      <tr><td><code>break</code></td><td>Ends a loop, or leaves a <code>switch</code>, immediately</td></tr>
+      <tr><td><code>continue</code></td><td>Skips the rest of the current loop round</td></tr>
+    </tbody>
+  </table>
+  <p>In short, conditional statements make the decisions, while <code>break</code> and <code>continue</code> steer a loop that is already running.</p>
+  <details class="qc"><summary>Quick check: in the <code>break</code> loop, change <code>i === 3</code> to <code>i === 1</code>. What is printed?</summary><p>Only <code>break loop finished</code>. In the very first round <code>i === 1</code> is true, so <code>break</code> ends the loop before any number is printed. The line after the loop still runs.</p></details>
+</section>
+
+<section id="mistakes">
+  <h2>47.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>if (marks = 100)</code> checks whether marks is 100."</b><br>One <code>=</code> stores 100 in <code>marks</code>. The assignment's value is 100, which is truthy, so the block always runs &mdash; and the real mark is lost.</div>
+    <div class="r"><b>&#10003; "<code>if (marks === 100)</code> compares."</b><br>Three equals signs ask a question; one sets a value. JavaScript will not warn you, because both are legal.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A semicolon after the brackets is harmless."</b><br>In <code>if (age &gt;= 18);</code> the semicolon is an empty statement, and it becomes the entire body of the <code>if</code>. The braces after it are just a block that runs every time.</div>
+    <div class="r"><b>&#10003; "No semicolon between <code>)</code> and <code>{</code>."</b><br>A semicolon goes after a complete statement, never between an <code>if</code>'s condition and its block.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Indenting a line puts it inside the if."</b><br>JavaScript ignores indentation. Without braces, only the first statement belongs to the <code>if</code>:
+<pre>if (age &gt;= 18)
+  console.log("Adult");
+  console.log("You may vote");  // runs for every age</pre></div>
+    <div class="r"><b>&#10003; "The braces decide what is inside."</b><br>Write <code>{ }</code> on every <code>if</code>, <code>else</code> and <code>else if</code>, even for one line.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The conditions of an else if ladder can go in any order."</b><br>The first true condition wins. Put the widest one first and the branches below it become unreachable.</div>
+    <div class="r"><b>&#10003; "Narrowest first."</b><br>With <code>&gt;=</code>, the highest threshold goes at the top. Then test the boundary values.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Each case stops by itself when the next case begins."</b><br>Without <code>break</code>, execution falls through into the next case's statements, without checking its value.</div>
+    <div class="r"><b>&#10003; "End every case with <code>break</code>"</b><br>&mdash; unless it is an empty case stacked on purpose so that several values share one job.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>case 3:</code> also matches the typed text <code>"3"</code>."</b><br><code>switch</code> compares with <code>===</code>, so a string never matches a number.</div>
+    <div class="r"><b>&#10003; "Convert typed input first."</b><br><code>switch (Number(typed))</code> turns <code>"3"</code> into 3 before the matching starts.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most are four-option questions with exactly one correct answer; the others ask you to predict the output and explain it.</p>
+  <details class="q"><summary>Which statement runs one block when its condition is true and a different block when it is false?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>if</code> on its own</li><li>B. <code>continue</code></li><li>C. <code>if...else</code></li><li>D. <code>break</code></li></ul>
+    <p><b>Answer: C.</b> <code>if...else</code> chooses between two alternatives, and exactly one of its blocks runs. A plain <code>if</code> either runs its one block or does nothing; <code>break</code> and <code>continue</code> steer loops.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let marks = 85; if (marks &gt;= 90) { console.log("A+"); } else if (marks &gt;= 75) { console.log("A"); } else if (marks &gt;= 60) { console.log("B"); } else { console.log("C"); }</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A</li><li>B. A+</li><li>C. A, then B</li><li>D. C</li></ul>
+    <p><b>Answer: A.</b> 85 fails the first check and passes the second, so <code>A</code> is printed and the ladder ends. C is tempting because 85 is also at least 60, but only the <i>first</i> true branch runs.</p></div></details>
+  <details class="q"><summary>What does this print, and why can "Distinction" never be printed? <code>let marks = 92; if (marks &gt;= 40) { console.log("Pass"); } else if (marks &gt;= 90) { console.log("Distinction"); }</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: it prints <code>Pass</code>.</b> Every mark of 90 or more is also 40 or more, so the first rung catches it and the second branch is unreachable for every possible mark. The fix is to put the narrower check first: test <code>marks &gt;= 90</code>, then <code>else if (marks &gt;= 40)</code>.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let d = 2; switch (d) { case 1: console.log("One"); case 2: console.log("Two"); case 3: console.log("Three"); break; default: console.log("Other"); }</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Two</li><li>B. One, Two, Three</li><li>C. Two, Three, Other</li><li>D. Two, Three</li></ul>
+    <p><b>Answer: D.</b> The switch jumps in at <code>case 2</code>, falls through into <code>case 3</code> because there is no <code>break</code>, and <code>case 3</code>'s <code>break</code> leaves before <code>default</code>. <code>case 1</code> is above the match, so it never runs.</p></div></details>
+  <details class="q"><summary>How does a <code>switch</code> compare its value with each <code>case</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. With loose equality, <code>==</code>, converting types first</li><li>B. With strict equality, <code>===</code>, so <code>"3"</code> does not match <code>case 3</code></li><li>C. By turning both values into strings</li><li>D. With <code>&gt;=</code>, so a case can be a range</li></ul>
+    <p><b>Answer: B.</b> Matching is strict and never converts types. That is why typed input, which is always a string, must be converted with <code>Number()</code> before it is switched on number cases.</p></div></details>
+  <details class="q"><summary>What does this print, and what is the bug? <code>let marks = 35; if (marks = 100) { console.log("Full marks!"); } console.log(marks);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>Full marks!</code>, then <code>100</code>.</b> The single <code>=</code> stores 100 in <code>marks</code>, and the assignment's value, 100, is truthy, so the block runs and the real 35 is lost. With <code>if (marks === 100)</code> it would print only 35.</p></div></details>
+  <details class="q"><summary>Which value makes <code>if (value) { ... }</code> run its block?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>0</code></li><li>B. <code>""</code></li><li>C. <code>NaN</code></li><li>D. <code>"0"</code></li></ul>
+    <p><b>Answer: D.</b> <code>"0"</code> is a non-empty string, so it is truthy. The number 0, the empty string and <code>NaN</code> are all on the falsy list.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const age = 16; const msg = age &gt;= 18 ? "Adult" : "Minor"; console.log(msg);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Adult</li><li>B. Minor</li><li>C. false</li><li>D. undefined</li></ul>
+    <p><b>Answer: B.</b> <code>16 &gt;= 18</code> is false, so the ternary produces the value after the colon. It returns one of the two values, not the <code>true</code> or <code>false</code> of the condition, which rules out C.</p></div></details>
+  <details class="q"><summary>In a <code>switch</code>, when do the statements under <code>default</code> run?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. When no case matches, or when a matching case above it falls through into it</li><li>B. Always, after the matching case has finished</li><li>C. Only when the value being switched on is 0</li><li>D. Never, unless it is the first label in the switch</li></ul>
+    <p><b>Answer: A.</b> <code>default</code> is the "no match" branch, like a final <code>else</code>, though fall-through can also carry execution into it (the third switch in Section 47.5).</p></div></details>
+  <details class="q"><summary>What does this print? <code>for (let i = 1; i &lt;= 5; i++) { if (i === 4) { break; } console.log(i); }</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 1 2 3 4</li><li>B. 4 5</li><li>C. 1 2 3</li><li>D. 1 2 3 5</li></ul>
+    <p><b>Answer: C.</b> At <code>i === 4</code>, <code>break</code> runs before the <code>console.log</code> and ends the whole loop, so neither 4 nor 5 is printed. D is what <code>continue</code> in place of <code>break</code> would print.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>let age = 12; if (age &gt;= 18); { console.log("Adult"); }</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>Adult</code>.</b> The semicolon after the condition is an empty statement, and it is the whole body of the <code>if</code>. The braces that follow are an ordinary block that runs for every age. Delete the semicolon.</p></div></details>
+  <details class="q"><summary>Which task is the poorest fit for a <code>switch</code> statement?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Turning a day number 0&ndash;6 into a day name</li><li>B. Acting on a menu choice of 1, 2, 3 or 4</li><li>C. Choosing a message for the traffic-light colours "red", "amber" and "green"</li><li>D. Giving a grade from marks: 90 or more is A+, 75 or more is A</li></ul>
+    <p><b>Answer: D.</b> Grades depend on ranges (<code>&gt;=</code>), and a <code>case</code> can only ask "exactly equal?", so grades need an <code>else if</code> ladder. The other three compare one value with a few fixed values, which is what <code>switch</code> is for.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>if (condition) { ... }</code> runs the block only when the condition is true; either way the program carries on after the closing brace. Always write the braces.</li>
+    <li><code>if...else</code> runs exactly one of two blocks. An <code>else if</code> ladder checks from the top and runs only the first true branch; the final <code>else</code> catches the rest.</li>
+    <li>In a ladder the order is part of the logic: narrowest condition first (with <code>&gt;=</code>, the highest threshold first), or later branches become unreachable. Test the boundary values.</li>
+    <li>Combine conditions with <code>&amp;&amp;</code>, <code>||</code> and <code>!</code>. Nest only when each level needs its own <code>else</code>; <code>if (a) { if (b) { ... } }</code> with no <code>else</code> is just <code>if (a &amp;&amp; b)</code>.</li>
+    <li><code>switch</code> matches one value against fixed cases using <code>===</code>. <code>break</code> leaves the switch; without it, execution falls through into the next case. <code>default</code> runs when nothing matches.</li>
+    <li>The ternary <code>condition ? a : b</code> chooses a value inside an expression. Use <code>if</code> for actions, and <code>switch</code> only for exact matches.</li>
+    <li>Any value can be a condition. <code>false</code>, <code>0</code>, <code>-0</code>, <code>0n</code>, <code>""</code>, <code>null</code>, <code>undefined</code> and <code>NaN</code> are falsy; <code>"0"</code>, <code>"false"</code> and <code>" "</code> are truthy. Beware <code>if (marks)</code> when 0 is a real mark.</li>
+    <li>Guard clauses handle bad cases first and <code>return</code> early. In loops, <code>break</code> ends the loop and <code>continue</code> skips to the next round.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>if (age &gt;= 18) { ... }</code></td><td>Runs the block only when the condition is true</td></tr>
+      <tr><td><code>if (c) { A } else { B }</code></td><td>Runs exactly one of A and B</td></tr>
+      <tr><td><code>if (m &gt;= 90) {..} else if (m &gt;= 75) {..} else {..}</code></td><td>The first true condition wins; the rest are skipped</td></tr>
+      <tr><td><code>if (a &amp;&amp; b)</code> / <code>if (a || b)</code> / <code>if (!a)</code></td><td>Both needed / either is enough / the opposite</td></tr>
+      <tr><td><code>switch (n) { case 1: ...; break; default: ... }</code></td><td>Exact (<code>===</code>) matches on one value</td></tr>
+      <tr><td><code>case 0: case 6: ...; break;</code></td><td>Stacked cases share one job (deliberate fall-through)</td></tr>
+      <tr><td><code>const r = m &gt;= 40 ? "Pass" : "Fail";</code></td><td>Chooses one of two values</td></tr>
+      <tr><td><code>if (name) { ... }</code></td><td>Runs when <code>name</code> is truthy: not <code>""</code>, 0, <code>null</code>, <code>undefined</code>&hellip;</td></tr>
+      <tr><td><code>if (bad) { return "Invalid"; }</code></td><td>A guard clause: leave the function early</td></tr>
+      <tr><td><code>break;</code></td><td>Leaves a loop or a <code>switch</code> at once</td></tr>
+      <tr><td><code>continue;</code></td><td>Skips the rest of this loop round</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/if...else" target="_blank" rel="noopener noreferrer">MDN &mdash; if...else<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact rules for <code>if</code>, <code>else</code> and <code>else if</code>, with the assignment-in-a-condition trap spelled out.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/switch" target="_blank" rel="noopener noreferrer">MDN &mdash; switch<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How cases are matched, where <code>default</code> may go, and worked fall-through examples.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Conditional_operator" target="_blank" rel="noopener noreferrer">MDN &mdash; Conditional (ternary) operator<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The <code>? :</code> operator on one page, including how chained ternaries are read.</span></li>
+    <li><a href="https://javascript.info/ifelse" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Conditional branching: if, '?'<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a friendly second voice, with short tasks and worked solutions at the end.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

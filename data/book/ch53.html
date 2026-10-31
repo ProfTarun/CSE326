@@ -1,0 +1,722 @@
+<article class="chapter" data-ch="53">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 53 &middot; Higher-Order Functions</p>
+  <h1>Higher-Order Functions</h1>
+  <p class="lead">Add 5 grace marks to every student. Keep only the students who passed. Add up the whole class. In Chapter 52 each of those jobs needed a loop, a counter and an accumulator. JavaScript arrays come with ready-made methods that do the looping for you: you hand them one small function that says what to do with a single element, and they do it for every element. Once you can read <code>map</code>, <code>filter</code> and <code>reduce</code>, most of the code on real websites starts to make sense.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A function is a value: <code>multiply</code> is the function itself, <code>multiply(4, 6)</code> runs it and gives its answer (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li><code>(a, b) =&gt; a + b</code> is an arrow function; if you write braces, you must also write <code>return</code> (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>A function returned from inside another function still remembers that function's variables: a closure (<a href="book.html?ch=49">Chapter 49</a>).</li>
+      <li>An array of objects such as <code>students[1].name</code>, and an accumulator such as <code>total += mark</code> built up round by round in a loop (<a href="book.html?ch=50">Chapter 50</a>, <a href="book.html?ch=52">Chapter 52</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Store a function in a variable, pass it as an argument and return it from another function, and say what makes a function higher-order.</li>
+      <li>Choose between <code>forEach</code>, <code>map</code>, <code>filter</code> and <code>reduce</code>, and say exactly what each one returns.</li>
+      <li>Trace <code>reduce</code> call by call, with its accumulator and starting value, in a table.</li>
+      <li>Predict what <code>find</code>, <code>findIndex</code>, <code>some</code> and <code>every</code> give, including when nothing matches.</li>
+      <li>Sort numbers and objects with a compare function without spoiling the original array.</li>
+      <li>Chain <code>filter</code>, <code>map</code> and <code>reduce</code> to answer a question about a list of students.</li>
+      <li>Write a function that returns a function, such as <code>makeMultiplier</code>, and explain why it remembers its setting.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>53.1 Functions are values</h2>
+  <p>In Chapter 48 you met a surprising fact: a function is a value, just like <code>24</code> or <code>"Asha"</code>. <code>typeof multiply</code> gives <code>"function"</code>, in the same way that <code>typeof 24</code> gives <code>"number"</code>. Programmers say that JavaScript functions are <span class="jw" data-def="Treated like any other value: a function can be stored in a variable, put in an array, passed to a function or returned from one, exactly as a number can.">first-class</span> values. Whatever you can do with a number, you can do with a function. Three of those things matter in this chapter:</p>
+  <ol>
+    <li><b>Store it in a variable.</b> <code>const yell = shout;</code> gives the same function a second name. No brackets, so nothing runs.</li>
+    <li><b>Pass it to another function as an argument.</b> <code>processUser("asha", shout)</code> hands the function itself over, and <code>processUser</code> decides when to run it.</li>
+    <li><b>Return it from a function.</b> A function can build a new function and hand it back with <code>return</code>, as <code>makeCounter</code> did in Chapter 49.</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="A function value can be stored in a variable, passed as an argument, or returned from a function">
+      <rect x="20" y="80" width="170" height="70" rx="10" class="box blu"/>
+      <text x="105" y="108" class="t c b">a function value</text>
+      <text x="105" y="130" class="t c mono">shout</text>
+      <path d="M190 105 L255 45" class="edge" marker-end="url(#arr)"/>
+      <path d="M190 115 L255 115" class="edge" marker-end="url(#arr)"/>
+      <path d="M190 125 L255 185" class="edge" marker-end="url(#arr)"/>
+      <rect x="260" y="20" width="340" height="50" rx="10" class="box"/>
+      <text x="430" y="40" class="t c b">1. Store it in a variable</text>
+      <text x="430" y="59" class="t c mono">const yell = shout;</text>
+      <rect x="260" y="90" width="340" height="50" rx="10" class="box saf"/>
+      <text x="430" y="110" class="t c b">2. Pass it as an argument</text>
+      <text x="430" y="129" class="t c mono">processUser("asha", shout)</text>
+      <rect x="260" y="160" width="340" height="50" rx="10" class="box grn"/>
+      <text x="430" y="180" class="t c b">3. Return it from a function</text>
+      <text x="430" y="199" class="t c mono">return (name) =&gt; ...;</text>
+      <text x="310" y="238" class="t c s">A function that receives a function (2) or returns one (3) is a higher-order function.</text>
+    </svg>
+    <figcaption><b>Figure 53.1</b> The three journeys a function value can make. Journeys 2 and 3 are what turn the function on the receiving or returning end into a higher-order function.</figcaption>
+  </figure>
+  <p>Your slides define the chapter's main idea in one line. A <span class="jw" data-def="A function that takes another function as an argument, or returns a function, or both.">higher-order function</span> is a function that takes another function as an argument, returns a function, or does both. Nothing about it is special to look at. It is an ordinary function with a parameter that happens to hold a function, which it calls with brackets, or a <code>return</code> that hands a function back.</p>
+  <pre class="code">function processUser(name, format) {   // format will hold a function
+  return format(name);                 // brackets: run it now
+}
+
+function shout(text) {
+  return text.toUpperCase() + "!";
+}
+
+console.log(processUser("asha", shout));                   // ASHA!
+console.log(processUser("rahul", (t) =&gt; "Hello, " + t));   // Hello, rahul</pre>
+  <p><code>processUser</code> is the higher-order function: it receives a function. <code>shout</code> and the little arrow function are the functions being handed over. A function handed over like this is usually called a <b>callback</b>; <a href="book.html?ch=54">Chapter 54</a> gives callbacks a chapter of their own. Here, notice what the arrangement buys you. <code>processUser</code> does not know or care <i>how</i> the name will be formatted. Change the function you hand over and the same <code>processUser</code> does a different job.</p>
+  <div class="plain">
+    <p>A higher-order function is a function that works with other functions: it takes one in, or gives one back. You hand over a function by writing its name <b>without</b> brackets; the receiver runs it by writing brackets after the parameter.</p>
+  </div>
+  <pre class="code" data-run data-title="Functions as values - store, pass, return" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // 1. Store a function in a variable
+  const shout = function (text) {
+    return text.toUpperCase() + "!";
+  };
+  const yell = shout;                        // the same function, a second name
+  console.log("1.", yell("well played"));
+
+  // 2. Pass a function as an argument (slide 16's processUser)
+  function processUser(name, format) {
+    const result = format(name);
+    console.log("2. Processed:", result);
+  }
+  processUser("asha", shout);
+  processUser("rahul", (text) =&gt; "Hello, " + text);
+
+  // 3. Return a function from a function
+  function makeGreeter(greeting) {
+    return (name) =&gt; `${greeting}, ${name}`;
+  }
+  const namaste = makeGreeter("Namaste");
+  console.log("3.", namaste("Meera"));
+
+  console.log("typeof processUser:", typeof processUser);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>1. WELL PLAYED!</code>, then <code>2. Processed: ASHA!</code> and <code>2. Processed: Hello, rahul</code> (one <code>processUser</code>, two jobs), then <code>3. Namaste, Meera</code> and <code>typeof processUser: function</code>. <code>makeGreeter</code> is higher-order for the third reason: it returns a function. Section 53.10 comes back to that.</p>
+</section>
+
+<section id="s2">
+  <h2>53.2 Arrow functions: the usual shorthand</h2>
+  <p>The functions you hand to array methods are usually tiny and used once, so they are almost always written as arrow functions, right inside the call. Your slides recap the form. Arrow functions arrived in ES6 (ECMAScript 2015) as a shorter way to write a function expression:</p>
+  <pre class="code">// Traditional function expression
+const add = function (a, b) {
+  return a + b;
+};
+
+// Arrow function: const name = (parameters) =&gt; { ... }
+const addArrow = (a, b) =&gt; {
+  return a + b;
+};
+
+// One answer only: drop the braces and the word return
+const addShort = (a, b) =&gt; a + b;
+
+// No parameters: empty brackets (slide 23)
+const greet = () =&gt; console.log("Good morning, CSE326!");
+greet();                                   // Good morning, CSE326!</pre>
+  <p>All three versions of <code>add</code> make the same function. Here is one test, "did this student pass?", in the three styles you will meet in other people's code:</p>
+  <table class="tbl">
+    <thead><tr><th>Style</th><th>The test written in that style</th></tr></thead>
+    <tbody>
+      <tr><td>Traditional, written in place</td><td><code>function (s) { return s.marks &gt;= 40; }</code></td></tr>
+      <tr><td>Arrow with braces</td><td><code>(s) =&gt; { return s.marks &gt;= 40; }</code></td></tr>
+      <tr><td>Arrow, one answer (the usual choice)</td><td><code>(s) =&gt; s.marks &gt;= 40</code> &nbsp;or&nbsp; <code>s =&gt; s.marks &gt;= 40</code></td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>The brace trap.</b> <code>(m) =&gt; { m + 5 }</code> returns <code>undefined</code>. The braces make a block body, and a block body returns only what a <code>return</code> statement hands back. Inside <code>map</code> that one slip turns every mark into <code>undefined</code>. Either drop the braces, <code>(m) =&gt; m + 5</code>, or keep them and write <code>return</code>.</div>
+  <p>One difference from ordinary functions matters later: an arrow function does not get its own <code>this</code>, so do not use one as an object's method (Chapter 51). Everywhere in this chapter, arrows are the natural choice.</p>
+  <details class="qc"><summary>Quick check: what does const half = (n) =&gt; { n / 2 }; give for half(10)?</summary><div class="a">
+    <p><code>undefined</code>. The braces make a block body with no <code>return</code>. Write <code>(n) =&gt; n / 2</code> or <code>(n) =&gt; { return n / 2; }</code> to get 5.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>53.3 forEach: do something with each element</h2>
+  <p>Every array method in this chapter has the same basic shape: <code>array.method(yourFunction)</code> (<code>reduce</code> also takes a start value, 53.6). The method does the looping: it starts at index 0, goes to the end, and calls your function once for every element. Your function only has to say what happens to <i>one</i> element. You never write <code>i</code>, <code>i &lt; length</code> or <code>i++</code>, so you cannot get them wrong.</p>
+  <div class="callout analogy"><b>Picture this.</b> A teacher sits in the staff room with a pile of answer sheets for the CSE326 test. She can work through the pile in several ways. She can <i>read each sheet's mark aloud</i> to the class: nothing new is made (<b>forEach</b>). She can <i>copy every mark onto a fresh list with 5 grace marks added</i>: a new list, the same length, the sheets untouched (<b>map</b>). She can <i>pull out the sheets with 40 or more</i> into a new pile (<b>filter</b>). She can <i>key every mark into a calculator</i>, keeping one running total, and end with a single number (<b>reduce</b>). Or she can <i>flip through until she finds the first sheet above 90</i>, and stop there (<b>find</b>). Same pile, the same "one sheet at a time" routine; only the instruction for each sheet changes.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="The same marks array given to forEach, map, filter and reduce gives undefined, a new array of the same length, a shorter array, and a single number">
+      <rect x="20" y="40" width="130" height="234" rx="10" class="box"/>
+      <text x="85" y="70" class="t c b mono">marks</text>
+      <text x="85" y="100" class="t c mono">78</text>
+      <text x="85" y="130" class="t c mono">35</text>
+      <text x="85" y="160" class="t c mono">91</text>
+      <text x="85" y="190" class="t c mono">40</text>
+      <text x="85" y="220" class="t c mono">63</text>
+      <text x="85" y="255" class="t c s">5 elements</text>
+      <text x="290" y="26" class="t c b">METHOD + YOUR FUNCTION</text>
+      <text x="515" y="26" class="t c b">WHAT YOU GET BACK</text>
+      <path d="M150 64 L176 64" class="edge" marker-end="url(#arr)"/>
+      <path d="M150 126 L176 126" class="edge" marker-end="url(#arr)"/>
+      <path d="M150 188 L176 188" class="edge" marker-end="url(#arr)"/>
+      <path d="M150 250 L176 250" class="edge" marker-end="url(#arr)"/>
+      <rect x="180" y="40" width="220" height="48" rx="10" class="box gry"/>
+      <text x="290" y="60" class="t c mono">forEach(m =&gt; show(m))</text>
+      <text x="290" y="78" class="t c s">do something with each</text>
+      <rect x="180" y="102" width="220" height="48" rx="10" class="box blu"/>
+      <text x="290" y="122" class="t c mono">map(m =&gt; m + 5)</text>
+      <text x="290" y="140" class="t c s">transform each</text>
+      <rect x="180" y="164" width="220" height="48" rx="10" class="box grn"/>
+      <text x="290" y="184" class="t c mono">filter(m =&gt; m &gt;= 40)</text>
+      <text x="290" y="202" class="t c s">keep the ones that pass</text>
+      <rect x="180" y="226" width="220" height="48" rx="10" class="box saf"/>
+      <text x="290" y="246" class="t c mono">reduce((t, m) =&gt; t + m, 0)</text>
+      <text x="290" y="264" class="t c s">combine all into one</text>
+      <path d="M400 64 L426 64" class="edge" marker-end="url(#arr)"/>
+      <path d="M400 126 L426 126" class="edge" marker-end="url(#arr)"/>
+      <path d="M400 188 L426 188" class="edge" marker-end="url(#arr)"/>
+      <path d="M400 250 L426 250" class="edge" marker-end="url(#arr)"/>
+      <rect x="430" y="40" width="170" height="48" rx="10" class="box gry"/>
+      <text x="515" y="60" class="t c mono">undefined</text>
+      <text x="515" y="78" class="t c s">5 things done, no array</text>
+      <rect x="430" y="102" width="170" height="48" rx="10" class="box blu"/>
+      <text x="515" y="122" class="t c mono">[83, 40, 96, 45, 68]</text>
+      <text x="515" y="140" class="t c s">new array, same length</text>
+      <rect x="430" y="164" width="170" height="48" rx="10" class="box grn"/>
+      <text x="515" y="184" class="t c mono">[78, 91, 40, 63]</text>
+      <text x="515" y="202" class="t c s">new array, maybe shorter</text>
+      <rect x="430" y="226" width="170" height="48" rx="10" class="box saf"/>
+      <text x="515" y="246" class="t c mono">307</text>
+      <text x="515" y="264" class="t c s">one single value</text>
+    </svg>
+    <figcaption><b>Figure 53.2</b> One array, four methods. Look at the right-hand column: what each method gives back is the fastest way to tell them apart, and in every case <code>marks</code> itself is left unchanged.</figcaption>
+  </figure>
+  <p><code>forEach</code> is the simplest. It calls your function for each element, and that is all:</p>
+  <pre class="code">const marks = [78, 35, 91, 40, 63];
+
+marks.forEach((m) =&gt; {
+  console.log("Mark:", m);        // Mark: 78, Mark: 35, ... one line each
+});
+
+// the same job as a for...of loop (Chapter 52)
+for (const m of marks) {
+  console.log("Mark:", m);
+}</pre>
+  <p>Your function is given up to three arguments each time: the element, its index and the whole array. Use only the ones you need. <code>(s, i) =&gt; console.log(i + 1, s)</code> numbers the lines from 1.</p>
+  <p><code>forEach</code> always returns <b><code>undefined</code></b>. It is meant for jobs that make something happen outside the function, such as printing a line or writing on the page. A job like that is called a <span class="jw" data-def="Something a function does to the world outside itself, such as printing, changing the page or changing a variable, rather than just handing back an answer.">side effect</span>. If you want a new array back, you want <code>map</code>.</p>
+  <p>One more limit: you cannot stop a <code>forEach</code> early. <code>break</code> is not allowed inside its function, and a <code>return</code> there only ends <i>that one call</i>, so <code>forEach</code> carries on with the next element, much like <code>continue</code>. When you need to stop at the first match, use <code>find</code> or <code>some</code> (53.7), or a plain <code>for...of</code> loop with <code>break</code>.</p>
+</section>
+
+<section id="s4">
+  <h2>53.4 map: transform each into a new array</h2>
+  <p><code>map</code> calls your function on every element, collects what your function <b>returns</b> each time, and hands you those answers as a <b>new array of the same length</b>. The original array is not changed.</p>
+  <pre class="code">const marks = [78, 35, 91, 40, 63];
+const withBonus = marks.map((m) =&gt; m + 5);
+
+console.log(withBonus);    // [83, 40, 96, 45, 68]
+console.log(marks);        // [78, 35, 91, 40, 63]  - untouched</pre>
+  <p>Read <code>marks.map((m) =&gt; m + 5)</code> as "make a new list in which each mark <code>m</code> becomes <code>m + 5</code>". Five in, five out, always. <code>map</code> is the tool whenever the question is "turn each X into a Y": each student into a name, each price into a price with GST, each mark into a grade.</p>
+  <pre class="code">const students = [
+  { name: "Asha",  marks: 78 },
+  { name: "Rahul", marks: 35 }
+];
+const names = students.map((s) =&gt; s.name);                    // ["Asha", "Rahul"]
+const grades = students.map((s) =&gt; (s.marks &gt;= 40 ? "Pass" : "Fail"));   // ["Pass", "Fail"]</pre>
+  <h3>Lab Task 4: bonus marks without changing the original</h3>
+  <p>Your lab sheet asks for a new array in which every student gets 5 bonus marks, with the original left alone. With objects there is a trap. This version <i>looks</i> right:</p>
+  <pre class="code">// WRONG: changes the original students too
+const bonus = students.map((s) =&gt; {
+  s.marks = s.marks + 5;     // s IS the original object, not a copy
+  return s;
+});</pre>
+  <p><code>map</code> builds a new <i>array</i>, but the function receives the original <i>objects</i>, and Chapter 51 showed that an object is shared, not copied. Writing <code>s.marks = ...</code> changes the student in the original array. The right way is to return a <b>new object</b> for each student, using the spread copy from Chapter 51:</p>
+  <pre class="code">// RIGHT: a new object for every student
+const bonus = students.map((s) =&gt; ({ ...s, marks: s.marks + 5 }));</pre>
+  <p><code>{ ...s, marks: s.marks + 5 }</code> means "copy every property of <code>s</code>, then set <code>marks</code> to the new value". The round brackets around the braces are the Chapter 48 rule for returning an object from a one-answer arrow.</p>
+  <div class="plain">
+    <p><code>map</code> is a photocopier with a change applied: what comes out is a fresh list of answers, one per element, and the old list stays as it was. Just do not scribble on the originals while copying them. Build a new object; do not change <code>s</code>.</p>
+  </div>
+  <pre class="code" data-run data-title="forEach and map - Lab Task 4, then compare the two arrays" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  #sheet { white-space: pre-line; background: #F1F5F9; padding: 8px 12px; border-radius: 8px; }
+&lt;/style&gt;
+&lt;p&gt;Bonus sheet, written on the page by forEach:&lt;/p&gt;
+&lt;p id="sheet"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+
+  // forEach: do something with each - here, print it
+  students.forEach((s, i) =&gt; {
+    console.log(`${i + 1}. ${s.name} has ${s.marks}`);
+  });
+  const result = students.forEach((s) =&gt; s.marks);
+  console.log("forEach returned:", result);
+
+  // map: turn each student into a name
+  const names = students.map((s) =&gt; s.name);
+  console.log("Names:", names.join(", "));
+
+  // Lab Task 4: 5 bonus marks, original untouched
+  const withBonus = students.map((s) =&gt; ({ ...s, marks: s.marks + 5 }));
+  console.log("Rahul after bonus:", withBonus[1].marks);
+  console.log("Rahul in the original:", students[1].marks);
+  console.log("Same length?", withBonus.length === students.length);
+
+  // forEach again, this time writing on the page
+  const sheet = document.getElementById("sheet");
+  withBonus.forEach((s) =&gt; {
+    sheet.textContent += `${s.name}: ${s.marks}\n`;
+  });
+&lt;/script&gt;</pre>
+  <p>The Console numbers the five students (<code>1. Asha has 78</code> to <code>5. Riya has 63</code>), then shows <code>forEach returned: undefined</code>, even though the function returned each mark: <code>forEach</code> throws those answers away. Then <code>Names: Asha, Rahul, Meera, Kabir, Riya</code>, <code>Rahul after bonus: 40</code>, <code>Rahul in the original: 35</code> and <code>Same length? true</code>. The page shows the bonus sheet. Now replace the Task 4 line with the WRONG version above and run again: Rahul in the original becomes 40 too.</p>
+</section>
+
+<section id="s5">
+  <h2>53.5 filter: keep the ones that pass</h2>
+  <p><code>filter</code> asks your function a yes-or-no question about each element. A function used like this, which answers <code>true</code> or <code>false</code>, is called a <span class="jw" data-def="A small function that answers yes or no (true or false) about one value, such as s =&gt; s.marks &gt;= 40.">predicate</span>. Every element for which it answers <code>true</code> goes into a new array; the rest are left out. The order is kept, and the original is not changed.</p>
+  <pre class="code">// Lab Task 3: students who scored at least 40
+const passed = students.filter((s) =&gt; s.marks &gt;= 40);
+// Asha 78, Meera 91, Kabir 40, Riya 63  - Rahul (35) is left out</pre>
+  <p>Kabir is in: the rule is "at least 40", so 40 passes. The new array can be any length from zero up to the original length. When nothing passes, you get an empty array <code>[]</code>, never <code>undefined</code>, so <code>passed.length</code> is always safe to read. (Strictly, the function only has to give a <i>truthy</i> or <i>falsy</i> value, Chapter 46; a clear <code>true</code>/<code>false</code> test is best.)</p>
+  <p>Like <code>map</code>, <code>filter</code> makes a new array but does not copy the objects inside it. <code>passed[0]</code> is the very same Asha object as <code>students[0]</code>.</p>
+  <table class="tbl">
+    <thead><tr><th>You want</th><th>Use</th><th>You get</th></tr></thead>
+    <tbody>
+      <tr><td>Every element, each changed</td><td><code>map</code></td><td>A new array, same length</td></tr>
+      <tr><td>Some of the elements, unchanged</td><td><code>filter</code></td><td>A new array, same length or shorter</td></tr>
+      <tr><td>Just to do something with each</td><td><code>forEach</code></td><td><code>undefined</code></td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: what is [12, 7, 18, 5].filter((n) =&gt; n &gt; 10).length?</summary><div class="a">
+    <p><code>2</code>. Only 12 and 18 pass the test, so the new array is <code>[12, 18]</code>. The original still has four elements.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>53.6 reduce: combine everything into one value</h2>
+  <p><code>map</code> and <code>filter</code> give back arrays. <code>reduce</code> boils a whole array down to <b>one</b> value: a total, an average, a highest mark. It is the Chapter 52 accumulator pattern, packed into one method. Its shape has two parts:</p>
+  <pre class="code">array.reduce((acc, item) =&gt; newAcc, startValue)</pre>
+  <ul>
+    <li><b>Your function</b> receives the <span class="jw" data-def="A variable that collects the answer as you go through a list, such as a running total. In reduce it is the first parameter of your function.">accumulator</span> (the answer so far, often called <code>acc</code> or <code>sum</code>) and the current element. It must <b>return the new answer so far</b>.</li>
+    <li><b>The start value</b>, the second argument to <code>reduce</code>, is what the accumulator holds before the first element. For a total, that is <code>0</code>.</li>
+  </ul>
+  <p><code>reduce</code> calls your function once per element. Whatever your function returns becomes the accumulator for the next call. What the last call returns is the result of <code>reduce</code>. Lab Task 5 needs the class total first:</p>
+  <pre class="code">const total = students.reduce((sum, s) =&gt; sum + s.marks, 0);   // 307
+const average = total / students.length;                          // 61.4</pre>
+  <table class="tbl">
+    <thead><tr><th>Call</th><th><code>sum</code> coming in</th><th><code>s.marks</code></th><th>Function returns <code>sum + s.marks</code></th></tr></thead>
+    <tbody>
+      <tr><td>1 (Asha)</td><td>0 &mdash; the start value</td><td>78</td><td>78</td></tr>
+      <tr><td>2 (Rahul)</td><td>78</td><td>35</td><td>113</td></tr>
+      <tr><td>3 (Meera)</td><td>113</td><td>91</td><td>204</td></tr>
+      <tr><td>4 (Kabir)</td><td>204</td><td>40</td><td>244</td></tr>
+      <tr><td>5 (Riya)</td><td>244</td><td>63</td><td><b>307</b> &mdash; what <code>reduce</code> gives back</td></tr>
+    </tbody>
+  </table>
+  <p>Each row's answer drops into the next row's <code>sum</code>. Compare it with Chapter 52's loop: <code>let total = 0</code> became the start value, <code>total += mark</code> became the function's return, and the final <code>total</code> is what <code>reduce</code> returns. The average is then <code>307 / 5 = 61.4</code>.</p>
+  <div class="plain">
+    <p><code>reduce</code> is a calculator that keeps one running number. You say what it shows at the start (<code>0</code>) and what to do with each new mark (<code>sum + s.marks</code>). After the last mark, the number on the display is your answer.</p>
+  </div>
+  <h3>Always give the start value</h3>
+  <p>The start value looks optional, and JavaScript does let you leave it out. Then <code>reduce</code> uses the <i>first element</i> as the starting accumulator and begins with the second. For a plain list of numbers that happens to work. It fails in two common cases:</p>
+  <ul>
+    <li><b>Objects.</b> <code>students.reduce((sum, s) =&gt; sum + s.marks)</code> starts with <code>sum</code> holding the whole Asha <i>object</i>. An object plus a number turns into text, so the result is the nonsense string <code>"[object Object]35914063"</code>.</li>
+    <li><b>An empty array.</b> With no elements and no start value there is nothing to begin with, and <code>reduce</code> throws <code>TypeError: Reduce of empty array with no initial value</code>. With <code>0</code> as the start value it simply returns 0.</li>
+  </ul>
+  <p><code>reduce</code> can keep any single answer, not just a sum. To find the top scorer, the accumulator holds "the best student so far", and each call keeps whichever of the two is better:</p>
+  <pre class="code">const topper = students.reduce((best, s) =&gt; (s.marks &gt; best.marks ? s : best), students[0]);
+console.log(topper.name); // Meera</pre>
+  <pre class="code" data-run data-title="filter and reduce - Lab Tasks 3 and 5, with the reduce trace printed" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+
+  // Lab Task 3: filter - keep students with at least 40
+  const passed = students.filter((s) =&gt; s.marks &gt;= 40);
+  console.log("Passed:", passed.map((s) =&gt; s.name).join(", "));
+  console.log("How many passed:", passed.length);
+  console.log("Above 95:", students.filter((s) =&gt; s.marks &gt; 95).length, "students");
+
+  // Lab Task 5: reduce - add every mark into one total, then average
+  const total = students.reduce((sum, s) =&gt; {
+    console.log(`sum ${sum} + ${s.name}'s ${s.marks} = ${sum + s.marks}`);
+    return sum + s.marks;
+  }, 0);
+  console.log("Total:", total);
+  console.log("Average:", total / students.length);
+
+  // reduce can keep any single answer - here, the best student so far
+  const topper = students.reduce((best, s) =&gt; (s.marks &gt; best.marks ? s : best), students[0]);
+  console.log("Top scorer:", topper.name, topper.marks);
+
+  // the trap: no start value with objects
+  const broken = students.reduce((sum, s) =&gt; sum + s.marks);
+  console.log("Without a start value:", broken);
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Passed: Asha, Meera, Kabir, Riya</code>, <code>How many passed: 4</code> and <code>Above 95: 0 students</code> (an empty array, length 0). Then the trace, one line per call, exactly like the table: <code>sum 0 + Asha's 78 = 78</code> through <code>sum 244 + Riya's 63 = 307</code>, followed by <code>Total: 307</code>, <code>Average: 61.4</code>, <code>Top scorer: Meera 91</code> and finally <code>Without a start value: [object Object]35914063</code>, the bug.</p>
+  <details class="qc"><summary>Quick check: what does [5, 10, 15].reduce((acc, n) =&gt; acc + n, 100) give?</summary><div class="a">
+    <p><code>130</code>. The accumulator starts at 100, not 0: 100 + 5 = 105, 105 + 10 = 115, 115 + 15 = 130. The start value is the first thing in the total.</p></div></details>
+</section>
+
+<section id="s7">
+  <h2>53.7 Searching: find, findIndex, some and every</h2>
+  <p>Four more methods take a predicate, and each answers a different question. Chapter 50 introduced <code>find</code>; here is the whole family:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Question it answers</th><th>Returns</th><th>If nothing matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>find(test)</code></td><td>Which is the first element that passes?</td><td>That element</td><td><code>undefined</code></td></tr>
+      <tr><td><code>findIndex(test)</code></td><td>Where is the first element that passes?</td><td>Its index</td><td><code>-1</code></td></tr>
+      <tr><td><code>some(test)</code></td><td>Does <i>at least one</i> element pass?</td><td><code>true</code> or <code>false</code></td><td><code>false</code></td></tr>
+      <tr><td><code>every(test)</code></td><td>Do <i>all</i> elements pass?</td><td><code>true</code> or <code>false</code></td><td><code>false</code> (but <code>true</code> for an empty array)</td></tr>
+    </tbody>
+  </table>
+  <p>Unlike <code>forEach</code>, <code>map</code> and <code>filter</code>, these four <b>stop early</b>. <code>find</code> stops at the first match, because the answer cannot change after that. <code>some</code> stops at the first <code>true</code>, and <code>every</code> at the first <code>false</code>. On a list of 60 students, <code>some((s) =&gt; s.marks &lt; 40)</code> may need to look at only two.</p>
+  <p>Do not mix up <code>find</code> and <code>filter</code>. <code>find</code> gives <i>one element</i> (or <code>undefined</code>); <code>filter</code> gives <i>an array</i> of every match (or <code>[]</code>). And when you are looking for an exact value in a plain list, <code>includes</code> from Chapter 50 is simpler than <code>some</code>. Use <code>some</code> when the test needs a rule, such as "marks below 40".</p>
+  <div class="callout exam"><b>Exam tip.</b> On an empty array, <code>some</code> gives <code>false</code> (nobody passed) and <code>every</code> gives <code>true</code> (nobody failed). That second one surprises people and is a favourite trick question.</div>
+  <pre class="code" data-run data-title="find, findIndex, some and every - and how early some() stops" data-h="150">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 6px 14px; } &lt;/style&gt;
+&lt;p id="msg"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+
+  const star = students.find((s) =&gt; s.marks &gt; 80);
+  console.log("First above 80:", star.name);
+  console.log("First above 95:", students.find((s) =&gt; s.marks &gt; 95));
+
+  console.log("Kabir is at index", students.findIndex((s) =&gt; s.name === "Kabir"));
+  console.log("Zoya is at index", students.findIndex((s) =&gt; s.name === "Zoya"));
+
+  console.log("Anyone below 40?", students.some((s) =&gt; s.marks &lt; 40));
+  console.log("Everyone at least 40?", students.every((s) =&gt; s.marks &gt;= 40));
+  console.log("Everyone above 30?", students.every((s) =&gt; s.marks &gt; 30));
+
+  // count how many students some() really looked at
+  let looked = 0;
+  students.some((s) =&gt; {
+    looked++;
+    return s.marks &lt; 40;
+  });
+  console.log("some() looked at", looked, "students");
+
+  const needHelp = students.some((s) =&gt; s.marks &lt; 40);
+  document.getElementById("msg").textContent =
+    needHelp ? "A remedial class is needed." : "Everyone passed!";
+&lt;/script&gt;</pre>
+  <p>The Console reads: <code>First above 80: Meera</code>, <code>First above 95: undefined</code>, <code>Kabir is at index 3</code>, <code>Zoya is at index -1</code>, <code>Anyone below 40? true</code>, <code>Everyone at least 40? false</code>, <code>Everyone above 30? true</code>, and <code>some() looked at 2 students</code>: Asha did not match, Rahul did, and <code>some</code> stopped there. The page says <b>A remedial class is needed.</b></p>
+</section>
+
+<section id="s8">
+  <h2>53.8 sort with a compare function</h2>
+  <p><code>sort</code> is a higher-order function too. Chapter 50 showed its famous trap: left alone, it compares elements as text, so <code>[100, 35, 9].sort()</code> gives <code>[100, 35, 9]</code> ("1" comes before "3" and "9"). The fix is a <b>compare function</b>. <code>sort</code> keeps picking two elements, <code>a</code> and <code>b</code>, and calls your function to ask which goes first:</p>
+  <table class="tbl">
+    <thead><tr><th>Your function returns</th><th>sort puts</th></tr></thead>
+    <tbody>
+      <tr><td>A negative number</td><td><code>a</code> before <code>b</code></td></tr>
+      <tr><td>A positive number</td><td><code>b</code> before <code>a</code></td></tr>
+      <tr><td><code>0</code></td><td>Keeps their order</td></tr>
+    </tbody>
+  </table>
+  <p>So <code>(a, b) =&gt; a - b</code> sorts numbers smallest first, and <code>(a, b) =&gt; b - a</code> largest first. With objects, compare the property you care about. A rank list, highest marks first, is <code>(a, b) =&gt; b.marks - a.marks</code>. For names, subtraction makes no sense, so strings have a method made for comparing: <code>a.name.localeCompare(b.name)</code> returns a negative number, 0 or a positive number in dictionary order, exactly what <code>sort</code> wants.</p>
+  <p>How many times <code>sort</code> calls your function, and in which pairs, is up to the browser. Never depend on it; just make sure the answer for any pair is right.</p>
+  <div class="callout warn"><b>Two sort traps.</b> First, <code>sort</code> <b>changes the original array</b> and returns that same array. To keep the register in roll-number order, sort a copy: <code>[...students].sort(...)</code>, or <code>toSorted(...)</code> in recent browsers. Second, the compare function must return a <i>number</i>. <code>(a, b) =&gt; a &gt; b</code> returns <code>true</code> or <code>false</code>, which <code>sort</code> treats as 1 or 0 and never as negative, so the result may not be sorted at all.</div>
+  <pre class="code" data-run data-title="sort with a compare function - rank list, register, original kept" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+
+  // numbers: the default sort compares text
+  const nums = [100, 35, 9];
+  console.log("sort() alone:", [...nums].sort().join(", "));
+  console.log("sort((a, b) =&gt; a - b):", [...nums].sort((a, b) =&gt; a - b).join(", "));
+
+  // a rank list: highest marks first, on a copy
+  const byMarks = [...students].sort((a, b) =&gt; b.marks - a.marks);
+  console.log("Rank list:", byMarks.map((s) =&gt; `${s.name} ${s.marks}`).join(", "));
+
+  // a register: names in dictionary order
+  const byName = [...students].sort((a, b) =&gt; a.name.localeCompare(b.name));
+  console.log("Register:", byName.map((s) =&gt; s.name).join(", "));
+
+  // the original is still in its first order, because we sorted copies
+  console.log("Original:", students.map((s) =&gt; s.name).join(", "));
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>sort() alone: 100, 35, 9</code> and <code>sort((a, b) =&gt; a - b): 9, 35, 100</code>; then <code>Rank list: Meera 91, Asha 78, Riya 63, Kabir 40, Rahul 35</code>, <code>Register: Asha, Kabir, Meera, Rahul, Riya</code> and <code>Original: Asha, Rahul, Meera, Kabir, Riya</code>. Delete the <code>[...</code> and <code>]</code> around <code>students</code> in the rank-list line and run again: the last line changes too, because you sorted the original.</p>
+</section>
+
+<section id="s9">
+  <h2>53.9 Chaining: filter, then map, then reduce</h2>
+  <p>Because <code>filter</code> and <code>map</code> return arrays, you can call another array method straight on their result, with no variable in between. Writing one method call after another like this is called <span class="jw" data-def="Calling one method directly on the result of the previous one: a.filter(...).map(...).reduce(...). Each step works on what the step before gave back.">method chaining</span>. Question: <i>what is the total of the marks of the students who passed?</i></p>
+  <pre class="code">const passedTotal = students
+  .filter((s) =&gt; s.marks &gt;= 40)        // 4 student objects (Rahul dropped)
+  .map((s) =&gt; s.marks)                 // [78, 91, 40, 63]
+  .reduce((sum, m) =&gt; sum + m, 0);     // 272</pre>
+  <p>Read it top to bottom, like a recipe. Each line starts with a dot, so each step works on what the line above gave back. Putting one step per line is a habit worth copying: every step can carry its own comment, and you can read the chain the way it runs.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 320" role="img" aria-label="Five students go through filter to become four, through map to become four numbers, and through reduce to become the single number 272">
+      <rect x="20" y="16" width="580" height="46" rx="10" class="box"/>
+      <text x="310" y="35" class="t c b">students: 5 objects</text>
+      <text x="310" y="53" class="t c s">Asha 78 &middot; Rahul 35 &middot; Meera 91 &middot; Kabir 40 &middot; Riya 63</text>
+      <path d="M120 62 L120 98" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="140" y="78" class="t mono">.filter((s) =&gt; s.marks &gt;= 40)</text>
+      <text x="140" y="93" class="t s">asks each student "passed?" &mdash; Rahul is dropped</text>
+      <rect x="20" y="100" width="580" height="46" rx="10" class="box grn"/>
+      <text x="310" y="119" class="t c b">4 student objects</text>
+      <text x="310" y="137" class="t c s">Asha 78 &middot; Meera 91 &middot; Kabir 40 &middot; Riya 63</text>
+      <path d="M120 146 L120 182" class="edge" marker-end="url(#arr)"/>
+      <text x="140" y="162" class="t mono">.map((s) =&gt; s.marks)</text>
+      <text x="140" y="177" class="t s">turns each student into just the number</text>
+      <rect x="20" y="184" width="580" height="46" rx="10" class="box blu"/>
+      <text x="310" y="203" class="t c b">4 numbers</text>
+      <text x="310" y="221" class="t c mono">[78, 91, 40, 63]</text>
+      <path d="M120 230 L120 266" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="140" y="246" class="t mono">.reduce((sum, m) =&gt; sum + m, 0)</text>
+      <text x="140" y="261" class="t s">adds them into one running total</text>
+      <rect x="20" y="268" width="580" height="40" rx="10" class="box saf"/>
+      <text x="310" y="293" class="t c b">272 &mdash; one number</text>
+    </svg>
+    <figcaption><b>Figure 53.3</b> A chain is a pipeline. Each step hands its whole result to the next: an array of objects, then a smaller array, then an array of numbers, then a single value.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>A chain is a row of small machines. The first machine (<code>filter</code>) throws out what you do not want, the second (<code>map</code>) changes the shape of what is left, and the last (<code>reduce</code>) packs it all into one answer. If you are ever confused, break the chain into separate variables and print each step.</p>
+  </div>
+  <p>Order matters in a chain. Give the 5 bonus marks <i>before</i> filtering and Rahul's 35 becomes 40, so he passes. Filter first, then add the bonus, and he does not. Neither is "wrong"; they answer different questions, so put the steps in the order the question asks for.</p>
+  <pre class="code" data-run data-title="A chain, step by step - then a merit list on the page" data-h="180">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; }
+  #out { white-space: pre-line; background: #F1F5F9; padding: 8px 12px; border-radius: 8px; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;CSE326 Test 1 &#8212; merit list (60 and above)&lt;/b&gt;&lt;/p&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+
+  // the whole chain in one statement
+  const passedTotal = students
+    .filter((s) =&gt; s.marks &gt;= 40)
+    .map((s) =&gt; s.marks)
+    .reduce((sum, m) =&gt; sum + m, 0);
+  console.log("Total of passed students:", passedTotal);
+
+  // the same chain, one step at a time
+  const step1 = students.filter((s) =&gt; s.marks &gt;= 40);
+  const step2 = step1.map((s) =&gt; s.marks);
+  const step3 = step2.reduce((sum, m) =&gt; sum + m, 0);
+  console.log("Step 1 (filter):", step1.length, "students");
+  console.log("Step 2 (map):", step2.join(", "));
+  console.log("Step 3 (reduce):", step3);
+  console.log("Average of passed:", step3 / step2.length);
+
+  // order matters: bonus first, then filter
+  const bonusFirst = students
+    .map((s) =&gt; ({ ...s, marks: s.marks + 5 }))
+    .filter((s) =&gt; s.marks &gt;= 40)
+    .map((s) =&gt; s.name);
+  console.log("Bonus, then filter:", bonusFirst.join(", "));
+  const filterOnly = students
+    .filter((s) =&gt; s.marks &gt;= 40)
+    .map((s) =&gt; s.name);
+  console.log("Filter only:", filterOnly.join(", "));
+
+  // on the page: filter, sort, map, join
+  document.getElementById("out").textContent = students
+    .filter((s) =&gt; s.marks &gt;= 60)
+    .sort((a, b) =&gt; b.marks - a.marks)
+    .map((s, i) =&gt; `${i + 1}. ${s.name} (${s.marks})`)
+    .join("\n");
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>Total of passed students: 272</code>, then the same answer built in steps: <code>Step 1 (filter): 4 students</code>, <code>Step 2 (map): 78, 91, 40, 63</code>, <code>Step 3 (reduce): 272</code> and <code>Average of passed: 68</code>. Then <code>Bonus, then filter: Asha, Rahul, Meera, Kabir, Riya</code> against <code>Filter only: Asha, Meera, Kabir, Riya</code>: one name's difference, from the order of two steps. The page lists <b>1. Meera (91)</b>, <b>2. Asha (78)</b>, <b>3. Riya (63)</b>. Notice the <code>sort</code> in that last chain is safe: it sorts the new array <code>filter</code> made, not <code>students</code>.</p>
+  <h3>When a plain loop is still fine</h3>
+  <p>These methods do not replace the loops of Chapter 52; they are shorthand for the commonest loops. A plain <code>for</code> or <code>for...of</code> loop is still the better tool when:</p>
+  <ul>
+    <li>you need to stop part-way on a condition that is not "first match", using <code>break</code>;</li>
+    <li>you are not walking through an array at all, such as counting down from 10 or repeating until the user types "quit";</li>
+    <li>one pass must do several jobs at once (total, highest and count together), where a chain would walk the list three times;</li>
+    <li>a beginner on your team will read the code, and the loop says it more plainly.</li>
+  </ul>
+  <p>Both styles produce the same answers. Choose the one that makes the code easiest to read: a short chain for "keep, change, combine"; a loop when the logic has many branches and early exits.</p>
+</section>
+
+<section id="s10">
+  <h2>53.10 A function that returns a function</h2>
+  <p>The second half of the higher-order definition is <i>returning</i> a function. Here is the classic example:</p>
+  <pre class="code">function makeMultiplier(factor) {
+  return (n) =&gt; n * factor;
+}
+
+const double = makeMultiplier(2);
+const triple = makeMultiplier(3);
+console.log(double(5));    // 10
+console.log(triple(5));    // 15</pre>
+  <p>Follow it slowly. <code>makeMultiplier(2)</code> runs, with <code>factor</code> set to 2. It does not multiply anything. It builds the small function <code>(n) =&gt; n * factor</code> and returns it, and we store that function in <code>double</code>. Then <code>makeMultiplier</code> has finished, yet <code>double(5)</code> still finds <code>factor</code> and gives 10. This is the closure from Chapter 49: the returned function keeps a live link to the variables of the call that made it. The second call, <code>makeMultiplier(3)</code>, has its own <code>factor</code>, so <code>triple</code> remembers 3 and <code>double</code> still remembers 2.</p>
+  <p>A function whose job is to build and return other functions is often called a <span class="jw" data-def="A function whose job is to make and return new functions, each set up with the values you gave it, like makeMultiplier(2).">function factory</span>. Factories fit array methods perfectly, because they make exactly what <code>map</code> and <code>filter</code> want: a ready-made function. Instead of writing a new test for every cut-off, write one factory:</p>
+  <pre class="code">function scoredAtLeast(cutoff) {
+  return (s) =&gt; s.marks &gt;= cutoff;    // a test that remembers cutoff
+}
+students.filter(scoredAtLeast(40));    // the pass list
+students.filter(scoredAtLeast(75));    // the distinction list</pre>
+  <div class="plain">
+    <p><code>makeMultiplier(2)</code> is like setting a machine's dial to 2 and handing you the machine. Every time you use the machine, it multiplies by 2, because it remembers where its dial was set. <code>scoredAtLeast(75)</code> hands you a test with its bar fixed at 75.</p>
+  </div>
+  <pre class="code" data-run data-title="makeMultiplier and a test factory - functions that return functions" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  function makeMultiplier(factor) {
+    return (n) =&gt; n * factor;           // remembers factor (a closure)
+  }
+  const double = makeMultiplier(2);
+  const triple = makeMultiplier(3);
+  console.log("double(5):", double(5));
+  console.log("triple(5):", triple(5));
+  console.log("typeof double:", typeof double);
+  console.log("makeMultiplier(4)(5):", makeMultiplier(4)(5));
+
+  // a ready-made function, handed straight to map
+  const marks = [78, 35, 91, 40, 63];
+  console.log("Out of 50:", marks.map(makeMultiplier(0.5)).join(", "));
+
+  // a factory of tests for filter
+  const students = [
+    { name: "Asha", marks: 78 },
+    { name: "Rahul", marks: 35 },
+    { name: "Meera", marks: 91 },
+    { name: "Kabir", marks: 40 },
+    { name: "Riya", marks: 63 }
+  ];
+  function scoredAtLeast(cutoff) {
+    return (s) =&gt; s.marks &gt;= cutoff;
+  }
+  const names = (list) =&gt; list.map((s) =&gt; s.name).join(", ");
+  console.log("Pass (40):", names(students.filter(scoredAtLeast(40))));
+  console.log("Distinction (75):", names(students.filter(scoredAtLeast(75))));
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>double(5): 10</code>, <code>triple(5): 15</code>, <code>typeof double: function</code>, and <code>makeMultiplier(4)(5): 20</code>: the first brackets make a "times 4" function, the second brackets call it with 5. Then <code>Out of 50: 39, 17.5, 45.5, 20, 31.5</code>, <code>Pass (40): Asha, Meera, Kabir, Riya</code> and <code>Distinction (75): Asha, Meera</code>.</p>
+  <details class="qc"><summary>Quick check: after const add10 = makeAdder(10), where makeAdder(x) returns (n) =&gt; n + x, what is add10(5)?</summary><div class="a">
+    <p><code>15</code>. <code>makeAdder(10)</code> returned a function that remembers <code>x = 10</code>; calling it with 5 gives 5 + 10.</p></div></details>
+</section>
+
+<section id="mistakes">
+  <h2>53.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "forEach gives back a new array, like map."</b><br>It always returns <code>undefined</code>, whatever your function returns.</div>
+    <div class="r"><b>&#10003; "forEach is for doing; map is for making."</b><br>Use <code>forEach</code> to print or change the page; use <code>map</code> when you want a new array of answers.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "map and filter can never change my original data."</b><br>They never change the array, but the function receives the original objects.</div>
+    <div class="r"><b>&#10003; "Return a new object; do not edit s."</b><br><code>map((s) =&gt; ({ ...s, marks: s.marks + 5 }))</code> leaves every original student as it was.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "filter gives me the student I am looking for."</b><br>It gives an <i>array</i>, even when only one student matches.</div>
+    <div class="r"><b>&#10003; "find gives one element; filter gives every match."</b><br><code>find</code> returns the first match or <code>undefined</code>; <code>filter</code> returns an array, possibly <code>[]</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The start value of reduce is optional, so I can leave it out."</b><br>Without it, an array of objects gives nonsense text and an empty array throws a TypeError.</div>
+    <div class="r"><b>&#10003; "Always give reduce a start value."</b><br><code>0</code> for a total, <code>""</code> for text, <code>[]</code> for a list, <code>students[0]</code> for a best-so-far.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "return inside forEach stops the loop."</b><br>It only ends that one call; <code>forEach</code> carries on with the next element.</div>
+    <div class="r"><b>&#10003; "To stop early, use find, some, every, or a for...of loop with break."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "marks.map(addBonus()) passes my function to map."</b><br>The brackets run <code>addBonus</code> now and pass its answer, so <code>map</code> complains that it is not a function.</div>
+    <div class="r"><b>&#10003; "Hand over the function without brackets: marks.map(addBonus)."</b><br>The array method adds the brackets when it calls it.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; several ask what the code prints.</p>
+  <details class="q"><summary>A higher-order function is a function that:<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Is written with the arrow symbol =&gt;</li><li>B. Is declared at the top of the program</li><li>C. Takes a function as an argument, returns a function, or both</li><li>D. Calls itself</li></ul>
+    <p><b>Answer: C.</b> That is the slide's definition. A is tempting because the functions handed to higher-order functions are often arrows, but the arrow style has nothing to do with it. D describes recursion.</p></div></details>
+  <details class="q"><summary>What does <code>[1, 2, 3].forEach((n) =&gt; n * 2)</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. undefined</li><li>B. [2, 4, 6]</li><li>C. [1, 2, 3]</li><li>D. 12</li></ul>
+    <p><b>Answer: A.</b> <code>forEach</code> always returns <code>undefined</code> and ignores what your function returns. B is what <code>map</code> would give.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const r = [78, 35, 91].map((m) =&gt; m + 5); console.log(r.join(" "));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 83 40 96.</b> <code>map</code> adds 5 to each mark and returns a new array of the same length; <code>join(" ")</code> puts spaces between them. The original array is unchanged.</p></div></details>
+  <details class="q"><summary>What is <code>[78, 35, 91, 40].filter((m) =&gt; m &gt;= 40).length</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 1</li><li>B. 2</li><li>C. 4</li><li>D. 3</li></ul>
+    <p><b>Answer: D.</b> 78, 91 and 40 pass; 35 does not. B is the answer people give when they forget that <code>&gt;=</code> lets exactly 40 through.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log([10, 20, 30].reduce((acc, n) =&gt; acc + n, 5));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 60</li><li>B. 5</li><li>C. 65</li><li>D. 35</li></ul>
+    <p><b>Answer: C.</b> The accumulator starts at 5: 5 + 10 = 15, 15 + 20 = 35, 35 + 30 = 65. A is the answer people give when they forget that the start value counts as part of the total.</p></div></details>
+  <details class="q"><summary>What does <code>students.findIndex((s) =&gt; s.name === "Zoya")</code> give when no student is called Zoya?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. undefined</li><li>B. -1</li><li>C. null</li><li>D. 0</li></ul>
+    <p><b>Answer: B.</b> <code>findIndex</code>, like <code>indexOf</code>, uses &minus;1 for "not found", because &minus;1 can never be an index. A is what <code>find</code> gives when nothing matches.</p></div></details>
+  <details class="q"><summary>Which method answers "is <i>at least one</i> student below 40?" and stops as soon as it finds one?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. every</li><li>B. filter</li><li>C. some</li><li>D. map</li></ul>
+    <p><b>Answer: C.</b> <code>some</code> returns <code>true</code> at the first match. <code>filter</code> would also tell you, but it checks every element and gives back an array, not a yes/no.</p></div></details>
+  <details class="q"><summary>What does <code>const out = [4, 9].map((n) =&gt; { n * 10 });</code> put in <code>out</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. [40, 90]</li><li>B. [undefined, undefined]</li><li>C. [4, 9]</li><li>D. A SyntaxError</li></ul>
+    <p><b>Answer: B.</b> The braces make a block body without <code>return</code>, so each call returns <code>undefined</code>, and <code>map</code> collects two of them. Drop the braces to get A.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const marks = [5, 25, 100]; marks.sort(); console.log(marks.join(","));</code> How do you sort them as numbers?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 100,25,5.</b> With no compare function, <code>sort</code> compares text, and "1" comes before "2" and "5". Write <code>marks.sort((a, b) =&gt; a - b)</code> to get <code>5,25,100</code>.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log([3, 8, 12, 5].filter((n) =&gt; n &gt; 4).map((n) =&gt; n * 10).join(" "));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 80 120 50.</b> <code>filter</code> keeps 8, 12 and 5 (in their original order); <code>map</code> multiplies each by 10.</p></div></details>
+  <details class="q"><summary>With <code>function makeMultiplier(f) { return (n) =&gt; n * f; }</code>, what is <code>makeMultiplier(4)(5)</code>?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 9</li><li>B. A function</li><li>C. 4</li><li>D. 20</li></ul>
+    <p><b>Answer: D.</b> <code>makeMultiplier(4)</code> returns a function that remembers <code>f = 4</code>; the second brackets call it with 5, giving 20. B would be the answer for <code>makeMultiplier(4)</code> alone.</p></div></details>
+  <details class="q"><summary>To get the total fees of all students as a single number, the best single method is:<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. reduce</li><li>B. map</li><li>C. forEach</li><li>D. find</li></ul>
+    <p><b>Answer: A.</b> <code>reduce</code> combines an array into one value. <code>map</code> would give an array, and <code>forEach</code> returns <code>undefined</code>, so you would still need your own accumulator.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Functions are values: you can store them, pass them as arguments and return them. A function that takes or returns a function is <b>higher-order</b>.</li>
+    <li>Hand a function over by name, without brackets; the receiver calls it. Short functions are usually written as arrows, and braces need <code>return</code>.</li>
+    <li><code>forEach</code> does something with each element and returns <code>undefined</code>. <code>map</code> transforms each into a new array of the same length. <code>filter</code> keeps the matches in a new array.</li>
+    <li><code>reduce((acc, item) =&gt; newAcc, start)</code> combines everything into one value; each return becomes the next accumulator. Always give the start value.</li>
+    <li><code>find</code> gives the first match or <code>undefined</code>; <code>findIndex</code> its index or &minus;1; <code>some</code> and <code>every</code> give <code>true</code>/<code>false</code>. These four stop early.</li>
+    <li><code>sort</code> needs a compare function that returns a number (<code>a - b</code>, <code>b.marks - a.marks</code>, <code>localeCompare</code>), and it changes the original, so sort a copy.</li>
+    <li>Chains such as <code>filter</code> &rarr; <code>map</code> &rarr; <code>reduce</code> read like a recipe; the order of the steps changes the answer.</li>
+    <li>A function can return a function that remembers its setting (a closure): <code>makeMultiplier(2)</code> gives a doubler. Plain loops are still fine when they are clearer.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>marks.forEach((m) =&gt; console.log(m))</code></td><td>Runs the function for each element; returns <code>undefined</code></td></tr>
+      <tr><td><code>marks.map((m) =&gt; m + 5)</code></td><td>New array, each element changed, same length</td></tr>
+      <tr><td><code>students.map((s) =&gt; ({ ...s, marks: s.marks + 5 }))</code></td><td>New objects, originals untouched</td></tr>
+      <tr><td><code>students.filter((s) =&gt; s.marks &gt;= 40)</code></td><td>New array of the elements that pass (maybe <code>[]</code>)</td></tr>
+      <tr><td><code>students.reduce((sum, s) =&gt; sum + s.marks, 0)</code></td><td>One value: the total</td></tr>
+      <tr><td><code>students.find((s) =&gt; s.marks &gt; 80)</code></td><td>First match, or <code>undefined</code></td></tr>
+      <tr><td><code>students.findIndex((s) =&gt; s.name === "Kabir")</code></td><td>Index of the first match, or &minus;1</td></tr>
+      <tr><td><code>students.some(test)</code> / <code>students.every(test)</code></td><td>At least one passes? / All pass? (<code>true</code>/<code>false</code>)</td></tr>
+      <tr><td><code>[...students].sort((a, b) =&gt; b.marks - a.marks)</code></td><td>Sorted copy, highest first</td></tr>
+      <tr><td><code>a.name.localeCompare(b.name)</code></td><td>Compare function for names in dictionary order</td></tr>
+      <tr><td><code>const double = makeMultiplier(2)</code></td><td>A function that remembers <code>factor = 2</code></td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://javascript.info/array-methods" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Array methods<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">map, filter, reduce, find and sort explained again with small exercises and answers.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/reduce" target="_blank" rel="noopener noreferrer">MDN &mdash; Array.prototype.reduce()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact rules for the accumulator and the start value, with many more uses.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/Array/sort" target="_blank" rel="noopener noreferrer">MDN &mdash; Array.prototype.sort()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How the compare function works, and why the default order is by text.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Glossary/First-class_Function" target="_blank" rel="noopener noreferrer">MDN &mdash; First-class function<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A short glossary page on functions as values, the idea this chapter is built on.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

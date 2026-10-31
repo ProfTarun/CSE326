@@ -1,0 +1,739 @@
+<article class="chapter" data-ch="59">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 59 &middot; JavaScript Accessibility Practices</p>
+  <h1>JavaScript Accessibility Practices</h1>
+  <p class="lead">Good HTML is already mostly accessible. Then JavaScript makes a box clickable, changes a number, opens a panel &mdash; and each of those can quietly shut out a keyboard or screen-reader user while everything looks perfect with a mouse. This chapter gives you the handful of habits that let your scripts add behaviour without taking anybody's access away.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Native controls such as <code>&lt;button&gt;</code> work with the keyboard for free; <code>role</code>, <code>aria-label</code>, <code>tabindex="0"</code> and <code>tabindex="-1"</code>; the first rule of ARIA is native first (<a href="book.html?ch=15">Chapter 15</a>).</li>
+      <li>WCAG's four principles, POUR, and the 4.5:1 contrast rule for normal text (<a href="book.html?ch=20">Chapter 20</a>).</li>
+      <li><code>addEventListener("click", fn)</code> and <code>"keydown"</code> run code when something happens; <code>event.key</code> names the key that was pressed (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li><code>textContent</code>, <code>setAttribute</code> and <code>getAttribute</code> read and change an element from JavaScript (<a href="book.html?ch=56">Chapter 56</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name the ways a script can lock out keyboard and screen-reader users.</li>
+      <li>Choose the native element for a job, and when there is no choice, turn a <code>div</code> into a working button.</li>
+      <li>Move focus with <code>focus()</code> when something opens, closes, shows an error or disappears.</li>
+      <li>Announce changes with <code>aria-live="polite"</code>, <code>role="status"</code> and <code>role="alert"</code>.</li>
+      <li>Keep <code>aria-expanded</code>, <code>aria-pressed</code> and <code>aria-invalid</code> true to what the screen shows.</li>
+      <li>Hide content with the right tool: <code>hidden</code>, <code>display: none</code>, a visually-hidden class or <code>aria-hidden</code>.</li>
+      <li>Respect <code>prefers-reduced-motion</code> from JavaScript, and test a page with the keyboard alone.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>59.1 What a script can break</h2>
+  <p><b>Web accessibility</b> means designing websites so that people with different abilities can perceive, understand, navigate and interact with them. That is the lecture's definition, and Chapter 15 started from the same place. It benefits keyboard users, screen-reader users and people with visual impairments &mdash; and also people with <b>temporary or situational</b> limitations: a student with a fractured wrist, someone reading a phone in bright sunlight, a parent holding a baby in one arm and the phone in the other.</p>
+  <p>So far HTML has done most of the work: a <code>&lt;button&gt;</code> can be reached with the keyboard, a <code>&lt;label&gt;</code> names its field. JavaScript changes the page <i>after</i> it has loaded, and that is where the trouble starts. People who cannot use a mouse or see the screen reach the page through <span class="jw" data-def="Tools that help disabled people use a computer: a screen reader that speaks the page aloud, a magnifier, voice control, or a switch that replaces the mouse.">assistive technology</span>, and a script can leave that technology knowing nothing about what just happened.</p>
+  <table class="tbl">
+    <thead><tr><th>The script&hellip;</th><th>A mouse user sees</th><th>A keyboard or screen-reader user gets</th></tr></thead>
+    <tbody>
+      <tr><td>makes a <code>div</code> clickable</td><td>A working button</td><td>Nothing: Tab skips it, Enter does nothing, it is read as plain text</td></tr>
+      <tr><td>changes a message or a number</td><td>The new text</td><td>Silence: the screen reader is busy elsewhere and is never told</td></tr>
+      <tr><td>opens, closes or removes part of the page</td><td>The panel appearing or going</td><td>Their place lost: focus left behind, or dropped to the top</td></tr>
+      <tr><td>animates or slides content</td><td>A lively page</td><td>For some people, dizziness or nausea</td></tr>
+    </tbody>
+  </table>
+  <p>The mouse user never sees a problem, which is why these bugs survive: the developer tests with a mouse, everything works, and the page ships. Each section of this chapter fixes one row.</p>
+  <div class="callout why"><b>Key idea.</b> Your script must tell assistive technology everything it shows the eyes: <b>what</b> a control is, <b>what state</b> it is in, <b>what just changed</b>, and <b>where</b> the user is now.</div>
+</section>
+
+<section id="s2">
+  <h2>59.2 Native elements first</h2>
+  <p>A real <code>&lt;button&gt;</code> comes with a contract that the browser keeps for you, on every device, at no cost:</p>
+  <ul>
+    <li>It sits in the <b>Tab order</b> and shows a focus ring when it is reached.</li>
+    <li><b>Enter and Space press it.</b> The browser turns the key press into a <code>click</code> event, so one click listener serves mouse, keyboard and voice control alike.</li>
+    <li>It is announced as <b>"button"</b>, with its text as its name.</li>
+    <li>It can be <code>disabled</code>, and inside a form it submits (write <code>type="button"</code> when it should not).</li>
+  </ul>
+  <p>How does a screen reader know any of that? Alongside the DOM, the browser builds a second, simpler tree called the <span class="jw" data-def="A simplified copy of the page that the browser builds for assistive technology. For each element it records a name, a role and a state.">accessibility tree</span>. For every element it records its <b>name</b> (what it is called), its <b>role</b> (what kind of thing it is) and its <b>state</b> (pressed, expanded, invalid, checked). Screen readers read that tree, never the pixels.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="A button with aria-expanded becomes role button, name Syllabus, state collapsed, and is read as Syllabus, button, collapsed. A div with onclick becomes a generic, unfocusable box holding only the text Pay.">
+      <text x="110" y="28" class="t c b">IN THE HTML</text>
+      <text x="330" y="28" class="t c b">IN THE ACCESSIBILITY TREE</text>
+      <text x="530" y="28" class="t c b">WHAT IS SPOKEN</text>
+      <rect x="10" y="46" width="200" height="74" rx="10" class="box"/>
+      <text x="110" y="70" class="t c mono" style="font-size:11px">&lt;button</text>
+      <text x="110" y="87" class="t c mono" style="font-size:11px">aria-expanded="false"&gt;</text>
+      <text x="110" y="104" class="t c mono" style="font-size:11px">Syllabus&lt;/button&gt;</text>
+      <path d="M212 83 L228 83" class="edge" marker-end="url(#arr)"/>
+      <rect x="230" y="46" width="200" height="74" rx="10" class="box grn"/>
+      <text x="330" y="70" class="t c">role: button</text>
+      <text x="330" y="88" class="t c">name: Syllabus</text>
+      <text x="330" y="106" class="t c">state: collapsed</text>
+      <path d="M432 83 L448 83" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="450" y="46" width="160" height="74" rx="10" class="box grn"/>
+      <text x="530" y="78" class="t c b">"Syllabus, button,</text>
+      <text x="530" y="96" class="t c b">collapsed"</text>
+      <rect x="10" y="140" width="200" height="74" rx="10" class="box"/>
+      <text x="110" y="166" class="t c mono" style="font-size:11px">&lt;div onclick="pay()"&gt;</text>
+      <text x="110" y="183" class="t c mono" style="font-size:11px">Pay</text>
+      <text x="110" y="200" class="t c mono" style="font-size:11px">&lt;/div&gt;</text>
+      <path d="M212 177 L228 177" class="edge" marker-end="url(#arr)"/>
+      <rect x="230" y="140" width="200" height="74" rx="10" class="box red"/>
+      <text x="330" y="164" class="t c">role: generic</text>
+      <text x="330" y="182" class="t c">text: Pay</text>
+      <text x="330" y="200" class="t c">not focusable</text>
+      <path d="M432 177 L448 177" class="edge" marker-end="url(#arr)"/>
+      <rect x="450" y="140" width="160" height="74" rx="10" class="box red"/>
+      <text x="530" y="172" class="t c b">"Pay"</text>
+      <text x="530" y="190" class="t c s">just words, not a control</text>
+      <text x="310" y="240" class="t c s">The click listener is invisible to the accessibility tree. Only elements, roles and attributes are recorded.</text>
+    </svg>
+    <figcaption><b>Figure 59.1</b> A screen reader speaks the middle column. A real button fills in all three facts by itself; a clickable <code>div</code> contributes only its words.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>A screen reader cannot see colours, shapes or positions. It knows only what the browser writes in the accessibility tree: name, role, state. A real button writes all three for you. A <code>div</code> writes only its text, however many click listeners you attach to it.</p>
+  </div>
+  <p>So before writing any code, pick the element that already does the job:</p>
+  <table class="tbl">
+    <thead><tr><th>The job</th><th>Use</th><th>Not</th></tr></thead>
+    <tbody>
+      <tr><td>Do something on this page: save, open, delete</td><td><code>&lt;button type="button"&gt;</code></td><td><code>&lt;div&gt;</code> or <code>&lt;span&gt;</code> with a click listener</td></tr>
+      <tr><td>Go to another page or place</td><td><code>&lt;a href="..."&gt;</code></td><td>A button that changes <code>location</code>; an <code>&lt;a&gt;</code> with no <code>href</code> (it is not even focusable)</td></tr>
+      <tr><td>Type text</td><td><code>&lt;input&gt;</code> with a <code>&lt;label&gt;</code></td><td>A <code>div</code> that listens for key presses</td></tr>
+      <tr><td>Yes or no; one of several</td><td>Checkbox; radio buttons or <code>&lt;select&gt;</code></td><td>Boxes that change colour when clicked</td></tr>
+      <tr><td>Show or hide a block</td><td><code>&lt;details&gt;</code>, or a button with <code>aria-expanded</code> (59.6)</td><td>A clickable heading</td></tr>
+      <tr><td>A dialog box</td><td><code>&lt;dialog&gt;</code> (59.4)</td><td>A positioned <code>div</code>, unless you manage focus yourself</td></tr>
+    </tbody>
+  </table>
+  <p>A rule that settles most arguments: <b>links go, buttons do.</b> The lecture's list also names <code>&lt;nav&gt;</code> and <code>&lt;main&gt;</code>: these landmarks (Chapter 15) let a screen-reader user jump straight to the menu or the content, so keep them when a script redraws the page. And when your script <i>builds</i> elements (Chapter 58), the same rules apply: <code>createElement("button")</code>, not a <code>div</code>; an <code>alt</code> on every informative image it creates; a label for every input.</p>
+</section>
+
+<section id="s3">
+  <h2>59.3 When you must build a custom control</h2>
+  <p>Sometimes you inherit a page full of clickable <code>div</code>s, or a design no native element can produce. Chapter 15's flowchart gave the recipe; this is its JavaScript half. A <code>div</code> that is to behave as a button needs <b>four</b> things, and leaving out any one breaks it for somebody:</p>
+  <ol>
+    <li><code>role="button"</code>, so it is announced as a button.</li>
+    <li>An <span class="jw" data-def="The words a screen reader says to identify a control, such as Pay for a button. It comes from the visible text, a label, or aria-label.">accessible name</span>: its own text, or <code>aria-label</code> if it shows only an icon.</li>
+    <li><code>tabindex="0"</code>, so Tab can reach it.</li>
+    <li>A <code>keydown</code> listener that runs the action for <kbd>Enter</kbd> and <kbd>Space</kbd>, because the browser turns key presses into clicks only for native controls such as a real button.</li>
+  </ol>
+  <pre class="code" data-run data-title="Three Pay buttons - click inside once, then use only Tab, Enter and Space" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .pay { display: inline-block; background: #0B2545; color: #fff; border: 0;
+         padding: 10px 16px; margin: 0 8px 10px 0; border-radius: 8px;
+         font: inherit; font-weight: 700; cursor: pointer; }
+  .pay:focus-visible { outline: 3px solid #E07B1E; outline-offset: 3px; }
+  #log { background: #F1F5F9; border-radius: 8px; padding: 8px 12px; }
+&lt;/style&gt;
+&lt;div class="pay" id="fake"&gt;Pay (plain div)&lt;/div&gt;
+&lt;div class="pay" id="fixed" role="button" tabindex="0"&gt;Pay (repaired div)&lt;/div&gt;
+&lt;button class="pay" id="real" type="button"&gt;Pay (button)&lt;/button&gt;
+&lt;p id="log"&gt;Nothing paid yet.&lt;/p&gt;
+
+&lt;script&gt;
+  const log = document.getElementById("log");
+
+  function pay(who, how) {
+    log.textContent = `${who} worked (${how})`;
+    console.log(`${who} worked (${how})`);
+  }
+
+  // 1. The plain div: a click listener and nothing else
+  document.getElementById("fake").addEventListener("click", () =&gt; pay("Plain div", "click"));
+
+  // 2. The repaired div: role and tabindex are in the HTML; the keys are here
+  const fixed = document.getElementById("fixed");
+  fixed.addEventListener("click", () =&gt; pay("Repaired div", "click"));
+  fixed.addEventListener("keydown", (event) =&gt; {
+    if (event.key === "Enter" || event.key === " ") {
+      event.preventDefault();               // stop Space from scrolling the page
+      pay("Repaired div", `key "${event.key}"`);
+    }
+  });
+
+  // 3. The real button: one line, and the keys come free
+  document.getElementById("real").addEventListener("click", () =&gt; pay("Button", "click"));
+&lt;/script&gt;</pre>
+  <p>Click once inside the preview so the keys go to it, then press <kbd>Tab</kbd>. Focus lands on the repaired div, then the real button, and <b>never</b> on the plain div. Press <kbd>Enter</kbd> on the repaired div: <code>Repaired div worked (key "Enter")</code>. Press <kbd>Space</kbd>: <code>Repaired div worked (key " ")</code> &mdash; the space bar's key value is a single space, <code>" "</code>, not the word <code>"Space"</code>. On the real button both keys print <code>Button worked (click)</code>: the browser turned your key press into a click.</p>
+  <p><code>event.preventDefault()</code> matters too: Space normally scrolls the page, so the listener cancels that default, just as Chapter 57 cancelled a form's submit.</p>
+  <p>Now count the cost. The repaired div needed two attributes and a seven-line listener, and it still ignores <code>disabled</code> and cannot submit a form. The real button needed one line. So use a button, and keep this recipe for when you truly cannot (Chapter 77's best-practice checklist says the same).</p>
+  <div class="callout exam"><b>Exam tip.</b> "Which makes a <code>div</code> work as an accessible button?" The complete answer has all of <code>role="button"</code>, <code>tabindex="0"</code> and Enter/Space key handling. An option with only one of them is the trap: <code>role</code> alone changes what is announced, never what the element does.</div>
+  <details class="qc"><summary>Quick check: your keydown listener tests event.key === "Space". What happens when the user presses the space bar?</summary><div class="a">
+    <p>Nothing runs, because <code>event.key</code> for the space bar is <code>" "</code>, a single space. Worse, the page scrolls, because <code>preventDefault()</code> is never reached. Test <code>event.key === " "</code>.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>59.4 Managing focus</h2>
+  <p>At any moment at most one element on the page has <span class="jw" data-def="Being the one element that receives the next key press. A focused element usually shows an outline, the focus ring.">focus</span>: the element that receives the next key press. Keyboard users move focus with Tab; screen-reader users hear whatever it lands on. JavaScript can read it with <code>document.activeElement</code> (which gives the <code>&lt;body&gt;</code> when nothing is focused) and move it with <code>element.focus()</code>.</p>
+  <p>Normally the user moves focus. Your script must move it whenever the script itself changes the page around the user:</p>
+  <table class="tbl">
+    <thead><tr><th>When your script&hellip;</th><th>Move focus to</th><th>Because otherwise</th></tr></thead>
+    <tbody>
+      <tr><td>opens a panel or dialog</td><td>Inside it: its heading or first field</td><td>The user is still on the opener and never learns it opened</td></tr>
+      <tr><td>closes it</td><td>Back to the control that opened it</td><td>Focus falls to the page body; the user's place is lost</td></tr>
+      <tr><td>shows an error</td><td>The wrong field (Chapter 60 does this for whole forms)</td><td>The user hears nothing about what to fix, or where</td></tr>
+      <tr><td>deletes, hides or disables the focused element</td><td>The next sensible element</td><td>Such an element cannot hold focus, so focus is thrown away</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Whenever your script makes something appear, move focus to it. Whenever it makes the focused thing disappear, move focus somewhere sensible &mdash; usually back where the user came from. The user should never have to hunt for their place.</p>
+  </div>
+  <p>Two details make this work. First, <code>focus()</code> only works on elements that can take focus: links with an <code>href</code>, buttons, form controls and anything with a <code>tabindex</code>. On a plain <code>&lt;h2&gt;</code> it silently does nothing. To focus a heading or panel from a script <i>without</i> adding it to the Tab order, give it <code>tabindex="-1"</code> (Chapter 15). Second, if your script leads focus into something, it must also let the user out: <kbd>Escape</kbd> should close it. A place the keyboard can enter but never leave is a <span class="jw" data-def="A part of the page that a keyboard user can Tab into but cannot Tab or Escape out of. It is a WCAG failure.">keyboard trap</span>, and it fails WCAG.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 232" role="img" aria-label="Focus round trip: focus on the Exam help button, the panel opens and the script moves focus inside, Escape or Close returns focus to the Exam help button. Without that last step focus drops to the page body.">
+      <rect x="10" y="36" width="170" height="84" rx="12" class="box saf"/>
+      <text x="95" y="60" class="t c b">1. Focus on the</text>
+      <text x="95" y="78" class="t c b">Exam help button</text>
+      <text x="95" y="102" class="t c s">user presses Enter</text>
+      <path d="M182 78 L222 78" class="edge" marker-end="url(#arr)"/>
+      <rect x="225" y="36" width="170" height="84" rx="12" class="box grn"/>
+      <text x="310" y="60" class="t c b">2. Panel opens</text>
+      <text x="310" y="80" class="t c mono" style="font-size:11px">title.focus()</text>
+      <text x="310" y="102" class="t c s">focus is now INSIDE</text>
+      <path d="M397 78 L437 78" class="edge" marker-end="url(#arr)"/>
+      <rect x="440" y="36" width="170" height="84" rx="12" class="box blu"/>
+      <text x="525" y="60" class="t c b">3. Escape or Close</text>
+      <text x="525" y="80" class="t c mono" style="font-size:11px">openBtn.focus()</text>
+      <text x="525" y="102" class="t c s">panel hidden again</text>
+      <path d="M480 122 L480 150 L95 150 L95 124" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="290" y="168" class="t c s">focus returns to the opener: the user is exactly where they started</text>
+      <path d="M575 122 L575 176" class="edge dash" marker-end="url(#arr)"/>
+      <rect x="440" y="180" width="170" height="44" rx="10" class="box red"/>
+      <text x="525" y="198" class="t c s">without openBtn.focus():</text>
+      <text x="525" y="214" class="t c s">focus drops to the page body</text>
+    </svg>
+    <figcaption><b>Figure 59.2</b> The focus round trip. The script moves focus in when the panel opens, and gives it back to the opener when the panel closes.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="Focus in, focus back - open the panel, then press Escape" data-h="290">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  #panel { max-width: 360px; margin-top: 12px; padding: 10px 14px;
+           border: 2px solid #0B2545; border-radius: 10px; }
+  #panel h2 { margin: 0 0 6px; font-size: 18px; }
+  button, input { font: inherit; padding: 6px 10px; }
+&lt;/style&gt;
+&lt;button id="open" type="button"&gt;Exam help&lt;/button&gt;
+
+&lt;div id="panel" role="dialog" aria-labelledby="help-title" hidden&gt;
+  &lt;h2 id="help-title" tabindex="-1"&gt;Exam help&lt;/h2&gt;
+  &lt;p&gt;The MTT is on 14 March at 10:00 IST in Block 34. Bring your ID card.&lt;/p&gt;
+  &lt;label for="q"&gt;Your question&lt;/label&gt;
+  &lt;input id="q" type="text"&gt;
+  &lt;button id="close" type="button"&gt;Close&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  const openBtn = document.getElementById("open");
+  const panel = document.getElementById("panel");
+  const title = document.getElementById("help-title");
+
+  function report(step) {
+    console.log(step, "- focus is on:", document.activeElement);
+  }
+
+  function openPanel() {
+    panel.hidden = false;
+    title.focus();               // 1. move focus INTO what just opened
+    report("Opened");
+  }
+
+  function closePanel() {
+    panel.hidden = true;
+    openBtn.focus();             // 2. give focus BACK to the opener
+    report("Closed");
+  }
+
+  openBtn.addEventListener("click", openPanel);
+  document.getElementById("close").addEventListener("click", closePanel);
+  panel.addEventListener("keydown", (event) =&gt; {
+    if (event.key === "Escape") closePanel();      // a way out, always
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Exam help</b>, with the mouse or with Tab and Enter. The Console prints <code>Opened - focus is on: &lt;h2 id="help-title"&gt;</code>: focus sits on the heading, so a screen reader announces "Exam help, dialog" (from <code>role="dialog"</code> and <code>aria-labelledby</code>) and reads on. Tab to the field and Close, then press <kbd>Escape</kbd>: <code>Closed - focus is on: &lt;button id="open"&gt;</code>. The user is back where they began.</p>
+  <p>Without <code>openBtn.focus()</code>, closing would hide the Close button while it had focus. Focus would drop to the page body and a screen reader would lose its place.</p>
+  <p>For a true <b>modal</b> dialog &mdash; one that blocks the page behind it &mdash; use the native <code>&lt;dialog&gt;</code> and open it with <code>showModal()</code>. The browser moves focus in, closes it on Escape, makes the page behind unreachable and, in current browsers, returns focus to the opener on close. Native first, again.</p>
+  <pre class="code">&lt;button id="open" type="button"&gt;Exam help&lt;/button&gt;
+&lt;dialog id="help" aria-labelledby="help-title"&gt;
+  &lt;h2 id="help-title"&gt;Exam help&lt;/h2&gt;
+  &lt;button id="close" type="button"&gt;Close&lt;/button&gt;
+&lt;/dialog&gt;
+&lt;script&gt;
+  const help = document.getElementById("help");
+  document.getElementById("open").addEventListener("click", () =&gt; help.showModal());
+  document.getElementById("close").addEventListener("click", () =&gt; help.close());
+&lt;/script&gt;</pre>
+  <p>One more habit from the lecture's list: <b>provide visible focus indicators</b>. The focus ring is the keyboard user's cursor; never remove it with <code>outline: none</code> without a replacement such as <code>:focus-visible</code> (Chapter 32).</p>
+</section>
+
+<section id="s5">
+  <h2>59.5 Announcing changes: live regions</h2>
+  <p>A screen reader reads what has focus, or what the user asks it to read. When your script changes text somewhere else &mdash; a count, a "Saved" message, search results &mdash; nothing tells the user. On screen the change is obvious; in the user's ears it never happened.</p>
+  <div class="callout analogy"><b>Picture this.</b> At Ludhiana Junction the departure board flips to show the Shatabdi on platform 3. Sighted passengers glance up and walk; a blind passenger beside them learns nothing &mdash; until the announcer speaks. A routine announcement waits until the current one has finished; an emergency announcement cuts in mid-sentence. And the loudspeaker has to be fitted <i>before</i> the train arrives: nobody can announce through a speaker that is still being installed.</div>
+  <p>The page's loudspeaker is a <span class="jw" data-def="A part of the page marked so that screen readers read out its new text automatically whenever it changes, wherever the user's focus is.">live region</span>: an element marked so that screen readers read out its new text automatically, wherever the focus is.</p>
+  <table class="tbl">
+    <thead><tr><th>Markup</th><th>Announces</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td><code>aria-live="polite"</code></td><td>When the screen reader finishes what it is saying</td><td>Counts, "Saved", "12 results found"</td></tr>
+      <tr><td><code>role="status"</code></td><td>The same as polite; the role also says "this is a status message"</td><td>Status and result messages (Chapter 70 uses it after a failed fetch)</td></tr>
+      <tr><td><code>role="alert"</code></td><td>At once, interrupting whatever is being read</td><td>Only urgent messages: "Payment failed", "Session ends in 1 minute"</td></tr>
+    </tbody>
+  </table>
+  <p>Two rules make live regions reliable. <b>The region must already be in the page before its text changes</b>: put it in the HTML, empty or with its starting text, and afterwards change only its <code>textContent</code>. A region created a moment before its message is often missed &mdash; the speaker still being installed. And <b>write whole messages</b>: the region is read without the page around it, so "Seats booked: 3" says something; "3" says almost nothing.</p>
+  <div class="plain">
+    <p>Mark a message area as live once, in the HTML. After that, every time your script changes its text, the screen reader reads the new text aloud. Polite waits its turn; alert interrupts &mdash; so use alert rarely, the way a station uses its emergency announcements.</p>
+  </div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 222" role="img" aria-label="Timeline: a polite message waits until the screen reader finishes the current sentence; an alert interrupts at once and then reading carries on.">
+      <text x="240" y="22" class="t c s">your script changes the text here</text>
+      <path d="M240 30 L240 186" class="edge dash"/>
+      <text x="10" y="76" class="t b">polite</text>
+      <text x="10" y="92" class="t s">aria-live, status</text>
+      <rect x="150" y="60" width="280" height="36" rx="8" class="box gry"/>
+      <text x="335" y="83" class="t c s">still reading: "Unit 5 notes..."</text>
+      <rect x="436" y="60" width="164" height="36" rx="8" class="box grn"/>
+      <text x="518" y="83" class="t c">"Seats booked: 3"</text>
+      <text x="518" y="111" class="t c s">waits its turn</text>
+      <text x="10" y="136" class="t b">alert</text>
+      <text x="10" y="152" class="t s">role = alert</text>
+      <rect x="150" y="120" width="86" height="36" rx="8" class="box gry"/>
+      <text x="193" y="143" class="t c s">reading...</text>
+      <rect x="244" y="120" width="210" height="36" rx="8" class="box red"/>
+      <text x="349" y="143" class="t c">"All 5 seats are booked."</text>
+      <text x="349" y="172" class="t c s">cuts in at once</text>
+      <rect x="460" y="120" width="140" height="36" rx="8" class="box gry"/>
+      <text x="530" y="143" class="t c s">then carries on</text>
+      <path d="M150 196 L598 196" class="edge" marker-end="url(#arr)"/>
+      <text x="580" y="214" class="t c s">time</text>
+    </svg>
+    <figcaption><b>Figure 59.3</b> The same moment, two kinds of region. A polite message is spoken after the current sentence; an alert interrupts it.</figcaption>
+  </figure>
+  <p>Here is the lecture's interactive counter from Chapter 57, made to be heard as well as seen:</p>
+  <pre class="code" data-run data-title="The counter, now announced - press + six times, then minus" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .row { display: flex; gap: 8px; align-items: center; }
+  .sym { font-size: 22px; width: 44px; height: 44px; }
+  #status { font-size: 22px; font-weight: 800; color: #0B2545; margin: 0 6px; }
+  #msg { color: #B42318; font-weight: 700; min-height: 1.4em; }
+&lt;/style&gt;
+&lt;h3&gt;CSE326 lab: book a seat&lt;/h3&gt;
+&lt;div class="row"&gt;
+  &lt;button class="sym" id="minus" type="button" aria-label="Cancel a seat"&gt;&amp;minus;&lt;/button&gt;
+  &lt;p id="status" aria-live="polite"&gt;Seats booked: 0&lt;/p&gt;
+  &lt;button class="sym" id="plus" type="button" aria-label="Book a seat"&gt;+&lt;/button&gt;
+  &lt;button id="reset" type="button"&gt;Reset&lt;/button&gt;
+&lt;/div&gt;
+&lt;p id="msg" role="alert"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const MAX = 5;
+  let count = 0;
+  const statusBox = document.getElementById("status");
+  const msg = document.getElementById("msg");
+
+  function update() {
+    statusBox.textContent = `Seats booked: ${count}`;   // polite: read when the reader pauses
+    msg.textContent = "";                               // clear any old warning
+    console.log("Screen reader would say (polite):", statusBox.textContent);
+  }
+
+  function warn(text) {
+    msg.textContent = text;                             // alert: read at once
+    console.log("Screen reader would say (alert):", text);
+  }
+
+  document.getElementById("plus").addEventListener("click", () =&gt; {
+    if (count === MAX) { warn(`All ${MAX} seats are booked.`); return; }
+    count++;
+    update();
+  });
+  document.getElementById("minus").addEventListener("click", () =&gt; {
+    if (count === 0) { warn("There are no seats to cancel."); return; }
+    count--;
+    update();
+  });
+  document.getElementById("reset").addEventListener("click", () =&gt; {
+    count = 0;
+    update();
+  });
+&lt;/script&gt;</pre>
+  <p>Nothing is logged at first: a live region announces <i>changes</i>, not its starting text. Press <b>+</b> and the Console shows <code>Screen reader would say (polite): Seats booked: 1</code>, then 2, 3, 4, 5. A sixth press gives <code>Screen reader would say (alert): All 5 seats are booked.</code> Press <b>&minus;</b>: <code>Seats booked: 4</code>, and the warning is cleared. (The Console stands in for the screen reader you cannot hear in a preview frame.)</p>
+  <p>Two smaller choices are worth copying. The symbol buttons have <code>aria-label</code>s, because "plus" and "minus" say nothing about seats. And at the limit the counter does <i>not</i> disable the + button: disabling the focused button throws focus away (59.4). A message keeps the user in place and says why.</p>
+  <details class="qc"><summary>Quick check: under a search box, "12 results" updates as the user types. Polite or alert?</summary><div class="a">
+    <p><b>Polite</b> (<code>aria-live="polite"</code> or <code>role="status"</code>). The count is useful but not urgent. An alert on every key press would keep interrupting the user's own typing.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>59.6 Keeping ARIA states true</h2>
+  <p>Chapter 15 used ARIA to <i>name</i> and <i>describe</i> things. Some ARIA attributes describe a <b>state</b> that changes while the page is used. Only your script knows when it changes, so your script must update the attribute every time. A stale state is worse than none: it tells the user something false.</p>
+  <table class="tbl">
+    <thead><tr><th>Attribute</th><th>Goes on</th><th>A screen reader says, roughly</th></tr></thead>
+    <tbody>
+      <tr><td><code>aria-expanded="true"</code> / <code>"false"</code></td><td>The <b>button</b> that shows and hides a panel, not the panel</td><td>"Syllabus, button, collapsed"</td></tr>
+      <tr><td><code>aria-pressed="true"</code> / <code>"false"</code></td><td>A toggle button that stays on or off</td><td>"Mute alerts, toggle button, not pressed"</td></tr>
+      <tr><td><code>aria-invalid="true"</code></td><td>A form field whose value is wrong</td><td>"Roll number, edit, invalid entry"</td></tr>
+      <tr><td><code>aria-describedby="id"</code></td><td>The same field, pointing at the error text</td><td>"&hellip; Error: a roll number has exactly 8 digits"</td></tr>
+    </tbody>
+  </table>
+  <p>Three habits keep states honest:</p>
+  <ol>
+    <li><b>ARIA values are text.</b> <code>getAttribute("aria-expanded")</code> gives the string <code>"true"</code> or <code>"false"</code>, so <code>if (btn.getAttribute("aria-expanded"))</code> is always true: <code>"false"</code> is a non-empty string (you will meet the same trap with a stored <code>"false"</code> in Chapter 64). Compare with <code>=== "true"</code>.</li>
+    <li><b>Change the state and the screen together</b>, in the same function.</li>
+    <li><b>Let CSS style from the attribute.</b> With <code>[aria-pressed="true"] { ... }</code> (attribute selectors, Chapter 34) the look comes from the state itself, so what is seen and what is heard cannot drift apart.</li>
+  </ol>
+  <div class="plain">
+    <p>When the screen changes, the attribute must change in the same breath. Read ARIA values as words (<code>"true"</code>, <code>"false"</code>), not as true and false, and style from them so the picture and the announcement always agree.</p>
+  </div>
+  <p>With <code>aria-pressed</code>, keep the label fixed ("Mute alerts") and let the state say on or off. If you would rather swap the label ("Play" / "Pause"), leave <code>aria-pressed</code> out: one or the other, never both.</p>
+  <pre class="code" data-run data-title="Three states kept true - Syllabus, Mute alerts, then Check with 123 and with 12345678" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button, input { font: inherit; padding: 6px 10px; margin: 4px 0; }
+  .arrow { display: inline-block; }
+  [aria-expanded="true"] .arrow { transform: rotate(90deg); }
+  [aria-pressed="true"] { background: #0B2545; color: #fff; }
+  input[aria-invalid="true"] { border: 2px solid #B42318; }
+  .err { color: #B42318; font-weight: 700; }
+&lt;/style&gt;
+&lt;button id="more" type="button" aria-expanded="false" aria-controls="syllabus"&gt;
+  &lt;span class="arrow" aria-hidden="true"&gt;&amp;#9656;&lt;/span&gt; Syllabus
+&lt;/button&gt;
+&lt;ul id="syllabus" hidden&gt;
+  &lt;li&gt;Unit 4: JavaScript fundamentals&lt;/li&gt;
+  &lt;li&gt;Unit 5: Interactive web development&lt;/li&gt;
+&lt;/ul&gt;
+
+&lt;p&gt;&lt;button id="mute" type="button" aria-pressed="false"&gt;Mute alerts&lt;/button&gt;&lt;/p&gt;
+
+&lt;label for="roll"&gt;Roll number&lt;/label&gt;
+&lt;input id="roll" type="text"&gt;
+&lt;button id="check" type="button"&gt;Check&lt;/button&gt;
+&lt;p id="roll-err" class="err" hidden&gt;Error: a roll number has exactly 8 digits.&lt;/p&gt;
+
+&lt;script&gt;
+  // 1. Disclosure: aria-expanded on the button, hidden on the panel
+  const more = document.getElementById("more");
+  const syllabus = document.getElementById("syllabus");
+  more.addEventListener("click", () =&gt; {
+    const isOpen = more.getAttribute("aria-expanded") === "true";   // compare text!
+    more.setAttribute("aria-expanded", String(!isOpen));
+    syllabus.hidden = isOpen;              // it was open, so hide it (and vice versa)
+    console.log("Syllabus: aria-expanded =", more.getAttribute("aria-expanded"));
+  });
+
+  // 2. Toggle button: aria-pressed, label never changes
+  const mute = document.getElementById("mute");
+  mute.addEventListener("click", () =&gt; {
+    const isOn = mute.getAttribute("aria-pressed") === "true";
+    mute.setAttribute("aria-pressed", String(!isOn));
+    console.log("Mute alerts: aria-pressed =", mute.getAttribute("aria-pressed"));
+  });
+
+  // 3. An error: aria-invalid + aria-describedby, and focus to the field
+  const roll = document.getElementById("roll");
+  const rollErr = document.getElementById("roll-err");
+  document.getElementById("check").addEventListener("click", () =&gt; {
+    const ok = roll.value.trim().length === 8;
+    if (ok) {
+      roll.removeAttribute("aria-invalid");
+      roll.removeAttribute("aria-describedby");
+      rollErr.hidden = true;
+    } else {
+      roll.setAttribute("aria-invalid", "true");
+      roll.setAttribute("aria-describedby", "roll-err");
+      rollErr.hidden = false;
+      roll.focus();
+    }
+    console.log("Roll number", ok ? "accepted" : "rejected",
+                "| aria-invalid =", roll.getAttribute("aria-invalid"));
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Syllabus</b> twice: the Console shows <code>Syllabus: aria-expanded = true</code>, then <code>false</code>, and the arrow turns because the CSS reads the same attribute. <b>Mute alerts</b> goes dark when <code>aria-pressed = true</code>, again straight from the CSS. Type <i>123</i> and press <b>Check</b>: <code>Roll number rejected | aria-invalid = true</code>. The field is marked invalid, the message appears, linked by <code>aria-describedby</code>, and focus moves to the field, so a screen reader says "Roll number, edit, invalid entry, Error: a roll number has exactly 8 digits." Type <i>12345678</i> and Check again: <code>Roll number accepted | aria-invalid = null</code>, because <code>getAttribute</code> gives <code>null</code> for an attribute that is not there. Chapter 60 grows this into full form validation.</p>
+</section>
+
+<section id="s7">
+  <h2>59.7 Hiding content the right way</h2>
+  <p>Scripts hide and show things all day: panels, error messages, the "Loading&hellip;" line. There are several ways to hide something, and they hide it from <i>different people</i>.</p>
+  <table class="tbl">
+    <thead><tr><th>Technique</th><th>Seen?</th><th>Read by screen readers?</th><th>Reached by Tab?</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td><code>hidden</code> attribute, <code>el.hidden = true</code></td><td>No</td><td>No</td><td>No</td><td>Closed panels, messages not needed yet</td></tr>
+      <tr><td><code>display: none</code></td><td>No</td><td>No</td><td>No</td><td>The same, when CSS decides (a class, a media query)</td></tr>
+      <tr><td><code>visibility: hidden</code></td><td>No (the space stays)</td><td>No</td><td>No</td><td>Rarely: hiding while keeping the gap</td></tr>
+      <tr><td>A <code>.visually-hidden</code> class</td><td>No</td><td><b>Yes</b></td><td>Only if focusable</td><td>Extra words for screen readers: "Delete <i>Pay hostel fee</i>", "(opens in a new tab)"</td></tr>
+      <tr><td><code>aria-hidden="true"</code></td><td><b>Yes</b></td><td>No</td><td>Yes, if focusable &mdash; a trap</td><td>Decoration beside real text: an arrow, an icon</td></tr>
+      <tr><td><code>opacity: 0</code></td><td>No</td><td>Yes</td><td>Yes</td><td>Almost never on its own: an invisible, clickable trap</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p><code>hidden</code> means gone for everyone. A visually-hidden class means gone for the eyes only. <code>aria-hidden</code> means gone for the screen reader only. Choose by asking: <i>who</i> must not get this?</p>
+  </div>
+  <p>From JavaScript the everyday choice is the <code>hidden</code> attribute, as in 59.4 and 59.6: <code>panel.hidden = true</code> hides the panel and everything in it, Tab stops included; <code>false</code> brings it back.</p>
+  <div class="callout warn"><b><code>hidden</code> can lose to your own CSS.</b> Browsers implement <code>hidden</code> as a built-in <code>display: none</code>, and any rule of yours that sets <code>display</code> beats it:
+  <pre class="code">.panel { display: flex; }                 /* this rule wins...            */
+&lt;div class="panel" hidden&gt;...&lt;/div&gt;     &lt;!-- ...so this is still visible --&gt;
+
+[hidden] { display: none !important; }   /* add once: hidden always hides */</pre></div>
+  <p>The visually-hidden class does the opposite job: it hides words from the eyes but keeps them for screen readers. This book uses it (under the name <code>sr-only</code>): every link under <i>Reference material</i> ends with a hidden "(opens in a new tab)". The CSS is the standard one, used unchanged across the web:</p>
+  <pre class="code">.visually-hidden {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0;
+}</pre>
+  <p>Use it for words a sighted user can work out from the layout, such as which item a Delete button belongs to. Never put <code>aria-hidden="true"</code> on anything focusable: the keyboard would land on a control that the screen reader refuses to describe.</p>
+  <details class="qc"><summary>Quick check: the words "(opens in a new tab)" after a link should be heard but not seen. hidden, aria-hidden or visually-hidden?</summary><div class="a">
+    <p><b>The visually-hidden class.</b> <code>hidden</code> would remove the words for everyone, and <code>aria-hidden</code> would do the exact opposite of what is wanted: keep them visible and silence them.</p></div></details>
+</section>
+
+<section id="s8">
+  <h2>59.8 Colour, hover and motion</h2>
+  <p>Three more habits from the lecture's list, each with a JavaScript twist.</p>
+  <h3>Never colour alone</h3>
+  <p>When a script marks something right or wrong, colour is the first thing you reach for: a red border, a green tick. About one man in twelve has some colour-vision deficiency, and a screen reader hears no colour at all. Always add words ("Error:", "Saved") or a shape, as 59.6's roll-number message does. And when JavaScript switches colours, as a dark-mode toggle does, check the new pairs still reach 4.5:1 (Chapter 20).</p>
+  <h3>Never hover alone</h3>
+  <p><code>mouseenter</code> and <code>mouseover</code> need a mouse. Touch screens have no real hover (a tap may fake one, unreliably), and a keyboard user never "hovers". Anything a script shows on hover, such as a hint or a menu, must also appear on focus or on a click:</p>
+  <pre class="code">// Hover only: keyboard and touch users never see the hint
+infoBtn.addEventListener("mouseenter", showHint);
+infoBtn.addEventListener("mouseleave", hideHint);
+
+// Add these two, so reaching the button with Tab shows it too
+infoBtn.addEventListener("focus", showHint);
+infoBtn.addEventListener("blur", hideHint);</pre>
+  <h3>Less motion, when the user asks</h3>
+  <p>Chapter 38 used the CSS media query <code>prefers-reduced-motion</code> to switch off transitions for people who have asked their device for less movement, many of them people with a <span class="jw" data-def="A problem with the inner ear's balance system. Movement on a screen can bring on dizziness, nausea or a migraine.">vestibular disorder</span>. CSS cannot reach motion that JavaScript creates: smooth scrolling, an auto-advancing slideshow, a number that counts up. For those, ask the same question in JavaScript. <code>window.matchMedia</code> takes the text you would write after <code>@media</code> and returns an object whose <code>.matches</code> is <code>true</code> or <code>false</code> right now; its <code>change</code> event fires if the user changes the setting while the page is open.</p>
+  <pre class="code" data-run data-title="Jump to the latest notice - smooth, unless the user asked for less motion" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  #list { position: relative; height: 140px; overflow-y: auto; margin: 10px 0 0;
+          padding: 0 12px; list-style: none;
+          border: 1px solid #CBD5E1; border-radius: 8px; }
+  #list li { padding: 8px 0; border-bottom: 1px solid #E2E8F0; }
+  #list li:focus { outline: 3px solid #E07B1E; outline-offset: -3px; }
+  #mode { margin: 8px 0 0; }
+&lt;/style&gt;
+&lt;button id="jump" type="button"&gt;Jump to the latest notice&lt;/button&gt;
+&lt;p id="mode"&gt;&lt;/p&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  const list = document.getElementById("list");
+  for (let i = 1; i &lt;= 20; i++) {
+    const li = document.createElement("li");
+    li.textContent = `Notice ${i}: routine update`;
+    list.append(li);
+  }
+  const latest = list.lastElementChild;
+  latest.textContent = "Notice 20 (latest): MTT seating plan is out";
+  latest.tabIndex = -1;                       // focusable by script, not by Tab
+
+  const motion = window.matchMedia("(prefers-reduced-motion: reduce)");
+
+  function showMode() {
+    document.getElementById("mode").textContent = motion.matches
+      ? "Reduced motion is ON: the jump is instant."
+      : "Reduced motion is off: the jump glides.";
+    console.log("prefers-reduced-motion: reduce -&gt;", motion.matches);
+  }
+  showMode();
+  motion.addEventListener("change", showMode);   // the user may switch it any time
+
+  document.getElementById("jump").addEventListener("click", () =&gt; {
+    list.scrollTo({ top: latest.offsetTop, behavior: motion.matches ? "auto" : "smooth" });
+    latest.focus({ preventScroll: true });       // keyboard users carry on from here
+    console.log("Jumped", motion.matches ? "instantly" : "smoothly");
+  });
+&lt;/script&gt;</pre>
+  <p>On most computers the Console prints <code>prefers-reduced-motion: reduce -&gt; false</code>, and the jump glides (<code>Jumped smoothly</code>). To see the other path, turn the setting on: on Windows, Settings &rarr; Accessibility &rarr; Visual effects &rarr; Animation effects off; on Android, <i>Remove animations</i>; or in Chrome DevTools, open the <b>Rendering</b> panel and set <i>Emulate CSS media feature prefers-reduced-motion</i> to <i>reduce</i>. The <code>change</code> listener notices at once and the next jump is instant.</p>
+  <p>The jump also moves focus to the latest notice (it has <code>tabIndex = -1</code>), so a keyboard user carries on from there. <code>preventScroll: true</code> stops <code>focus()</code> making its own sudden jump, so the scroll line alone decides how the list moves.</p>
+</section>
+
+<section id="s9">
+  <h2>59.9 Build it: an accessible reminder list</h2>
+  <p>One small page that uses nearly everything: real buttons, extra words for screen readers, a live region, and focus put somewhere sensible after a delete.</p>
+  <pre class="code" data-run data-title="Accessible reminders - delete them using only Tab and Enter" data-h="270">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .visually-hidden { position: absolute; width: 1px; height: 1px; padding: 0;
+    margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0);
+    white-space: nowrap; border: 0; }
+  #list { list-style: none; padding: 0; max-width: 380px; }
+  #list li { display: flex; justify-content: space-between; align-items: center;
+    padding: 8px 10px; margin-bottom: 6px;
+    border: 1px solid #CBD5E1; border-radius: 8px; }
+  h2:focus, button:focus-visible { outline: 3px solid #E07B1E; outline-offset: 2px; }
+  #status { color: #14532D; font-weight: 600; }
+&lt;/style&gt;
+&lt;h2 id="heading" tabindex="-1"&gt;My reminders&lt;/h2&gt;
+&lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;p id="status" role="status"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const reminders = ["Submit lab record", "Pay hostel fee", "Revise Unit 5"];
+  const list = document.getElementById("list");
+  const statusBox = document.getElementById("status");
+  const heading = document.getElementById("heading");
+
+  function render() {
+    list.innerHTML = "";
+    if (reminders.length === 0) {
+      const li = document.createElement("li");
+      li.textContent = "Nothing left. Well done!";
+      list.append(li);
+      return;
+    }
+    reminders.forEach((text, i) =&gt; {
+      const li = document.createElement("li");
+      const label = document.createElement("span");
+      label.textContent = text;
+
+      const del = document.createElement("button");
+      del.type = "button";
+      del.textContent = "Delete";
+      const extra = document.createElement("span");
+      extra.className = "visually-hidden";
+      extra.textContent = " " + text;        // heard, not seen: "Delete Pay hostel fee"
+      del.append(extra);
+      del.addEventListener("click", () =&gt; removeAt(i));
+
+      li.append(label, del);
+      list.append(li);
+    });
+  }
+
+  function removeAt(i) {
+    const gone = reminders[i];
+    reminders.splice(i, 1);
+    render();                                 // the focused button no longer exists
+
+    const buttons = list.querySelectorAll("button");
+    const next = buttons[i] || buttons[i - 1] || heading;
+    next.focus();
+    statusBox.textContent = `Deleted "${gone}". ${reminders.length} left.`;
+    console.log(statusBox.textContent, "| focus on:", document.activeElement.textContent);
+  }
+
+  render();
+&lt;/script&gt;</pre>
+  <p>Click once inside the preview, Tab to the second <b>Delete</b> and press Enter. The Console prints <code>Deleted "Pay hostel fee". 2 left. | focus on: Delete Revise Unit 5</code>. Three things happened that a sighted user takes for granted:</p>
+  <ul>
+    <li><b>Every button says what it deletes.</b> On screen, three "Delete" buttons are clear because each sits beside its reminder; read aloud they would be three identical words. The visually-hidden span names each one: "Delete Submit lab record", "Delete Pay hostel fee"&hellip;</li>
+    <li><b>Focus survived the delete.</b> <code>render()</code> destroyed the button that had focus. <code>next.focus()</code> picks the button now in the same position, or the one before it if the last item went, or the heading (<code>tabindex="-1"</code>) when nothing is left. Keep pressing Enter: <code>Deleted "Revise Unit 5". 1 left. | focus on: Delete Submit lab record</code> (the last item went, so focus stepped back one), then <code>Deleted "Submit lab record". 0 left. | focus on: My reminders</code>.</li>
+    <li><b>The result was announced.</b> The <code>role="status"</code> paragraph was in the HTML from the start, so each message is read out politely, after the newly focused button is named.</li>
+  </ul>
+</section>
+
+<section id="s10">
+  <h2>59.10 Testing with the keyboard only</h2>
+  <p>Automated checkers such as Lighthouse and axe (Chapter 20) find missing labels and low contrast, but miss most of this chapter: a <code>div</code> with a click listener is valid HTML. Your hands find these bugs. Put the mouse out of reach and work through the page:</p>
+  <table class="tbl">
+    <thead><tr><th>Key</th><th>What should happen</th></tr></thead>
+    <tbody>
+      <tr><td><kbd>Tab</kbd> / <kbd>Shift</kbd>+<kbd>Tab</kbd></td><td>Focus moves forward or back through every link and control, in reading order, with a ring you can always see</td></tr>
+      <tr><td><kbd>Enter</kbd></td><td>Follows a link; presses a button</td></tr>
+      <tr><td><kbd>Space</kbd></td><td>Presses a button or ticks a checkbox, without scrolling the page</td></tr>
+      <tr><td><kbd>Escape</kbd></td><td>Closes the panel, dialog or popup you are in, and focus returns to its opener</td></tr>
+      <tr><td>Arrow keys</td><td>Move within radio groups, select boxes and sliders</td></tr>
+    </tbody>
+  </table>
+  <p>After every action, ask three questions: <b>Where is focus now?</b> <b>Did anything change that I was not told about?</b> <b>Can I get out of where I am?</b></p>
+  <p>Then look at what assistive technology receives. In Chrome DevTools, select an element in the Elements panel and open its <b>Accessibility</b> tab: it lists the element's name, role and states, such as <i>expanded: false</i> &mdash; the accessibility tree of 59.2, live. Finally, listen. Windows has Narrator built in (<kbd>Ctrl</kbd>+<kbd>Windows</kbd>+<kbd>Enter</kbd>) and NVDA is free; Android has TalkBack; Macs and iPhones have VoiceOver. Ten minutes with your eyes closed teaches more than any checklist.</p>
+</section>
+
+<section id="mistakes">
+  <h2>59.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "role="button" makes a div work like a button."</b><br>ARIA changes only what is announced. The div still ignores Tab, Enter and Space.</div>
+    <div class="r"><b>&#10003; "A custom button needs role, tabindex="0" and key handling &mdash; or should be a &lt;button&gt;."</b><br>The real button does it all in one line.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "If it changed on the screen, everybody knows."</b><br>A screen reader announces only what gets focus and what is in a live region.</div>
+    <div class="r"><b>&#10003; "Messages go in a live region that is already in the HTML."</b><br><code>aria-live="polite"</code> or <code>role="status"</code> for most; <code>role="alert"</code> only when it is urgent.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "aria-hidden="true" hides an element."</b><br>It stays on the screen; only the screen reader stops reading it.</div>
+    <div class="r"><b>&#10003; "To hide from everyone, use hidden; to hide from the eyes only, use a visually-hidden class."</b><br>And never put <code>aria-hidden</code> on something focusable.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "if (btn.getAttribute("aria-expanded")) tells me whether it is open."</b><br>It is always true: <code>"false"</code> is a non-empty string.</div>
+    <div class="r"><b>&#10003; "Compare the text: getAttribute("aria-expanded") === "true"."</b><br>And write the value with <code>String(...)</code> or a literal <code>"true"</code> / <code>"false"</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Hiding or deleting the focused element is harmless."</b><br>Focus drops to the page body and the user loses their place.</div>
+    <div class="r"><b>&#10003; "Move focus first: to the opener, the next item, or a heading with tabindex="-1"."</b><br>The same applies when you disable the button the user just pressed.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and one correct answer; three ask what a piece of code does.</p>
+  <details class="q"><summary>Which element should be used for a control that saves a form draft on the same page?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. &lt;div onclick="save()"&gt;</li><li>B. &lt;a&gt; with no href</li><li>C. &lt;button type="button"&gt;</li><li>D. &lt;span role="link"&gt;</li></ul>
+    <p><b>Answer: C.</b> Saving is an action on this page, and buttons do. A and B cannot even be reached with Tab; D has the wrong role and no keyboard support.</p></div></details>
+  <details class="q"><summary>A developer must turn a &lt;div&gt; into a custom button. Which set is complete?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. role="button", tabindex="0", and a keydown listener for Enter and Space</li><li>B. role="button" only</li><li>C. tabindex="0" and a click listener</li><li>D. aria-label and a click listener</li></ul>
+    <p><b>Answer: A.</b> The role for the announcement, tabindex for reaching it, the key listener for working. B is the classic trap: ARIA changes the announcement, not the behaviour. With C, Enter and Space still do nothing.</p></div></details>
+  <details class="q"><summary><span>What happens when the user presses the space bar on this element? <code>box.addEventListener("keydown", (e) =&gt; { if (e.key === "Space") console.log("pressed"); });</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: nothing is printed, and the page scrolls.</b> <code>event.key</code> for the space bar is <code>" "</code>, so the test is false. Fix: <code>e.key === " "</code>, plus <code>preventDefault()</code>.</p></div></details>
+  <details class="q"><summary>A help panel opened by a button is now closed with the Escape key. Where should focus go?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. To the page body</li><li>B. To the first link on the page</li><li>C. Nowhere; the browser decides</li><li>D. Back to the button that opened the panel</li></ul>
+    <p><b>Answer: D.</b> The user is back exactly where they were. A and C are what happens when the script forgets; B sends the user back to the start of the page.</p></div></details>
+  <details class="q"><summary>Which attribute makes a screen reader read out an element's new text when it changes, without interrupting?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. aria-hidden="true"</li><li>B. aria-live="polite"</li><li>C. tabindex="-1"</li><li>D. aria-label</li></ul>
+    <p><b>Answer: B.</b> A hides the element from screen readers, C makes it focusable by script, D only names it.</p></div></details>
+  <details class="q"><summary>A payment has just failed and the user must know immediately. Which region suits the message best?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. role="status"</li><li>B. A visually-hidden class</li><li>C. role="alert"</li><li>D. aria-describedby</li></ul>
+    <p><b>Answer: C.</b> An alert interrupts at once, right for an urgent failure. A waits politely, which suits routine messages such as "Saved"; B announces nothing by itself, and D only adds a description that is read when its field gets focus.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>btn.setAttribute("aria-expanded", "false"); if (btn.getAttribute("aria-expanded")) { console.log("open"); } else { console.log("closed"); }</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: open.</b> <code>getAttribute</code> returns the string <code>"false"</code>, and a non-empty string counts as true. Test <code>=== "true"</code> and it prints <code>closed</code>.</p></div></details>
+  <details class="q"><summary>Text must be hidden from the screen but still read by screen readers. Which technique does that?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The hidden attribute</li><li>B. display: none</li><li>C. aria-hidden="true"</li><li>D. A visually-hidden (sr-only) class</li></ul>
+    <p><b>Answer: D.</b> The text is clipped to a 1-pixel box: invisible, but still in the accessibility tree. A and B hide it from everyone; C is the reverse.</p></div></details>
+  <details class="q"><summary>A script shows a wrong roll number only by turning the field's border red. What is the best fix?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Use a brighter red</li><li>B. Add an "Error: ..." message, link it with aria-describedby, set aria-invalid="true" and focus the field</li><li>C. Show the message only when the mouse hovers over the field</li><li>D. Make the border flash</li></ul>
+    <p><b>Answer: B.</b> It adds words, connects them to the field and takes the user there. C fails keyboard and touch users; D adds motion, not meaning.</p></div></details>
+  <details class="q"><summary>Which code tells a script that the user has asked their device for less motion?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. window.matchMedia("(prefers-reduced-motion: reduce)").matches</li><li>B. navigator.reducedMotion</li><li>C. document.motion === "reduce"</li><li>D. screen.prefersReducedMotion</li></ul>
+    <p><b>Answer: A.</b> <code>matchMedia</code> takes the same media query CSS uses. B, C and D do not exist.</p></div></details>
+  <details class="q"><summary>Which test is most likely to find a clickable &lt;div&gt; that keyboard users cannot reach?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The W3C HTML validator</li><li>B. Checking the colour contrast</li><li>C. Putting the mouse away and moving through the page with Tab, Enter and Space</li><li>D. Reading the page source</li></ul>
+    <p><b>Answer: C.</b> The div is valid HTML, so the validator passes it. Only the keyboard shows that Tab skips it.</p></div></details>
+  <details class="q"><summary><span>The page has <code>&lt;h2&gt;Exam help&lt;/h2&gt;</code> with no tabindex, and nothing is focused. What does this print? <code>document.querySelector("h2").focus(); console.log(document.activeElement.tagName);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: BODY.</b> A plain heading cannot take focus, so <code>focus()</code> does nothing and the body stays active. With <code>tabindex="-1"</code> it prints <code>H2</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Scripts break accessibility in ways a mouse user never sees: fake controls, silent changes, lost focus, unwanted motion.</li>
+    <li>Native first; links go, buttons do. A custom control needs <code>role</code>, a name, <code>tabindex="0"</code> and Enter/Space handling (<code>event.key === " "</code> for Space).</li>
+    <li>Move focus when the script changes the page: into what opens, back to the opener on close, to a wrong field, onwards after a delete. <code>tabindex="-1"</code> lets a script focus a heading; Escape always gets the user out.</li>
+    <li><code>aria-live="polite"</code> and <code>role="status"</code> announce changes in turn; <code>role="alert"</code> interrupts. The region must be in the HTML before its text changes.</li>
+    <li>Update <code>aria-expanded</code>, <code>aria-pressed</code> and <code>aria-invalid</code> with the screen. Their values are the strings <code>"true"</code> / <code>"false"</code>.</li>
+    <li><code>hidden</code> hides from everyone, a visually-hidden class from the eyes only, <code>aria-hidden</code> from screen readers only.</li>
+    <li>Never colour alone, never hover alone; check <code>prefers-reduced-motion</code> with <code>matchMedia</code> before JavaScript motion; test with the keyboard.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;button type="button"&gt;</code></td><td>Focusable, Enter and Space give a click, announced as a button</td></tr>
+      <tr><td><code>role="button" tabindex="0"</code> + keydown for <code>"Enter"</code> and <code>" "</code></td><td>The minimum for a <code>div</code> that must act as a button</td></tr>
+      <tr><td><code>el.focus()</code>, <code>document.activeElement</code></td><td>Move focus; find out where it is</td></tr>
+      <tr><td><code>tabindex="-1"</code></td><td>Focusable by script, skipped by Tab</td></tr>
+      <tr><td><code>dialog.showModal()</code></td><td>A modal dialog with focus and Escape handled by the browser</td></tr>
+      <tr><td><code>&lt;p aria-live="polite"&gt;</code>, <code>role="status"</code></td><td>Changes announced when the screen reader pauses</td></tr>
+      <tr><td><code>role="alert"</code></td><td>Changes announced at once, interrupting</td></tr>
+      <tr><td><code>btn.setAttribute("aria-expanded", String(open))</code></td><td>Tell the screen reader a panel is open or closed</td></tr>
+      <tr><td><code>getAttribute("aria-pressed") === "true"</code></td><td>Read an ARIA state correctly, as text</td></tr>
+      <tr><td><code>input.setAttribute("aria-invalid", "true")</code></td><td>Mark a field as wrong (with <code>aria-describedby</code> for the message)</td></tr>
+      <tr><td><code>el.hidden = true</code>; <code>[hidden] { display: none !important; }</code></td><td>Hide from everyone; make sure your CSS cannot undo it</td></tr>
+      <tr><td><code>.visually-hidden</code></td><td>Invisible text that screen readers still read</td></tr>
+      <tr><td><code>matchMedia("(prefers-reduced-motion: reduce)").matches</code></td><td><code>true</code> if the user asked for less motion</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://web.dev/learn/accessibility/javascript" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn Accessibility: JavaScript<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same habits from Google's accessibility course: keyboard support, focus, and announcing changes.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Accessibility/ARIA/Guides/Live_regions" target="_blank" rel="noopener noreferrer">MDN &mdash; ARIA live regions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every live-region attribute, with notes on how screen readers really behave.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/focus" target="_blank" rel="noopener noreferrer">MDN &mdash; HTMLElement.focus()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">What can take focus, and the preventScroll option used in 59.8.</span></li>
+    <li><a href="https://www.w3.org/WAI/ARIA/apg/patterns/" target="_blank" rel="noopener noreferrer">W3C &mdash; ARIA Authoring Practices: Patterns<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official recipes for buttons, disclosures, dialogs, tabs and menus, each with the keys it must support.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

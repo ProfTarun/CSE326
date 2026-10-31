@@ -135,9 +135,10 @@ function showCover() {
   var readN = Object.keys(s.read).length;
 
   var h = '<div class="cover"><div>' +
-    '<p class="eyebrow">CSE326 &middot; Units 1 and 2 &middot; Textbook</p>' +
-    "<h1>HTML, explained properly.</h1>" +
-    "<p>Twenty-one chapters that cover every syllabus topic in Units 1 and 2 " +
+    '<p class="eyebrow">CSE326 &middot; Units 1 to 6 &middot; Textbook</p>' +
+    "<h1>The web, explained properly.</h1>" +
+    "<p>Seventy-seven chapters that cover every syllabus topic in all six units, " +
+    "from HTML and CSS to JavaScript and publishing a site, " +
     "the way a good book would: the idea first, then worked examples you can " +
     "run, diagrams and flowcharts for the parts people get wrong, and exam-" +
     "style checks at the end of every chapter. Read it, or press " +
@@ -173,7 +174,7 @@ function showCover() {
   h += '<div class="card"><h2>How to use this book</h2>' +
     '<ul style="line-height:1.8;margin:0;padding-left:22px;color:var(--ink-2)">' +
     "<li><b>Read a chapter end to end</b> before touching the drills. Each " +
-    "one is 15&ndash;30 minutes. The theory is complete: you should not need " +
+    "one is 15&ndash;40 minutes. The theory is complete: you should not need " +
     "another website afterwards.</li>" +
     "<li><b>Run the examples.</b> Every code block with a &#9654; Run " +
     "button renders right there on the page. Change it in the Playground " +
@@ -270,7 +271,12 @@ async function openChapter(n, hash) {
   }
 
   var s = Store.get();
-  var prev = chapterByN(n - 1), next = chapterByN(n + 1);
+  /* reading order, not number order: the Reference Shelf (chapter 40,
+     unit "ap") is an appendix, so Back/Next run 39 -> 41 and it comes last */
+  var order = BOOK.chapters.filter(function (x) { return x.unit !== "ap"; })
+    .concat(BOOK.chapters.filter(function (x) { return x.unit === "ap"; }));
+  var at = order.indexOf(c);
+  var prev = at > 0 ? order[at - 1] : null, next = at >= 0 ? order[at + 1] || null : null;
   $("main").innerHTML =
     listenBar() +
     html +
@@ -335,12 +341,39 @@ function enhanceChapter() {
     var fr = document.createElement("iframe");
     fr.setAttribute("sandbox", "allow-scripts allow-forms allow-modals");
     fr.setAttribute("title", "Preview of " + title);
+    fr.setAttribute("allow", "geolocation; autoplay");
     if (pre.dataset.h) fr.style.height = pre.dataset.h + "px";
     wrap.appendChild(fr);
+    /* JavaScript examples print to the console, which a reader cannot see
+       inside the frame - so they get a console panel of their own */
+    var hasJs = /<script[\s>]/i.test(pre.textContent);
+    var rc = null, rcBody = null, rcRec = null;
+    if (hasJs && window.RunConsole) {
+      rc = document.createElement("div");
+      rc.className = "rc";
+      rc.hidden = true;
+      rc.innerHTML = '<div class="rc-head"><span>Console</span>' +
+        '<button type="button" class="rc-clear">Clear</button></div><div class="rc-body"></div>';
+      wrap.appendChild(rc);
+      rcBody = rc.querySelector(".rc-body");
+      rcRec = RunConsole.attach(fr, rcBody);
+      rc.querySelector(".rc-clear").onclick = function () { rcRec.clear(); };
+    }
     wrap.querySelector('[data-act="run"]').onclick = function () {
-      fr.srcdoc = pre.textContent;
-      fr.classList.add("on");
-      this.innerHTML = "&#8635; Run again";
+      var btn = this, code = pre.textContent;
+      var media = code.match(/\bmedia\/[\w.-]+\.(?:wav|mp3|ogg|webm|mp4|svg|png|jpe?g|json)\b/g) || [];
+      var go = function () {
+        if (rcRec) {
+          rcRec.clear();
+          rcBody.innerHTML = '<div class="rc-line rc-empty">Nothing logged yet</div>';
+          rc.hidden = false;
+        }
+        fr.srcdoc = window.runWrap ? runWrap(runInline(code)) : code;
+        fr.classList.add("on");
+        btn.innerHTML = "&#8635; Run again";
+      };
+      if (media.length && window.runAssets) { runAssets(media); runAssetsReady(go); }
+      else go();
     };
     wrap.querySelector('[data-act="copy"]').onclick = function () {
       var code = pre.textContent;
@@ -1005,5 +1038,8 @@ window.addEventListener("beforeunload", function () { TTS.stop(); });
   }
   var p = new URLSearchParams(location.search);
   var n = parseInt(p.get("ch"), 10);
-  if (n) openChapter(n, location.hash); else showCover();
+  /* the summary notes link to chapters as book.html#ch18 */
+  var hc = !n && /^#ch(\d+)$/.exec(location.hash);
+  if (hc) openChapter(parseInt(hc[1], 10), "");
+  else if (n) openChapter(n, location.hash); else showCover();
 })();

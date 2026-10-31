@@ -1,0 +1,741 @@
+<article class="chapter" data-ch="66">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 66 &middot; Geolocation API</p>
+  <h1>Geolocation API</h1>
+  <p class="lead">Every &ldquo;near me&rdquo; button you have ever pressed &mdash; the nearest ATM, a cab pickup point, today's weather &mdash; starts with one question: where is this device right now? The Geolocation API is how a web page asks the browser that question. The browser asks the person first, and only if they agree does your JavaScript receive two numbers. This chapter teaches you to ask politely, read the answer, cope when the answer is no, and put the result on a map.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A callback is a function you hand over to be called later; an asynchronous callback runs only after the current code has finished (<a href="book.html?ch=54">Chapter 54</a>).</li>
+      <li><code>button.addEventListener("click", fn)</code> runs <code>fn</code> each time the button is clicked (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li><code>const { name, marks } = student;</code> unpacks two properties into two variables &mdash; destructuring (<a href="book.html?ch=51">Chapter 51</a>).</li>
+      <li><code>getElementById</code> finds an element and <code>textContent</code> changes its text (<a href="book.html?ch=56">Chapter 56</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say where a device's position comes from (GPS, Wi-Fi, mobile towers, IP address) and why the accuracy varies so much.</li>
+      <li>Read a latitude&ndash;longitude pair: which number is which, what a minus sign means, and what &ldquo;accuracy 25 m&rdquo; means.</li>
+      <li>State the two conditions for a location: the user's permission and a secure page (HTTPS or localhost).</li>
+      <li>Ask once with <code>getCurrentPosition</code> and read <code>coords.latitude</code>, <code>longitude</code>, <code>accuracy</code> and <code>timestamp</code>.</li>
+      <li>Turn error codes 1, 2 and 3 into friendly messages, and set <code>enableHighAccuracy</code>, <code>timeout</code> and <code>maximumAge</code>.</li>
+      <li>Follow a moving user with <code>watchPosition</code> and stop with <code>clearWatch</code>.</li>
+      <li>Build a location finder with a map link that follows the privacy rules.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>66.1 What the Geolocation API does</h2>
+  <p>A food-delivery site offers to fill in your address. A map puts the blue dot on your street. Weather sites show the forecast for where you stand; ride apps set your pickup point. Each needs the device's position, and on the web there is one way to get it: the <b>Geolocation API</b>.</p>
+  <p>An <span class="jw" data-def="A ready-made set of commands that one program offers another. Here the browser offers your JavaScript commands for asking where the device is.">API</span> is a set of ready-made commands that one program offers another. The browser's location service lives in one object, <code>navigator.geolocation</code>. (<code>navigator</code> is a built-in object that describes the browser, the way <code>document</code> describes the page.)</p>
+  <p>What you get back is <b>numbers only</b>: a latitude, a longitude and an accuracy in metres. The API never tells you the city, the street or the PIN code. And it comes with two conditions that no code can get round, both explained in 66.4:</p>
+  <ul>
+    <li><b>The user must agree.</b> The browser shows its own prompt, and nothing happens until they click Allow.</li>
+    <li><b>The page must be secure:</b> loaded over HTTPS, or from <code>localhost</code> while you are developing.</li>
+  </ul>
+  <p>All modern browsers have the API, but a careful page still checks before using it:</p>
+  <pre class="code">// Always check support first
+if ("geolocation" in navigator) {
+  console.log("Geolocation is available");
+} else {
+  console.log("Not supported in this browser");
+}</pre>
+  <p>The <code>in</code> operator asks &ldquo;does this object have a property with this name?&rdquo; and gives <code>true</code> or <code>false</code>. Checking first, and showing a message when the answer is no, is called <span class="jw" data-def="Checking whether the browser has a feature before you use it, so an older browser shows a message instead of crashing.">feature detection</span>. Without it, an old browser would find <code>undefined</code> where <code>navigator.geolocation</code> should be, and stop your script with a TypeError.</p>
+</section>
+
+<section id="s2">
+  <h2>66.2 How a device knows where it is</h2>
+  <p>When your page asks for the location, six things happen in order. Read Figure 66.1 from the top left.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 290" role="img" aria-label="The page asks, the browser checks, the user decides; on Allow the device finds its position and the success function runs; on Block, or on an insecure page, the error function runs">
+      <rect x="20" y="20" width="180" height="60" rx="10" class="box saf"/>
+      <text x="110" y="44" class="t c b">1  Page asks</text>
+      <text x="110" y="64" class="t c s mono">getCurrentPosition()</text>
+      <path d="M200 50 L228 50" class="edge" marker-end="url(#arr)"/>
+      <rect x="230" y="20" width="180" height="60" rx="10" class="box"/>
+      <text x="320" y="44" class="t c b">2  Browser checks</text>
+      <text x="320" y="64" class="t c s">secure page? asked before?</text>
+      <path d="M410 50 L438 50" class="edge" marker-end="url(#arr)"/>
+      <rect x="440" y="20" width="180" height="60" rx="10" class="box"/>
+      <text x="530" y="44" class="t c b">3  User decides</text>
+      <text x="530" y="64" class="t c s">the browser's own prompt</text>
+      <path d="M530 80 L530 118" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="538" y="104" class="t s b">Allow</text>
+      <path d="M470 80 L413 127" class="edge dash" marker-end="url(#arr)"/>
+      <text x="458" y="113" class="t s b">Block</text>
+      <path d="M320 80 L320 118" class="edge dash" marker-end="url(#arr)"/>
+      <text x="328" y="104" class="t s b">not secure</text>
+      <rect x="440" y="120" width="180" height="56" rx="10" class="box grn"/>
+      <text x="530" y="143" class="t c b">4  Position found</text>
+      <text x="530" y="163" class="t c s">GPS &#183; Wi-Fi &#183; towers &#183; IP</text>
+      <rect x="230" y="120" width="180" height="66" rx="10" class="box red"/>
+      <text x="320" y="141" class="t c b">error(error) runs</text>
+      <text x="320" y="158" class="t c s">code 1: blocked / not secure</text>
+      <text x="320" y="174" class="t c s">code 2 or 3: step 4 failed</text>
+      <path d="M440 168 L413 168" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M530 176 L530 214" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="440" y="216" width="180" height="56" rx="10" class="box grn"/>
+      <text x="530" y="239" class="t c b">5  success(position)</text>
+      <text x="530" y="259" class="t c s">your function gets coords</text>
+      <path d="M440 244 L413 244" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="230" y="216" width="180" height="56" rx="10" class="box grn"/>
+      <text x="320" y="239" class="t c b">6  Page uses them</text>
+      <text x="320" y="259" class="t c s">show, map, sort by distance</text>
+      <rect x="20" y="120" width="180" height="152" rx="10" class="box gry"/>
+      <text x="110" y="152" class="t c b">Meanwhile&hellip;</text>
+      <text x="110" y="176" class="t c s">the rest of your code</text>
+      <text x="110" y="192" class="t c s">keeps running; steps 2&ndash;5</text>
+      <text x="110" y="208" class="t c s">take time and happen</text>
+      <text x="110" y="224" class="t c s">later (asynchronously)</text>
+    </svg>
+    <figcaption><b>Figure 66.1</b> Exactly one of your two functions is called back: the success function after Allow, or the error function after Block, on an insecure page, or when the device cannot find itself.</figcaption>
+  </figure>
+  <p>Step 4 is where the device works out its position, and it can use four kinds of signal:</p>
+  <table class="tbl">
+    <thead><tr><th>Source</th><th>How it works</th><th>Typical accuracy</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td><b><span class="jw" data-def="Global Positioning System: satellites that broadcast time signals. A receiver that hears four or more of them can work out where it is.">GPS</span></b></td><td>A receiver in the phone listens to satellites</td><td>A few metres, outdoors</td><td>Most precise; slow to start, weak indoors, uses the most battery. Most laptops have no GPS</td></tr>
+      <tr><td><b>Wi-Fi networks</b></td><td>The device lists the Wi-Fi networks it can hear; a location service knows roughly where those networks are</td><td>Tens of metres</td><td>Good indoors and in cities</td></tr>
+      <tr><td><b>Mobile towers</b></td><td>Which towers the phone can reach, and how strongly</td><td>Hundreds of metres to a few km</td><td>Neighbourhood level; phones only</td></tr>
+      <tr><td><b>IP address</b></td><td>Your connection's internet address is loosely linked to a place</td><td>City level, often several km off</td><td>The last resort, e.g. a desktop on a cable</td></tr>
+    </tbody>
+  </table>
+  <p>The key fact: <b>JavaScript never chooses the source.</b> The browser and device combine whatever is available and report a best guess with an honest estimate of how good it is. The same page might place a phone outdoors within 5 metres and a lab desktop only somewhere in the right city. Your code must accept both.</p>
+</section>
+
+<section id="s3">
+  <h2>66.3 Latitude, longitude and accuracy</h2>
+  <p>A position on Earth is written as two angles, in degrees.</p>
+  <ul>
+    <li><b>Latitude</b> says how far <b>north or south</b> of the Equator. It is 0&deg; on the Equator, +90&deg; at the North Pole and &minus;90&deg; at the South Pole.</li>
+    <li><b>Longitude</b> says how far <b>east or west</b> of the Prime Meridian, an imaginary line from pole to pole through Greenwich in London. It is 0&deg; there, up to +180&deg; going east and &minus;180&deg; going west.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 520 312" role="img" aria-label="A globe with the Equator and the Prime Meridian marked; India Gate is 28.6 degrees north of the Equator and 77.2 degrees east of the Prime Meridian">
+      <circle cx="230" cy="155" r="115" class="box blu"/>
+      <path d="M148.7 73.7 L311.3 73.7" class="edge dash"/>
+      <path d="M148.7 236.3 L311.3 236.3" class="edge dash"/>
+      <path d="M115 155 L345 155" class="edge saf"/>
+      <path d="M230 40 L230 270" class="edge grn"/>
+      <text x="222" y="24" class="t s" text-anchor="end">Prime Meridian (longitude 0&deg;)</text>
+      <text x="240" y="34" class="t s">N +90&deg; (North Pole)</text>
+      <text x="240" y="286" class="t s">S &minus;90&deg; (South Pole)</text>
+      <text x="107" y="151" class="t b" text-anchor="end">Equator</text>
+      <text x="107" y="167" class="t s" text-anchor="end">latitude 0&deg;</text>
+      <path d="M230 100 L305 100" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="266" y="93" class="t c s b">77.2&deg; E</text>
+      <path d="M313.5 155 L313.5 109" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="305" y="137" class="t s b" text-anchor="end">28.6&deg; N</text>
+      <circle cx="313.5" cy="100" r="6" fill="#E07B1E"/>
+      <text x="338" y="94" class="t b">India Gate</text>
+      <text x="338" y="110" class="t s mono">(28.6129, 77.2295)</text>
+      <text x="230" y="306" class="t c s">North and East are positive; South and West are negative</text>
+    </svg>
+    <figcaption><b>Figure 66.2</b> Latitude is measured up or down from the Equator, longitude sideways from the Prime Meridian. India Gate is 28.6&deg; north and 77.2&deg; east, so both its numbers are positive.</figcaption>
+  </figure>
+  <p>The pair is always written <b>(latitude, longitude)</b>, in that order. India Gate in Delhi is (28.6129, 77.2295); the LPU campus at Phagwara is about (31.2560, 75.7051). Every place in India has <i>both</i> numbers positive, because India is north of the Equator and east of Greenwich.</p>
+  <div class="plain">
+    <p>Latitude is up&ndash;down on the globe (north or south). Longitude is left&ndash;right (east or west). Latitude comes first. A minus sign means south, for a latitude, or west, for a longitude.</p>
+  </div>
+  <p>The API gives <b>decimal degrees</b> such as 28.6129, not the 28&deg;36&prime;46&Prime;N style printed on some maps. One degree of latitude is about 111 km on the ground, so each extra decimal place is ten times finer:</p>
+  <table class="tbl">
+    <thead><tr><th>Decimal places</th><th>Example</th><th>Roughly this size</th><th>Enough to find</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>28.6</td><td>11 km</td><td>The city</td></tr>
+      <tr><td>2</td><td>28.61</td><td>1.1 km</td><td>The part of the city</td></tr>
+      <tr><td>3</td><td>28.613</td><td>110 m</td><td>The street or campus block</td></tr>
+      <tr><td>4</td><td>28.6129</td><td>11 m</td><td>The building</td></tr>
+      <tr><td>5</td><td>28.61290</td><td>1.1 m</td><td>The door</td></tr>
+    </tbody>
+  </table>
+  <p><b>Accuracy</b> is the third number: the radius, in metres, of a circle around the reported point. &ldquo;Accuracy 25&rdquo; means the true position is very probably (about 95 times in 100) within 25 metres of the dot. Smaller is better. A position with accuracy 3000 is a guess at the neighbourhood, and an honest page says &ldquo;within about 3 km&rdquo;.</p>
+  <details class="qc"><summary>Quick check: Sydney is at (&minus;33.87, 151.21) and New York at (40.71, &minus;74.01). Which is south of the Equator, and which is west of Greenwich?</summary><div class="a">
+    <p><b>Sydney</b> is south: its <i>latitude</i> (the first number) is negative. <b>New York</b> is west: its <i>longitude</i> (the second number) is negative. So Sydney is south and east; New York is north and west.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>66.4 Permission and secure contexts</h2>
+  <p>A location is personal &mdash; it can reveal where you live or which clinic you visit &mdash; so the browser never hands it over silently. The first time a site asks, the browser shows <b>its own</b> prompt, something like <i>&ldquo;127.0.0.1:5500 wants to know your location &mdash; Block / Allow&rdquo;</i>. Your page cannot draw that box, change its words, or click it for the user.</p>
+  <ul>
+    <li><b>Allow:</b> the device finds its position and your success function runs. The browser usually remembers the choice for this site.</li>
+    <li><b>Block:</b> your error function runs with code 1. The browser usually remembers this too, so next time there is no prompt &mdash; just code 1 at once. Only the user can undo it, with the lock or site-information icon at the left of the address bar.</li>
+    <li><b>No answer yet:</b> neither function runs. The page simply waits.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> A stranger phones your hostel warden and asks which room Asha is in. A good warden never just answers. He tells Asha who is asking, and only if she says yes does he phone back with the room number; otherwise he phones back to say &ldquo;she said no&rdquo;. The caller cannot skip the warden or force the answer, and must wait for the call. The website is the caller, the browser is the warden, the user is Asha, and the two phone-backs are your success and error functions. &ldquo;Ring me every time she changes rooms&rdquo; is <code>watchPosition</code> (66.8).</div>
+  <p>The second condition is about the page itself. Location, the camera and the microphone work only in a <span class="jw" data-def="A page the browser trusts has not been tampered with on the way: one loaded over HTTPS, or from your own computer (localhost).">secure context</span>: a page loaded over HTTPS, or from your own computer. On plain <code>http</code>, anyone on the network between the server and the user could change the page's code on the way and collect people's locations, so browsers refuse.</p>
+  <table class="tbl">
+    <thead><tr><th>Page address</th><th>Secure?</th><th>Geolocation</th></tr></thead>
+    <tbody>
+      <tr><td><code>https://lpu.in/map.html</code></td><td>Yes</td><td>Works, after Allow</td></tr>
+      <tr><td><code>http://localhost:5500/map.html</code></td><td>Yes &mdash; localhost counts as secure</td><td>Works: this is why you test with Live Server</td></tr>
+      <tr><td><code>http://127.0.0.1:5500/map.html</code></td><td>Yes &mdash; the same as localhost</td><td>Works</td></tr>
+      <tr><td><code>http://lpu.in/map.html</code></td><td>No</td><td>Error code 1, no prompt</td></tr>
+      <tr><td><code>http://192.168.1.20/map.html</code> (a classmate's laptop over Wi-Fi)</td><td>No</td><td>Error code 1, no prompt</td></tr>
+      <tr><td><code>file:///C:/web/map.html</code> (double-clicked)</td><td>Depends on the browser</td><td>Often blocked &mdash; use Live Server</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>Two locks must both open. The page must be secure (<code>https://</code> or localhost), and the person must click Allow. If either stays shut, your error function runs with code 1 and you get no position.</p>
+  </div>
+  <div class="callout warn"><b>About the Run button in this book.</b> The practice frames are sealed boxes that are not allowed to ask for a location, so a real request here is normally refused with code 1. That is why every example below also has a <b>sample location</b> button: the same code runs with pretend numbers. Copy an example into a file and open it with Live Server, or put it on an HTTPS site, and the real thing works.</div>
+</section>
+
+<section id="s5">
+  <h2>66.5 Asking once: getCurrentPosition</h2>
+  <pre class="code">navigator.geolocation.getCurrentPosition(
+  successCallback,   // runs when the location is found
+  errorCallback,     // runs if it fails (optional - but always write it)
+  options            // settings object (optional) - see 66.7
+);</pre>
+  <p>You hand the browser two functions, and it calls exactly one of them back later, just like the callbacks of Chapter 54. Unlike Chapter 65's <code>fetch</code>, it does <b>not</b> return a Promise, so there is no <code>.then()</code> or <code>await</code> here: Geolocation is older and uses plain callbacks. The success function receives a <b>position</b> object; the error function receives an <b>error</b> object. Pass the functions themselves, <code>showPosition</code> with no brackets: <code>showPosition()</code> would call it yourself, at once, with no position.</p>
+  <p>The call is <span class="jw" data-def="Finishing later. The line starts a job and your code moves on at once; the result is handed to a callback when it is ready.">asynchronous</span>. <code>getCurrentPosition</code> starts the request, returns nothing (<code>undefined</code>), and your code moves straight on to the next line. Finding a position takes time: the user has to decide, and GPS has to listen to satellites. Only when the answer is ready, and your current code has finished, does the browser call one of your functions. Even an instant &ldquo;no&rdquo; arrives this way.</p>
+  <div class="plain">
+    <p>Asking for the location starts a job that finishes later. The answer is delivered to your success or error function, never handed back to the line that asked. So <code>const pos = navigator.geolocation.getCurrentPosition(...)</code> does not put the position in <code>pos</code>; <code>pos</code> is <code>undefined</code>. Everything you want to do with the position goes <b>inside</b> the success function.</p>
+  </div>
+  <p>Here is what the success function receives:</p>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>position.coords.latitude</code></td><td>North&ndash;south, in decimal degrees</td><td><code>28.6129</code></td></tr>
+      <tr><td><code>position.coords.longitude</code></td><td>East&ndash;west, in decimal degrees</td><td><code>77.2295</code></td></tr>
+      <tr><td><code>position.coords.accuracy</code></td><td>Radius of the &ldquo;probably here&rdquo; circle, in metres</td><td><code>25</code></td></tr>
+      <tr><td><code>position.coords.altitude</code>, <code>heading</code>, <code>speed</code></td><td>Height above sea level, direction of travel, speed</td><td>Often <code>null</code>: only some devices supply them</td></tr>
+      <tr><td><code>position.timestamp</code></td><td>When it was measured, in milliseconds since 1 January 1970</td><td><code>new Date(position.timestamp)</code> makes it a date (Chapter 62)</td></tr>
+    </tbody>
+  </table>
+  <p>This is the lecture's &ldquo;display location on a webpage&rdquo; example, with a sample button added so it teaches even when the frame refuses:</p>
+  <pre class="code" data-run data-title="Ask once - press Get My Location, then Use a sample location" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { padding: 8px 14px; margin-right: 6px; cursor: pointer; }
+  #error { color: #C42B2B; }
+&lt;/style&gt;
+&lt;button id="locBtn"&gt;Get My Location&lt;/button&gt;
+&lt;button id="sampleBtn"&gt;Use a sample location&lt;/button&gt;
+&lt;p&gt;Latitude: &lt;span id="lat"&gt;-&lt;/span&gt;&lt;/p&gt;
+&lt;p&gt;Longitude: &lt;span id="lon"&gt;-&lt;/span&gt;&lt;/p&gt;
+&lt;p id="error"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const errorMsg = document.getElementById("error");
+  console.log("Supported?", "geolocation" in navigator);
+
+  // Success callback: the browser hands it a position object
+  function showPosition(position) {
+    const { latitude, longitude, accuracy } = position.coords;
+    document.getElementById("lat").textContent = latitude;
+    document.getElementById("lon").textContent = longitude;
+    errorMsg.textContent = "";
+    console.log("Success:", latitude, longitude, "| accuracy:", accuracy, "m");
+  }
+
+  // Error callback: the browser hands it an error object
+  function showError(error) {
+    errorMsg.textContent = error.message;
+    console.log("Error code", error.code, "-", error.message);
+  }
+
+  document.getElementById("locBtn").addEventListener("click", () =&gt; {
+    if (!("geolocation" in navigator)) {
+      errorMsg.textContent = "Geolocation not supported.";
+      return;
+    }
+    console.log("1. Asking the browser...");
+    navigator.geolocation.getCurrentPosition(showPosition, showError);
+    console.log("2. This line runs at once - it does not wait");
+  });
+
+  // Practice without a real location: the same function, pretend data
+  document.getElementById("sampleBtn").addEventListener("click", () =&gt; {
+    console.log("Using a sample location (India Gate)");
+    showPosition({ coords: { latitude: 28.6129, longitude: 77.2295, accuracy: 25 } });
+  });
+&lt;/script&gt;</pre>
+  <p>Run it. The Console starts with <code>Supported? true</code>. Press <b>Get My Location</b> and read the order: <code>1. Asking the browser...</code>, then <code>2. This line runs at once - it does not wait</code>, and only <i>then</i> the answer. Line 2 is written after the call yet prints before the answer: that is asynchronous code in action. Inside this book the answer is usually <code>Error code 1</code> followed by the browser's own message, which typically says geolocation is disabled in this document (the wording varies by browser). On your own Live Server page, after Allow, you would see <code>Success:</code> with your real numbers.</p>
+  <p>Now press <b>Use a sample location</b>. The Console shows <code>Using a sample location (India Gate)</code> and <code>Success: 28.6129 77.2295 | accuracy: 25 m</code>, and the page fills in both numbers. <code>showPosition</code> only cares that the object has the right shape, so pretend data tests it perfectly. Its first line is Chapter 51's destructuring: three variables, named after the properties of <code>coords</code>.</p>
+  <details class="qc"><summary>Quick check: what does this print? const result = navigator.geolocation.getCurrentPosition(showPosition, showError); console.log(result);</summary><div class="a">
+    <p><code>undefined</code>. <code>getCurrentPosition</code> returns nothing; it only starts the request. The position is delivered later, as the argument of <code>showPosition</code>.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>66.6 When it fails: the three error codes</h2>
+  <p>The error object has two properties: <code>error.code</code>, a number from 1 to 3 saying <i>which</i> problem, and <code>error.message</code>, some text describing it.</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Name</th><th>Usually means</th><th>Tell the user</th></tr></thead>
+    <tbody>
+      <tr><td><b>1</b></td><td><code>PERMISSION_DENIED</code></td><td>The user clicked Block (now or earlier), or the page is not secure</td><td>&ldquo;You blocked location access. Click the lock icon in the address bar to allow it.&rdquo;</td></tr>
+      <tr><td><b>2</b></td><td><code>POSITION_UNAVAILABLE</code></td><td>The device tried but could not find itself: location off, no signal</td><td>&ldquo;Location is unavailable. Check GPS / Wi-Fi.&rdquo;</td></tr>
+      <tr><td><b>3</b></td><td><code>TIMEOUT</code></td><td>No position within the time set by the <code>timeout</code> option</td><td>&ldquo;Took too long. Try again.&rdquo;</td></tr>
+    </tbody>
+  </table>
+  <p>A real error object also carries the numbers as named constants: <code>error.PERMISSION_DENIED</code> is 1, <code>error.POSITION_UNAVAILABLE</code> is 2 and <code>error.TIMEOUT</code> is 3. A <code>switch</code> that compares against the names reads almost like English (slide 42):</p>
+  <pre class="code">function showError(error) {
+  switch (error.code) {
+    case error.PERMISSION_DENIED:      // code 1
+      msg.textContent = "You blocked location access.";
+      break;
+    case error.POSITION_UNAVAILABLE:   // code 2
+      msg.textContent = "Location is unavailable.";
+      break;
+    case error.TIMEOUT:                // code 3
+      msg.textContent = "Took too long. Try again.";
+      break;
+    default:
+      msg.textContent = "An unknown error occurred.";
+  }
+}
+navigator.geolocation.getCurrentPosition(showPosition, showError);</pre>
+  <p>A shorter way is to look the message up in an object, with Chapter 44's <code>||</code> supplying a default for any code that is not in it (slide 46). That is the version below.</p>
+  <div class="callout warn"><b>Why not just show <code>error.message</code>?</b> It is written for developers, not users. The wording differs between browsers, is often technical (Chrome says <i>Only secure origins are allowed</i> on an <code>http</code> page) and is not translated for your users. Choose your own words from <code>error.code</code>, and log <code>error.message</code> to the Console for yourself.</div>
+  <pre class="code" data-run data-title="Friendly messages - read the Console, then make a real request" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .error { color: #C42B2B; font-weight: 600; }
+  button { padding: 7px 12px; cursor: pointer; }
+&lt;/style&gt;
+&lt;h3&gt;Friendly error messages&lt;/h3&gt;
+&lt;p id="msg"&gt;-&lt;/p&gt;
+&lt;button id="real"&gt;Make a real request (5-second timeout)&lt;/button&gt;
+
+&lt;script&gt;
+  const msg = document.getElementById("msg");
+
+  function showError(error) {
+    const messages = {
+      1: "Permission denied. Please allow location access.",
+      2: "Position unavailable. Check GPS / Wi-Fi.",
+      3: "Request timed out. Please try again."
+    };
+    msg.textContent = messages[error.code] || "Unknown error.";
+    msg.className = "error";
+    console.log(`code ${error.code}:`, msg.textContent);
+  }
+
+  // Test every branch with pretend error objects (only .code is needed)
+  for (const code of [1, 2, 3, 9]) {
+    showError({ code: code });
+  }
+
+  // The real thing: now the browser builds the error object
+  document.getElementById("real").addEventListener("click", () =&gt; {
+    msg.textContent = "Locating...";
+    msg.className = "";
+    navigator.geolocation.getCurrentPosition(
+      (position) =&gt; {
+        msg.textContent = `Found you, within about ${Math.round(position.coords.accuracy)} m.`;
+        console.log("Real request succeeded");
+      },
+      showError,
+      { timeout: 5000 }
+    );
+  });
+&lt;/script&gt;</pre>
+  <p>You cannot make a browser fail on demand, so the loop hands <code>showError</code> four pretend error objects with only a <code>code</code> &mdash; all it reads. The Console shows <code>code 1: Permission denied. Please allow location access.</code>, then the messages for 2 and 3, then <code>code 9: Unknown error.</code>, because 9 is not a key in <code>messages</code> and the <code>||</code> takes over. The page shows the last one, in red. Press the button for a real request: in this book it will most likely print <code>code 1:</code> again. (Pretend objects have no <code>PERMISSION_DENIED</code> constant, so this test uses plain numbers.)</p>
+</section>
+
+<section id="s7">
+  <h2>66.7 Options: precision, patience and freshness</h2>
+  <p>The optional third argument is an object with up to three settings:</p>
+  <table class="tbl">
+    <thead><tr><th>Option</th><th>Meaning</th><th>Default</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>enableHighAccuracy</code></td><td><code>true</code> asks for the most precise position the device can give, often from GPS. Slower, and uses more battery</td><td><code>false</code></td><td><code>true</code> for walking directions; <code>false</code> is fine for &ldquo;weather near me&rdquo;</td></tr>
+      <tr><td><code>timeout</code></td><td>The longest wait, in milliseconds. After it, the error function runs with code 3</td><td>No limit: wait as long as it takes</td><td><code>10000</code> = give up after 10 seconds</td></tr>
+      <tr><td><code>maximumAge</code></td><td>Accept a <span class="jw" data-def="Kept from an earlier time so it can be reused at once, instead of being worked out again.">cached</span> position up to this many milliseconds old</td><td><code>0</code>: it must be fresh</td><td><code>60000</code> = a position from the last minute will do</td></tr>
+    </tbody>
+  </table>
+  <pre class="code">const options = {
+  enableHighAccuracy: true,   // prefer GPS (more battery)
+  timeout: 10000,             // give up after 10 seconds
+  maximumAge: 0               // never reuse a cached position
+};
+navigator.geolocation.getCurrentPosition(showPosition, showError, options);</pre>
+  <div class="plain">
+    <p><code>enableHighAccuracy</code> asks <i>how precise?</i> <code>timeout</code> says <i>how long will I wait?</i> <code>maximumAge</code> says <i>how old an answer will I accept?</i> All three are requests; the browser does its best.</p>
+  </div>
+  <p>Two details are worth knowing. The <code>timeout</code> clock starts only after the user has allowed, so time spent reading the prompt does not count against it. And <code>enableHighAccuracy</code> is a request, not a switch: a laptop with no GPS cannot produce GPS precision however politely you ask, and JavaScript cannot pick GPS directly. For a &ldquo;find me&rdquo; button, <code>{ enableHighAccuracy: true, timeout: 10000 }</code> is a sensible choice.</p>
+</section>
+
+<section id="s8">
+  <h2>66.8 Following a moving user: watchPosition and clearWatch</h2>
+  <p><code>getCurrentPosition</code> answers once. Navigation, run tracking and a delivery rider's live dot need a new answer every time the device moves. <code>watchPosition</code> takes the same three arguments, but its success function runs <b>again and again</b>, whenever the position changes, until you tell it to stop.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th><code>getCurrentPosition()</code></th><th><code>watchPosition()</code></th></tr></thead>
+    <tbody>
+      <tr><td>Updates</td><td>One answer</td><td>Every time the position changes</td></tr>
+      <tr><td>Returns</td><td>Nothing (<code>undefined</code>)</td><td>A <b>watch ID</b>, a number</td></tr>
+      <tr><td>Stop with</td><td>Not needed</td><td><code>clearWatch(watchId)</code></td></tr>
+      <tr><td>Use for</td><td>Show my location, nearby search</td><td>Live navigation, fitness tracking, delivery tracking</td></tr>
+    </tbody>
+  </table>
+  <pre class="code">const watchId = navigator.geolocation.watchPosition(
+  (pos) =&gt; console.log(pos.coords.latitude),
+  (err) =&gt; console.error(err.message),
+  { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }
+);
+
+// later - when the user presses Stop, or leaves the screen:
+navigator.geolocation.clearWatch(watchId);</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="getCurrentPosition gives one answer and stops; watchPosition gives an answer at every move until clearWatch is called">
+      <text x="20" y="30" class="t b">getCurrentPosition() &#8212; one answer</text>
+      <path d="M20 60 L600 60" class="edge" marker-end="url(#arr)"/>
+      <circle cx="60" cy="60" r="7" class="box gry"/>
+      <text x="60" y="84" class="t c s">call</text>
+      <circle cx="170" cy="60" r="7" class="box grn"/>
+      <text x="170" y="84" class="t c s">success(position)</text>
+      <text x="390" y="84" class="t c s">nothing more: the request is finished</text>
+      <text x="20" y="120" class="t b">watchPosition() &#8212; an answer every time the position changes</text>
+      <path d="M20 150 L600 150" class="edge" marker-end="url(#arr)"/>
+      <circle cx="60" cy="150" r="7" class="box gry"/>
+      <text x="60" y="174" class="t c s">call</text>
+      <text x="60" y="188" class="t c s">returns id</text>
+      <circle cx="150" cy="150" r="7" class="box grn"/>
+      <text x="150" y="174" class="t c s">update</text>
+      <circle cx="230" cy="150" r="7" class="box grn"/>
+      <text x="230" y="174" class="t c s">update</text>
+      <circle cx="310" cy="150" r="7" class="box grn"/>
+      <text x="310" y="174" class="t c s">update</text>
+      <circle cx="390" cy="150" r="7" class="box grn"/>
+      <text x="390" y="174" class="t c s">update</text>
+      <rect x="455" y="134" width="10" height="32" rx="2" class="box red"/>
+      <text x="460" y="184" class="t c s">clearWatch(id)</text>
+      <text x="540" y="140" class="t c s">no more updates</text>
+      <text x="600" y="204" class="t s" text-anchor="end">time &#8594;</text>
+    </svg>
+    <figcaption><b>Figure 66.3</b> <code>getCurrentPosition</code> is one question and one answer. <code>watchPosition</code> keeps answering at every move until <code>clearWatch</code> is called with the ID it returned.</figcaption>
+  </figure>
+  <p>The watch ID is the only way to name this watch later. Keep it in a variable the Stop button can reach &mdash; a <code>let</code> declared <i>outside</i> both click handlers &mdash; because <code>clearWatch</code> needs it. Forget <code>clearWatch</code> and the watch runs for as long as the page is open: GPS stays busy, the battery drains, and someone who pressed Stop is still being tracked.</p>
+  <pre class="code" data-run data-title="A run tracker - press Start, wait a few seconds, then Stop" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { padding: 7px 12px; margin-right: 6px; cursor: pointer; }
+  #status { color: #6B7A90; }
+  ol { font-family: monospace; }
+&lt;/style&gt;
+&lt;h3&gt;Run tracker&lt;/h3&gt;
+&lt;button id="start"&gt;Start tracking&lt;/button&gt;
+&lt;button id="stop"&gt;Stop&lt;/button&gt;
+&lt;p id="status"&gt;Not tracking.&lt;/p&gt;
+&lt;ol id="log"&gt;&lt;/ol&gt;
+
+&lt;script&gt;
+  const statusText = document.getElementById("status");
+  const log = document.getElementById("log");
+  let watchId = null;      // the number watchPosition gives back
+  let sampleTimer = null;  // the timer for the pretend walk
+  let updates = 0;
+
+  // Runs EVERY time a new position arrives
+  function onUpdate(position) {
+    updates = updates + 1;
+    const { latitude, longitude } = position.coords;
+    const li = document.createElement("li");
+    li.textContent = `${latitude.toFixed(5)}, ${longitude.toFixed(5)}`;
+    log.append(li);
+    console.log(`Update ${updates}:`, li.textContent);
+  }
+
+  function onError(error) {
+    navigator.geolocation.clearWatch(watchId);   // stop the real watch
+    watchId = null;
+    console.log(`No real location (code ${error.code}). Walking a sample route instead.`);
+    statusText.textContent = "Sample walk: about 11 m north every second.";
+    startSampleWalk();
+  }
+
+  // A pretend walk north from the LPU campus, one step per second
+  function startSampleWalk() {
+    if (sampleTimer !== null) return;
+    let lat = 31.2560;
+    sampleTimer = setInterval(() =&gt; {
+      lat = lat + 0.0001;                       // about 11 metres north
+      onUpdate({ coords: { latitude: lat, longitude: 75.7051 } });
+    }, 1000);
+  }
+
+  document.getElementById("start").addEventListener("click", () =&gt; {
+    if (watchId !== null || sampleTimer !== null) return;   // already tracking
+    updates = 0;
+    log.innerHTML = "";
+    statusText.textContent = "Tracking...";
+    watchId = navigator.geolocation.watchPosition(onUpdate, onError, {
+      enableHighAccuracy: true,
+      timeout: 10000,
+      maximumAge: 0
+    });
+    console.log("watchPosition gave back the watch ID", watchId);
+  });
+
+  document.getElementById("stop").addEventListener("click", () =&gt; {
+    if (watchId !== null) {
+      navigator.geolocation.clearWatch(watchId);
+      watchId = null;
+    }
+    if (sampleTimer !== null) {
+      clearInterval(sampleTimer);
+      sampleTimer = null;
+    }
+    statusText.textContent = "Stopped.";
+    console.log("Stopped after", updates, "updates");
+  });
+&lt;/script&gt;</pre>
+  <p>Press <b>Start tracking</b>. <code>watchPosition</code> hands back its ID at once, and the Console prints it. In this book the request is then refused, so <code>onError</code> clears the real watch and starts a pretend walk: one position a second, each 0.0001&deg; (about 11 m) further north &mdash; <code>Update 1: 31.25610, 75.70510</code>, <code>Update 2: 31.25620, 75.70510</code>, and so on. Press <b>Stop</b>: the watch and the timer are both cleared and the Console says how many updates arrived. On a real phone the updates would come from the device; a laptop sitting on a desk may give only one, because it is not moving.</p>
+  <details class="qc"><summary>Quick check: a page saves the watch ID, but its Stop button only hides the map. What keeps happening after Stop is pressed?</summary><div class="a">
+    <p>The watch keeps running. The success function goes on firing at every move, GPS stays on and drains the battery, and the user's location is still being collected although they think it stopped. The Stop button must call <code>navigator.geolocation.clearWatch(watchId)</code>.</p></div></details>
+</section>
+
+<section id="s9">
+  <h2>66.9 Showing the place on a map &mdash; and the privacy rules</h2>
+  <p>Two numbers mean little to a user; a map means a lot. You do not need a map library for that, because both big map sites accept coordinates in an ordinary link:</p>
+  <ul>
+    <li><b>Google Maps:</b> <code>https://www.google.com/maps/search/?api=1&amp;query=28.6129,77.2295</code></li>
+    <li><b>OpenStreetMap</b>, the free and open map: <code>https://www.openstreetmap.org/?mlat=28.6129&amp;mlon=77.2295#map=17/28.6129/77.2295</code> &mdash; <code>mlat</code> and <code>mlon</code> place the marker, and <code>map=17/...</code> means zoom level 17, about street level.</li>
+  </ul>
+  <p>Build these with the <code>URL</code> object instead of gluing strings together. <code>searchParams.set()</code> encodes each value correctly (the comma becomes <code>%2C</code>), so a stray character can never break the address:</p>
+  <pre class="code">const url = new URL("https://www.google.com/maps/search/");
+url.searchParams.set("api", "1");
+url.searchParams.set("query", `${latitude},${longitude}`);
+mapLink.href = url.toString();
+// https://www.google.com/maps/search/?api=1&amp;query=28.6129%2C77.2295</pre>
+  <p>In the HTML, <code>target="_blank"</code> opens the map in a new tab, and <code>rel="noopener"</code> stops that new tab from being able to control your page.</p>
+  <p>What about a city name? The Geolocation API cannot give one. Turning coordinates into an address is called <span class="jw" data-def="Turning coordinates into a human address such as street, city and PIN code. It is done by a separate online service, not by the Geolocation API.">reverse geocoding</span>, and it needs a separate online service (Google and OpenStreetMap both run one). Your page sends the numbers and gets an address back &mdash; so the user's location goes to that company, one more reason for the rules below.</p>
+  <div class="callout why"><b>Key idea: location is personal data.</b> Six rules, every time:
+    <ol>
+      <li><b>Ask only when needed, on a click.</b> A button that says what it is for (&ldquo;Show restaurants near me&rdquo;), never a surprise prompt on page load. People block surprise prompts, and a block is remembered.</li>
+      <li><b>Explain why</b>, next to the button: &ldquo;We use your location once to find the nearest exam centre. It is not stored.&rdquo;</li>
+      <li><b>Never track silently.</b> Watch only while the user can see that tracking is on, and <code>clearWatch</code> the moment they stop.</li>
+      <li><b>Take only what you need.</b> A weather page needs the city, not the door: round to two decimals, and let <code>maximumAge</code> reuse a recent position.</li>
+      <li><b>Do not keep or send it quietly.</b> A location saved in <code>localStorage</code> (Chapter 64) or sent to a server is stored personal data. Tell the user, or do not do it.</li>
+      <li><b>Offer a way forward without it</b>, such as typing a city or PIN code. A blocked location should never break the page.</li>
+    </ol>
+  </div>
+</section>
+
+<section id="s10">
+  <h2>66.10 Build it: My Location Finder</h2>
+  <p>The lecture's mini project (slides 44&ndash;46), with its three files &mdash; <code>index.html</code>, <code>style.css</code> and <code>finder.js</code> &mdash; joined into one so it runs in one box. Two additions: a sample-location button, and an OpenStreetMap link beside the Google one.</p>
+  <pre class="code" data-run data-title="Mini project: My Location Finder - try both buttons, then read the Console" data-h="360">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;My Location Finder&lt;/title&gt;
+  &lt;style&gt;
+    body { text-align: center; font-family: sans-serif; }
+    .box { padding: 12px; background: #fff7ed; max-width: 320px;
+           margin: 10px auto; border-radius: 10px; }
+    #mapLinks { display: none; }
+    .error { color: #c0392b; }
+    button { padding: 8px 14px; margin: 4px; cursor: pointer; }
+  &lt;/style&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h2&gt;My Location Finder&lt;/h2&gt;
+  &lt;button id="findBtn"&gt;Get Current Location&lt;/button&gt;
+  &lt;button id="sampleBtn"&gt;Use a sample location (LPU)&lt;/button&gt;
+  &lt;div class="box"&gt;
+    &lt;p&gt;Latitude: &lt;span id="lat"&gt;-&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Longitude: &lt;span id="lon"&gt;-&lt;/span&gt;&lt;/p&gt;
+    &lt;p&gt;Accuracy: &lt;span id="acc"&gt;-&lt;/span&gt;&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;p id="msg"&gt;&lt;/p&gt;
+  &lt;p id="mapLinks"&gt;
+    &lt;a id="gmap" target="_blank" rel="noopener"&gt;Open in Google Maps&lt;/a&gt; |
+    &lt;a id="osm" target="_blank" rel="noopener"&gt;Open in OpenStreetMap&lt;/a&gt;
+  &lt;/p&gt;
+
+  &lt;script&gt;
+    const findBtn = document.getElementById("findBtn");
+    const msg = document.getElementById("msg");
+    const mapLinks = document.getElementById("mapLinks");
+
+    function setText(id, text) {
+      document.getElementById(id).textContent = text;
+    }
+
+    function showPosition(position) {
+      const { latitude, longitude, accuracy } = position.coords;
+      setText("lat", latitude.toFixed(5));
+      setText("lon", longitude.toFixed(5));
+      setText("acc", `about ${Math.round(accuracy)} m`);
+
+      // Build the map links safely: searchParams encodes the values
+      const gmap = new URL("https://www.google.com/maps/search/");
+      gmap.searchParams.set("api", "1");
+      gmap.searchParams.set("query", `${latitude},${longitude}`);
+
+      const osm = new URL("https://www.openstreetmap.org/");
+      osm.searchParams.set("mlat", latitude);
+      osm.searchParams.set("mlon", longitude);
+      osm.hash = `map=17/${latitude}/${longitude}`;
+
+      document.getElementById("gmap").href = gmap.toString();
+      document.getElementById("osm").href = osm.toString();
+      mapLinks.style.display = "block";          // show the links only now
+      msg.textContent = "Location found!";
+      msg.className = "";
+      console.log("Google Maps:", gmap.toString());
+      console.log("OpenStreetMap:", osm.toString());
+    }
+
+    function showError(error) {
+      const messages = {
+        1: "Permission denied. Please allow location access.",
+        2: "Position unavailable. Check GPS / Wi-Fi.",
+        3: "Request timed out. Please try again."
+      };
+      msg.textContent = messages[error.code] || "Unknown error.";
+      msg.className = "error";
+      mapLinks.style.display = "none";
+      console.log("Error code", error.code, "-", error.message);
+    }
+
+    findBtn.addEventListener("click", () =&gt; {
+      if (!navigator.geolocation) {
+        msg.textContent = "Geolocation is not supported.";
+        return;
+      }
+      msg.textContent = "Locating...";
+      msg.className = "";
+      navigator.geolocation.getCurrentPosition(showPosition, showError, {
+        enableHighAccuracy: true,
+        timeout: 10000
+      });
+    });
+
+    // Practice without a real location: the same function, pretend data
+    document.getElementById("sampleBtn").addEventListener("click", () =&gt; {
+      showPosition({ coords: { latitude: 31.2560, longitude: 75.7051, accuracy: 20 } });
+    });
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>setText(id, text)</code></td><td>A small helper, so <code>getElementById</code> is not repeated three times</td></tr>
+      <tr><td>Destructuring</td><td>Pulls <code>latitude</code>, <code>longitude</code> and <code>accuracy</code> out of <code>coords</code> in one line</td></tr>
+      <tr><td><code>toFixed(5)</code></td><td>Rounds to 5 decimal places (about 1 m) and turns the number into text</td></tr>
+      <tr><td><code>new URL()</code> + <code>searchParams</code></td><td>Builds both map links safely</td></tr>
+      <tr><td>Links hidden until success</td><td><code>display: none</code> in the CSS; <code>showPosition</code> shows them, <code>showError</code> hides them again</td></tr>
+      <tr><td><code>messages[error.code]</code></td><td>Turns 1, 2 or 3 into friendly text; <code>className = "error"</code> makes it red</td></tr>
+      <tr><td>Support check, then &ldquo;Locating...&rdquo;</td><td>Checks before calling the API, and shows a loading message while the user decides</td></tr>
+      <tr><td>Options</td><td>High accuracy, and give up after 10 seconds</td></tr>
+    </tbody>
+  </table>
+  <p>Press <b>Use a sample location (LPU)</b>. The page shows Latitude <b>31.25600</b>, Longitude <b>75.70510</b>, Accuracy <b>about 20 m</b>, &ldquo;Location found!&rdquo; and the two links, and the Console prints both addresses:</p>
+  <pre class="code">Google Maps: https://www.google.com/maps/search/?api=1&amp;query=31.256%2C75.7051
+OpenStreetMap: https://www.openstreetmap.org/?mlat=31.256&amp;mlon=75.7051#map=17/31.256/75.7051</pre>
+  <p>Notice <code>31.256</code>, not <code>31.2560</code>: a number never keeps trailing zeros; only <code>toFixed</code> puts them back, as text. Now press <b>Get Current Location</b>: &ldquo;Locating...&rdquo;, then in this book most likely the red <i>Permission denied</i> message, and the links disappear. The practice frame cannot open new tabs either, so if a map link does nothing here, copy its address from the Console. Save the page as a file and open it with Live Server, and it will find you for real.</p>
+  <h3>Practice task: a location-based welcome page (15&ndash;20 minutes)</h3>
+  <p>The lecture's task. Build <code>welcome.html</code> that:</p>
+  <ul>
+    <li>shows <b>Welcome, explorer!</b> and a <b>Where am I?</b> button, and asks for the location only when that button is clicked;</li>
+    <li>displays <i>You are at 31.2560, 75.7051</i>, using <code>toFixed(4)</code>;</li>
+    <li>shows a clickable <b>View on map</b> link;</li>
+    <li>handles a denial gracefully: when <code>error.code === 1</code>, say <i>Location blocked &ndash; click the lock icon in the address bar to allow it.</i></li>
+  </ul>
+  <p>Every piece is in the Location Finder above. Stretch goal: show the city name. That needs a reverse-geocoding service, because the Geolocation API only ever gives numbers.</p>
+</section>
+
+<section id="mistakes">
+  <h2>66.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "getCurrentPosition returns the position."</b><br>It returns <code>undefined</code>; it only starts the request.</div>
+    <div class="r"><b>&#10003; "The position arrives later, as the argument of my success function."</b><br>So everything that uses the position goes inside that function.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The Geolocation API tells me the user's city or address."</b><br>It gives only latitude, longitude and accuracy.</div>
+    <div class="r"><b>&#10003; "Numbers only; an address needs a separate reverse-geocoding service."</b><br>Which means sending the location to that service, so tell the user.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "enableHighAccuracy: true switches on GPS."</b><br>JavaScript cannot choose the source.</div>
+    <div class="r"><b>&#10003; "It asks for the best precision the device can manage."</b><br>A laptop with no GPS still answers from Wi-Fi or its IP address.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "If my code is right, it works on any page."</b><br>On plain <code>http</code> (other than localhost) it always fails with code 1, before any prompt.</div>
+    <div class="r"><b>&#10003; "It needs a secure context and the user's Allow."</b><br>Test with Live Server (localhost); publish on HTTPS.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "error.message is good enough to show users."</b><br>It is technical, varies between browsers and is not translated for users.</div>
+    <div class="r"><b>&#10003; "Choose a friendly message from error.code."</b><br>Log <code>error.message</code> to the Console for yourself.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three ask you to predict or explain.</p>
+  <details class="q"><summary>Which line correctly checks that the browser supports geolocation?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. if (navigator.location)</li><li>B. if ("geolocation" in navigator)</li><li>C. if (window.gps)</li><li>D. if (navigator.geolocation.supported())</li></ul>
+    <p><b>Answer: B.</b> The API lives in <code>navigator.geolocation</code>, and <code>in</code> asks whether that property exists. A and C name objects that do not exist. D calls a <code>supported()</code> method that no browser has, so it throws a TypeError everywhere &mdash; and on an old browser it would already fail at <code>navigator.geolocation</code> being <code>undefined</code>.</p></div></details>
+  <details class="q"><summary>The error callback receives an error with <code>code</code> equal to 1. What happened?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The device had no signal</li><li>B. The request took longer than the timeout</li><li>C. The user blocked the request, or the page is not a secure context</li><li>D. The browser does not support geolocation</li></ul>
+    <p><b>Answer: C.</b> Code 1 is <code>PERMISSION_DENIED</code>. A is code 2 and B is code 3. D is caught by feature detection; an unsupported browser never calls your callback at all.</p></div></details>
+  <details class="q"><summary>On which page can <code>getCurrentPosition</code> get a real position, once the user clicks Allow?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. http://lpu.in/map.html</li><li>B. http://192.168.1.20/map.html</li><li>C. https://lpu.in/map.html</li><li>D. Any page, as long as the user clicks Allow</li></ul>
+    <p><b>Answer: C.</b> Geolocation needs a secure context: HTTPS, or localhost while developing. A and B are plain <code>http</code> on other machines, so they fail with code 1 without a prompt. D forgets the second lock.</p></div></details>
+  <details class="q"><summary>What does <code>watchPosition()</code> return?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A position object</li><li>B. The latitude, as a number</li><li>C. Nothing</li><li>D. A watch ID, to pass to clearWatch later</li></ul>
+    <p><b>Answer: D.</b> Positions go to the success function. What comes back at once is the ID that <code>clearWatch(id)</code> needs. C describes <code>getCurrentPosition</code>.</p></div></details>
+  <details class="q"><summary><span>The user has already blocked location for this site. What does this print? <code>console.log("A"); navigator.geolocation.getCurrentPosition(p =&gt; console.log("B"), e =&gt; console.log("C")); console.log("D");</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A B D</li><li>B. A D C</li><li>C. A C D</li><li>D. A D B C</li></ul>
+    <p><b>Answer: B.</b> The request is asynchronous, so <code>"D"</code> prints before any callback, even though the refusal is instant. Only the error callback runs, so there is no B. C is the tempting wrong answer: it assumes the refusal interrupts the code.</p></div></details>
+  <details class="q"><summary>Which options object waits at most 5 seconds and accepts a position up to one minute old?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. { timeout: 5000, maximumAge: 60000 }</li><li>B. { timeout: 5, maximumAge: 1 }</li><li>C. { wait: 5000, cache: 60000 }</li><li>D. { timeout: 5000, maximumAge: 0 }</li></ul>
+    <p><b>Answer: A.</b> Both options are in milliseconds, so 5 seconds is 5000 and one minute is 60000. B uses seconds and minutes, C uses names that do not exist, and D's <code>maximumAge: 0</code> insists on a fresh position.</p></div></details>
+  <details class="q"><summary>A position is reported as (&minus;33.8688, 151.2093). Where is it?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. North of the Equator and east of Greenwich</li><li>B. North of the Equator and west of Greenwich</li><li>C. South of the Equator and east of Greenwich</li><li>D. South of the Equator and west of Greenwich</li></ul>
+    <p><b>Answer: C.</b> The first number is the latitude, and negative means south; the second is the longitude, and positive means east. (It is Sydney.) Reading the pair the wrong way round is the usual mistake.</p></div></details>
+  <details class="q"><summary>Which is the best way for a "restaurants near me" page to ask for the location?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Call getCurrentPosition as soon as the page loads, so the answer is ready early</li><li>B. Start watchPosition on load, so the location is always fresh</li><li>C. Ask on load, but hide the request inside the first click anywhere on the page</li><li>D. Ask only when the user clicks a button that says why the location is needed</li></ul>
+    <p><b>Answer: D.</b> A surprise prompt on load is usually blocked, and the block is remembered. B tracks the user silently; C tricks them.</p></div></details>
+  <details class="q"><summary>Which expression gives the radius, in metres, within which the true position probably lies?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. position.accuracy</li><li>B. position.coords.accuracy</li><li>C. position.coords.radius</li><li>D. position.timestamp</li></ul>
+    <p><b>Answer: B.</b> Accuracy sits inside <code>coords</code>, next to <code>latitude</code> and <code>longitude</code>. A misses the <code>coords</code> step, C does not exist, and <code>timestamp</code> is <i>when</i> the position was measured.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const messages = { 1: "Denied", 2: "Unavailable", 3: "Timed out" }; const friendly = (code) =&gt; messages[code] || "Unknown error"; console.log(friendly(3)); console.log(friendly(4));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>Timed out</code>, then <code>Unknown error</code>.</b> <code>messages[3]</code> is found. <code>messages[4]</code> is <code>undefined</code>, which is falsy, so <code>||</code> supplies the fallback text.</p></div></details>
+  <details class="q"><summary>A client wants your page to say "You are in Phagwara". Can <code>getCurrentPosition</code> give you that? Explain.<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: no.</b> The Geolocation API gives only numbers: latitude, longitude, accuracy and a timestamp. For a place name you send the coordinates to a separate <b>reverse-geocoding</b> service, which replies with an address &mdash; sharing the user's location with another company, so the page should say so.</p></div></details>
+  <details class="q"><summary>A run-tracking page calls <code>watchPosition</code> when Start is pressed, but its Stop button only hides the route. What is wrong, and how do you fix it?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: the watch is never cleared.</b> The success function keeps firing, GPS drains the battery and the user is still tracked after pressing Stop. Keep the ID in a <code>let</code> declared outside both handlers, and call <code>navigator.geolocation.clearWatch(watchId)</code> in the Stop handler.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>navigator.geolocation</code> gives the device's position as numbers only. Check support with <code>"geolocation" in navigator</code>. The device picks the source (GPS, Wi-Fi, towers, IP), so accuracy ranges from metres to a whole city.</li>
+    <li>Latitude is north&ndash;south (&minus;90 to +90), longitude east&ndash;west (&minus;180 to +180), always in that order. Positive means north and east. Accuracy is a radius in metres.</li>
+    <li>Two locks: the user must click Allow, and the page must be a secure context (HTTPS, or localhost while developing). Otherwise the error callback runs with code 1.</li>
+    <li><code>getCurrentPosition(success, error, options)</code> is asynchronous and returns nothing; the position arrives later in <code>success(position)</code>.</li>
+    <li>Error codes: 1 <code>PERMISSION_DENIED</code>, 2 <code>POSITION_UNAVAILABLE</code>, 3 <code>TIMEOUT</code>. Show friendly text chosen from the code.</li>
+    <li>Options: <code>enableHighAccuracy</code> (precision), <code>timeout</code> (patience, in ms), <code>maximumAge</code> (freshness, in ms). <code>watchPosition</code> repeats the answer and returns an ID; <code>clearWatch(id)</code> stops it.</li>
+    <li>Location is personal: ask on a click, explain why, never track silently, take only what you need, and offer a way forward without it.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>"geolocation" in navigator</code></td><td>Feature detection: <code>true</code> if the API exists</td></tr>
+      <tr><td><code>navigator.geolocation.getCurrentPosition(ok, fail, opts)</code></td><td>Ask once; <code>ok(position)</code> or <code>fail(error)</code> runs later</td></tr>
+      <tr><td><code>position.coords.latitude</code>, <code>.longitude</code>, <code>.accuracy</code></td><td>Degrees north, degrees east, radius in metres</td></tr>
+      <tr><td><code>position.timestamp</code></td><td>When it was measured (milliseconds since 1970)</td></tr>
+      <tr><td><code>error.code</code> 1 / 2 / 3</td><td>Denied or not secure / unavailable / timed out</td></tr>
+      <tr><td><code>{ enableHighAccuracy: true, timeout: 10000, maximumAge: 0 }</code></td><td>Most precise, wait 10 seconds at most, fresh only</td></tr>
+      <tr><td><code>const id = navigator.geolocation.watchPosition(ok, fail)</code></td><td>Call <code>ok</code> again at every move</td></tr>
+      <tr><td><code>navigator.geolocation.clearWatch(id)</code></td><td>Stop that watch</td></tr>
+      <tr><td><code>https://www.google.com/maps/search/?api=1&amp;query=LAT,LNG</code></td><td>A map link for a pair of coordinates</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation_API" target="_blank" rel="noopener noreferrer">MDN &mdash; Geolocation API<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The whole API on one page, with links to the position, coordinates and error objects.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/getCurrentPosition" target="_blank" rel="noopener noreferrer">MDN &mdash; getCurrentPosition()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every argument and option, with their default values.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Geolocation/watchPosition" target="_blank" rel="noopener noreferrer">MDN &mdash; watchPosition()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Repeated updates, the watch ID and clearWatch().</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Security/Secure_Contexts" target="_blank" rel="noopener noreferrer">MDN &mdash; Secure contexts<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly which pages count as secure, and which features need one.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

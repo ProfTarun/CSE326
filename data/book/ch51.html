@@ -1,0 +1,788 @@
+<article class="chapter" data-ch="51">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 51 &middot; Objects and Object Manipulation</p>
+  <h1>Objects and Object Manipulation</h1>
+  <p class="lead">A student is not one value. Asha has a name, a registration number, marks in several subjects and a home city, and all of them belong together. An object keeps related facts together under labels you choose, so your program can say <code>student.city</code> instead of remembering which variable held what. Nearly all real data in JavaScript arrives as objects: a class list, a product in a cart, the reply from a server.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Every value has a type that <code>typeof</code> reports, and arrays and functions both count as objects (<a href="book.html?ch=43">Chapter 43</a>).</li>
+      <li><code>a ?? b</code> gives <code>b</code> only when <code>a</code> is <code>null</code> or <code>undefined</code> (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>A function is a reusable block you call with <code>()</code>; an arrow function such as <code>(x) =&gt; x * 2</code> is a shorter way to write one (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li>An array is an ordered list read by position, <code>arr[0]</code>, and <code>for...of</code> visits each item in turn (<a href="book.html?ch=50">Chapter 50</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Write an object literal and read its properties with dot and bracket notation, knowing when brackets are required.</li>
+      <li>Add, change and delete properties, and test whether one exists with <code>in</code>, <code>hasOwnProperty</code> and <code>?.</code>.</li>
+      <li>Build and read nested objects and arrays of objects, such as a class list of student records.</li>
+      <li>Write methods that use <code>this</code>, and explain why an arrow function makes a poor method.</li>
+      <li>Loop over an object with <code>for...in</code>, <code>Object.keys</code>, <code>Object.values</code> and <code>Object.entries</code>.</li>
+      <li>Predict whether two variables share one object or hold separate copies, and copy or unpack objects with spread and destructuring.</li>
+      <li>Make many objects of the same shape with a constructor function and <code>new</code>, and recognise the <code>class</code> version.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>51.1 One thing, many facts</h2>
+  <p>Suppose a program has to remember one student. With what you know so far, you might write four variables:</p>
+  <pre class="code">const studentName = "Asha Verma";
+const studentRegNo = 12215478;
+const studentCity = "Phagwara";
+const studentMarks = 82;</pre>
+  <p>Nothing in the language ties these four together; only their names hint that they describe one person. A second student needs four more variables. An array from Chapter 50 does keep them together, <code>["Asha Verma", 12215478, "Phagwara", 82]</code>, but then each fact has only a number. Is the city at position 2 or position 3? You have to remember.</p>
+  <p>An <b>object</b> solves both problems. It is a single value that holds several <i>named</i> facts about one thing:</p>
+  <pre class="code">const student = {
+  name: "Asha Verma",
+  regNo: 12215478,
+  city: "Phagwara",
+  marks: 82
+};</pre>
+  <p>Each line inside the curly braces is one <span class="jw" data-def="One named fact stored in an object: a key (its name) paired with a value.">property</span>. A property has two halves joined by a colon: the <b>key</b> (also called the property name) on the left and the <b>value</b> on the right. Writing an object out like this, braces and all, is called an <span class="jw" data-def="An object written directly in your code inside curly braces, as key: value pairs separated by commas.">object literal</span>, and it is by far the most common way to make one. Your lecture slides sum it up: objects are collections of key&ndash;value pairs; the keys are strings (or symbols, a rare special type you will not need yet), and the values can be of any type, including arrays, functions and other objects.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 236" role="img" aria-label="Left: the object literal code for student, with the lines name, regNo, city and marks. Right: the single object JavaScript builds, drawn as a two-column table of keys and values.">
+      <text x="145" y="16" class="t c s">the code you write</text>
+      <rect x="10" y="26" width="270" height="196" rx="12" class="box gry"/>
+      <text x="26" y="56" class="t mono">const student = {</text>
+      <text x="46" y="86" class="t mono">name: "Asha Verma",</text>
+      <text x="46" y="114" class="t mono">regNo: 12215478,</text>
+      <text x="46" y="142" class="t mono">city: "Phagwara",</text>
+      <text x="46" y="170" class="t mono">marks: 82</text>
+      <text x="26" y="196" class="t mono">};</text>
+      <text x="26" y="214" class="t s">braces &#183; key : value &#183; commas between</text>
+      <path d="M284 124 L324 124" class="edge" marker-end="url(#arr)"/>
+      <text x="470" y="16" class="t c s">what JavaScript builds: ONE object</text>
+      <rect x="330" y="26" width="280" height="196" rx="12" class="box"/>
+      <text x="470" y="50" class="t c b mono">student</text>
+      <text x="395" y="74" class="t c s">key (property name)</text>
+      <text x="527" y="74" class="t c s">value</text>
+      <rect x="342" y="82" width="106" height="28" rx="6" class="box saf"/>
+      <text x="395" y="101" class="t c mono">name</text>
+      <rect x="456" y="82" width="142" height="28" rx="6" class="box"/>
+      <text x="527" y="101" class="t c mono">"Asha Verma"</text>
+      <rect x="342" y="116" width="106" height="28" rx="6" class="box saf"/>
+      <text x="395" y="135" class="t c mono">regNo</text>
+      <rect x="456" y="116" width="142" height="28" rx="6" class="box"/>
+      <text x="527" y="135" class="t c mono">12215478</text>
+      <rect x="342" y="150" width="106" height="28" rx="6" class="box saf"/>
+      <text x="395" y="169" class="t c mono">city</text>
+      <rect x="456" y="150" width="142" height="28" rx="6" class="box"/>
+      <text x="527" y="169" class="t c mono">"Phagwara"</text>
+      <rect x="342" y="184" width="106" height="28" rx="6" class="box saf"/>
+      <text x="395" y="203" class="t c mono">marks</text>
+      <rect x="456" y="184" width="142" height="28" rx="6" class="box"/>
+      <text x="527" y="203" class="t c mono">82</text>
+    </svg>
+    <figcaption><b>Figure 51.1</b> The literal on the left builds the object on the right: one value holding four properties, each a key paired with a value. You find a value by its label, never by counting.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> The college office keeps a steel cabinet for every student. Each drawer has a label on the front: <i>name</i>, <i>reg no</i>, <i>city</i>, <i>marks</i>. To find Asha's city, nobody counts drawers; they read the labels and open the one marked <i>city</i>. A clerk can fit a new drawer, change what is inside one, or pull one out, and the labels keep everything findable. An array is different: a row of numbered pigeonholes, perfect when order matters, awkward when you must remember that pigeonhole 2 meant "city". An object is the cabinet: <b>labels, not positions</b>.</div>
+  <p>The rules for writing an object literal are few, and JavaScript is strict about them:</p>
+  <ul>
+    <li>Curly braces make the object. <code>{}</code> on its own is a valid, empty object.</li>
+    <li>A <b>colon</b> joins each key to its value. An equals sign there is a SyntaxError.</li>
+    <li>A <b>comma</b> separates properties. A comma after the last one is allowed and harmless.</li>
+    <li>A key needs no quotes if it follows the naming rules of Chapter 42. A key with a space or a hyphen must be quoted: <code>"full name": "Asha Verma"</code>.</li>
+    <li>Keys are always stored as strings, even if you type a number: in <code>{ 1: "first" }</code> the key is the string <code>"1"</code>.</li>
+  </ul>
+  <p>As Chapter 43 showed, <code>typeof student</code> is <code>"object"</code>. An array is an object too, one whose keys happen to be 0, 1, 2 and so on, which is why both are read with square brackets.</p>
+  <details class="qc"><summary>Quick check: what is wrong with <code>const s = { name = "Asha", marks = 82 };</code>?</summary><p>Inside an object literal a key is joined to its value with a <b>colon</b>, not an equals sign, so this line is a SyntaxError. The correct version is <code>{ name: "Asha", marks: 82 }</code>.</p></details>
+</section>
+
+<section id="s2">
+  <h2>51.2 Reading a property: the dot or the brackets</h2>
+  <p>There are two ways to read a property. <b>Dot notation</b> is the object, a dot, then the key: <code>car.make</code>. <b>Bracket notation</b> puts the key, as a string, inside square brackets: <code>car["make"]</code>. Both read the same property. Here is the car from your slides. Its <code>start</code> property holds a function, and <code>car.start()</code> runs it.</p>
+  <pre class="code" data-run data-title="The slides' car: dot, brackets and a key in a variable" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the car object from the lecture slides
+  const car = {
+    make: "Toyota",
+    model: "Camry",
+    year: 2022,
+    isElectric: false,
+    start: function () {
+      console.log("Engine started!");
+    }
+  };
+
+  // dot notation
+  console.log("Make:", car.make);              // Toyota
+  console.log("Year:", car.year);              // 2022
+
+  // bracket notation: the key written as a string
+  console.log("Model:", car["model"]);         // Camry
+
+  // brackets with a variable: the variable's VALUE is used as the key
+  const field = "isElectric";
+  console.log("car[field]:", car[field]);      // false
+  console.log("car.field:", car.field);        // undefined - there is no key called "field"
+
+  // a key with a space must be quoted, and read with brackets
+  const specs = { "fuel type": "Petrol", seats: 5 };
+  console.log("Fuel:", specs["fuel type"]);    // Petrol
+
+  // a property that does not exist is simply undefined
+  console.log("Colour:", car.colour);          // undefined
+
+  // calling a method: the property that holds a function, plus ()
+  car.start();                                 // Engine started!
+  console.log("The whole object:", car);
+&lt;/script&gt;</pre>
+  <pre class="code">Make: Toyota
+Year: 2022
+Model: Camry
+car[field]: false
+car.field: undefined
+Fuel: Petrol
+Colour: undefined
+Engine started!
+The whole object: {make: 'Toyota', model: 'Camry', year: 2022, isElectric: false, start: &#402; start()}</pre>
+  <p>The dot is shorter and easier to read, so use it whenever you can. Brackets are needed in exactly two situations:</p>
+  <ol>
+    <li><b>The key is not a valid name.</b> <code>specs.fuel type</code> cannot even be read by JavaScript, because the space ends the name. Write <code>specs["fuel type"]</code>.</li>
+    <li><b>The key is stored in a variable</b>, or worked out while the program runs. With <code>const field = "isElectric";</code>, <code>car[field]</code> first looks inside <code>field</code>, finds the text "isElectric", and reads that property. <code>car.field</code> looks inside nothing: it asks for a property literally called <code>field</code>, and the car has none.</li>
+  </ol>
+  <div class="plain"><p>The dot means "the property with <b>exactly this name</b>". Brackets mean "work the name out first, from whatever is between the brackets". That is why a variable only works inside brackets.</p></div>
+  <p>Look at the <i>Colour</i> line. Reading a property that does not exist is <b>not</b> an error; you simply get <code>undefined</code>. Section 51.4 shows when that quiet <code>undefined</code> turns into a loud error. The last line shows how the Console panel prints a whole object: strings in quotes, and the method as <code>&#402; start()</code>, meaning "a function called start".</p>
+  <details class="qc"><summary>Quick check: with <code>const key = "city";</code> and <code>const p = { city: "Jalandhar", key: "K23" };</code>, what are <code>p.key</code> and <code>p[key]</code>?</summary><p><code>p.key</code> is <b>"K23"</b>: the dot asks for the property literally named <code>key</code>. <code>p[key]</code> is <b>"Jalandhar"</b>: the brackets use the variable's value, "city", as the key.</p></details>
+</section>
+
+<section id="s3">
+  <h2>51.3 Adding, changing, deleting and checking</h2>
+  <p>An object is not fixed once it is made. One kind of line both adds and updates: an assignment to a property. If the key already exists, its value is replaced; if it does not, a new property is created. The <code>delete</code> operator removes a property completely, key and value together: <code>delete student.regNo;</code>.</p>
+  <div class="callout warn"><b>JavaScript will not catch your typing mistakes.</b> <code>student.makrs = 90;</code> does not fail. It quietly adds a brand-new property called <code>makrs</code>, and <code>student.marks</code> is unchanged. If a value refuses to update, check the spelling of the key first.</div>
+  <p>The example below declares <code>student</code> with <code>const</code> and then changes it freely. That is allowed. <code>const</code> locks the <b>variable</b>: the name <code>student</code> must keep pointing at this same object, so <code>student = { }</code> is a TypeError. It does not lock the object's <b>contents</b>. (If you ever need an object that cannot change, <code>Object.freeze(student)</code> makes it read-only.)</p>
+  <h3>Is it there?</h3>
+  <p>Before using a property you sometimes need to know whether it exists. Two tools answer with <code>true</code> or <code>false</code>:</p>
+  <ul>
+    <li><code>"city" in student</code>: the key as a string, the word <code>in</code>, then the object.</li>
+    <li><code>student.hasOwnProperty("city")</code>: a method every object has. Newer code writes <code>Object.hasOwn(student, "city")</code>, which means the same.</li>
+  </ul>
+  <p>They differ in one way. Every object quietly <b>inherits</b> a few built-in properties from JavaScript itself, such as <code>toString</code> (section 51.9 shows where they come from). <code>in</code> counts inherited properties; <code>hasOwnProperty</code> counts only the object's own.</p>
+  <p>Why not simply write <code>if (student.backlogs)</code>? Because <code>if</code> tests whether a value is truthy (Chapter 47), not whether it exists. A student with <code>backlogs: 0</code> has the property, but 0 is falsy, so the test says "no". When the question is "is it there?", use <code>in</code>.</p>
+  <pre class="code" data-run data-title="Build a record step by step - add, update, delete, check" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  const student = { name: "Rahul Sharma", marks: 71 };
+  console.log("1. Start:", student);
+
+  student.marks = 78;            // marks exists: UPDATE
+  student.city = "Ludhiana";     // city is new: ADD
+  student.regNo = 12216032;      // regNo is new: ADD
+  console.log("2. After changes:", student);
+
+  delete student.regNo;          // REMOVE the whole property
+  console.log("3. After delete:", student);
+
+  // is it there?
+  console.log("4. city in student:", "city" in student);
+  console.log("5. regNo in student:", "regNo" in student);
+  console.log("6. own marks?", student.hasOwnProperty("marks"));
+  console.log("7. toString in student:", "toString" in student);
+  console.log("8. own toString?", student.hasOwnProperty("toString"));
+
+  // the trap: a property can exist and still be falsy
+  student.backlogs = 0;
+  if (student.backlogs) {
+    console.log("9. has backlogs");
+  } else {
+    console.log("9. if (student.backlogs) chose else, but the property exists:", "backlogs" in student);
+  }
+
+  // const locks the variable, not the object
+  try {
+    student = { name: "Someone else" };
+  } catch (err) {
+    console.log("10. Reassigning threw", err.name + ": " + err.message);
+  }
+&lt;/script&gt;</pre>
+  <pre class="code">1. Start: {name: 'Rahul Sharma', marks: 71}
+2. After changes: {name: 'Rahul Sharma', marks: 78, city: 'Ludhiana', regNo: 12216032}
+3. After delete: {name: 'Rahul Sharma', marks: 78, city: 'Ludhiana'}
+4. city in student: true
+5. regNo in student: false
+6. own marks? true
+7. toString in student: true
+8. own toString? false
+9. if (student.backlogs) chose else, but the property exists: true
+10. Reassigning threw TypeError: Assignment to constant variable.</pre>
+  <p>The example uses <code>try { ... } catch (err) { ... }</code> so that it can show an error and keep going: if the <code>try</code> block throws, the <code>catch</code> block receives the error as <code>err</code>. Chapter 70 covers it properly.</p>
+</section>
+
+<section id="s4">
+  <h2>51.4 Objects inside objects, and lists of objects</h2>
+  <p>A property's value can be anything, including another object or an array. That lets one object describe something in layers:</p>
+  <pre class="code">const student = {
+  name: "Asha Verma",
+  marks: { maths: 82, physics: 74 },
+  address: { city: "Phagwara", pin: "144411" },
+  subjects: ["CSE326", "CSE310"]
+};
+
+console.log(student.marks.physics);    // 74
+console.log(student.address.city);     // Phagwara
+console.log(student.subjects[0]);      // CSE326</pre>
+  <p>Read a chain of dots from left to right, one step at a time. <code>student.address.city</code> means: take <code>student</code>, get its <code>address</code> (an object), then get <i>that</i> object's <code>city</code>. Dots and brackets mix freely, as in <code>student.subjects[0]</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 276" role="img" aria-label="A tree. The student object at the top has four properties: name, marks (an object with maths and physics), address (an object with city and pin) and subjects (an array of two course codes). Below, three chains of dots and what each one reaches.">
+      <rect x="250" y="10" width="120" height="34" rx="8" class="box ink"/>
+      <text x="310" y="32" class="t c b w mono">student</text>
+      <path d="M310 44 L80 84" class="edge"/>
+      <path d="M310 44 L235 84" class="edge"/>
+      <path d="M310 44 L390 84" class="edge"/>
+      <path d="M310 44 L542 84" class="edge"/>
+      <rect x="10" y="84" width="140" height="40" rx="8" class="box"/>
+      <text x="80" y="100" class="t c b mono">name</text>
+      <text x="80" y="116" class="t c s">"Asha Verma"</text>
+      <rect x="165" y="84" width="140" height="40" rx="8" class="box saf"/>
+      <text x="235" y="100" class="t c b mono">marks</text>
+      <text x="235" y="116" class="t c s">an object { }</text>
+      <rect x="320" y="84" width="140" height="40" rx="8" class="box grn"/>
+      <text x="390" y="100" class="t c b mono">address</text>
+      <text x="390" y="116" class="t c s">an object { }</text>
+      <rect x="475" y="84" width="135" height="40" rx="8" class="box blu"/>
+      <text x="542" y="100" class="t c b mono">subjects</text>
+      <text x="542" y="116" class="t c s">an array [ ]</text>
+      <path d="M235 124 L235 146" class="edge"/>
+      <path d="M390 124 L390 146" class="edge"/>
+      <path d="M542 124 L542 146" class="edge"/>
+      <rect x="170" y="146" width="130" height="26" rx="6" class="box saf"/>
+      <text x="235" y="164" class="t c mono" style="font-size:12px">maths: 82</text>
+      <rect x="170" y="178" width="130" height="26" rx="6" class="box saf"/>
+      <text x="235" y="196" class="t c mono" style="font-size:12px">physics: 74</text>
+      <rect x="320" y="146" width="140" height="26" rx="6" class="box grn"/>
+      <text x="390" y="164" class="t c mono" style="font-size:12px">city: "Phagwara"</text>
+      <rect x="320" y="178" width="140" height="26" rx="6" class="box grn"/>
+      <text x="390" y="196" class="t c mono" style="font-size:12px">pin: "144411"</text>
+      <rect x="480" y="146" width="125" height="26" rx="6" class="box blu"/>
+      <text x="542" y="164" class="t c mono" style="font-size:12px">[0] "CSE326"</text>
+      <rect x="480" y="178" width="125" height="26" rx="6" class="box blu"/>
+      <text x="542" y="196" class="t c mono" style="font-size:12px">[1] "CSE310"</text>
+      <text x="310" y="232" class="t c mono" style="font-size:12px">student.marks.physics  &#8594;  74</text>
+      <text x="310" y="250" class="t c mono" style="font-size:12px">student.address.city  &#8594;  "Phagwara"</text>
+      <text x="310" y="268" class="t c mono" style="font-size:12px">student.subjects[0]  &#8594;  "CSE326"</text>
+    </svg>
+    <figcaption><b>Figure 51.2</b> A nested record is a tree. Read a chain from the top down, one step per dot: <code>student</code>, then <code>address</code>, then <code>city</code>.</figcaption>
+  </figure>
+  <p>The other direction is just as common: an <b>array of objects</b>. A class list is an array, and each student in it is an object. You will meet this shape constantly, because data fetched from a server usually arrives exactly like this (Chapter 65). <code>classList[1].name</code> reads as: the array, position 1, that object's <code>name</code>. To visit every student, a <code>for...of</code> loop (Chapter 50) hands you one whole object per turn.</p>
+  <div class="callout why"><b>Key idea.</b> Use an <b>array</b> for a list of similar things in order; use an <b>object</b> for different facts about one thing. A class list is both at once: an array of objects.</div>
+  <h3>When a layer is missing: optional chaining</h3>
+  <p>Layers bring one new danger. Reading a missing property gives <code>undefined</code>, as you saw. But reading a property <i>of</i> <code>undefined</code> is an error, because <code>undefined</code> has no properties at all. If Meera's record has no <code>address</code> yet, then <code>meera.address</code> is <code>undefined</code>, and <code>meera.address.city</code> stops the program with <i>TypeError: Cannot read properties of undefined (reading 'city')</i>.</p>
+  <p>The <b>optional chaining</b> operator <code>?.</code> exists for exactly this. <code>meera.address?.city</code> means: if <code>meera.address</code> is <code>null</code> or <code>undefined</code>, stop here and give <code>undefined</code>; otherwise carry on and read <code>city</code>. Pair it with <code>??</code> from Chapter 44 to supply a fallback: <code>meera.address?.city ?? "city not given"</code>.</p>
+  <pre class="code" data-run data-title="A class list: an array of objects, with one address missing" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  h3 { margin: 0 0 6px; color: #0B2545; }
+  #out { white-space: pre-line; margin: 0; }
+&lt;/style&gt;
+&lt;h3&gt;CSE326 - Section K23&lt;/h3&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const classList = [
+    { name: "Asha",  marks: 82, address: { city: "Phagwara" } },
+    { name: "Rahul", marks: 67, address: { city: "Ludhiana" } },
+    { name: "Meera", marks: 91 }                     // no address yet
+  ];
+
+  console.log("Students:", classList.length);              // 3
+  console.log("Second student:", classList[1].name);       // Rahul
+  console.log("Asha's city:", classList[0].address.city);  // Phagwara
+
+  let total = 0;
+  let topper = classList[0];
+  let report = "";
+  for (const s of classList) {                     // s is one whole student object
+    total = total + s.marks;
+    if (s.marks &gt; topper.marks) {
+      topper = s;
+    }
+    const city = s.address?.city ?? "city not given";
+    console.log(s.name, "-", s.marks, "-", city);
+    report = report + s.name + ": " + s.marks + " (" + city + ")\n";
+  }
+  const average = total / classList.length;
+  console.log("Average:", average, "| Topper:", topper.name);
+  report = report + "Average: " + average + " | Topper: " + topper.name;
+  document.getElementById("out").textContent = report;   // the same text on the page (Chapter 56)
+
+  // without ?. the missing address is an error
+  try {
+    console.log(classList[2].address.city);
+  } catch (err) {
+    console.log("Without ?. :", err.name + ": " + err.message);
+  }
+&lt;/script&gt;</pre>
+  <pre class="code">Students: 3
+Second student: Rahul
+Asha's city: Phagwara
+Asha - 82 - Phagwara
+Rahul - 67 - Ludhiana
+Meera - 91 - city not given
+Average: 80 | Topper: Meera
+Without ?. : TypeError: Cannot read properties of undefined (reading 'city')</pre>
+  <p>Firefox words the last error differently ("classList[2].address is undefined"), but it is the same TypeError for the same reason.</p>
+  <div class="callout warn"><b>Use <code>?.</code> only where a missing piece is normal.</b> If every student must have an address, the TypeError is useful: it points at the broken record. Writing <code>?.</code> everywhere turns that loud error into a silent <code>undefined</code> that is far harder to track down.</div>
+</section>
+
+<section id="s5">
+  <h2>51.5 Methods and this</h2>
+  <p>When a property's value is a function, the property is called a <span class="jw" data-def="A function stored as a property of an object, called with the object, a dot, its name and brackets, as in car.start().">method</span>. The car's <code>start</code> was one. Modern code usually writes methods with a shorter syntax that works the same way in everyday use:</p>
+  <pre class="code">start: function () { console.log("Engine started!"); }   // the slides' way
+start() { console.log("Engine started!"); }              // method shorthand: the same</pre>
+  <p>Most methods need the object's own data. Inside a method, the keyword <code>this</code> means <b>the object the method was called on</b>: the object written before the dot. When you call <code>meera.describe()</code>, <code>this</code> inside <code>describe</code> is <code>meera</code>, so <code>this.name</code> is Meera's name.</p>
+  <p>Why not just write <code>meera.name</code> inside the method? Because <code>this</code> lets one function serve many objects. In the example below a single function, <code>report</code>, is stored in two objects. Called as <code>asha.report()</code> it describes Asha; called as <code>rahul.report()</code> it describes Rahul. Section 51.9 relies on exactly this to give thousands of objects one shared method.</p>
+  <pre class="code" data-run data-title="this is the object before the dot - and arrows do not have one" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  const meera = {
+    name: "Meera",
+    marks: 88,
+    describe() {                             // short for describe: function () { ... }
+      return this.name + " has " + this.marks + " marks";
+    },
+    addBonus(points) {
+      this.marks = this.marks + points;      // a method can change its own object
+    },
+    describeArrow: () =&gt; {
+      return "Arrow sees marks: " + this.marks;
+    }
+  };
+
+  console.log("1.", meera.describe());       // Meera has 88 marks
+  meera.addBonus(3);
+  console.log("2.", meera.describe());       // Meera has 91 marks
+  console.log("3.", meera.describeArrow());  // Arrow sees marks: undefined
+
+  // one function, two objects: this is whichever object is before the dot
+  function report() {
+    return this.name + " (" + this.marks + ")";
+  }
+  const asha  = { name: "Asha",  marks: 82, report: report };
+  const rahul = { name: "Rahul", marks: 67, report: report };
+  console.log("4.", asha.report());          // Asha (82)
+  console.log("5.", rahul.report());         // Rahul (67)
+&lt;/script&gt;</pre>
+  <pre class="code">1. Meera has 88 marks
+2. Meera has 91 marks
+3. Arrow sees marks: undefined
+4. Asha (82)
+5. Rahul (67)</pre>
+  <p>Line 3 is the trap. An arrow function (Chapter 48) does not get a <code>this</code> of its own. It borrows the <code>this</code> of the code surrounding the place where it was written, and an object's curly braces do not count as such a place. At the top level of a script, that outer <code>this</code> is the browser window, which has no <code>marks</code>; hence <code>undefined</code>.</p>
+  <div class="plain"><p>In a normal method, <code>this</code> means "me": whichever object is before the dot when the method is called. An arrow function has no "me" of its own, so it is the wrong tool for a method. Use arrows for small helper functions, and the shorthand <code>name() { }</code> for methods.</p></div>
+</section>
+
+<section id="s6">
+  <h2>51.6 Looping over an object</h2>
+  <p>Objects have no <code>length</code> and no positions, so the counting loop of Chapter 50 does not fit. JavaScript gives you two other ways in.</p>
+  <p><b><code>for...in</code></b> runs its block once for each property, handing you the <b>key</b>, as a string, each time: <code>for (const subject in marks) { ... }</code>. To get the value, use brackets, <code>marks[subject]</code>, because the key is in a variable (section 51.2). Loops in general are the subject of Chapter 52; <code>for...in</code> is meant for objects, so for arrays keep using <code>for...of</code>.</p>
+  <p>The three <b><code>Object</code> helpers</b> each turn an object into an array, which you can then loop over with <code>for...of</code> or measure with <code>.length</code>:</p>
+  <table class="tbl">
+    <thead><tr><th>Call</th><th>Gives an array of</th><th>For <code>{ maths: 82, physics: 74 }</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>Object.keys(obj)</code></td><td>the keys</td><td><code>["maths", "physics"]</code></td></tr>
+      <tr><td><code>Object.values(obj)</code></td><td>the values</td><td><code>[82, 74]</code></td></tr>
+      <tr><td><code>Object.entries(obj)</code></td><td><code>[key, value]</code> pairs</td><td><code>[["maths", 82], ["physics", 74]]</code></td></tr>
+    </tbody>
+  </table>
+  <p>So <code>Object.keys(obj).length</code> counts the properties. In the example, <code>for (const [subject, score] of Object.entries(marks))</code> uses the array destructuring of Chapter 50 to unpack each pair into two variables at once.</p>
+  <pre class="code" data-run data-title="Asha's marks card: for...in, keys, values and entries" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  #out { white-space: pre-line; font-family: ui-monospace, monospace; margin: 0; }
+&lt;/style&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const marks = { maths: 82, physics: 74, english: 90, programming: 94 };
+
+  // 1. for...in hands you each KEY, as a string
+  for (const subject in marks) {
+    console.log(subject, "-&gt;", marks[subject]);    // brackets: subject is a variable
+  }
+
+  // 2. the three Object helpers each return an ARRAY
+  console.log("keys:", Object.keys(marks));
+  console.log("values:", Object.values(marks));
+  console.log("entries:", Object.entries(marks));
+  console.log("How many subjects:", Object.keys(marks).length);
+
+  // 3. total and average from the values
+  let total = 0;
+  for (const m of Object.values(marks)) {
+    total = total + m;
+  }
+  const average = total / Object.keys(marks).length;
+  console.log("Total:", total, "Average:", average);
+
+  // 4. entries + for...of: the key and the value together
+  let card = "";
+  for (const [subject, score] of Object.entries(marks)) {
+    card = card + subject.padEnd(12, ".") + " " + score + "\n";
+  }
+  card = card + "Average".padEnd(12, ".") + " " + average;
+  document.getElementById("out").textContent = card;
+&lt;/script&gt;</pre>
+  <pre class="code">maths -&gt; 82
+physics -&gt; 74
+english -&gt; 90
+programming -&gt; 94
+keys: ['maths', 'physics', 'english', 'programming']
+values: [82, 74, 90, 94]
+entries: [['maths', 82], ['physics', 74], ['english', 90], ['programming', 94]]
+How many subjects: 4
+Total: 340 Average: 85</pre>
+  <details class="qc"><summary>Quick check: why does <code>for (const k in marks) { console.log(marks.k); }</code> print <code>undefined</code> four times?</summary><p>Because <code>marks.k</code> asks for a property literally named <code>k</code>, which does not exist. The variable <code>k</code> holds each key in turn, so it must go in brackets: <code>marks[k]</code>.</p></details>
+</section>
+
+<section id="s7">
+  <h2>51.7 Copy, or the same object?</h2>
+  <p>This section explains most of the "but I never changed that!" bugs in JavaScript. Start with numbers, which behave as you would expect:</p>
+  <pre class="code">let a = 82;
+let b = a;        // b gets its own copy of 82
+b = 90;
+console.log(a);   // 82 - a is untouched</pre>
+  <p>Objects behave differently. A variable does not hold an object itself; it holds a <span class="jw" data-def="Directions to where an object is kept in memory. Copying a reference gives a second route to the same object, not a second object.">reference</span> to it: directions to where the object is kept in memory. The <code>=</code> sign copies those directions, not the object:</p>
+  <pre class="code">const asha = { name: "Asha", marks: 82 };
+const same = asha;        // a second name for the SAME object
+same.marks = 90;
+console.log(asha.marks);  // 90 - asha changed too</pre>
+  <p>Return to the cabinets of section 51.1. The variable <code>asha</code> is not the cabinet; it is a slip of paper saying where the cabinet stands. <code>const same = asha;</code> photocopies the slip. Two slips, one cabinet: whoever opens a drawer through either slip changes what both will find. The same happens when you pass an object to a function: the parameter receives a copy of the slip, so the function can change the caller's object.</p>
+  <p>Comparison works on slips too. <code>===</code> asks "do these lead to the same object?", not "do these look alike?". So <code>same === asha</code> is <code>true</code>, while <code>{ x: 1 } === { x: 1 }</code> is <code>false</code>: two separate objects that merely look the same.</p>
+  <h3>Making a real copy</h3>
+  <p>To get a second, independent object, use the <b>spread</b> syntax: three dots inside a new pair of braces, <code>const copy = { ...asha };</code>. It builds a brand-new object and copies each property of <code>asha</code> into it. Change <code>copy.name</code> and <code>asha.name</code> stays as it was. Spread can also copy and change in one step: <code>{ ...asha, marks: 95 }</code> copies everything and then sets <code>marks</code>, because when a key appears twice, the later one wins.</p>
+  <p>There is one catch, and examiners love it. Spread copies only <b>one level</b>. If a property holds another object, such as <code>address</code>, the copy receives a copy of the <i>reference</i>, so both objects share one address object. This is called a <span class="jw" data-def="A copy that duplicates only the top level of an object. Any objects stored inside it are shared with the original, not duplicated.">shallow copy</span>. In cabinet terms, a drawer never holds another cabinet, only a slip saying where it stands, and spread photocopies that slip. For a <b>deep copy</b>, where every level is duplicated, modern browsers provide <code>structuredClone(asha)</code>. It works on plain data and refuses objects that contain functions.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 262" role="img" aria-label="Variables asha and same both point to object 1. Variable copy points to object 2, made by spread. The address properties of object 1 and object 2 both point to the same inner object 3, whose city is Jalandhar: a shallow copy.">
+      <text x="60" y="18" class="t c b s">VARIABLES</text>
+      <text x="290" y="18" class="t c b s">OBJECTS IN MEMORY</text>
+      <text x="530" y="18" class="t c b s">INNER OBJECT</text>
+      <rect x="10" y="40" width="100" height="32" rx="8" class="box saf"/>
+      <text x="60" y="61" class="t c b mono">asha</text>
+      <rect x="10" y="86" width="100" height="32" rx="8" class="box saf"/>
+      <text x="60" y="107" class="t c b mono">same</text>
+      <text x="60" y="134" class="t c s">= copied</text>
+      <text x="60" y="148" class="t c s">the arrow</text>
+      <text x="60" y="172" class="t c s">{ ...asha }</text>
+      <text x="60" y="186" class="t c s">built a new box</text>
+      <rect x="10" y="196" width="100" height="32" rx="8" class="box saf"/>
+      <text x="60" y="217" class="t c b mono">copy</text>
+      <rect x="190" y="30" width="200" height="104" rx="10" class="box"/>
+      <text x="290" y="50" class="t c b s">object 1</text>
+      <text x="206" y="72" class="t mono" style="font-size:12px">name: "Asha"</text>
+      <text x="206" y="94" class="t mono" style="font-size:12px">marks: 90</text>
+      <text x="206" y="116" class="t mono" style="font-size:12px">address: &#9679;</text>
+      <rect x="190" y="152" width="200" height="104" rx="10" class="box"/>
+      <text x="290" y="172" class="t c b s">object 2</text>
+      <text x="206" y="194" class="t mono" style="font-size:12px">name: "Asha V."</text>
+      <text x="206" y="216" class="t mono" style="font-size:12px">marks: 82</text>
+      <text x="206" y="238" class="t mono" style="font-size:12px">address: &#9679;</text>
+      <rect x="450" y="104" width="160" height="56" rx="10" class="box grn"/>
+      <text x="530" y="124" class="t c b s">object 3</text>
+      <text x="530" y="146" class="t c mono" style="font-size:12px">city: "Jalandhar"</text>
+      <text x="530" y="186" class="t c s">both address arrows</text>
+      <text x="530" y="200" class="t c s">meet here: a SHALLOW</text>
+      <text x="530" y="214" class="t c s">copy shares this object</text>
+      <path d="M110 56 L186 56" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M110 102 L186 82" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M110 212 L186 204" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M282 112 L446 126" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M282 234 L446 144" class="edge grn" marker-end="url(#arr-grn)"/>
+    </svg>
+    <figcaption><b>Figure 51.3</b> The state when the next example prints its line 5. <code>=</code> gave <code>asha</code> and <code>same</code> one shared object; spread gave <code>copy</code> an object of its own, but both <code>address</code> arrows still meet at one inner object.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="References, spread and structuredClone - predict each line first" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // numbers: = copies the value
+  let a = 82;
+  let b = a;
+  b = 90;
+  console.log("1. numbers:", a, b);
+
+  const asha = { name: "Asha", marks: 82, address: { city: "Phagwara" } };
+  const same = asha;             // = copies the REFERENCE
+  const copy = { ...asha };      // spread builds a NEW object
+
+  same.marks = 90;
+  console.log("2. asha.marks:", asha.marks, "| copy.marks:", copy.marks);
+  console.log("3. same === asha:", same === asha, "| copy === asha:", copy === asha);
+
+  copy.name = "Asha V.";
+  console.log("4. asha.name:", asha.name, "| copy.name:", copy.name);
+
+  copy.address.city = "Jalandhar";      // the inner object is SHARED
+  console.log("5. asha.address.city:", asha.address.city);
+  console.log("6. one inner object?", copy.address === asha.address);
+
+  const deep = structuredClone(asha);   // every level duplicated
+  deep.address.city = "Amritsar";
+  console.log("7. asha:", asha.address.city, "| deep:", deep.address.city);
+
+  function addGrace(student) {          // the parameter receives the reference
+    student.marks = student.marks + 5;
+  }
+  addGrace(asha);
+  console.log("8. after addGrace(asha):", asha.marks);
+
+  console.log("9. look-alikes:", { x: 1 } === { x: 1 });
+
+  const updated = { ...asha, marks: 100 };   // copy, then override one key
+  console.log("10.", updated.marks, asha.marks);
+&lt;/script&gt;</pre>
+  <pre class="code">1. numbers: 82 90
+2. asha.marks: 90 | copy.marks: 82
+3. same === asha: true | copy === asha: false
+4. asha.name: Asha | copy.name: Asha V.
+5. asha.address.city: Jalandhar
+6. one inner object? true
+7. asha: Jalandhar | deep: Amritsar
+8. after addGrace(asha): 95
+9. look-alikes: false
+10. 100 95</pre>
+  <div class="plain"><p><code>=</code> gives you a second name for the same object. <code>{ ...obj }</code> gives you a new object, but anything nested inside it is still shared. <code>structuredClone(obj)</code> duplicates every level.</p></div>
+  <div class="callout exam"><b>Exam tip.</b> For any copying question, draw it. Each variable gets an arrow. <code>b = a</code> draws a second arrow to the same object. <code>{ ...a }</code> draws a new object, but its inner arrows still point at the old inner objects. Then follow the arrows to read off the answer.</div>
+</section>
+
+<section id="s8">
+  <h2>51.8 Destructuring: unpacking properties</h2>
+  <p>Code often begins by pulling a few properties out into variables of their own. <b>Destructuring</b> does it in one line, with the braces on the <i>left</i> of the <code>=</code>:</p>
+  <pre class="code">const student = { name: "Rahul", marks: 67, city: "Ludhiana" };
+
+const { name, marks } = student;       // name is "Rahul", marks is 67
+const { city: hometown } = student;    // a variable called hometown: "Ludhiana"
+const { section = "K23" } = student;   // no section property, so the default "K23" is used
+
+function card({ name, marks }) {       // destructuring right in the parameter
+  return name + " scored " + marks;
+}
+console.log(card(student));            // Rahul scored 67
+
+// the reverse: property shorthand
+const course = "CSE326";
+const credits = 4;
+const subject = { course, credits };   // same as { course: course, credits: credits }
+console.log(subject);                  // {course: 'CSE326', credits: 4}</pre>
+  <p>The variable names must match the keys; their order does not matter. A colon renames: <code>city: hometown</code> reads "take <code>city</code>, call it <code>hometown</code>". An <code>=</code> gives a default, used only when the property is missing (or holds <code>undefined</code>). Destructuring a parameter is very common in real code, because the function then states exactly which properties it needs.</p>
+  <p>The reverse trick is <b>property shorthand</b>. When a variable already has the name you want as a key, <code>{ course, credits }</code> is short for <code>{ course: course, credits: credits }</code>.</p>
+  <details class="qc"><summary>Quick check: after <code>const { marks: m } = { marks: 50 };</code> which variable exists, and what does it hold?</summary><p>Only <b><code>m</code></b>, holding <b>50</b>. The colon renames: take the property <code>marks</code> and store it in a variable called <code>m</code>. No variable called <code>marks</code> is created.</p></details>
+</section>
+
+<section id="s9">
+  <h2>51.9 Many objects, one shape: constructors and new</h2>
+  <p>A college has thousands of students and a library has thousands of books, all with the same properties. Writing thousands of object literals by hand would be slow and error-prone. A <span class="jw" data-def="An ordinary function, named with a capital letter, that is called with new to build and fill in a new object.">constructor function</span> is a template: write the shape once, then stamp out as many objects as you need with <code>new</code>. This is the Book example from your slides:</p>
+  <pre class="code">function Book(title, author, year) {
+  this.title = title;
+  this.author = author;
+  this.year = year;
+}
+
+let book1 = new Book("The Catcher in the Rye", "J.D. Salinger", 1951);
+let book2 = new Book("To Kill a Mockingbird", "Harper Lee", 1960);</pre>
+  <p>The function has no <code>return</code> and no object literal, yet <code>book1</code> ends up as a complete book. The keyword <code>new</code> does four things for you:</p>
+  <ol>
+    <li>it creates a new, empty object;</li>
+    <li>it runs <code>Book</code> with <code>this</code> pointing at that new object;</li>
+    <li>the lines <code>this.title = title;</code> and so on fill the object in from the arguments;</li>
+    <li>it hands back the finished object automatically.</li>
+  </ol>
+  <p>Each object made this way is an <b>instance</b> of <code>Book</code>, and <code>book1 instanceof Book</code> is <code>true</code>. The capital B is a convention, and a useful one: it tells every reader "call this with <code>new</code>". Your slides call this idea the object constructor; JavaScript even has a built-in one, <code>new Object()</code>, which is simply a long way of writing <code>{}</code>.</p>
+  <div class="callout warn"><b>Forget <code>new</code> and nothing warns you.</b> <code>const b = Book("Gitanjali", "Tagore", 1910);</code> runs <code>Book</code> as an ordinary function. It returns nothing, so <code>b</code> is <code>undefined</code>. And <code>this</code> is not a new book: in a normal script it is the browser window, so <code>title</code>, <code>author</code> and <code>year</code> leak out as global variables.</div>
+  <h3>One method, shared by every book</h3>
+  <p>Your slides add that constructors create instances with <b>shared</b> properties and methods. If the constructor did <code>this.describe = function () { ... }</code>, every book would get its own copy of the same function, a real waste with thousands of books. Instead, put the method on the constructor's <span class="jw" data-def="A shared object that instances are linked to. When an object lacks a property, JavaScript looks for it in the prototype.">prototype</span>:</p>
+  <pre class="code">Book.prototype.describe = function () {
+  return this.title + " by " + this.author + " (" + this.year + ")";
+};</pre>
+  <p>Every object made with <code>new Book</code> is linked to <code>Book.prototype</code>. When you call <code>book1.describe()</code>, JavaScript does not find <code>describe</code> on <code>book1</code> itself, so it looks in the prototype, finds it there, and runs it with <code>this</code> set to <code>book1</code>. That is also where the inherited <code>toString</code> of section 51.3 comes from: plain objects are linked to <code>Object.prototype</code>.</p>
+  <pre class="code" data-run data-title="The slides' Book constructor, with one shared method" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px 16px; color: #3C4A60; }
+  #shelf { white-space: pre-line; margin: 0; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;On the shelf:&lt;/b&gt;&lt;/p&gt;
+&lt;p id="shelf"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // the constructor function from the lecture slides
+  function Book(title, author, year) {
+    this.title = title;
+    this.author = author;
+    this.year = year;
+  }
+
+  // ONE describe function, shared by every Book
+  Book.prototype.describe = function () {
+    return this.title + " by " + this.author + " (" + this.year + ")";
+  };
+
+  let book1 = new Book("The Catcher in the Rye", "J.D. Salinger", 1951);
+  let book2 = new Book("To Kill a Mockingbird", "Harper Lee", 1960);
+
+  console.log("1.", book1);
+  console.log("2.", book2.describe());
+  console.log("3. book1 instanceof Book:", book1 instanceof Book);
+  console.log("4. own describe?", book1.hasOwnProperty("describe"));
+  console.log("5. can use describe?", "describe" in book1);
+  console.log("6. one shared function?", book1.describe === book2.describe);
+
+  // a third book, then the whole shelf on the page
+  const book3 = new Book("Train to Pakistan", "Khushwant Singh", 1956);
+  const shelf = [book1, book2, book3];
+  let text = "";
+  for (const b of shelf) {
+    text = text + b.describe() + "\n";
+  }
+  document.getElementById("shelf").textContent = text;
+  console.log("7. Books on the shelf:", shelf.length);
+&lt;/script&gt;</pre>
+  <pre class="code">1. Book {title: 'The Catcher in the Rye', author: 'J.D. Salinger', year: 1951}
+2. To Kill a Mockingbird by Harper Lee (1960)
+3. book1 instanceof Book: true
+4. own describe? false
+5. can use describe? true
+6. one shared function? true
+7. Books on the shelf: 3</pre>
+  <p>Line 1 shows the Console naming the constructor, <code>Book {...}</code>, and listing only the book's own three properties. Lines 4 to 6 prove that <code>describe</code> lives once, in the prototype, and every book reaches it. One side effect: because <code>describe</code> was added by plain assignment, <code>for (const k in book1)</code> visits it too, after the three own keys, since <code>for...in</code> also walks the prototype. <code>Object.keys(book1)</code> lists only the own keys.</p>
+  <h3>The class version</h3>
+  <p>Newer code writes the same template with the <code>class</code> keyword. It is a tidier way to write a constructor and its shared methods, not a different idea: the <code>constructor</code> runs when you call <code>new</code>, and methods written inside the class body go on the prototype automatically. A class also refuses to run without <code>new</code>, which removes the trap above.</p>
+  <pre class="code">class Book {
+  constructor(title, author, year) {   // runs when you write new Book(...)
+    this.title = title;
+    this.author = author;
+    this.year = year;
+  }
+  describe() {                          // goes on Book.prototype: shared
+    return this.title + " by " + this.author + " (" + this.year + ")";
+  }
+}
+
+const book3 = new Book("Train to Pakistan", "Khushwant Singh", 1956);
+console.log(book3.describe());          // Train to Pakistan by Khushwant Singh (1956)
+Book("Godan", "Premchand", 1936);       // TypeError: Class constructor Book cannot be invoked without 'new'</pre>
+  <div class="plain"><p>A constructor is a stamp. <code>new</code> presses it: a fresh object, <code>this</code> pointing at it, the properties filled in, and the object handed back. Put methods on the prototype (or inside a class) so that every object shares one copy.</p></div>
+</section>
+
+<section id="s10">
+  <h2>51.10 A preview: objects as text (JSON)</h2>
+  <p>An object lives in your program's memory. To send it to a server or save it in the browser, it must first become text. The format used everywhere for this is <b>JSON</b>, JavaScript Object Notation, which looks almost exactly like an object literal with every key and every string in double quotes:</p>
+  <pre class="code">const student = { name: "Asha", marks: 82, passed: true };
+
+const text = JSON.stringify(student);
+console.log(text);              // {"name":"Asha","marks":82,"passed":true}
+console.log(typeof text);       // string
+
+const back = JSON.parse(text);
+console.log(back.marks);        // 82
+console.log(back === student);  // false - a brand-new object</pre>
+  <p><code>JSON.stringify</code> turns an object into JSON text, and <code>JSON.parse</code> builds a brand-new object from that text. Methods are left out, because JSON holds only data. Chapter 64 uses this pair to save objects in the browser, and Chapter 65 uses it to talk to servers and explains the rules of JSON in full.</p>
+</section>
+
+<section id="mistakes">
+  <h2>51.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "student.key and student[key] do the same thing."</b><br>The dot never looks inside a variable; it asks for a property literally named <code>key</code>.</div>
+    <div class="r"><b>&#10003; "Brackets work the name out first; the dot uses the name exactly as typed."</b><br>Use brackets for keys held in variables and for keys with spaces.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A const object cannot be changed."</b><br>Its properties can be added, changed and deleted freely.</div>
+    <div class="r"><b>&#10003; "const locks the variable, not the contents."</b><br>Only <code>student = somethingElse</code> is refused. <code>Object.freeze</code> locks the contents.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "const copy = original; makes a copy."</b><br>It makes a second name for the same object, so a change through either name shows through both.</div>
+    <div class="r"><b>&#10003; "{ ...original } makes a new object."</b><br>And <code>===</code> between two separate objects is <code>false</code>, however alike they look.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Spread copies every level."</b><br>Nested objects are still shared between the original and the copy.</div>
+    <div class="r"><b>&#10003; "Spread is a shallow copy."</b><br>For a deep copy of plain data, use <code>structuredClone(obj)</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "An arrow function is just a shorter way to write a method."</b><br>It has no <code>this</code> of its own, so <code>this.marks</code> inside it is not the object's marks.</div>
+    <div class="r"><b>&#10003; "Methods use the shorthand name() { }; arrows suit small helpers."</b><br>In a normal method, <code>this</code> is the object before the dot.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "if (obj.prop) tells me whether the property exists."</b><br>A property holding <code>0</code>, <code>""</code> or <code>false</code> exists but fails the test.</div>
+    <div class="r"><b>&#10003; "'prop' in obj answers 'is it there?'"</b><br>Or <code>obj.hasOwnProperty("prop")</code> for the object's own properties only.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the "what does this print?" questions, trace the code on paper first, drawing arrows for every object.</p>
+  <details class="q"><summary><span>Which line correctly creates an object with two properties?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>const s = { name = "Asha", marks = 82 };</code></li><li>B. <code>const s = { name: "Asha", marks: 82 };</code></li><li>C. <code>const s = [ name: "Asha", marks: 82 ];</code></li><li>D. <code>const s = { name: "Asha"; marks: 82 };</code></li></ul>
+    <p><b>Answer: B.</b> A colon joins each key to its value and a comma separates the properties. A uses equals signs, C uses the square brackets of an array, which cannot hold <code>key: value</code> pairs, and D uses a semicolon between the properties. All three are SyntaxErrors.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const key = "marks";</code><br><code>const s = { name: "Asha", marks: 82, key: "K23" };</code><br><code>console.log(s.key, s[key]);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 82 K23</li><li>B. 82 82</li><li>C. K23 82</li><li>D. K23 undefined</li></ul>
+    <p><b>Answer: C.</b> <code>s.key</code> asks for the property literally named <code>key</code>, which is "K23". <code>s[key]</code> uses the variable's value, "marks", as the key, giving 82. A is the trap for anyone who thinks the dot reads the variable.</p></div></details>
+  <details class="q"><summary><span>In which situation must you use bracket notation instead of the dot?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. When the object was declared with <code>const</code></li><li>B. When the property's value is a number</li><li>C. When the property is a method</li><li>D. When the key is stored in a variable, such as <code>const field = "city";</code></li></ul>
+    <p><b>Answer: D.</b> Only brackets evaluate what is inside them, so <code>obj[field]</code> reads the property named by the variable. The other case that needs brackets is a key that is not a valid name, such as <code>obj["full name"]</code>. <code>const</code>, number values and methods make no difference.</p></div></details>
+  <details class="q"><summary><span>Predict the output:<br><code>const s = { name: "Rahul" };</code><br><code>s.marks = 70;</code><br><code>s.marks = 75;</code><br><code>delete s.name;</code><br><code>console.log(s);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: <code>{marks: 75}</code>.</b> The first assignment adds <code>marks</code> because the key is new, the second updates it because the key now exists, and <code>delete</code> removes <code>name</code> completely. <code>const</code> does not stop any of this, because the variable <code>s</code> is never reassigned.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const a = { marks: 60 };</code><br><code>const b = a;</code><br><code>b.marks = 80;</code><br><code>console.log(a.marks);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 80</li><li>B. 60</li><li>C. undefined</li><li>D. TypeError: Assignment to constant variable.</li></ul>
+    <p><b>Answer: A.</b> <code>b = a</code> copies the reference, so <code>a</code> and <code>b</code> are two names for one object, and the change through <code>b</code> shows through <code>a</code>. D is wrong because no variable is reassigned; only a property of the object changes.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const p = { name: "Meera", address: { city: "Delhi" } };</code><br><code>const q = { ...p };</code><br><code>q.name = "Kabir";</code><br><code>q.address.city = "Pune";</code><br><code>console.log(p.name, p.address.city);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Meera Delhi</li><li>B. Kabir Pune</li><li>C. Meera Pune</li><li>D. Kabir Delhi</li></ul>
+    <p><b>Answer: C.</b> Spread made <code>q</code> a new object, so changing <code>q.name</code> leaves <code>p.name</code> as Meera. But the copy is shallow: <code>q.address</code> and <code>p.address</code> are the same inner object, so the city change shows through both. A is the answer people give when they forget that spread copies only one level.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const course = {</code><br><code>&nbsp;&nbsp;code: "CSE326",</code><br><code>&nbsp;&nbsp;show() { return "Course " + this.code; },</code><br><code>&nbsp;&nbsp;showArrow: () =&gt; "Course " + this.code</code><br><code>};</code><br><code>console.log(course.show());</code><br><code>console.log(course.showArrow());</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Course CSE326, then Course CSE326</li><li>B. Course CSE326, then Course undefined</li><li>C. Course undefined, then Course CSE326</li><li>D. A TypeError on both lines</li></ul>
+    <p><b>Answer: B.</b> In the normal method <code>show</code>, <code>this</code> is <code>course</code>, the object before the dot. The arrow function has no <code>this</code> of its own; it borrows the outer one, which at the top of a script is the window, and the window has no <code>code</code> property.</p></div></details>
+  <details class="q"><summary><span>Which call gives an array of <code>[key, value]</code> pairs?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>Object.keys(obj)</code></li><li>B. <code>Object.values(obj)</code></li><li>C. <code>obj.length</code></li><li>D. <code>Object.entries(obj)</code></li></ul>
+    <p><b>Answer: D.</b> <code>Object.keys</code> gives only the keys and <code>Object.values</code> only the values. A plain object has no <code>length</code> at all, so C is <code>undefined</code>.</p></div></details>
+  <details class="q"><summary><span>Predict the output:<br><code>const marks = { maths: 80, physics: 70 };</code><br><code>let total = 0;</code><br><code>for (const k in marks) {</code><br><code>&nbsp;&nbsp;total = total + marks[k];</code><br><code>}</code><br><code>console.log(total, Object.keys(marks).length);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>150 2</code>.</b> <code>for...in</code> hands over each key in turn, "maths" then "physics", and <code>marks[k]</code> reads its value, so the total is 80 + 70. <code>Object.keys(marks)</code> is <code>["maths", "physics"]</code>, an array of length 2.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>const user = { name: "Asha" };</code><br><code>console.log(user.address?.city ?? "No city");</code></span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. No city</li><li>B. undefined</li><li>C. TypeError: Cannot read properties of undefined (reading 'city')</li><li>D. null</li></ul>
+    <p><b>Answer: A.</b> <code>user.address</code> is <code>undefined</code>, so <code>?.</code> stops and gives <code>undefined</code> instead of throwing; then <code>??</code> replaces that <code>undefined</code> with "No city". C is what happens without the <code>?.</code>, and B is what happens without the <code>??</code>.</p></div></details>
+  <details class="q"><summary><span>What does this print?<br><code>function Phone(brand, price) {</code><br><code>&nbsp;&nbsp;this.brand = brand;</code><br><code>&nbsp;&nbsp;this.price = price;</code><br><code>}</code><br><code>const p1 = new Phone("Lava", 9999);</code><br><code>const p2 = Phone("Micromax", 7999);</code><br><code>console.log(p1.brand, typeof p2);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Lava object</li><li>B. Lava undefined</li><li>C. undefined undefined</li><li>D. A TypeError</li></ul>
+    <p><b>Answer: B.</b> With <code>new</code>, <code>p1</code> is a complete phone. Without <code>new</code>, <code>Phone</code> runs as an ordinary function that returns nothing, so <code>p2</code> is <code>undefined</code> and <code>typeof p2</code> is "undefined". There is no error in a normal script: <code>this</code> is the window, so <code>brand</code> and <code>price</code> silently become globals.</p></div></details>
+  <details class="q"><summary><span>Predict the output:<br><code>const { name: n, marks = 40 } = { name: "Ravi" };</code><br><code>console.log(n, marks);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: <code>Ravi 40</code>.</b> The colon renames, so the value of <code>name</code> goes into a variable called <code>n</code>. The object has no <code>marks</code> property, so the default 40 is used.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An object groups facts about one thing as <code>key: value</code> properties inside <code>{ }</code>. Keys are strings; values can be anything, including arrays, other objects and functions (methods).</li>
+    <li>Read with the dot (<code>obj.key</code>) when the name is fixed and valid; use brackets for keys in variables or keys with spaces (<code>obj[field]</code>, <code>obj["full name"]</code>). A missing property is <code>undefined</code>, not an error.</li>
+    <li>Assigning adds a new key or updates an existing one; <code>delete</code> removes one. <code>const</code> locks the variable, not the contents. Test existence with <code>"key" in obj</code> or <code>hasOwnProperty</code>, never with <code>if (obj.key)</code>.</li>
+    <li>Read nested chains left to right, <code>student.address.city</code>. <code>?.</code> stops safely at <code>null</code> or <code>undefined</code>. Arrays of objects are the everyday shape of real data.</li>
+    <li>In a method, <code>this</code> is the object before the dot. Arrow functions have no <code>this</code> of their own, so do not use them as methods.</li>
+    <li><code>for...in</code> gives each key; <code>Object.keys</code>, <code>Object.values</code> and <code>Object.entries</code> give arrays you can loop over or count.</li>
+    <li><code>=</code> copies a reference (one object, two names); <code>{ ...obj }</code> is a shallow copy; <code>structuredClone</code> is a deep copy; <code>===</code> compares references, not contents.</li>
+    <li>A constructor function called with <code>new</code> builds objects of one shape; shared methods go on its prototype, and <code>class</code> is the modern syntax for the same idea. <code>JSON.stringify</code> and <code>JSON.parse</code> turn objects into text and back.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>{ name: "Asha", marks: 82 }</code></td><td>An object literal with two properties</td></tr>
+      <tr><td><code>obj.name</code> / <code>obj["name"]</code></td><td>Read a property; both give the same value</td></tr>
+      <tr><td><code>obj[field]</code></td><td>Read the property whose name is stored in <code>field</code></td></tr>
+      <tr><td><code>obj.city = "Delhi";</code></td><td>Adds <code>city</code> if it is new, updates it if it exists</td></tr>
+      <tr><td><code>delete obj.city;</code></td><td>Removes the property completely</td></tr>
+      <tr><td><code>"city" in obj</code></td><td><code>true</code> if the property exists, own or inherited</td></tr>
+      <tr><td><code>obj.hasOwnProperty("city")</code></td><td><code>true</code> only for the object's own property</td></tr>
+      <tr><td><code>obj.address?.city ?? "none"</code></td><td>Safe nested read with a fallback</td></tr>
+      <tr><td><code>describe() { return this.name; }</code></td><td>A method; <code>this</code> is the object before the dot</td></tr>
+      <tr><td><code>for (const k in obj) { obj[k] }</code></td><td>Visit every key, read each value with brackets</td></tr>
+      <tr><td><code>Object.keys(obj)</code>, <code>.values</code>, <code>.entries</code></td><td>Arrays of keys, values, or <code>[key, value]</code> pairs</td></tr>
+      <tr><td><code>const b = a;</code></td><td>Two names for the same object</td></tr>
+      <tr><td><code>{ ...a }</code> / <code>{ ...a, marks: 95 }</code></td><td>Shallow copy / copy with one change</td></tr>
+      <tr><td><code>structuredClone(a)</code></td><td>Deep copy of plain data</td></tr>
+      <tr><td><code>const { name, marks } = obj;</code></td><td>Destructuring: properties into variables</td></tr>
+      <tr><td><code>new Book("T", "A", 2000)</code></td><td>Build an instance with a constructor function</td></tr>
+      <tr><td><code>Book.prototype.describe = function () { ... };</code></td><td>One method shared by every Book</td></tr>
+      <tr><td><code>JSON.stringify(obj)</code> / <code>JSON.parse(text)</code></td><td>Object to JSON text, and text back to a new object</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Working_with_objects" target="_blank" rel="noopener noreferrer">MDN &mdash; Working with objects<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official guide: literals, properties, methods, constructors and comparing objects.</span></li>
+    <li><a href="https://javascript.info/object" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Objects<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A gentle walk through dots, brackets, <code>in</code> and <code>for...in</code>, with small tasks at the end.</span></li>
+    <li><a href="https://javascript.info/object-copy" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Object references and copying<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Pictures of references, shallow copies and <code>structuredClone</code>: the best second explanation of section 51.7.</span></li>
+    <li><a href="https://javascript.info/object-methods" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Object methods, "this"<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly how <code>this</code> is decided, and why arrow functions behave differently.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

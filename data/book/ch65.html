@@ -1,0 +1,770 @@
+<article class="chapter" data-ch="65">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 65 &middot; Fetch API and JSON Processing</p>
+  <h1>Fetch API and JSON Processing</h1>
+  <p class="lead">The weather in a weather app, the products in a shop and the marks in a student portal are not written inside the HTML file. They arrive from a server after the page has loaded. This chapter shows how your JavaScript asks a server for data with <code>fetch</code>, waits for the answer without freezing the page, reads the JSON text that comes back, and turns it into cards on the screen &mdash; and how to send data the other way.</p>
+  <p class="meta">About 36 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A browser (the client) sends a request to a server, and the server sends back a response with a status code such as 200 or 404 (<a href="book.html?ch=2">Chapter 2</a>).</li>
+      <li>An object groups named values, <code>{ name: "Rahul", marks: [88, 92] }</code>, and you read one with <code>student.name</code> (<a href="book.html?ch=51">Chapter 51</a>).</li>
+      <li>An asynchronous callback runs <i>later</i>, when something happens, while the rest of the code carries on (<a href="book.html?ch=54">Chapter 54</a>).</li>
+      <li>A list or cards are built from an array with <code>forEach</code>, <code>createElement</code> and <code>textContent</code> (<a href="book.html?ch=58">Chapter 58</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what an API, an endpoint, a request and a response are, and match GET, POST, PUT and DELETE to read, create, update and delete.</li>
+      <li>Write valid JSON, spot invalid JSON, and convert with <code>JSON.stringify</code> and <code>JSON.parse</code>.</li>
+      <li>Say what <code>fetch(url)</code> gives back, and predict the order in which asynchronous code prints.</li>
+      <li>Fetch JSON with a <code>.then</code>/<code>.catch</code> chain and with <code>async</code>/<code>await</code> and <code>try...catch</code>.</li>
+      <li>Check <code>response.ok</code> and <code>response.status</code>, knowing that <code>fetch</code> does not reject on a 404.</li>
+      <li>Show fetched data as cards with loading, success, empty and error states, and send data with a POST request.</li>
+      <li>Explain CORS in plain words, and practise <code>fetch</code> with no internet using a Blob URL.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>65.1 Most pages do not hold their own data</h2>
+  <p>Every page you have built so far carried its data inside the file: the list of courses was typed into the HTML, or into an array in the script. Real sites rarely work that way. Open a weather app and the temperature is not in its HTML; the page is an empty shell, and the numbers arrive from a weather server a moment after the shell appears. The same is true of product listings, news feeds, movie search and the LPU student portal. The page is the <i>frame</i>; the <i>content</i> is fetched.</p>
+  <p>The program on the other side has a published set of rules for how to ask it for things. That set of rules is called an <b>API</b>, short for <b>Application Programming Interface</b>: an agreed way for one program to talk to another. A web API is used over HTTP, the same request-and-response conversation the browser uses to load pages (Chapter 2). Each kind of data has its own address, called an <span class="jw" data-def="One web address that hands out one kind of data, such as the address that gives the list of users.">endpoint</span>, such as <code>https://jsonplaceholder.typicode.com/users</code> for a list of users.</p>
+  <table class="tbl">
+    <thead><tr><th>Word</th><th>Meaning</th><th>In this chapter</th></tr></thead>
+    <tbody>
+      <tr><td>Client</td><td>The program asking for data</td><td>The browser running your JavaScript</td></tr>
+      <tr><td>Server</td><td>The computer that stores the data and sends it back</td><td>jsonplaceholder.typicode.com</td></tr>
+      <tr><td>API</td><td>The rules for asking: which addresses, which methods, what the answers look like</td><td>"GET /users gives an array of users"</td></tr>
+      <tr><td>Endpoint</td><td>One address for one kind of data</td><td><code>.../users</code>, <code>.../posts</code></td></tr>
+      <tr><td>Request / response</td><td>The message sent to the server / the reply that comes back</td><td>"give me the users" / the users, as JSON</td></tr>
+      <tr><td>HTTP method</td><td>The kind of action asked for</td><td>GET (read), POST (create), PUT (update), DELETE</td></tr>
+    </tbody>
+  </table>
+  <div class="callout analogy"><b>Picture this.</b> Dinner at a restaurant. You are the <b>client</b>. The <b>kitchen</b> is the server: it has the food, but you never walk in there. The <b>waiter</b> is the API &mdash; the agreed way to place an order. The <b>menu</b> is the API's documentation, listing what can be ordered. Your order ("one paneer tikka") is the <b>request</b>, and the plate that comes back is the <b>response</b>. If the dish is finished, the waiter returns with "Sorry, sold out" &mdash; that is still an answer, like a 404 status. And while the kitchen cooks, you do not freeze at the table: the waiter has taken the order, and you carry on talking until the food arrives. That last detail is the whole idea of section 65.4.</div>
+  <p><code>fetch</code> is the browser's built-in function for sending such a request from JavaScript and receiving the response. Figure 65.1 shows one complete trip.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="The six steps of a fetch: the browser runs fetch, the request travels to the server, the server finds the data, the response returns, the JavaScript turns the JSON into data, and the page updates">
+      <rect x="20" y="50" width="180" height="120" rx="12" class="box blu"/>
+      <text x="110" y="80" class="t c b">Browser (client)</text>
+      <text x="110" y="98" class="t c s">your JavaScript</text>
+      <text x="110" y="132" class="t c mono">1. fetch(url)</text>
+      <rect x="420" y="50" width="180" height="120" rx="12" class="box grn"/>
+      <text x="510" y="80" class="t c b">Server / API</text>
+      <text x="510" y="98" class="t c s">stores the data</text>
+      <text x="510" y="132" class="t c">3. finds the users</text>
+      <path d="M200 82 L418 82" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="310" y="70" class="t c">2. request: GET /users</text>
+      <path d="M420 140 L202 140" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="310" y="130" class="t c">4. response: 200 + JSON</text>
+      <text x="310" y="160" class="t c s">arrives later; the page keeps working</text>
+      <path d="M110 170 L110 203" class="edge" marker-end="url(#arr)"/>
+      <rect x="20" y="205" width="270" height="50" rx="10" class="box saf"/>
+      <text x="155" y="226" class="t c b">5. response.json()</text>
+      <text x="155" y="244" class="t c s">JSON text becomes arrays and objects</text>
+      <path d="M290 230 L328 230" class="edge" marker-end="url(#arr)"/>
+      <rect x="330" y="205" width="270" height="50" rx="10" class="box saf"/>
+      <text x="465" y="226" class="t c b">6. the page updates</text>
+      <text x="465" y="244" class="t c s">cards, lists and messages appear</text>
+      <text x="310" y="28" class="t c b">One trip to the server</text>
+    </svg>
+    <figcaption><b>Figure 65.1</b> Steps 1 and 2 happen at once; step 4 happens <i>later</i>, and the page is not frozen in between. Steps 5 and 6 are your code reacting to the answer.</figcaption>
+  </figure>
+  <div class="plain"><p>An API is a server's menu of things you may ask for. Each item has its own address (an endpoint). <code>fetch</code> sends your order to that address, and some time later the answer comes back &mdash; usually as JSON text.</p></div>
+</section>
+
+<section id="s2">
+  <h2>65.2 HTTP in one page: methods and status codes</h2>
+  <p>Chapter 2 showed the browser asking for pages. A request to an API is the same kind of HTTP message. It carries a <b>method</b> (the action), the <b>address</b>, some <span class="jw" data-def="Short labelled notes attached to a request or a response, such as 'the body is JSON'. They describe the message; they are not the data itself.">headers</span> and, sometimes, a <b>body</b> (data you are sending). The response carries a <b>status code</b>, headers, and a body (usually the data you asked for).</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Purpose</th><th>Example endpoint</th><th>Sends a body?</th><th>Real-life example</th></tr></thead>
+    <tbody>
+      <tr><td><b>GET</b></td><td>Read data</td><td><code>GET /users</code></td><td>No</td><td>Load the product list</td></tr>
+      <tr><td><b>POST</b></td><td>Create new data</td><td><code>POST /posts</code></td><td>Yes (JSON)</td><td>Submit a registration form</td></tr>
+      <tr><td><b>PUT</b></td><td>Replace existing data</td><td><code>PUT /posts/1</code></td><td>Yes (JSON)</td><td>Save your edited profile</td></tr>
+      <tr><td><b>DELETE</b></td><td>Delete data</td><td><code>DELETE /posts/1</code></td><td>Usually no</td><td>Remove an item from the cart</td></tr>
+    </tbody>
+  </table>
+  <p>These four match the four basic jobs every data app does, often remembered as <b>CRUD</b>: Create, Read, Update, Delete. A fifth method, <b>PATCH</b>, updates only some fields, where PUT replaces the whole record. <code>fetch(url)</code> with nothing else sends a <b>GET</b>; for any other method you pass an options object, as section 65.8 shows.</p>
+  <p>The three-digit status code at the top of every response tells you how the request went. You only need a handful:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Meaning</th><th>When you see it</th></tr></thead>
+    <tbody>
+      <tr><td><b>200</b> OK</td><td>Here is what you asked for</td><td>A successful GET</td></tr>
+      <tr><td><b>201</b> Created</td><td>The new record was made</td><td>A successful POST</td></tr>
+      <tr><td><b>400</b> Bad Request</td><td>The server could not understand your request</td><td>You sent broken data</td></tr>
+      <tr><td><b>404</b> Not Found</td><td>Nothing lives at that address</td><td>A typo in the endpoint</td></tr>
+      <tr><td><b>500</b> Internal Server Error</td><td>The server itself broke</td><td>A bug on the server, not in your page</td></tr>
+    </tbody>
+  </table>
+  <p>Codes from 200 to 299 mean success; 400 to 499 mean the request was wrong; 500 to 599 mean the server failed. Keep that grouping in mind: it is exactly what <code>response.ok</code> checks in section 65.6.</p>
+</section>
+
+<section id="s3">
+  <h2>65.3 JSON: the text that travels</h2>
+  <p>A server cannot send a JavaScript object down the wire. Only text and bytes travel. So the server writes its data out as text in an agreed format, and by far the most common format is <b>JSON</b>, <b>JavaScript Object Notation</b>. JSON looks almost exactly like a JavaScript object, which is why it is easy to read, but it <i>is a string</i>, and its rules are stricter.</p>
+  <pre class="code">{
+  "id": 1,
+  "name": "Rahul",
+  "course": "CSE",
+  "active": true,
+  "marks": [88, 92, 79],
+  "mentor": null
+}</pre>
+  <p>That is a complete JSON document, the kind a server might send for one student. Compare it with the JavaScript object a programmer might write:</p>
+  <pre class="code">const student = {
+  id: 1,
+  name: "Rahul",
+  course: 'CSE',             // single quotes are fine in JavaScript
+  active: true,
+  greet() { return "Hi"; },  // so is a function
+};                           // and so is the comma after the last item</pre>
+  <p>The JavaScript version is legal JavaScript, but none of its three commented features is legal JSON. The rules:</p>
+  <ul>
+    <li><b>Keys must be in double quotes</b>: <code>"name"</code>, never <code>name</code> or <code>'name'</code>.</li>
+    <li><b>Strings use double quotes only.</b> <code>'CSE'</code> is an error.</li>
+    <li><b>No functions, no comments, no <code>undefined</code>.</b> JSON holds data, not code.</li>
+    <li><b>No trailing comma</b> after the last item in an object or array.</li>
+  </ul>
+  <p>And a value can be one of only six types:</p>
+  <table class="tbl">
+    <thead><tr><th>Type</th><th>JSON example</th></tr></thead>
+    <tbody>
+      <tr><td>Object</td><td><code>{ "a": 1 }</code></td></tr>
+      <tr><td>Array</td><td><code>[1, 2, 3]</code></td></tr>
+      <tr><td>String</td><td><code>"CSE"</code></td></tr>
+      <tr><td>Number</td><td><code>19</code>, <code>8.5</code>, <code>-3</code></td></tr>
+      <tr><td>Boolean</td><td><code>true</code>, <code>false</code></td></tr>
+      <tr><td>null</td><td><code>null</code></td></tr>
+    </tbody>
+  </table>
+  <p>Objects and arrays can be nested inside each other to any depth: a user can have an <code>"address"</code> object inside, holding a <code>"city"</code> string.</p>
+  <details class="qc"><summary>Quick check: is { 'name': 'Asha' } valid JSON?</summary><p>No. JSON allows only double quotes, for keys and for strings. The valid version is <code>{ "name": "Asha" }</code>.</p></details>
+
+  <h3>JSON.stringify and JSON.parse</h3>
+  <p>JavaScript has a built-in <code>JSON</code> object with two methods, one for each direction:</p>
+  <table class="tbl">
+    <thead><tr><th>Method</th><th>Direction</th><th>Use it when</th></tr></thead>
+    <tbody>
+      <tr><td><code>JSON.stringify(value)</code></td><td>Object or array &rarr; JSON text</td><td>You are about to <b>send</b> data in a fetch body, or <b>store</b> it in localStorage (Chapter 64)</td></tr>
+      <tr><td><code>JSON.parse(text)</code></td><td>JSON text &rarr; object or array</td><td>You have <b>received</b> JSON text, or <b>read</b> it back from storage</td></tr>
+    </tbody>
+  </table>
+  <p>To <span class="jw" data-def="To read a piece of text and build real data, such as numbers, lists and objects, out of it.">parse</span> text means to read it and build real data from it. If the text breaks a JSON rule, <code>JSON.parse</code> cannot build anything and throws a <code>SyntaxError</code>, so text from outside your program is often parsed inside <code>try...catch</code>. Run the example and compare each Console line with the code.</p>
+  <pre class="code" data-run data-title="JSON both ways - and what JSON refuses" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  pre { background: #F1F4F8; padding: 8px; border-radius: 6px; white-space: pre-wrap; font-size: 13px; }
+&lt;/style&gt;
+&lt;p&gt;Rahul's record, turned into JSON text and back:&lt;/p&gt;
+&lt;pre id="out"&gt;&lt;/pre&gt;
+&lt;script&gt;
+  const out = document.getElementById("out");
+  function show(label, value) {
+    console.log(label, value);
+    out.textContent += label + " " + value + "\n";
+  }
+
+  const student = { name: "Rahul", course: "CSE", marks: [88, 92, 79], active: true, mentor: null };
+
+  // 1. object -&gt; JSON text (to send or store)
+  const jsonText = JSON.stringify(student);
+  show("JSON text:", jsonText);
+  show("typeof jsonText:", typeof jsonText);
+
+  // 2. JSON text -&gt; object (after receiving or reading)
+  const copy = JSON.parse(jsonText);
+  show("Second mark:", copy.marks[1]);
+  show("typeof copy:", typeof copy);
+
+  // 3. what JSON cannot hold
+  const extra = { name: "Asha", greet() { return "Hi"; }, nickname: undefined };
+  show("Functions and undefined vanish:", JSON.stringify(extra));
+
+  // 4. text that breaks the rules
+  try {
+    JSON.parse("{'name': 'Rahul'}");
+  } catch (error) {
+    show("Single quotes:", error.name);
+  }
+&lt;/script&gt;</pre>
+  <p>The Console shows six lines. The JSON text is <code>{"name":"Rahul","course":"CSE","marks":[88,92,79],"active":true,"mentor":null}</code>: every key now in double quotes, no spaces, and its <code>typeof</code> is <code>string</code>. After <code>JSON.parse</code>, <code>copy.marks[1]</code> is the number <code>92</code> and <code>typeof copy</code> is <code>object</code>. Line five shows that <code>stringify</code> quietly <b>drops</b> functions and properties whose value is <code>undefined</code>, giving <code>{"name":"Asha"}</code>. Line six shows the single-quoted text being refused with a <code>SyntaxError</code>.</p>
+  <div class="plain"><p><code>stringify</code> packs an object into a string so it can travel or be stored. <code>parse</code> unpacks the string into an object again. Pack before you send; unpack after you receive.</p></div>
+</section>
+
+<section id="s4">
+  <h2>65.4 fetch gives you a promise, not the data</h2>
+  <p>A request to a server can take ten milliseconds or ten seconds. If JavaScript stopped and waited, the whole page would freeze: no scrolling, no clicks, no typing. So <code>fetch</code> is <span class="jw" data-def="Starts a job now and finishes it later, without making the rest of the code stand still and wait.">asynchronous</span>. It sends the request and immediately returns, and the next line of your script runs straight away. What it returns is not the data &mdash; the data has not arrived yet &mdash; but a <b>Promise</b>.</p>
+  <p>A Promise is an object that stands for a result that will exist later. It is always in one of three states:</p>
+  <ul>
+    <li><b>pending</b> &mdash; still waiting. Every promise starts here.</li>
+    <li><b>fulfilled</b> &mdash; it worked, and the promise now holds a value. For <code>fetch</code>, the value is a <b>Response</b> object.</li>
+    <li><b>rejected</b> &mdash; it failed, and the promise holds an error instead.</li>
+  </ul>
+  <p>Once a promise is fulfilled or rejected, it is <i>settled</i> and never changes again. You do not check the state yourself; you hand the promise two callbacks (Chapter 54). <code>.then(callback)</code> registers what to do with the value when it is fulfilled; <code>.catch(callback)</code> registers what to do with the error if it is rejected.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 270" role="img" aria-label="fetch returns a pending promise; it becomes fulfilled with a Response when any answer arrives, which runs then, or rejected when no answer arrives, which runs catch">
+      <rect x="20" y="105" width="120" height="50" rx="10" class="box"/>
+      <text x="80" y="135" class="t c mono">fetch(url)</text>
+      <path d="M140 130 L178 130" class="edge" marker-end="url(#arr)"/>
+      <rect x="180" y="105" width="160" height="50" rx="10" class="box gry"/>
+      <text x="260" y="126" class="t c b">Promise: pending</text>
+      <text x="260" y="143" class="t c s">returned at once</text>
+      <path d="M340 118 L378 70" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M340 142 L378 190" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="380" y="35" width="220" height="62" rx="10" class="box grn"/>
+      <text x="490" y="58" class="t c b">fulfilled &rarr; .then runs</text>
+      <text x="490" y="76" class="t c s">an answer arrived: 200, 404, 500...</text>
+      <text x="490" y="90" class="t c s">value: a Response object</text>
+      <rect x="380" y="163" width="220" height="62" rx="10" class="box red"/>
+      <text x="490" y="186" class="t c b">rejected &rarr; .catch runs</text>
+      <text x="490" y="204" class="t c s">no answer: offline, blocked, bad URL</text>
+      <text x="490" y="218" class="t c s">value: a TypeError</text>
+      <text x="310" y="255" class="t c s">A 404 is still an answer, so the promise is fulfilled. Check response.ok yourself (65.6).</text>
+      <text x="310" y="24" class="t c b">The life of the promise that fetch returns</text>
+    </svg>
+    <figcaption><b>Figure 65.2</b> The promise from <code>fetch</code> is fulfilled whenever the server answers at all &mdash; even with "not found". It is rejected only when no answer arrives.</figcaption>
+  </figure>
+  <p>Because <code>fetch</code> returns immediately, code written <i>after</i> it runs <i>before</i> its callback. The deck's A&ndash;B&ndash;C experiment shows this. Predict the order before you press Run.</p>
+  <pre class="code" data-run data-title="A, B, C - which line prints last?" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  li { margin: 3px 0; }
+&lt;/style&gt;
+&lt;p&gt;The lines in the order they actually ran:&lt;/p&gt;
+&lt;ol id="steps"&gt;&lt;/ol&gt;
+&lt;script&gt;
+  // a pretend server address with a tiny JSON answer (65.5 explains this line)
+  const url = URL.createObjectURL(new Blob(['{"msg":"hello"}'], { type: "application/json" }));
+
+  const steps = document.getElementById("steps");
+  function step(text) {
+    console.log(text);
+    const li = document.createElement("li");
+    li.textContent = text;
+    steps.append(li);
+  }
+
+  step("A: before fetch");
+  const promise = fetch(url);
+  step("Is it a Promise? " + (promise instanceof Promise));
+  promise.then((response) =&gt; step("B: the answer arrived, status " + response.status));
+  step("C: after fetch - nobody waited");
+&lt;/script&gt;</pre>
+  <p>The Console shows <i>A</i>, then <i>Is it a Promise? true</i>, then <i>C</i>, and only last <i>B: the answer arrived, status 200</i>. Even with a server inside the same page, the callback waits until the script has finished. With a real server far away, the gap is longer, but the order is the same.</p>
+  <p>Chapter 54 promised one more detail. Promise callbacks wait in a queue of their own, and the event loop empties that queue <i>before</i> it moves on to timers. So a callback of an already-settled promise beats a 0&nbsp;ms timer:</p>
+  <pre class="code">setTimeout(() =&gt; console.log("timer"), 0);
+Promise.resolve("done").then(() =&gt; console.log("promise"));
+console.log("now");
+// prints: now, promise, timer</pre>
+  <div class="plain"><p><code>fetch</code> does not hand you the data. It hands you a promise: an object that means "the answer is coming". Your script keeps running. When the answer arrives, the function you gave to <code>.then</code> is called with it.</p></div>
+  <details class="qc"><summary>Quick check: what does const p = fetch(url); store in p, the moment that line runs?</summary><p>A Promise in the <b>pending</b> state. The response has not arrived yet; <code>p</code> will be fulfilled with a Response later, or rejected with an error.</p></details>
+</section>
+
+<section id="s5">
+  <h2>65.5 Your first fetch, with a pretend server</h2>
+  <p>Here is the deck's first real example. It asks a free practice API for ten fake users and prints them:</p>
+  <pre class="code">fetch("https://jsonplaceholder.typicode.com/users")
+  .then((response) =&gt; response.json())
+  .then((users) =&gt; console.log(users))
+  .catch((error) =&gt; console.error(error));</pre>
+  <p>Read it as a sentence: <i>fetch this address, then turn the response into data, then use the data, and catch anything that fails.</i> There are two waits in it, not one:</p>
+  <ol>
+    <li><code>fetch(url)</code> fulfils as soon as the response <i>starts</i> to arrive &mdash; the status code and headers come first. The value is a <b>Response</b> object.</li>
+    <li>The body (the JSON text) may still be on its way. <code>response.json()</code> reads the whole body and parses it as JSON. That takes time too, so it also returns a <b>promise</b>, fulfilled with the finished array or object.</li>
+  </ol>
+  <p>Each <code>.then</code> returns a new promise, which is why they can be chained. When the callback inside a <code>.then</code> <i>returns a promise</i>, the next <code>.then</code> waits for that promise and receives its result. That is why the first callback says <code>response.json()</code> (an arrow function with no braces returns its value), and the second callback receives the finished <code>users</code> array. If any step fails, the rest of the <code>.then</code>s are skipped and <code>.catch</code> runs.</p>
+  <p>The Response object has a few parts worth knowing:</p>
+  <table class="tbl">
+    <thead><tr><th>Part</th><th>What it is</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>response.status</code></td><td>The status code, a number</td><td><code>200</code>, <code>404</code></td></tr>
+      <tr><td><code>response.ok</code></td><td><code>true</code> if the status is 200&ndash;299</td><td><code>true</code></td></tr>
+      <tr><td><code>response.headers.get("Content-Type")</code></td><td>One response header</td><td><code>"application/json; charset=utf-8"</code></td></tr>
+      <tr><td><code>response.json()</code></td><td>A promise of the body, parsed as JSON</td><td>an array of users</td></tr>
+      <tr><td><code>response.text()</code></td><td>A promise of the body as plain text</td><td><code>"[{\"id\":1,..."</code></td></tr>
+    </tbody>
+  </table>
+  <p>The body can be read <b>only once</b>: after <code>response.json()</code>, a second <code>response.json()</code> or <code>response.text()</code> on the same response fails with a TypeError.</p>
+
+  <h3>Practising with no internet: a Blob URL</h3>
+  <p>The real example needs an internet connection, and the classroom network is often offline. So the runnable examples in this chapter bring their own server. A <span class="jw" data-def="A lump of data (text, an image, anything) kept in the browser's memory instead of in a file on a server.">Blob</span> is a lump of data held in the browser's memory. <code>URL.createObjectURL(blob)</code> gives that lump a temporary address that begins with <code>blob:</code>. The address lives only in this browser's memory: no other computer can open it, and it stops working when the page that made it closes or the address is switched off with <code>URL.revokeObjectURL</code>.</p>
+  <pre class="code">const data = [{ id: 1, name: "Leanne Graham" }];
+const url = URL.createObjectURL(
+  new Blob([JSON.stringify(data)], { type: "application/json" }));
+// url is now something like "blob:null/4f1c..." - and fetch(url) answers 200 with that JSON</pre>
+  <p><code>fetch</code> treats a <code>blob:</code> address like any other: the promise fulfils with a Response whose status is 200 and whose body is the JSON text. So everything <i>after</i> the <code>fetch</code> line is exactly the code you would write for a real server. To go live, you change one thing &mdash; the address.</p>
+  <p>The example below is the deck's "Display API Data in HTML" page. The pretend server holds the same ten users that JSONPlaceholder sends (with only their id, name and email, to keep it short).</p>
+  <pre class="code" data-run data-title="Fetch ten users and list them - a then/catch chain" data-h="330">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  li { margin: 2px 0; }
+&lt;/style&gt;
+&lt;h2&gt;Users&lt;/h2&gt;
+&lt;ul id="userList"&gt;&lt;/ul&gt;
+&lt;script&gt;
+  // ---- pretend server: the users JSONPlaceholder sends (id, name, email only) ----
+  const fakeUsers = [
+    { id: 1, name: "Leanne Graham", email: "Sincere@april.biz" },
+    { id: 2, name: "Ervin Howell", email: "Shanna@melissa.tv" },
+    { id: 3, name: "Clementine Bauch", email: "Nathan@yesenia.net" },
+    { id: 4, name: "Patricia Lebsack", email: "Julianne.OConner@kory.org" },
+    { id: 5, name: "Chelsey Dietrich", email: "Lucio_Hettinger@annie.ca" },
+    { id: 6, name: "Mrs. Dennis Schulist", email: "Karley_Dach@jasper.info" },
+    { id: 7, name: "Kurtis Weissnat", email: "Telly.Hoeger@billy.biz" },
+    { id: 8, name: "Nicholas Runolfsdottir V", email: "Sherwood@rosamond.me" },
+    { id: 9, name: "Glenna Reichert", email: "Chaim_McDermott@dana.io" },
+    { id: 10, name: "Clementina DuBuque", email: "Rey.Padberg@karina.biz" }
+  ];
+  const url = URL.createObjectURL(
+    new Blob([JSON.stringify(fakeUsers)], { type: "application/json" }));
+
+  // ---- the code from the slides (only the address is different) ----
+  const userList = document.getElementById("userList");
+
+  fetch(url)
+    .then((response) =&gt; {
+      console.log("Status:", response.status, "| ok:", response.ok);
+      return response.json();               // reading the body is a promise too
+    })
+    .then((users) =&gt; {
+      console.log("Got", users.length, "users. The first is", users[0].name);
+      users.forEach((user) =&gt; {
+        const li = document.createElement("li");
+        li.textContent = user.name;         // plain text: safe for outside data
+        userList.appendChild(li);
+      });
+    })
+    .catch((error) =&gt; {
+      userList.textContent = "Could not load users.";
+      console.error(error);
+    });
+&lt;/script&gt;</pre>
+  <p>The Console shows <i>Status: 200 | ok: true</i> and then <i>Got 10 users. The first is Leanne Graham</i>, and the page lists all ten names. Three jobs, as on the slide: <code>fetch</code> gets the JSON, <code>forEach</code> walks the array, <code>createElement</code> builds one <code>&lt;li&gt;</code> per user. The names go in with <code>textContent</code>, never <code>innerHTML</code>: data from someone else's server must be treated as plain text, so that any HTML hidden in it is shown, not run (Chapter 58).</p>
+  <p>To try the real API, use the slide's first line, <code>fetch("https://jsonplaceholder.typicode.com/users")</code>, in a page of your own opened with Live Server while you are online. The array you get back has the same ten users, each with more fields: <code>username</code>, <code>phone</code>, <code>website</code>, and nested <code>address</code> and <code>company</code> objects.</p>
+</section>
+
+<section id="s6">
+  <h2>65.6 async and await: the same promises, read top to bottom</h2>
+  <p>Chains of <code>.then</code> work, but most programmers today write the same thing with two keywords, <code>async</code> and <code>await</code>. Here is the deck's version:</p>
+  <pre class="code">async function getUsers() {
+  try {
+    const response = await fetch("https://jsonplaceholder.typicode.com/users");
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    const users = await response.json();
+    console.log(users);
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+getUsers();</pre>
+  <table class="tbl">
+    <thead><tr><th>Keyword</th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><code>async</code></td><td>Marks a function that may use <code>await</code>. An async function <b>always returns a promise</b>, even if you write <code>return 5</code>.</td></tr>
+      <tr><td><code>await promise</code></td><td>Pauses <b>this function only</b> until the promise settles. If it fulfils, <code>await</code> gives you the value; if it rejects, <code>await</code> <b>throws</b> the error.</td></tr>
+      <tr><td><code>try { } catch (error) { }</code></td><td>Catches anything thrown inside <code>try</code> &mdash; including a rejected <code>await</code>.</td></tr>
+    </tbody>
+  </table>
+  <p>Line by line, it reads like ordinary code: wait for the response, check it, wait for the data, use it. Underneath, nothing has changed. <code>await</code> is still promises and callbacks: while <code>getUsers</code> is paused, the rest of the page keeps running, clicks are handled, and the event loop is free. When the promise settles, the function carries on from where it paused.</p>
+  <div class="callout warn"><b>Two rules that catch everyone.</b> First, <code>await</code> works only inside an <code>async</code> function (or at the top level of a JavaScript module); in an ordinary <code>&lt;script&gt;</code>, writing it outside one is a SyntaxError. Second, forgetting <code>await</code> does not give an error &mdash; it gives you the promise instead of the value. <code>const users = response.json();</code> stores a pending promise, and <code>users.length</code> is <code>undefined</code>.</div>
+
+  <h3>fetch does not reject on a 404</h3>
+  <p>Look again at the line <code>if (!response.ok)</code>. It is there because of the most surprising fact about <code>fetch</code>: <b>a 404 or a 500 does not make the promise reject.</b> The promise rejects only when <i>no</i> response arrives at all &mdash; the network is down, the address cannot be reached, or the browser blocks the answer. A server saying "Not Found" is still a response, so <code>fetch</code> fulfils happily and <code>.catch</code> does not run.</p>
+  <p>That is the job of <code>response.ok</code>. It is <code>true</code> when the <span class="jw" data-def="The three-digit number at the top of every server answer: 200 means OK, 404 means not found, 500 means the server broke.">status code</span> is from 200 to 299, and <code>false</code> for anything else. If it is false, you <code>throw</code> an error yourself, and the <code>catch</code> handles it along with the real network failures:</p>
+  <pre class="code">const response = await fetch(url);
+if (!response.ok) {
+  throw new Error(`HTTP ${response.status}`);    // turn 404, 500... into a real error
+}
+const data = await response.json();               // only reached on 200-299</pre>
+  <div class="plain"><p><code>fetch</code> only complains when it hears nothing back. "Not found" and "server broke" both count as hearing back. Checking <code>response.ok</code> is your job, and <code>if (!response.ok) throw ...</code> is how you do it.</p></div>
+  <details class="qc"><summary>Quick check: the server answers 500 and your code has no response.ok check. Does catch run because of the 500?</summary><p>No. The promise from <code>fetch</code> fulfils, because an answer arrived. Your code goes on to treat the error page as if it were data &mdash; and if that page is not JSON, <code>response.json()</code> then throws a confusing SyntaxError. Chapter 70 looks at every way a fetch can fail.</p></details>
+</section>
+
+<section id="s7">
+  <h2>65.7 Loading, success, empty and error: the user directory</h2>
+  <p>Real networks are slow and unreliable, so a page that fetches data must be ready for four outcomes, not one. The deck calls them the four states, and a good page shows a clear message for each.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="A data page starts in the loading state and ends in one of three states: success with cards, empty with a no users message, or error with a friendly message">
+      <rect x="20" y="98" width="170" height="56" rx="10" class="box gry"/>
+      <text x="105" y="121" class="t c b">1. Loading</text>
+      <text x="105" y="139" class="t c s">"Loading users..."</text>
+      <path d="M190 116 L248 50" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M190 126 L248 126" class="edge" marker-end="url(#arr)"/>
+      <path d="M190 136 L248 202" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="250" y="20" width="350" height="56" rx="10" class="box grn"/>
+      <text x="425" y="43" class="t c b">2. Success: "10 user(s) shown"</text>
+      <text x="425" y="61" class="t c s">status 200 and a list with people in it: draw the cards</text>
+      <rect x="250" y="98" width="350" height="56" rx="10" class="box"/>
+      <text x="425" y="121" class="t c b">3. Empty: "No users found."</text>
+      <text x="425" y="139" class="t c s">status 200 but the array is empty: []</text>
+      <rect x="250" y="176" width="350" height="56" rx="10" class="box red"/>
+      <text x="425" y="199" class="t c b">4. Error: "Could not load users."</text>
+      <text x="425" y="217" class="t c s">404, 500, no internet or broken JSON: one catch</text>
+    </svg>
+    <figcaption><b>Figure 65.3</b> Show "Loading" the moment the request starts, then replace it with exactly one of the other three. A friendly message goes on the page; the technical detail goes to <code>console.error</code>.</figcaption>
+  </figure>
+  <p>The deck's mini project puts all of this together: a <b>User Directory</b> with a search box (slides 31&ndash;33). It is built in two parts.</p>
+  <ul>
+    <li><b>Part 1, <code>showUsers(users)</code></b>, draws one card per user from <i>any</i> array &mdash; the full list or a filtered one. It clears the old cards with <code>innerHTML = ""</code>, builds each card with <code>createElement</code> and <code>textContent</code>, and writes "N user(s) shown".</li>
+    <li><b>Part 2, <code>loadUsers()</code></b>, fetches <b>once</b>, checks <code>response.ok</code>, saves the array in <code>allUsers</code> and shows it. The search box's <code>input</code> event then filters the <i>saved</i> array on every keystroke with <code>filter</code> and <code>includes</code>: instant, and no new request to the server.</li>
+  </ul>
+  <p>The runnable version adds a small control panel at the top, so you can make the pretend server misbehave on purpose. Choose a behaviour, press <b>Load again</b>, and watch the status line and the Console. The pretend server also waits 0.8 seconds before answering, like a slow network, so you can see the loading state.</p>
+  <pre class="code" data-run data-title="User Directory - search for le, then try each pretend-server setting" data-h="400">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 12px; color: #0B2545; }
+  .server { background: #F1F4F8; padding: 6px 8px; border-radius: 8px; font-size: 13px; }
+  input { width: 100%; padding: 8px; box-sizing: border-box; }
+  .card { border: 1px solid #dddddd; padding: 6px 10px; border-radius: 8px; margin: 6px 0; }
+  .card p { margin: 2px 0 0; font-size: 13px; }
+  .error { color: #c0392b; }
+&lt;/style&gt;
+&lt;p class="server"&gt;
+  &lt;label for="mode"&gt;Pretend server:&lt;/label&gt;
+  &lt;select id="mode"&gt;
+    &lt;option value="ok"&gt;Normal&lt;/option&gt;
+    &lt;option value="empty"&gt;Empty list&lt;/option&gt;
+    &lt;option value="404"&gt;Wrong address (404)&lt;/option&gt;
+    &lt;option value="offline"&gt;No internet&lt;/option&gt;
+  &lt;/select&gt;
+  &lt;button id="reload"&gt;Load again&lt;/button&gt;
+&lt;/p&gt;
+&lt;h2&gt;User Directory&lt;/h2&gt;
+&lt;input id="search" placeholder="Search by name..." aria-label="Search by name"&gt;
+&lt;p id="statusMsg"&gt;Loading users...&lt;/p&gt;
+&lt;div id="userContainer"&gt;&lt;/div&gt;
+&lt;script&gt;
+  // ---- pretend server: skip this part on a first reading ----
+  const USERS = [
+    { id: 1, name: "Leanne Graham", email: "Sincere@april.biz" },
+    { id: 2, name: "Ervin Howell", email: "Shanna@melissa.tv" },
+    { id: 3, name: "Clementine Bauch", email: "Nathan@yesenia.net" },
+    { id: 4, name: "Patricia Lebsack", email: "Julianne.OConner@kory.org" },
+    { id: 5, name: "Chelsey Dietrich", email: "Lucio_Hettinger@annie.ca" },
+    { id: 6, name: "Mrs. Dennis Schulist", email: "Karley_Dach@jasper.info" },
+    { id: 7, name: "Kurtis Weissnat", email: "Telly.Hoeger@billy.biz" },
+    { id: 8, name: "Nicholas Runolfsdottir V", email: "Sherwood@rosamond.me" },
+    { id: 9, name: "Glenna Reichert", email: "Chaim_McDermott@dana.io" },
+    { id: 10, name: "Clementina DuBuque", email: "Rey.Padberg@karina.biz" }
+  ];
+  const deadUrl = URL.createObjectURL(new Blob(["gone"]));
+  URL.revokeObjectURL(deadUrl);                // a switched-off address fails like no internet
+  function wait(ms) {
+    return new Promise((resolve) =&gt; setTimeout(resolve, ms));
+  }
+  async function pretendFetch(url) {
+    await wait(800);                           // a slow network, so you see "Loading"
+    const mode = document.getElementById("mode").value;
+    if (mode === "offline") return fetch(deadUrl);
+    if (mode === "404") return new Response("Not found", { status: 404 });
+    const data = mode === "empty" ? [] : USERS;
+    return fetch(URL.createObjectURL(
+      new Blob([JSON.stringify(data)], { type: "application/json" })));
+  }
+
+  // ---- directory.js (part 1): show cards ----
+  const API_URL = "https://jsonplaceholder.typicode.com/users";
+  const search = document.getElementById("search");
+  const statusMsg = document.getElementById("statusMsg");
+  const container = document.getElementById("userContainer");
+  let allUsers = [];                           // full list, fetched only once
+
+  function showUsers(users) {
+    container.innerHTML = "";                  // remove old cards
+    users.forEach((user) =&gt; {
+      const card = document.createElement("div");
+      card.className = "card";
+      const name = document.createElement("strong");
+      name.textContent = user.name;            // safe: plain text
+      const email = document.createElement("p");
+      email.textContent = user.email;
+      card.append(name, email);
+      container.appendChild(card);
+    });
+    statusMsg.textContent = `${users.length} user(s) shown`;
+    statusMsg.className = "";
+  }
+
+  // ---- directory.js (part 2): fetch and search ----
+  async function loadUsers() {
+    statusMsg.textContent = "Loading users...";      // state 1: loading
+    statusMsg.className = "";
+    container.innerHTML = "";
+    search.value = "";
+    allUsers = [];
+    try {
+      const response = await pretendFetch(API_URL);  // real site: await fetch(API_URL)
+      console.log("Response:", response.status, "ok:", response.ok);
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);  // turn a 404 or 500 into an error
+      }
+      allUsers = await response.json();
+      if (allUsers.length === 0) {
+        statusMsg.textContent = "No users found.";   // state 3: empty
+        return;
+      }
+      showUsers(allUsers);                           // state 2: success
+    } catch (error) {
+      statusMsg.textContent = "Could not load users. Please try again.";
+      statusMsg.className = "error";                 // state 4: any failure
+      console.error("Load failed:", error.name, error.message);
+    }
+  }
+
+  search.addEventListener("input", () =&gt; {
+    if (allUsers.length === 0) return;               // nothing loaded to search
+    const text = search.value.toLowerCase();
+    const matches = allUsers.filter((user) =&gt;
+      user.name.toLowerCase().includes(text));
+    showUsers(matches);
+    if (matches.length === 0) statusMsg.textContent = "No match found.";
+  });
+
+  document.getElementById("reload").addEventListener("click", loadUsers);
+  loadUsers();                                       // start when the page loads
+&lt;/script&gt;</pre>
+  <p>What you should see, setting by setting:</p>
+  <table class="tbl">
+    <thead><tr><th>Pretend server</th><th>Console</th><th>Status line</th></tr></thead>
+    <tbody>
+      <tr><td>Normal</td><td><i>Response: 200 ok: true</i></td><td>10 user(s) shown, with ten cards</td></tr>
+      <tr><td>Normal, then type <kbd>le</kbd></td><td>(nothing new)</td><td>5 user(s) shown: Leanne, Clementine, Patricia, Glenna, Clementina</td></tr>
+      <tr><td>Normal, then type <kbd>xyz</kbd></td><td>(nothing new)</td><td>No match found.</td></tr>
+      <tr><td>Empty list</td><td><i>Response: 200 ok: true</i></td><td>No users found.</td></tr>
+      <tr><td>Wrong address (404)</td><td><i>Response: 404 ok: false</i>, then the red <i>Load failed: Error HTTP 404</i></td><td>Could not load users. Please try again. (in red)</td></tr>
+      <tr><td>No internet</td><td>Only a red <i>Load failed: TypeError ...</i> (the wording after TypeError depends on the browser)</td><td>Could not load users. Please try again. (in red)</td></tr>
+    </tbody>
+  </table>
+  <p>Compare the last two rows. With the 404, a response <i>did</i> arrive, so the "Response:" line prints and our own <code>throw</code> sends the code to <code>catch</code>. With no internet there is no response at all: the <code>await</code> itself throws a TypeError, the "Response:" line never runs, and the same <code>catch</code> takes over. One <code>catch</code>, every failure, one friendly message.</p>
+  <p>Notice also how little of the code is about the network. Only the two lines with <code>await</code> talk to the server; everything else is the DOM work you already know. To make the directory real, replace <code>pretendFetch(API_URL)</code> with <code>fetch(API_URL)</code> and delete the pretend-server block.</p>
+</section>
+
+<section id="s8">
+  <h2>65.8 Sending data: POST, PUT and DELETE</h2>
+  <p>So far the browser has only <i>read</i>. To <i>create</i> something on the server &mdash; a registration, a comment, a new post &mdash; you send a POST request with the data in its body. <code>fetch</code> takes a second argument, an options object, for this:</p>
+  <pre class="code">fetch("https://jsonplaceholder.typicode.com/posts", {
+  method: "POST",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ title: "JavaScript", body: "Learning Fetch API", userId: 1 })
+})
+  .then((response) =&gt; {
+    if (!response.ok) {
+      throw new Error("Request failed");
+    }
+    return response.json();
+  })
+  .then((data) =&gt; console.log(data))
+  .catch((error) =&gt; console.error(error));</pre>
+  <table class="tbl">
+    <thead><tr><th>Option</th><th>What it says</th></tr></thead>
+    <tbody>
+      <tr><td><code>method: "POST"</code></td><td>We are creating data, not reading it</td></tr>
+      <tr><td><code>headers: { "Content-Type": "application/json" }</code></td><td>A note to the server: the body is JSON</td></tr>
+      <tr><td><code>body: JSON.stringify(...)</code></td><td>The data itself, which must be <b>text</b> &mdash; so it is stringified first</td></tr>
+    </tbody>
+  </table>
+  <p>JSONPlaceholder answers with status <b>201 Created</b> and the object it "saved", now with a new id: <code>{"title":"JavaScript","body":"Learning Fetch API","userId":1,"id":101}</code>. It is a practice server, so nothing is really stored; ask for post 101 afterwards and it is not there.</p>
+  <p>The body really must be text. If you pass the object itself, <code>fetch</code> does not complain: it converts the object to a string the default JavaScript way, which is the useless <code>"[object Object]"</code>, and sends that. The server cannot parse it as JSON and refuses it, typically with 400 Bad Request. The example below lets you see both. A Blob address accepts only GET requests, so this pretend server is a small function instead: it builds a real <code>Request</code> from your options &mdash; exactly the message the browser would send &mdash; reads its body, and answers the way JSONPlaceholder does.</p>
+  <pre class="code" data-run data-title="POST a new post - then press the second button and read the Console" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  label { display: block; margin-top: 6px; font-size: 14px; }
+  input { width: 100%; padding: 6px; box-sizing: border-box; }
+  button { margin-top: 8px; padding: 6px 10px; }
+  .ok { color: #138808; font-weight: 700; }
+  .error { color: #c0392b; font-weight: 700; }
+&lt;/style&gt;
+&lt;label for="title"&gt;Title&lt;/label&gt;
+&lt;input id="title" value="JavaScript"&gt;
+&lt;label for="text"&gt;Text&lt;/label&gt;
+&lt;input id="text" value="Learning Fetch API"&gt;
+&lt;button id="send"&gt;Send (POST)&lt;/button&gt;
+&lt;button id="forgot"&gt;Send without JSON.stringify&lt;/button&gt;
+&lt;p id="result" role="status"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // ---- pretend server: answers like JSONPlaceholder (skip on a first reading) ----
+  async function pretendFetch(url, options) {
+    const request = new Request(url, options);   // exactly what the browser would send
+    const text = await request.text();
+    console.log("Server received:", request.method, "| body:", text);
+    try {
+      const saved = JSON.parse(text);
+      saved.id = 101;                             // a "new" id; nothing is really stored
+      return new Response(JSON.stringify(saved),
+        { status: 201, headers: { "Content-Type": "application/json" } });
+    } catch (error) {
+      return new Response('{"error":"body is not JSON"}',
+        { status: 400, headers: { "Content-Type": "application/json" } });
+    }
+  }
+
+  // ---- the code from the slides, in async/await form ----
+  const API_URL = "https://jsonplaceholder.typicode.com/posts";
+  const result = document.getElementById("result");
+
+  async function sendPost(useStringify) {
+    const post = {
+      title: document.getElementById("title").value,
+      body: document.getElementById("text").value,
+      userId: 1
+    };
+    try {
+      const response = await pretendFetch(API_URL, {   // real site: await fetch(API_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: useStringify ? JSON.stringify(post) : post
+      });
+      if (!response.ok) {
+        throw new Error(`HTTP ${response.status}`);
+      }
+      const data = await response.json();
+      console.log("Status", response.status, "- saved:", data);
+      result.textContent = `Created! The server gave it id ${data.id}.`;
+      result.className = "ok";
+    } catch (error) {
+      console.error("POST failed:", error.message);
+      result.textContent = "Could not save the post.";
+      result.className = "error";
+    }
+  }
+
+  document.getElementById("send").addEventListener("click", () =&gt; sendPost(true));
+  document.getElementById("forgot").addEventListener("click", () =&gt; sendPost(false));
+&lt;/script&gt;</pre>
+  <p>Press <b>Send (POST)</b>. The Console shows <i>Server received: POST | body: {"title":"JavaScript","body":"Learning Fetch API","userId":1}</i>, then <i>Status 201 - saved: {title: 'JavaScript', body: 'Learning Fetch API', userId: 1, id: 101}</i>, and the page says <i>Created! The server gave it id 101.</i> Now press <b>Send without JSON.stringify</b>. The server receives the body <i>[object Object]</i>, answers 400, and the Console shows <i>POST failed: HTTP 400</i>. Same code, one missing <code>JSON.stringify</code>.</p>
+  <p>PUT and DELETE follow the same pattern, with the record's id in the address:</p>
+  <pre class="code">// replace post 1 completely
+await fetch("https://jsonplaceholder.typicode.com/posts/1", {
+  method: "PUT",
+  headers: { "Content-Type": "application/json" },
+  body: JSON.stringify({ id: 1, title: "Updated", body: "New text", userId: 1 })
+});
+
+// delete post 1 - no body needed
+await fetch("https://jsonplaceholder.typicode.com/posts/1", { method: "DELETE" });</pre>
+  <p>(Like every <code>await</code>, these lines belong inside an async function, with a <code>response.ok</code> check, as above.) One thing is not allowed: a GET request with a body. <code>fetch(url, { body: "..." })</code> without a method is a GET, so the request is never sent: the promise rejects with a TypeError.</p>
+  <details class="qc"><summary>Quick check: why is the body wrapped in JSON.stringify, and why is the Content-Type header added?</summary><p>The body must be text, and <code>JSON.stringify</code> turns the object into JSON text. The header tells the server that this text is JSON, so it knows to parse it as JSON.</p></details>
+</section>
+
+<section id="s9">
+  <h2>65.9 CORS in one paragraph, and a practice task</h2>
+  <p>Sooner or later a fetch that looks perfect fails, and the Console shows a red message containing the words <i>blocked by CORS policy</i>. Here is what it means. Every page has an origin &mdash; its protocol, host and port (Chapter 64). When a page asks a server on a <i>different</i> origin for data, the browser lets your JavaScript read the answer only if the server's response carries a permission header, <code>Access-Control-Allow-Origin</code>, naming your origin (or <code>*</code>, meaning "any site"). This rule is called <span class="jw" data-def="Cross-Origin Resource Sharing: the rule that a site's server must give permission before a page from a different site may read its answers.">CORS</span>. Without that header, <code>fetch</code> rejects with a TypeError and your code never sees the data. For some requests, such as a POST with a JSON body, the browser even sends a small automatic "may I?" request first, called a preflight. The rule protects users: your browser may be logged in to a bank or a college portal, and CORS stops any random page from reading those sites' answers on your behalf. That is also why a CORS error <b>cannot be fixed in your front-end code</b> &mdash; only the server can grant permission. Practice APIs such as JSONPlaceholder send an <code>Access-Control-Allow-Origin</code> header that allows every site, which is why the deck's examples work from any page.</p>
+  <div class="plain"><p>A server decides which other websites may read its data. If it has not said "yes" to yours, the browser hides the answer from your JavaScript and <code>fetch</code> fails. You cannot switch this off from your page; the server owner has to allow it.</p></div>
+
+  <h3>Student challenge: a product display page</h3>
+  <p>The deck ends this module with a 30&ndash;40 minute challenge. Build <code>products.html</code> that:</p>
+  <ol>
+    <li>Fetches <code>https://fakestoreapi.com/products</code> (another free practice API &mdash; it can be slow, which is good for testing your loading state).</li>
+    <li>Shows each product's image, name and price as a card: <code>img.src = product.image</code>, <code>product.title</code>, <code>product.price</code>.</li>
+    <li>Adds a <code>&lt;select&gt;</code> that filters by <code>product.category</code>.</li>
+    <li>Shows "Loading&hellip;" first, and a friendly message if the request fails.</li>
+  </ol>
+  <p>Start from the User Directory: <code>showUsers</code> becomes <code>showProducts</code>, the search box becomes the select, and the <code>"input"</code> event becomes <code>"change"</code>. To practise offline, put three products in a Blob URL first. The deck's discussion question is worth answering before you code: should changing the category call the API again, or filter the array you already saved? Filtering the saved array is instant and costs no network trip &mdash; exactly what the directory's search did.</p>
+</section>
+
+<section id="mistakes">
+  <h2>65.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "fetch(url) gives me the data."</b><br>It gives a promise, and when that fulfils, a Response &mdash; not the data.</div>
+    <div class="r"><b>&#10003; "fetch gives a promise of a Response; response.json() gives a promise of the data."</b><br>Two waits: <code>await fetch(url)</code>, then <code>await response.json()</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "If the server says 404, fetch rejects and catch runs."</b><br>A 404 is an answer, so the promise fulfils.</div>
+    <div class="r"><b>&#10003; "fetch rejects only when no answer arrives."</b><br>Check <code>response.ok</code> and <code>throw</code> yourself to send HTTP errors to <code>catch</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "JSON is a JavaScript object."</b><br>It looks like one, but JSON is text, with stricter rules.</div>
+    <div class="r"><b>&#10003; "JSON is a string; parse it to get an object, stringify an object to get JSON."</b><br>Double quotes everywhere, no functions, no comments, no trailing commas.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "await freezes the page until the data comes."</b><br>Only the async function it is in is paused.</div>
+    <div class="r"><b>&#10003; "await pauses one function; the page keeps running."</b><br>Clicks, typing and other code carry on while the request is out.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I can send an object as the body."</b><br>It is turned into the text "[object Object]".</div>
+    <div class="r"><b>&#10003; "body: JSON.stringify(data), with Content-Type: application/json."</b><br>The body must be text, and the header says which kind.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A CORS error is a bug in my JavaScript."</b><br>Your request may be perfect; the server has not given your origin permission.</div>
+    <div class="r"><b>&#10003; "CORS is decided by the server's Access-Control-Allow-Origin header."</b><br>Only the server side can fix it.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three are short answers that ask you to predict what the code prints.</p>
+  <details class="q"><summary>What does <code>fetch(url)</code> return the moment it is called?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. The data from the server</li><li>B. A Response object</li><li>C. A Promise</li><li>D. The JSON text of the body</li></ul>
+    <p><b>Answer: C.</b> The answer has not arrived yet, so <code>fetch</code> returns a pending promise. B is what that promise is later <i>fulfilled with</i>; the data itself (A, D) needs <code>response.json()</code> on top.</p></div></details>
+  <details class="q"><summary>Which of these is valid JSON?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>{ name: "Rahul" }</code></li><li>B. <code>{ 'name': 'Rahul' }</code></li><li>C. <code>{ "name": "Rahul", }</code></li><li>D. <code>{ "name": "Rahul", "marks": [88, 92] }</code></li></ul>
+    <p><b>Answer: D.</b> A has an unquoted key, B uses single quotes, and C has a trailing comma &mdash; all legal in a JavaScript object, all errors in JSON.</p></div></details>
+  <details class="q"><summary><span>What does this print, and in what order? <code>console.log("A"); fetch(url).then(() =&gt; console.log("B")); console.log("C");</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: A, C, B.</b> <code>fetch</code> starts the request and returns at once, so <code>"C"</code> prints straight after <code>"A"</code>. The <code>.then</code> callback runs only after the response arrives and the script has finished. (If the request failed, B would never print.)</p></div></details>
+  <details class="q"><summary>A page calls <code>fetch("/api/marks").then(...).catch(...)</code> and the server answers 404 Not Found. What happens?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The promise rejects and <code>.catch</code> runs with the 404</li><li>B. The promise fulfils; <code>.then</code> runs with a Response whose <code>ok</code> is <code>false</code> and <code>status</code> is 404</li><li>C. <code>fetch</code> throws an error before returning</li><li>D. The browser reloads the page</li></ul>
+    <p><b>Answer: B.</b> A 404 is still a response, so the promise fulfils. A is the most common wrong belief: <code>fetch</code> rejects only when no response arrives. Check <code>response.ok</code> yourself.</p></div></details>
+  <details class="q"><summary>What does this print? <code>console.log(JSON.stringify({ id: 1, greet() { return "hi"; } }));</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>{"id":1}</code></li><li>B. <code>{"id":1,"greet":"hi"}</code></li><li>C. <code>{id: 1, greet: ƒ}</code></li><li>D. A SyntaxError</li></ul>
+    <p><b>Answer: A.</b> JSON cannot hold functions, so <code>stringify</code> silently leaves the <code>greet</code> property out. It does not call the function (B), and the result is a string with quoted keys, not an object (C).</p></div></details>
+  <details class="q"><summary>Which statement about <code>await</code> is true?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It pauses only the async function it is in; the rest of the page keeps running</li><li>B. It freezes the whole page until the promise settles</li><li>C. It makes <code>fetch</code> synchronous</li><li>D. It can be used anywhere in an ordinary script</li></ul>
+    <p><b>Answer: A.</b> While the function is paused, events and other code carry on. B and C describe a synchronous wait that blocks everything, which is exactly what <code>await</code> avoids; D is wrong because in an ordinary script <code>await</code> works only inside an <code>async</code> function.</p></div></details>
+  <details class="q"><summary>Which call correctly sends <code>{ title: "Hi" }</code> to the server as JSON?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>fetch(url, { method: "POST", body: { title: "Hi" } })</code></li><li>B. <code>fetch(url, { method: "GET", body: JSON.stringify({ title: "Hi" }) })</code></li><li>C. <code>fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ title: "Hi" }) })</code></li><li>D. <code>fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.parse({ title: "Hi" }) })</code></li></ul>
+    <p><b>Answer: C.</b> A sends the text "[object Object]"; B is refused, because a GET request cannot have a body; D uses <code>parse</code>, which turns text into an object &mdash; the wrong direction.</p></div></details>
+  <details class="q"><summary><code>fetch(url)</code> with no second argument sends which HTTP method?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. POST</li><li>B. GET</li><li>C. PUT</li><li>D. It sends no request until a method is given</li></ul>
+    <p><b>Answer: B.</b> GET is the default. Any other method must be named in the options object, such as <code>{ method: "POST" }</code>.</p></div></details>
+  <details class="q"><summary>For which status code is <code>response.ok</code> <code>true</code>?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 404 Not Found</li><li>B. 500 Internal Server Error</li><li>C. 400 Bad Request</li><li>D. 201 Created</li></ul>
+    <p><b>Answer: D.</b> <code>ok</code> is <code>true</code> for every status from 200 to 299, and 201 is in that range. The other three are error codes, so <code>ok</code> is <code>false</code> for them.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>async function getCount() { return 5; } console.log(getCount() instanceof Promise);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: true.</b> An <code>async</code> function always returns a promise. The <code>return 5</code> becomes the value the promise is fulfilled with; to get the 5 you would write <code>await getCount()</code> inside another async function, or <code>getCount().then(...)</code>.</p></div></details>
+  <details class="q"><summary>A page at <code>http://127.0.0.1:5500</code> fetches <code>https://api.example.com/data</code>, and the Console says the request was "blocked by CORS policy". Who has to fix it?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Nobody: wrapping the fetch in <code>try...catch</code> makes it work</li><li>B. The API server, by sending an <code>Access-Control-Allow-Origin</code> header that allows the page's origin</li><li>C. The page, by switching from GET to POST</li><li>D. The user, by reloading the page</li></ul>
+    <p><b>Answer: B.</b> CORS permission is granted by the server's response headers. <code>try...catch</code> (A) only lets you handle the failure gracefully; it cannot make the browser hand over the data.</p></div></details>
+  <details class="q"><summary><span>What does this print, and why? <code>async function load() { const response = await fetch(url); const users = response.json(); console.log(users.length); }</code> (the server returns an array of 10 users)</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: undefined.</b> <code>response.json()</code> returns a promise, and without <code>await</code>, <code>users</code> is that promise, which has no <code>length</code>. Fix: <code>const users = await response.json();</code> &mdash; then it prints <code>10</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An API is a server's agreed set of addresses (endpoints) and rules. GET reads, POST creates, PUT replaces, DELETE deletes; <code>fetch(url)</code> alone is a GET.</li>
+    <li>JSON is <b>text</b>: double-quoted keys and strings, six value types, no functions, comments or trailing commas. <code>JSON.stringify</code> packs an object into JSON; <code>JSON.parse</code> unpacks it, and throws a SyntaxError on broken text.</li>
+    <li><code>fetch</code> is asynchronous: it returns a pending <b>Promise</b> at once, the next lines run, and the callback runs when the answer arrives.</li>
+    <li>Two waits: <code>fetch</code> gives a Response; <code>response.json()</code> gives the data. Chain them with <code>.then</code>, or write <code>await</code> twice inside an <code>async</code> function with <code>try...catch</code>.</li>
+    <li><code>fetch</code> does <b>not</b> reject on 404 or 500 &mdash; only when no answer arrives. Check <code>response.ok</code> (status 200&ndash;299) and throw yourself.</li>
+    <li>A data page has four states: loading, success, empty and error. Show a friendly message on the page, put details in <code>console.error</code>, and insert outside data with <code>textContent</code>.</li>
+    <li>To send data: <code>method</code>, a <code>Content-Type: application/json</code> header and <code>body: JSON.stringify(data)</code>. A server answers a good POST with 201 Created.</li>
+    <li>CORS: a server on another origin must allow your page with <code>Access-Control-Allow-Origin</code>; only the server can fix a CORS error. Offline, practise with a Blob URL.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>JSON.stringify(obj)</code></td><td>Object or array &rarr; JSON text</td></tr>
+      <tr><td><code>JSON.parse(text)</code></td><td>JSON text &rarr; object or array (SyntaxError if invalid)</td></tr>
+      <tr><td><code>fetch(url)</code></td><td>Sends a GET; returns a promise of a Response</td></tr>
+      <tr><td><code>.then((response) =&gt; response.json())</code></td><td>When the response arrives, read its body as JSON</td></tr>
+      <tr><td><code>.catch((error) =&gt; ...)</code></td><td>Runs if any earlier step rejects or throws</td></tr>
+      <tr><td><code>const response = await fetch(url);</code></td><td>Same, inside an <code>async</code> function</td></tr>
+      <tr><td><code>if (!response.ok) throw new Error(`HTTP ${response.status}`);</code></td><td>Turn a 404 or 500 into an error for <code>catch</code></td></tr>
+      <tr><td><code>const data = await response.json();</code></td><td>The parsed data (array or object)</td></tr>
+      <tr><td><code>fetch(url, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(data) })</code></td><td>Send data to create a record</td></tr>
+      <tr><td><code>URL.createObjectURL(new Blob([json], { type: "application/json" }))</code></td><td>A pretend-server address for practising offline</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Fetch_API/Using_Fetch" target="_blank" rel="noopener noreferrer">MDN &mdash; Using the Fetch API<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every option of <code>fetch</code>, reading bodies, checking status, and sending JSON, with examples.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/JSON" target="_blank" rel="noopener noreferrer">MDN &mdash; JSON<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact JSON grammar and everything <code>stringify</code> and <code>parse</code> can do, including pretty-printing.</span></li>
+    <li><a href="https://javascript.info/async-await" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Async/await<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A friendly second explanation of <code>async</code>, <code>await</code> and error handling, with small exercises; the chapters before it cover promises.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Guides/CORS" target="_blank" rel="noopener noreferrer">MDN &mdash; Cross-Origin Resource Sharing (CORS)<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">What the browser checks, which requests get a preflight, and which headers the server must send.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

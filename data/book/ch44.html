@@ -1,0 +1,727 @@
+<article class="chapter" data-ch="44">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 44 &middot; Operators and Expressions</p>
+  <h1>Operators and Expressions</h1>
+  <p class="lead">A variable holds a value; an operator does something with it. Adding up marks, checking whether a student has passed, joining a first name to a surname, falling back to "Guest" when a box is left empty &mdash; each of those is one expression built from operators. This chapter teaches the two dozen or so symbols that do most of the work in JavaScript, and the handful of places where they behave in ways that catch out beginners and professionals alike.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>let</code> makes a variable you can change later; <code>const</code> makes one you cannot reassign (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>A variable declared without a value holds <code>undefined</code> (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>Every value has a type &mdash; number, string, boolean, undefined, null &mdash; and <code>typeof</code> names it (<a href="book.html?ch=43">Chapter 43</a>).</li>
+      <li>JavaScript sometimes changes a value's type on its own, which is why <code>"5" + 1</code> gives <code>"51"</code> (<a href="book.html?ch=43">Chapter 43</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Tell an expression from a statement, and point to the operands and operators in any line of code.</li>
+      <li>Predict the result of arithmetic with <code>/</code>, <code>%</code> and <code>**</code>, and with prefix and postfix <code>++</code>.</li>
+      <li>Say when <code>+</code> adds and when it joins text, and convert typed input before doing maths with it.</li>
+      <li>Update a variable with <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code> and <code>%=</code>.</li>
+      <li>Compare values with <code>===</code> and <code>!==</code>, and explain the surprises that <code>==</code> causes.</li>
+      <li>Combine conditions with <code>&amp;&amp;</code>, <code>||</code> and <code>!</code>, and choose correctly between <code>||</code> and <code>??</code> for a default value.</li>
+      <li>Work out the order of a mixed expression from operator precedence, and add brackets to make it clear.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>44.1 Expressions, operands and operators</h2>
+  <p>In school you wrote <code>5 + 2 = 7</code> without a second thought. JavaScript borrows the same idea and gives its parts names. The <code>5</code> and the <code>2</code> are the values being worked on; they are called <span class="jw" data-def="The values an operator works on. In 5 + 2 the operands are 5 and 2.">operands</span>. The <code>+</code> is the action; it is called an <b>operator</b>. Put them together and you have an <b>expression</b>: a piece of code that JavaScript <span class="jw" data-def="Works out. JavaScript evaluates 5 + 2 by doing the sum and getting 7.">evaluates</span> to produce one value. <code>5 + 2</code> is an expression, and its value is <code>7</code>.</p>
+  <p>Expressions come in every size. A lone value is the smallest kind: <code>40</code> is an expression whose value is 40, and so is <code>"Asha"</code>. A variable name on its own is an expression too; its value is whatever is in the box at that moment. Bigger expressions are built out of smaller ones, so <code>price * qty + 40</code> is the smaller expression <code>price * qty</code>, then an operator, then <code>40</code>.</p>
+  <p>A <b>statement</b> is something different. It is a complete instruction &mdash; one whole sentence of the program &mdash; and it usually ends with a semicolon. <code>let total = price * qty + 40;</code> is a statement: it tells JavaScript to work out the expression on the right and store the answer in a new variable called <code>total</code>. <code>console.log(total);</code>, which you met in Chapter 41, is a statement as well.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="The statement let total = price * qty + 40; with its operands, operators, expression and statement labelled">
+      <text x="310" y="26" class="t c b">One line of code, taken apart</text>
+      <text x="216" y="66" class="t c s">assign</text>
+      <text x="277" y="66" class="t c s">operand</text>
+      <text x="338" y="66" class="t c s">operator</text>
+      <text x="391" y="66" class="t c s">operand</text>
+      <text x="444" y="66" class="t c s">operator</text>
+      <text x="492" y="66" class="t c s">operand</text>
+      <rect x="67" y="76" width="46" height="32" rx="6" class="box gry"/><text x="90" y="97" class="t c mono">let</text>
+      <rect x="121" y="76" width="70" height="32" rx="6" class="box gry"/><text x="156" y="97" class="t c mono">total</text>
+      <rect x="199" y="76" width="34" height="32" rx="6" class="box grn"/><text x="216" y="97" class="t c mono b">=</text>
+      <rect x="241" y="76" width="72" height="32" rx="6" class="box saf"/><text x="277" y="97" class="t c mono">price</text>
+      <rect x="321" y="76" width="34" height="32" rx="6" class="box blu"/><text x="338" y="97" class="t c mono b">*</text>
+      <rect x="363" y="76" width="56" height="32" rx="6" class="box saf"/><text x="391" y="97" class="t c mono">qty</text>
+      <rect x="427" y="76" width="34" height="32" rx="6" class="box blu"/><text x="444" y="97" class="t c mono b">+</text>
+      <rect x="469" y="76" width="46" height="32" rx="6" class="box saf"/><text x="492" y="97" class="t c mono">40</text>
+      <rect x="523" y="76" width="30" height="32" rx="6" class="box gry"/><text x="538" y="97" class="t c mono">;</text>
+      <path d="M241 116 L241 124 L515 124 L515 116" class="edge saf"/>
+      <text x="378" y="142" class="t c s">EXPRESSION: works out to one value (340 when price is 150 and qty is 2)</text>
+      <path d="M67 154 L67 162 L553 162 L553 154" class="edge"/>
+      <text x="310" y="182" class="t c s">STATEMENT: the complete instruction &#8212; work out the expression, store it in total</text>
+    </svg>
+    <figcaption><b>Figure 44.1</b> The operands are the values being worked on and the operators are the actions. Together they make an expression that works out to one value; the whole line is a statement that stores it.</figcaption>
+  </figure>
+  <div class="plain"><p>An <b>expression</b> is a question with an answer: "what is price times qty plus 40?" The answer is one value. A <b>statement</b> is an order: "make a box called total and put that answer in it." Orders often contain questions; a question never contains an order.</p></div>
+  <p>A handy test: if a piece of code could sit inside <code>console.log( ... )</code> and print a value, it is an expression. <code>console.log(price * qty)</code> works. <code>console.log(let x = 5)</code> is a SyntaxError, because <code>let x = 5</code> is a statement, not a value.</p>
+  <h3>One, two or three operands</h3>
+  <p>Operators are also sorted by how many operands they need:</p>
+  <table class="tbl">
+    <thead><tr><th>Kind</th><th>Operands</th><th>Examples</th></tr></thead>
+    <tbody>
+      <tr><td>Unary</td><td>One</td><td><code>-x</code>, <code>!done</code>, <code>typeof x</code>, <code>count++</code></td></tr>
+      <tr><td>Binary</td><td>Two, one on each side</td><td><code>a + b</code>, <code>marks &gt;= 40</code>, <code>x = 5</code></td></tr>
+      <tr><td>Ternary</td><td>Three</td><td><code>marks &gt;= 40 ? "Pass" : "Fail"</code> &mdash; the only one</td></tr>
+    </tbody>
+  </table>
+  <p>Most operators are symbols, but a few are words, such as <code>typeof</code>. The rest of this chapter takes them family by family: arithmetic, assignment, comparison, logical, and the few that are left. Then it settles the question of which one goes first.</p>
+  <details class="qc"><summary>Quick check: in <code>let area = length * width;</code>, what is the expression on the right, and what are its operands?</summary><p><code>length * width</code> is the expression &mdash; it works out to one value. Its operands are <code>length</code> and <code>width</code>, and <code>*</code> is the operator. The whole line, ending with the semicolon, is a statement.</p></details>
+</section>
+
+<section id="s2">
+  <h2>44.2 Arithmetic operators</h2>
+  <p>These are the calculator keys. Six of them cover all of ordinary arithmetic. The table uses the lecture's example values, <code>x = 5</code> and <code>y = 2</code>:</p>
+  <table class="tbl">
+    <thead><tr><th>Operator</th><th>Name</th><th>Example</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>+</code></td><td>Addition</td><td><code>x + y</code></td><td><code>7</code></td></tr>
+      <tr><td><code>-</code></td><td>Subtraction</td><td><code>x - y</code></td><td><code>3</code></td></tr>
+      <tr><td><code>*</code></td><td>Multiplication</td><td><code>x * y</code></td><td><code>10</code></td></tr>
+      <tr><td><code>/</code></td><td>Division</td><td><code>x / y</code></td><td><code>2.5</code></td></tr>
+      <tr><td><code>%</code></td><td>Remainder (often called modulus)</td><td><code>x % y</code></td><td><code>1</code></td></tr>
+      <tr><td><code>**</code></td><td>Exponent (power)</td><td><code>x ** y</code></td><td><code>25</code></td></tr>
+    </tbody>
+  </table>
+  <p>Four of them deserve a closer look.</p>
+  <p><b>Multiplication is <code>*</code> and division is <code>/</code></b>, because keyboards have no &times; or &divide; keys. Writing <code>5 x 2</code> is a SyntaxError: JavaScript reads the <code>x</code> as a variable name sitting where an operator should be.</p>
+  <p><b>Division keeps the decimal.</b> <code>5 / 2</code> is <code>2.5</code>, not <code>2</code>. If you have used C or Java you may expect whole-number division to throw the fraction away; JavaScript's ordinary number type holds whole numbers and decimals alike, so nothing is thrown away. When you do want a whole number, <code>Math.floor()</code> rounds down (Chapter 46). Dividing by zero is not an error either: <code>10 / 0</code> is <code>Infinity</code> and <code>0 / 0</code> is <code>NaN</code>, "Not a Number", which Chapter 46 also explains.</p>
+  <p><b><code>%</code> is the <span class="jw" data-def="What is left over after sharing out equally. 17 shared into groups of 5 leaves 2.">remainder</span>, not a percentage.</b> It divides the left number by the right one and gives back only what is left over. <code>17 % 5</code> is <code>2</code>, because 5 goes into 17 three times (making 15) with 2 left over. <code>5 % 2</code> is <code>1</code>. <code>10 % 5</code> is <code>0</code>, because 5 goes in exactly.</p>
+  <div class="plain"><p>Share 17 laddoos equally among 5 friends. Each friend gets 3, and 2 stay in the box. <code>17 / 5</code> answers "how much does each get?" (3.4, if you could cut laddoos). <code>17 % 5</code> answers "how many are left in the box?" (2).</p></div>
+  <p>The remainder is far more useful than it looks. A number is even exactly when <code>n % 2</code> is <code>0</code>, and odd when it is <code>1</code>. Every third row of a table is a row where <code>row % 3</code> is <code>0</code>. And 135 minutes is 2 whole hours with <code>135 % 60</code> = 15 minutes over. To find an actual percentage, multiply and divide: 18% of 500 is <code>500 * 18 / 100</code>, which is 90.</p>
+  <p><b><code>**</code> raises to a power.</b> <code>2 ** 10</code> is 1024, and <code>9 ** 0.5</code> is 3, the square root. Older code writes <code>Math.pow(2, 10)</code> for the same thing.</p>
+  <pre class="code" data-run data-title="The arithmetic operators - change x and y, then Run again" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let x = 5;
+  let y = 2;
+  console.log("Addition:", x + y);         // 7
+  console.log("Subtraction:", x - y);      // 3
+  console.log("Multiplication:", x * y);   // 10
+  console.log("Division:", x / y);         // 2.5
+  console.log("Remainder:", x % y);        // 1
+  console.log("Exponent:", x ** y);        // 25
+
+  // % in real life: odd or even?
+  let rollNo = 27;
+  console.log("Remainder of", rollNo, "/ 2 is", rollNo % 2);   // 1 means odd, 0 means even
+
+  // % in real life: 135 minutes as hours and minutes
+  let minutes = 135;
+  let hours = Math.floor(minutes / 60);    // 2   (Math.floor rounds down - Chapter 46)
+  let left = minutes % 60;                 // 15
+  console.log(minutes, "minutes =", hours, "h", left, "min");
+
+  // a real percentage: multiply, then divide by 100
+  console.log("18% of 500 is", 500 * 18 / 100);   // 90
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: what are <code>20 % 6</code> and <code>6 % 20</code>?</summary><p><code>20 % 6</code> is 2: 6 goes into 20 three times (18) with 2 left over. <code>6 % 20</code> is 6: 20 does not fit into 6 even once, so the whole 6 is left over.</p></details>
+</section>
+
+<section id="s3">
+  <h2>44.3 Increment and decrement</h2>
+  <p>Adding one to a variable happens so often &mdash; counting visitors, moving to the next question, scoring a run &mdash; that JavaScript has a two-character shortcut for it. <code>count++</code> adds 1 to <code>count</code>, and <code>count--</code> subtracts 1. On a line of their own, with a number in the variable, they do the same job as <code>count = count + 1</code> and <code>count = count - 1</code>. You will see <code>i++</code> in nearly every loop in Chapter 52.</p>
+  <pre class="code">let score = 0;
+score++;       // 1
+score++;       // 2
+score--;       // 1</pre>
+  <p>The two plus signs can go after the variable (<b>postfix</b>, <code>a++</code>) or before it (<b>prefix</b>, <code>++a</code>). On a line of its own there is no difference at all. The difference appears only when the increment is <i>part of a bigger expression</i>, because the expression <code>a++</code> and the expression <code>++a</code> hand back different values:</p>
+  <pre class="code">let a = 5;
+let b = a++;   // postfix: b gets the OLD value 5, then a becomes 6
+
+let c = 5;
+let d = ++c;   // prefix: c becomes 6 first, then d gets the NEW value 6</pre>
+  <table class="tbl">
+    <thead><tr><th>Starting with <code>x = 5</code></th><th>Value the expression gives</th><th><code>x</code> afterwards</th></tr></thead>
+    <tbody>
+      <tr><td><code>x++</code></td><td><code>5</code> (the old value)</td><td><code>6</code></td></tr>
+      <tr><td><code>++x</code></td><td><code>6</code> (the new value)</td><td><code>6</code></td></tr>
+      <tr><td><code>x--</code></td><td><code>5</code> (the old value)</td><td><code>4</code></td></tr>
+      <tr><td><code>--x</code></td><td><code>4</code> (the new value)</td><td><code>4</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><b>Postfix</b> (<code>x++</code>): use the value, then bump it. <b>Prefix</b> (<code>++x</code>): bump it, then use the value. Either way the variable ends up one bigger; only the value handed to the rest of the line is different.</p></div>
+  <p>Two rules follow from what <code>++</code> does. It needs a variable to change, so <code>5++</code> is a SyntaxError. And it really does change that variable, so using it on a <code>const</code> throws <code>TypeError: Assignment to constant variable.</code> &mdash; the same error you met in Chapter 42.</p>
+  <div class="callout exam"><b>Exam tip.</b> Predict-the-output questions love lines like <code>let x = 3; let y = x++ + ++x;</code>. Work left to right and write down <code>x</code> after every step: <code>x++</code> gives 3 and makes <code>x</code> 4; then <code>++x</code> makes <code>x</code> 5 and gives 5; so <code>y</code> is 3 + 5 = 8 and <code>x</code> ends at 5. In your own code, keep <code>++</code> on a line of its own and nobody ever has to do this.</div>
+  <pre class="code" data-run data-title="Prefix and postfix - predict each line before you press Run" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let a = 5;
+  let b = a++;          // postfix: b gets the OLD value, then a goes up
+  console.log("After b = a++ : b is", b, "and a is", a);   // b is 5 and a is 6
+
+  let c = 5;
+  let d = ++c;          // prefix: c goes up FIRST, then d gets the new value
+  console.log("After d = ++c : d is", d, "and c is", c);   // d is 6 and c is 6
+
+  // on a line of their own, x++ and ++x do the same job
+  let visitors = 0;
+  visitors++;
+  visitors++;
+  ++visitors;
+  console.log("Visitors today:", visitors);                // 3
+
+  let lives = 3;
+  lives--;
+  console.log("Lives left:", lives);                       // 2
+
+  // the exam favourite: work it left to right
+  let x = 3;
+  let y = x++ + ++x;    // 3 + 5
+  console.log("y is", y, "and x is", x);                   // y is 8 and x is 5
+&lt;/script&gt;</pre>
+</section>
+
+<section id="s4">
+  <h2>44.4 When + joins text instead of adding</h2>
+  <p>The <code>+</code> operator has two jobs. Between two numbers it adds. When <b>either side is a string</b>, it switches jobs and joins the two pieces of text end to end. Joining text like this is called <span class="jw" data-def="Joining pieces of text end to end, so Asha joined to Verma gives AshaVerma.">concatenation</span>.</p>
+  <pre class="code">"Asha" + " " + "Verma"   // "Asha Verma"
+"Marks: " + 85           // "Marks: 85"   the number 85 becomes the text "85"
+"5" + 2                  // "52"
+5 + "2"                  // "52"</pre>
+  <p>When one side is a number and the other is a string, JavaScript turns the number into text and joins them. This automatic change of type is called <span class="jw" data-def="JavaScript quietly changing a value from one type to another, such as the text 10 into the number 10, or the reverse.">coercion</span>, and Chapter 43 introduced it. It is handy for building messages, and it is behind one of the commonest bugs in beginner code.</p>
+  <h3>Left to right, one pair at a time</h3>
+  <p>A chain of <code>+</code> signs is worked out from the left, one pair at a time, and each pair decides for itself whether to add or to join:</p>
+  <pre class="code">2 + 3 + "5"           // 2 + 3 is 5, then 5 + "5" is "55"
+"5" + 2 + 3           // "5" + 2 is "52", then "52" + 3 is "523"
+"Total: " + 2 + 3     // "Total: 23"   the classic bug
+"Total: " + (2 + 3)   // "Total: 5"    brackets make the sum happen first</pre>
+  <p>Once a string has appeared in the chain, everything to its right is joined, not added. Brackets fix it, because the bracketed part is worked out first, while it is still two numbers.</p>
+  <h3>The other operators only do maths</h3>
+  <p><code>-</code>, <code>*</code>, <code>/</code>, <code>%</code> and <code>**</code> have only one job, arithmetic, so when they meet a string they try to turn it into a number first:</p>
+  <pre class="code">"10" - 2      // 8
+"10" * "2"    // 20
+"6" / "2"     // 3
+"abc" - 1     // NaN   "abc" is not a number, so the answer is Not-a-Number</pre>
+  <div class="callout why"><b>Key idea.</b> <code>+</code> joins as soon as a string is involved. Every other arithmetic operator turns strings into numbers. That one asymmetry explains every result in this section.</div>
+  <div class="callout warn"><b>Everything a user types is a string.</b> The value of a form field, and whatever <code>prompt()</code> returns when the user presses OK, is text even when it looks like a number (if the user presses Cancel, <code>prompt()</code> gives <code>null</code> instead). So if <code>typed</code> holds <code>"40"</code>, then <code>typed + 5</code> gives <code>"405"</code>, not 45. Convert first: <code>Number(typed) + 5</code> is 45. You will also meet the shorthand <code>+typed</code> (the unary plus), which does the same conversion, but <code>Number()</code> says what it means. Chapter 46 covers <code>Number()</code>, <code>parseInt()</code> and <code>parseFloat()</code> properly.</div>
+  <p>Joining many pieces with <code>+</code> soon gets messy. Template literals, written with backticks, drop values straight into text: <code>`Total: ${2 + 3}`</code> gives <code>"Total: 5"</code>. Chapter 45 teaches them.</p>
+  <pre class="code" data-run data-title="+ adds numbers but joins strings - try changing the quotes" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  console.log("Asha" + " " + "Verma");          // Asha Verma
+  console.log("5" + 2, typeof ("5" + 2));       // 52 string
+  console.log(5 + 2, typeof (5 + 2));           // 7 number
+
+  // left to right, one pair at a time
+  console.log(2 + 3 + "5");                     // 55
+  console.log("5" + 2 + 3);                     // 523
+  console.log("Total: " + 2 + 3);               // Total: 23  (the classic bug)
+  console.log("Total: " + (2 + 3));             // Total: 5   (brackets fix it)
+
+  // - * / only do maths, so they turn strings into numbers
+  console.log("10" - 2);                        // 8
+  console.log("10" * "2");                      // 20
+  console.log("abc" - 1);                       // NaN
+
+  // what a form or prompt() gives you is ALWAYS a string
+  let typed = "40";
+  console.log("Wrong:", typed + 5);             // Wrong: 405
+  console.log("Right:", Number(typed) + 5);     // Right: 45
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: what do <code>"3" + 4 + 5</code> and <code>3 + 4 + "5"</code> give?</summary><p><code>"345"</code>: the string comes first, so every <code>+</code> after it joins. <code>"75"</code>: 3 + 4 is added to make 7 while both are still numbers, and only then is 7 joined to "5".</p></details>
+</section>
+
+<section id="s5">
+  <h2>44.5 Assignment and compound assignment</h2>
+  <p>You have been using one operator since Chapter 42: <code>=</code>, the <b>assignment operator</b>. It does not mean "equals". It means: <i>work out the value on the right, then store it in the variable on the left</i>. Read it right to left, like an arrow pointing into the box.</p>
+  <pre class="code">let marks = 70;
+marks = marks + 5;   // right side first: 70 + 5 is 75, THEN store 75 in marks</pre>
+  <p>In maths, <code>marks = marks + 5</code> would be nonsense, because no number equals itself plus five. In JavaScript it is perfectly ordinary: the right side is worked out completely, using the old value, before anything is stored.</p>
+  <h3>Compound assignment: update in place</h3>
+  <p>"Take the variable, do something to it, store it back" is so common that every arithmetic operator has a combined form. Here is the example from the lecture slides, one step at a time:</p>
+  <pre class="code">let num = 10;
+num += 5;    // num = num + 5    num is now 15
+num -= 3;    // num = num - 3    num is now 12
+num *= 2;    // num = num * 2    num is now 24
+num /= 4;    // num = num / 4    num is now 6</pre>
+  <table class="tbl">
+    <thead><tr><th>Operator</th><th>Example</th><th>Same as</th><th>If <code>x</code> was 10, it becomes</th></tr></thead>
+    <tbody>
+      <tr><td><code>=</code></td><td><code>x = 7</code></td><td>plain store</td><td><code>7</code></td></tr>
+      <tr><td><code>+=</code></td><td><code>x += 5</code></td><td><code>x = x + 5</code></td><td><code>15</code></td></tr>
+      <tr><td><code>-=</code></td><td><code>x -= 3</code></td><td><code>x = x - 3</code></td><td><code>7</code></td></tr>
+      <tr><td><code>*=</code></td><td><code>x *= 2</code></td><td><code>x = x * 2</code></td><td><code>20</code></td></tr>
+      <tr><td><code>/=</code></td><td><code>x /= 4</code></td><td><code>x = x / 4</code></td><td><code>2.5</code></td></tr>
+      <tr><td><code>%=</code></td><td><code>x %= 3</code></td><td><code>x = x % 3</code></td><td><code>1</code></td></tr>
+      <tr><td><code>**=</code></td><td><code>x **= 2</code></td><td><code>x = x ** 2</code></td><td><code>100</code></td></tr>
+    </tbody>
+  </table>
+  <p><code>+=</code> follows the same rules as <code>+</code>, so on a string it joins. That makes it the natural way to build up a message, or to keep a running total:</p>
+  <pre class="code">let greeting = "Welcome";
+greeting += ", Meera";     // "Welcome, Meera"
+
+let bill = 0;
+bill += 40;    // samosa
+bill += 25;    // chai
+bill += 60;    // sandwich     bill is now 125</pre>
+  <p>Every assignment changes a variable, so all of these need a variable that is allowed to change, such as one declared with <code>let</code>. On a <code>const</code> they throw <code>TypeError: Assignment to constant variable.</code></p>
+  <div class="callout warn"><b>One = stores; three === compare.</b> <code>marks = 40</code> puts 40 into <code>marks</code>. <code>marks === 40</code> asks whether <code>marks</code> holds 40 and answers <code>true</code> or <code>false</code>. Typing one when you meant the other is the most common bug in decisions (Chapter 47), and JavaScript will not warn you, because both are legal code.</div>
+</section>
+
+<section id="s6">
+  <h2>44.6 Comparison operators</h2>
+  <p>A comparison asks a yes-or-no question about two values, and the answer is always a boolean: <code>true</code> or <code>false</code>. The lecture uses <code>a = 10</code> and <code>b = 5</code>:</p>
+  <table class="tbl">
+    <thead><tr><th>Operator</th><th>Asks</th><th>Example</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>&gt;</code></td><td>greater than?</td><td><code>a &gt; b</code></td><td><code>true</code></td></tr>
+      <tr><td><code>&lt;</code></td><td>less than?</td><td><code>a &lt; b</code></td><td><code>false</code></td></tr>
+      <tr><td><code>&gt;=</code></td><td>greater than or equal to?</td><td><code>a &gt;= b</code></td><td><code>true</code></td></tr>
+      <tr><td><code>&lt;=</code></td><td>less than or equal to?</td><td><code>a &lt;= b</code></td><td><code>false</code></td></tr>
+      <tr><td><code>===</code></td><td>equal: same type <i>and</i> same value?</td><td><code>a === b</code></td><td><code>false</code></td></tr>
+      <tr><td><code>!==</code></td><td>not equal?</td><td><code>a !== b</code></td><td><code>true</code></td></tr>
+    </tbody>
+  </table>
+  <p>Write <code>&gt;=</code> and <code>&lt;=</code> with the equals sign second. <code>=&gt;</code> is something else entirely (an arrow function, Chapter 48), and <code>=&lt;</code> is a SyntaxError. Because a comparison produces a value, you can store it: <code>let passed = marks &gt;= 40;</code> puts <code>true</code> or <code>false</code> into <code>passed</code>, ready for an <code>if</code> in Chapter 47.</p>
+  <h3>Strict === against loose ==</h3>
+  <p>JavaScript has two equality operators, and the difference matters. <b><code>===</code>, strict equality</b>, is true only when both values have the <i>same type</i> and the <i>same value</i>; it never converts anything. <b><code>==</code>, loose equality</b>, first converts the two values to a common type if their types differ, and only then compares. Their opposites are <code>!==</code> (strict not-equal) and <code>!=</code> (loose not-equal).</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 236" role="img" aria-label="Strict equality returns false as soon as the types differ; loose equality converts the values first and then compares">
+      <text x="155" y="24" class="t c b mono">===  strict equality</text>
+      <text x="465" y="24" class="t c b mono">==  loose equality</text>
+      <path d="M310 36 L310 226" class="edge dash"/>
+      <path d="M115 80 L82 116" class="edge" marker-end="url(#arr)"/>
+      <path d="M195 80 L228 116" class="edge" marker-end="url(#arr)"/>
+      <rect x="65" y="40" width="180" height="40" rx="10" class="box"/>
+      <text x="155" y="65" class="t c b">Same type?</text>
+      <text x="80" y="96" class="t s">no</text>
+      <text x="216" y="96" class="t s">yes</text>
+      <rect x="20" y="120" width="125" height="46" rx="10" class="box red"/>
+      <text x="82" y="140" class="t c b">false</text>
+      <text x="82" y="157" class="t c s">no conversion</text>
+      <rect x="165" y="120" width="125" height="46" rx="10" class="box grn"/>
+      <text x="227" y="140" class="t c b">compare</text>
+      <text x="227" y="157" class="t c s">the values</text>
+      <text x="155" y="196" class="t c mono">5 === "5"  &#8594;  false</text>
+      <text x="155" y="215" class="t c s">different types, so the answer is false at once</text>
+      <path d="M425 80 L392 116" class="edge" marker-end="url(#arr)"/>
+      <path d="M505 80 L538 116" class="edge" marker-end="url(#arr)"/>
+      <rect x="375" y="40" width="180" height="40" rx="10" class="box"/>
+      <text x="465" y="65" class="t c b">Same type?</text>
+      <text x="390" y="96" class="t s">no</text>
+      <text x="526" y="96" class="t s">yes</text>
+      <rect x="330" y="120" width="125" height="46" rx="10" class="box saf"/>
+      <text x="392" y="140" class="t c b">convert first</text>
+      <text x="392" y="157" class="t c s">"5" becomes 5</text>
+      <path d="M455 143 L472 143" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="475" y="120" width="125" height="46" rx="10" class="box grn"/>
+      <text x="537" y="140" class="t c b">compare</text>
+      <text x="537" y="157" class="t c s">the values</text>
+      <text x="465" y="196" class="t c mono">5 == "5"  &#8594;  true</text>
+      <text x="465" y="215" class="t c s">converted to 5 == 5, so the answer is true</text>
+    </svg>
+    <figcaption><b>Figure 44.2</b> <code>===</code> gives up the moment the types differ. <code>==</code> converts first and then compares, and its conversions are where the surprises come from.</figcaption>
+  </figure>
+  <p>The conversion rules behind <code>==</code> are long and odd, and they produce results like these:</p>
+  <table class="tbl">
+    <thead><tr><th>Expression</th><th><code>==</code> says</th><th><code>===</code> says</th><th>Why <code>==</code> says that</th></tr></thead>
+    <tbody>
+      <tr><td><code>5 == "5"</code></td><td><code>true</code></td><td><code>false</code></td><td><code>"5"</code> is converted to 5</td></tr>
+      <tr><td><code>0 == ""</code></td><td><code>true</code></td><td><code>false</code></td><td>the empty string converts to 0</td></tr>
+      <tr><td><code>0 == false</code></td><td><code>true</code></td><td><code>false</code></td><td><code>false</code> converts to 0</td></tr>
+      <tr><td><code>"1" == true</code></td><td><code>true</code></td><td><code>false</code></td><td>both convert to 1</td></tr>
+      <tr><td><code>null == undefined</code></td><td><code>true</code></td><td><code>false</code></td><td>a special rule: these two are loosely equal to each other and to nothing else</td></tr>
+      <tr><td><code>NaN == NaN</code></td><td><code>false</code></td><td><code>false</code></td><td><code>NaN</code> is not equal to anything, not even itself</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><code>===</code> asks two honest questions: same type? same value? <code>==</code> quietly changes one side to look like the other before it asks, and its rules for doing that fill pages. Use <code>===</code> and <code>!==</code> every time and you never need to learn those rules.</p></div>
+  <p>If you really do need to compare typed text with a number, convert it yourself and then compare strictly: <code>Number(typed) === 40</code> says exactly what you mean. And to test whether something is <code>NaN</code>, use <code>Number.isNaN(value)</code> (Chapter 46), because <code>value === NaN</code> is always false.</p>
+  <h3>Comparing strings</h3>
+  <p><code>&lt;</code> and <code>&gt;</code> work on strings too, character by character, like a dictionary: <code>"apple" &lt; "banana"</code> is true because a comes before b. Two surprises follow. Every capital letter counts as coming before every small letter, so <code>"Zebra" &lt; "apple"</code> is true. And digits inside strings are compared as characters, not as numbers, so <code>"10" &lt; "9"</code> is <b>true</b>, because the character 1 comes before the character 9. If one side is a real number, the string is converted and proper maths happens: <code>"10" &lt; 9</code> is false. The lesson is the same as before: turn typed numbers into real numbers before you compare them.</p>
+  <pre class="code" data-run data-title="Comparisons always answer true or false - read each line, then check the Console" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the slide example
+  let a = 10;
+  let b = 5;
+  console.log("a &gt; b:", a &gt; b);         // true
+  console.log("a &lt; b:", a &lt; b);         // false
+  console.log("a &gt;= b:", a &gt;= b);       // true
+  console.log("a &lt;= b:", a &lt;= b);       // false
+  console.log("a === b:", a === b);     // false
+  console.log("a !== b:", a !== b);     // true
+
+  // == converts first, === does not
+  console.log("5 == '5' gives", 5 == "5");                     // true
+  console.log("5 === '5' gives", 5 === "5");                   // false
+  console.log("0 == '' gives", 0 == "");                       // true
+  console.log("0 == false gives", 0 == false);                 // true
+  console.log("null == undefined gives", null == undefined);   // true
+  console.log("NaN === NaN gives", NaN === NaN);               // false (!)
+
+  // strings compare character by character, like a dictionary
+  console.log("'apple' &lt; 'banana' gives", "apple" &lt; "banana");   // true
+  console.log("'10' &lt; '9' gives", "10" &lt; "9");                   // true - compared as text!
+  console.log("'10' &lt; 9 gives", "10" &lt; 9);                       // false - one real number
+&lt;/script&gt;</pre>
+</section>
+
+<section id="s7">
+  <h2>44.7 Logical operators and short-circuiting</h2>
+  <p>Real decisions rarely rest on a single comparison. You may vote if you are 18 or over <i>and</i> you have a voter ID. The office is shut if it is Saturday <i>or</i> Sunday. The logical operators combine true-or-false values in exactly that way:</p>
+  <table class="tbl">
+    <thead><tr><th>Operator</th><th>Name</th><th>Gives true when</th></tr></thead>
+    <tbody>
+      <tr><td><code>&amp;&amp;</code></td><td>AND</td><td>both sides are true</td></tr>
+      <tr><td><code>||</code></td><td>OR</td><td>at least one side is true</td></tr>
+      <tr><td><code>!</code></td><td>NOT</td><td>its one operand is false &mdash; it flips the value</td></tr>
+    </tbody>
+  </table>
+  <p>The lecture's example, with <code>p</code> true and <code>q</code> false:</p>
+  <pre class="code">let p = true;
+let q = false;
+console.log(p &amp;&amp; q);   // false   AND needs both
+console.log(p || q);   // true    OR needs only one
+console.log(!p);       // false   NOT flips</pre>
+  <table class="tbl">
+    <thead><tr><th><code>a</code></th><th><code>b</code></th><th><code>a &amp;&amp; b</code></th><th><code>a || b</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>true</code></td><td><code>true</code></td><td><code>true</code></td><td><code>true</code></td></tr>
+      <tr><td><code>true</code></td><td><code>false</code></td><td><code>false</code></td><td><code>true</code></td></tr>
+      <tr><td><code>false</code></td><td><code>true</code></td><td><code>false</code></td><td><code>true</code></td></tr>
+      <tr><td><code>false</code></td><td><code>false</code></td><td><code>false</code></td><td><code>false</code></td></tr>
+    </tbody>
+  </table>
+  <p>In real code the operands are usually comparisons:</p>
+  <pre class="code">let canVote   = age &gt;= 18 &amp;&amp; hasVoterId;
+let isWeekend = day === "Sat" || day === "Sun";
+let mustRetake = !passed;</pre>
+  <div class="callout warn"><b>A range needs two comparisons.</b> <code>18 &lt;= age &lt;= 60</code> looks right and is true for every age. JavaScript works it left to right: <code>18 &lt;= age</code> becomes <code>true</code> or <code>false</code>, and then that boolean is compared with 60, which converts <code>true</code> to 1 and <code>false</code> to 0 &mdash; both less than 60. Write <code>age &gt;= 18 &amp;&amp; age &lt;= 60</code>.</div>
+  <h3>Short-circuit evaluation</h3>
+  <p>JavaScript works through <code>&amp;&amp;</code> and <code>||</code> from left to right and stops the moment the answer is certain. If the left side of <code>&amp;&amp;</code> is false, the whole thing must be false, so the right side is never even looked at. If the left side of <code>||</code> is true, the whole thing must be true, so again the right side is skipped. This is called <span class="jw" data-def="Stopping early: the right-hand side is skipped because the left-hand side has already decided the answer.">short-circuit</span> evaluation.</p>
+  <div class="callout analogy"><b>Picture this.</b> The guard at the hostel gate has a rule: <i>show your ID card AND your gate pass</i>. If you have no ID card, he does not even ask for the pass &mdash; the answer is already no. That is <code>&amp;&amp;</code>. The library desk has a different rule: <i>ID card OR fee receipt</i>. Show the ID card and you are waved in without anyone asking for the receipt &mdash; the answer is already yes. That is <code>||</code>. JavaScript is that sensible guard: it stops checking the moment the answer cannot change.</div>
+  <h3>&amp;&amp; and || hand back a value, not just true or false</h3>
+  <p>Here is the part most beginners never learn. <code>&amp;&amp;</code> and <code>||</code> do not turn their answer into <code>true</code> or <code>false</code>. They return <b>whichever operand they stopped at</b>, unchanged. With booleans on both sides you cannot tell the difference, but with other values you can:</p>
+  <pre class="code">"Asha" || "Guest"    // "Asha"    left side is truthy, so stop there
+"" || "Guest"        // "Guest"   left side is falsy, so take the right side
+0 &amp;&amp; "anything"      // 0         left side is falsy, so stop there
+"yes" &amp;&amp; "go"        // "go"      left side is truthy, so take the right side</pre>
+  <p>"Truthy" and "falsy" describe how a value behaves where JavaScript expects true or false. The <span class="jw" data-def="A value that behaves like false in a condition: false, 0, an empty string, null, undefined and NaN.">falsy</span> values are <code>false</code>, <code>0</code>, the empty string <code>""</code>, <code>null</code>, <code>undefined</code> and <code>NaN</code>. Everything else is truthy, including <code>"0"</code>, <code>"false"</code> and a string holding a single space. Chapter 46 gives the complete list, including a few rarer members.</p>
+  <p>This gives the most common use of <code>||</code> in real code: a <b>default value</b>. <code>let name = typedName || "Guest";</code> reads as "use what was typed, or Guest if nothing was". If <code>typedName</code> is an empty string, it is falsy, so <code>name</code> becomes <code>"Guest"</code>.</p>
+  <pre class="code" data-run data-title="AND, OR, NOT and short-circuiting - change age and day, then Run again" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the slide example
+  let p = true;
+  let q = false;
+  console.log("p &amp;&amp; q:", p &amp;&amp; q);     // false
+  console.log("p || q:", p || q);     // true
+  console.log("!p:", !p);             // false
+
+  // real conditions
+  let age = 19;
+  let hasVoterId = true;
+  console.log("Can vote:", age &gt;= 18 &amp;&amp; hasVoterId);         // true
+
+  let day = "Sun";
+  console.log("Weekend:", day === "Sat" || day === "Sun");   // true
+
+  // a range needs two comparisons joined by &amp;&amp;
+  let grandpa = 75;
+  console.log("Wrong range test:", 18 &lt;= grandpa &lt;= 60);              // true (!)
+  console.log("Right range test:", grandpa &gt;= 18 &amp;&amp; grandpa &lt;= 60);   // false
+
+  // short-circuit: the right side is skipped when the answer is already known
+  false &amp;&amp; console.log("You will never see this line");
+  true || console.log("Nor this one");
+  true &amp;&amp; console.log("This one prints, because &amp;&amp; had to look");
+
+  // || and &amp;&amp; hand back one of the two VALUES
+  console.log("Asha" || "Guest");     // Asha
+  console.log("" || "Guest");         // Guest
+  console.log(0 &amp;&amp; "anything");       // 0
+&lt;/script&gt;</pre>
+</section>
+
+<section id="s8">
+  <h2>44.8 Nullish coalescing: ?? versus ||</h2>
+  <p>The <code>||</code> default has a flaw. It replaces <i>every</i> falsy value, and some falsy values are real answers. Meera sat the test and scored 0. Watch what happens:</p>
+  <pre class="code">let marks = 0;
+let shown = marks || "Not entered";   // "Not entered"   but she scored 0!</pre>
+  <p>The <b>nullish coalescing operator</b>, <code>??</code>, fixes this. It uses the right side only when the left side is <code>null</code> or <code>undefined</code> &mdash; the two values that really mean "nothing here". Together those two are called <i>nullish</i>. A <code>0</code>, an empty string or <code>false</code> is kept, because each of them is a real value.</p>
+  <pre class="code">let marks = 0;
+let shown = marks ?? "Not entered";    // 0   correct
+
+let notYet;                            // undefined: nothing entered
+let shown2 = notYet ?? "Not entered";  // "Not entered"</pre>
+  <table class="tbl">
+    <thead><tr><th>Left value</th><th><code>left || "default"</code></th><th><code>left ?? "default"</code></th></tr></thead>
+    <tbody>
+      <tr><td><code>"Asha"</code></td><td><code>"Asha"</code></td><td><code>"Asha"</code></td></tr>
+      <tr><td><code>0</code></td><td><code>"default"</code></td><td><code>0</code></td></tr>
+      <tr><td><code>""</code></td><td><code>"default"</code></td><td><code>""</code></td></tr>
+      <tr><td><code>false</code></td><td><code>"default"</code></td><td><code>false</code></td></tr>
+      <tr><td><code>NaN</code></td><td><code>"default"</code></td><td><code>NaN</code></td></tr>
+      <tr><td><code>null</code></td><td><code>"default"</code></td><td><code>"default"</code></td></tr>
+      <tr><td><code>undefined</code></td><td><code>"default"</code></td><td><code>"default"</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p><code>||</code> means "if this is empty-ish, use the default". <code>??</code> means "if this is <i>missing</i>, use the default". A score of 0 is not missing, so it needs <code>??</code>. A blank name box is as good as missing, so <code>||</code> is fine there.</p></div>
+  <p>Choose <code>??</code> when 0, an empty string or <code>false</code> can be a genuine value &mdash; a mark, a count, a volume level, a "no" from a checkbox. Choose <code>||</code> when any empty value should be replaced, such as a blank name becoming "Guest". One rule of grammar: <code>??</code> cannot be mixed directly with <code>&amp;&amp;</code> or <code>||</code>. <code>a || b ?? c</code> is a SyntaxError; add brackets to say which you mean, such as <code>(a || b) ?? c</code>.</p>
+  <pre class="code" data-run data-title="|| versus ?? when the real answer is 0 - try changing meeraMarks to 35" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  let meeraMarks = 0;          // Meera really scored 0
+  let rahulMarks;              // nothing entered yet: undefined
+
+  console.log("Meera with ||:", meeraMarks || "Not entered");   // Not entered  (wrong!)
+  console.log("Meera with ??:", meeraMarks ?? "Not entered");   // 0            (right)
+  console.log("Rahul with ||:", rahulMarks || "Not entered");   // Not entered
+  console.log("Rahul with ??:", rahulMarks ?? "Not entered");   // Not entered
+
+  // a blank name SHOULD become "Guest", so || is the right tool here
+  let typedName = "";
+  console.log("Hello,", typedName || "Guest");     // Hello, Guest
+  console.log("Hello,", typedName ?? "Guest");     // Hello,   (the empty string is kept)
+
+  let volume = 0;              // the user switched the sound off on purpose
+  console.log("Volume with ||:", volume || 50);    // 50  (the sound comes back on!)
+  console.log("Volume with ??:", volume ?? 50);    // 0
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: what does <code>false ?? true</code> give?</summary><p><code>false</code>. <code>??</code> replaces only <code>null</code> and <code>undefined</code>, and <code>false</code> is neither, so it is kept. (<code>false || true</code> would give <code>true</code>.)</p></details>
+</section>
+
+<section id="s9">
+  <h2>44.9 Two more: typeof and the ternary operator</h2>
+  <h3>typeof</h3>
+  <p>Chapter 43 used <code>typeof</code> to find out a value's type. It is worth seeing again for what it is: an operator, a unary one, spelled as a word. It takes one operand and returns <b>a string</b> naming that operand's type.</p>
+  <pre class="code">typeof 42           // "number"
+typeof "42"         // "string"
+typeof true         // "boolean"
+typeof undefined    // "undefined"
+typeof null         // "object"   a famous old mistake, kept so old sites still work (Chapter 43)
+typeof typeof 42    // "string"   the answer is always a string</pre>
+  <p>Because it is an operator and not a function, the brackets in <code>typeof(x)</code> are optional; they only group, as brackets always do. They do matter when other operators are nearby, because <code>typeof</code> grabs just the operand right next to it. <code>typeof 5 + 5</code> is <code>"number5"</code>: <code>typeof 5</code> runs first and gives <code>"number"</code>, and then <code>"number" + 5</code> joins. <code>typeof (5 + 5)</code> is <code>"number"</code>.</p>
+  <p>A practical use is checking a value before doing maths with it: <code>typeof marks === "number"</code> is true only when <code>marks</code> holds a number (careful: <code>NaN</code> also reports <code>"number"</code>, a quirk Chapter 46 explains). And unlike almost anything else, <code>typeof</code> does not crash on a name that was never declared anywhere: <code>typeof somethingUnknown</code> is <code>"undefined"</code>, where using the name in any other way throws a ReferenceError.</p>
+  <h3>The ternary operator</h3>
+  <p>The only operator with three operands picks one of two values, depending on a condition:</p>
+  <pre class="code">condition ? valueIfTrue : valueIfFalse
+
+let result = marks &gt;= 40 ? "Pass" : "Fail";</pre>
+  <p>Read the <code>?</code> as "then" and the <code>:</code> as "otherwise": <i>is marks at least 40? then "Pass", otherwise "Fail"</i>. Because it is an expression, it produces a value, so you can store it, print it or join it into text. Chapter 47 sets it beside <code>if...else</code> and shows when each one is the better choice.</p>
+</section>
+
+<section id="s10">
+  <h2>44.10 Precedence: who goes first</h2>
+  <p>When an expression holds several operators, JavaScript needs a rule for which to do first. You learnt one such rule in school as BODMAS: brackets, then division and multiplication, then addition and subtraction. JavaScript's rule is the same idea stretched to cover every operator, and it is called operator <span class="jw" data-def="The ranking that decides which operator is worked out first, like BODMAS in school maths.">precedence</span>.</p>
+  <pre class="code">2 + 3 * 4       // 14   * outranks +, so 3 * 4 happens first
+(2 + 3) * 4     // 20   brackets first</pre>
+  <p>Here is a real bug that precedence causes. Asha scored 80 and 90, so her average should be 85:</p>
+  <pre class="code">let wrong = 80 + 90 / 2;     // 125   only the 90 was halved
+let right = (80 + 90) / 2;   // 85</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 236" role="img" aria-label="Evaluation trees: 80 + 90 / 2 divides first and gives 125; (80 + 90) / 2 adds first and gives 85">
+      <text x="155" y="24" class="t c b mono">80 + 90 / 2</text>
+      <text x="465" y="24" class="t c b mono">(80 + 90) / 2</text>
+      <path d="M310 36 L310 226" class="edge dash"/>
+      <path d="M155 62 L90 122" class="edge"/>
+      <path d="M155 62 L220 122" class="edge"/>
+      <path d="M220 122 L185 182" class="edge"/>
+      <path d="M220 122 L255 182" class="edge"/>
+      <circle cx="155" cy="62" r="18" class="box blu"/><text x="155" y="67" class="t c b mono">+</text>
+      <text x="180" y="67" class="t b">= 125</text>
+      <rect x="68" y="107" width="44" height="30" rx="6" class="box saf"/><text x="90" y="127" class="t c mono">80</text>
+      <circle cx="220" cy="122" r="18" class="box blu"/><text x="220" y="127" class="t c b mono">/</text>
+      <text x="245" y="127" class="t b">= 45</text>
+      <rect x="163" y="167" width="44" height="30" rx="6" class="box saf"/><text x="185" y="187" class="t c mono">90</text>
+      <rect x="233" y="167" width="44" height="30" rx="6" class="box saf"/><text x="255" y="187" class="t c mono">2</text>
+      <text x="155" y="222" class="t c s">/ runs first: 90 / 2 = 45, then 80 + 45 = 125</text>
+      <path d="M465 62 L400 122" class="edge"/>
+      <path d="M465 62 L530 122" class="edge"/>
+      <path d="M400 122 L365 182" class="edge"/>
+      <path d="M400 122 L435 182" class="edge"/>
+      <circle cx="465" cy="62" r="18" class="box blu"/><text x="465" y="67" class="t c b mono">/</text>
+      <text x="490" y="67" class="t b">= 85</text>
+      <circle cx="400" cy="122" r="18" class="box blu"/><text x="400" y="127" class="t c b mono">+</text>
+      <text x="425" y="127" class="t b">= 170</text>
+      <rect x="508" y="107" width="44" height="30" rx="6" class="box saf"/><text x="530" y="127" class="t c mono">2</text>
+      <rect x="343" y="167" width="44" height="30" rx="6" class="box saf"/><text x="365" y="187" class="t c mono">80</text>
+      <rect x="413" y="167" width="44" height="30" rx="6" class="box saf"/><text x="435" y="187" class="t c mono">90</text>
+      <text x="465" y="222" class="t c s">brackets first: 80 + 90 = 170, then 170 / 2 = 85</text>
+    </svg>
+    <figcaption><b>Figure 44.3</b> The same numbers and operators, two different trees. Division outranks addition, so without brackets only the 90 is halved; the brackets make the addition happen first, which is what an average needs.</figcaption>
+  </figure>
+  <h3>The ranking</h3>
+  <p>You do not need to memorise the full official table, which has around twenty levels. These rows cover everything in this chapter, highest first:</p>
+  <table class="tbl">
+    <thead><tr><th>Rank</th><th>Operators</th><th>Notes</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><code>( )</code></td><td>Brackets: always first</td></tr>
+      <tr><td>2</td><td><code>x++</code> <code>x--</code></td><td>Postfix increment and decrement</td></tr>
+      <tr><td>3</td><td><code>!</code> <code>typeof</code> <code>-x</code> <code>+x</code> <code>++x</code> <code>--x</code></td><td>Unary operators: they grab the one operand next to them</td></tr>
+      <tr><td>4</td><td><code>**</code></td><td>Power. Works right to left</td></tr>
+      <tr><td>5</td><td><code>*</code> <code>/</code> <code>%</code></td><td>Same rank: left to right</td></tr>
+      <tr><td>6</td><td><code>+</code> <code>-</code></td><td>Same rank: left to right</td></tr>
+      <tr><td>7</td><td><code>&lt;</code> <code>&lt;=</code> <code>&gt;</code> <code>&gt;=</code></td><td>Comparisons</td></tr>
+      <tr><td>8</td><td><code>===</code> <code>!==</code> <code>==</code> <code>!=</code></td><td>Equality</td></tr>
+      <tr><td>9</td><td><code>&amp;&amp;</code></td><td>AND before OR</td></tr>
+      <tr><td>10</td><td><code>||</code> <code>??</code></td><td><code>??</code> cannot be mixed with <code>||</code> or <code>&amp;&amp;</code> without brackets</td></tr>
+      <tr><td>11</td><td><code>? :</code> and <code>=</code> <code>+=</code> <code>-=</code> &hellip;</td><td>Ternary and assignment: last of all. Work right to left</td></tr>
+    </tbody>
+  </table>
+  <p>When two operators share a rank, <b>associativity</b> decides. Most work <b>left to right</b>: <code>10 - 4 - 3</code> is <code>(10 - 4) - 3</code>, which is 3, not <code>10 - 1</code> = 9; and <code>100 / 10 * 2</code> is 20, not 5. Two rows of the table work <b>right to left</b>. One is <code>**</code>, so <code>2 ** 3 ** 2</code> is <code>2 ** 9</code>, which is 512. The other is the bottom row, the ternary and assignment, so <code>a = b = 0</code> first stores 0 in <code>b</code> and then stores that same value in <code>a</code>. (That works because an assignment is itself an expression, whose value is the value it just stored.)</p>
+  <p>A few results the table explains:</p>
+  <ul>
+    <li><code>!marks &gt;= 40</code> is always false. <code>!</code> outranks <code>&gt;=</code>, so it turns <code>marks</code> into <code>true</code> or <code>false</code> first, and neither of those is at least 40. Write <code>!(marks &gt;= 40)</code>, or more simply <code>marks &lt; 40</code>.</li>
+    <li><code>a || b &amp;&amp; c</code> means <code>a || (b &amp;&amp; c)</code>, because AND outranks OR.</li>
+    <li><code>total + bonus ?? 0</code> adds first. If <code>bonus</code> is <code>undefined</code>, then <code>total + undefined</code> is <code>NaN</code>, and <code>NaN ?? 0</code> stays <code>NaN</code>, because <code>NaN</code> is not nullish. Write <code>total + (bonus ?? 0)</code>.</li>
+    <li><code>-2 ** 2</code> is a SyntaxError. JavaScript refuses to guess whether you meant <code>(-2) ** 2</code>, which is 4, or <code>-(2 ** 2)</code>, which is -4, and makes you write the brackets.</li>
+  </ul>
+  <div class="plain"><p>Remember the shape, not the table: brackets first, then the maths (power, then times and divide, then plus and minus), then comparisons, then AND, then OR, and storing the answer last of all. Whenever you are not sure, add brackets. They cost nothing: brackets that only spell out what JavaScript would do anyway never change the answer, and the next person to read your code will not have to guess.</p></div>
+  <p>The last example puts the whole chapter to work on one result card. It contains two deliberate precedence bugs next to their fixes, so you can see both answers side by side.</p>
+  <pre class="code" data-run data-title="Putting it together: a result card - find both precedence bugs" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; color: #3C4A60; }
+  .card { border: 1px solid #E3E9F0; border-radius: 12px; padding: 14px 18px;
+          max-width: 340px; box-shadow: 0 2px 8px rgba(16,32,64,.08); }
+  .card h3 { margin: 0 0 8px; color: #0B2545; }
+  .card p { margin: 4px 0; }
+&lt;/style&gt;
+&lt;div class="card"&gt;
+  &lt;h3&gt;Asha Verma - Term 1&lt;/h3&gt;
+  &lt;p id="showTotal"&gt;&lt;/p&gt;
+  &lt;p id="showAverage"&gt;&lt;/p&gt;
+  &lt;p id="showResult"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  let maths = 80;
+  let physics = 64;
+  let english = 51;
+  let bonus;                                         // no bonus marks given: undefined
+
+  let total = maths + physics + english;             // 195
+  let wrongAverage = maths + physics + english / 3;  // 161 - only english was divided!
+  let average = (maths + physics + english) / 3;     // 65
+
+  let wrongTotal = total + bonus ?? 0;               // NaN - the + ran before the ??
+  let finalTotal = total + (bonus ?? 0);             // 195
+
+  let passed = average &gt;= 40 &amp;&amp; english &gt;= 33;       // true
+  let result = passed ? "PASS" : "FAIL";             // the ternary picks one of two values
+
+  console.log("Average without brackets:", wrongAverage);   // 161
+  console.log("Average with brackets:", average);           // 65
+  console.log("Total without brackets:", wrongTotal);       // NaN
+  console.log("Total with brackets:", finalTotal);          // 195
+  console.log("Passed?", passed, "- typeof says", typeof passed);   // true - typeof says boolean
+  console.log("Result:", result);                           // PASS
+
+  // write the answers onto the card (changing the page is taught in Chapter 56)
+  document.getElementById("showTotal").textContent = "Total: " + finalTotal + " / 300";
+  document.getElementById("showAverage").textContent = "Average: " + average + "%";
+  document.getElementById("showResult").textContent = "Result: " + result;
+&lt;/script&gt;</pre>
+  <p>Change <code>english</code> to 30 and run it again. The average drops to 58, which is still above 40, but <code>english &gt;= 33</code> is now false, so the whole <code>&amp;&amp;</code> is false and the card says FAIL. One false side is enough to sink an AND.</p>
+</section>
+
+<section id="mistakes">
+  <h2>44.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "= checks whether two values are equal."</b><br>It does not check anything. It stores the right-hand value in the left-hand variable.</div>
+    <div class="r"><b>&#10003; "= stores; === compares."</b><br><code>marks = 40</code> changes <code>marks</code>. <code>marks === 40</code> asks a question and answers <code>true</code> or <code>false</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "% works out a percentage."</b><br>The symbol looks like one, but it means something else.</div>
+    <div class="r"><b>&#10003; "% is the remainder after division."</b><br><code>17 % 5</code> is 2. For 18% of 500, write <code>500 * 18 / 100</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "== and === do the same job; === is just a stricter style."</b><br>They give different answers whenever the types differ.</div>
+    <div class="r"><b>&#10003; "== converts types before comparing; === never does."</b><br>That is why <code>0 == ""</code> and <code>0 == false</code> are true. Use <code>===</code> and <code>!==</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>18 &lt;= age &lt;= 60</code> checks a range."</b><br>It compares <code>true</code> or <code>false</code> with 60, so it is true for every age.</div>
+    <div class="r"><b>&#10003; "<code>age &gt;= 18 &amp;&amp; age &lt;= 60</code> checks a range."</b><br>Two separate comparisons, joined by AND.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "|| is how you give a default value."</b><br>Only when every falsy value should be replaced, and a mark of 0 should not be.</div>
+    <div class="r"><b>&#10003; "|| replaces any falsy value; ?? replaces only null and undefined."</b><br>Use <code>??</code> when 0, <code>""</code> or <code>false</code> can be a real answer.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A number typed into a form can be added straight away."</b><br>Typed input is always a string, so <code>+</code> joins it.</div>
+    <div class="r"><b>&#10003; "Convert typed input first."</b><br><code>"40" + 5</code> is <code>"405"</code>; <code>Number("40") + 5</code> is 45.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which operator gives the remainder after division?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>/</code></li><li>B. <code>%</code></li><li>C. <code>**</code></li><li>D. <code>//</code></li></ul>
+    <p><b>Answer: B.</b> <code>17 % 5</code> is 2. <code>/</code> gives the full quotient (3.4), <code>**</code> raises to a power, and <code>//</code> is not an operator at all: it starts a comment.</p></div></details>
+  <details class="q"><summary>What does <code>console.log("5" + 3);</code> print?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 8</li><li>B. NaN</li><li>C. 53</li><li>D. An error</li></ul>
+    <p><b>Answer: C.</b> One side is a string, so <code>+</code> joins: the number 3 becomes "3" and the result is the string "53". 8 would need both sides to be numbers, and there is no error because joining is one of the two legal jobs of <code>+</code>.</p></div></details>
+  <details class="q"><summary>What does <code>console.log("10" - 4);</code> print?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 6</li><li>B. 104</li><li>C. NaN</li><li>D. 10-4</li></ul>
+    <p><b>Answer: A.</b> <code>-</code> only does arithmetic, so it converts "10" to the number 10 and subtracts. Only <code>+</code> has a joining job; 104 is what <code>"10" + 4</code> would give.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let x = 5; let y = x++; console.log(x, y);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 5 5</li><li>B. 6 6</li><li>C. 5 6</li><li>D. 6 5</li></ul>
+    <p><b>Answer: D.</b> Postfix <code>x++</code> hands the old value, 5, to <code>y</code>, and then increases <code>x</code> to 6. The prefix form <code>let y = ++x;</code> would have printed 6 6.</p></div></details>
+  <details class="q"><summary>Which of these comparisons is <code>true</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>5 === "5"</code></li><li>B. <code>0 == ""</code></li><li>C. <code>NaN === NaN</code></li><li>D. <code>null === undefined</code></li></ul>
+    <p><b>Answer: B.</b> Loose <code>==</code> converts the empty string to 0, so <code>0 == ""</code> is true &mdash; exactly the kind of surprise that makes <code>===</code> the safer choice. A and D are false because the types differ and <code>===</code> never converts; C is false because <code>NaN</code> equals nothing, not even itself.</p></div></details>
+  <details class="q"><summary>The lecture code is <code>let num = 10; num += 5; num -= 3; num *= 2; num /= 4;</code>. What is <code>num</code> at the end? Show each step.<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 6.</b> 10 + 5 = 15, then 15 &minus; 3 = 12, then 12 &times; 2 = 24, then 24 &divide; 4 = 6. Each compound operator uses the variable's current value and stores the result back in the same variable.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let marks = 0; console.log(marks || "Absent", marks ?? "Absent");</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 0 0</li><li>B. Absent Absent</li><li>C. Absent 0</li><li>D. 0 Absent</li></ul>
+    <p><b>Answer: C.</b> 0 is falsy, so <code>||</code> moves on to the right side and gives "Absent". <code>??</code> replaces only <code>null</code> and <code>undefined</code>; 0 is neither, so it stays 0. That is why <code>??</code> is the right default for marks, counts and anything else where 0 is a real value.</p></div></details>
+  <details class="q"><summary>What is the value of <code>2 + 3 * 4 ** 2</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 400</li><li>B. 196</li><li>C. 146</li><li>D. 50</li></ul>
+    <p><b>Answer: D.</b> <code>**</code> first: <code>4 ** 2</code> is 16. Then <code>*</code>: <code>3 * 16</code> is 48. Then <code>+</code>: <code>2 + 48</code> is 50. 400 is what you get by working strictly left to right, which JavaScript does not do when the operators have different ranks.</p></div></details>
+  <details class="q"><summary>A student writes <code>let ok = 18 &lt;= age &lt;= 60;</code> to check that <code>age</code> is between 18 and 60. Why is <code>ok</code> true even when <code>age</code> is 75, and what is the fix?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> the comparisons run left to right. <code>18 &lt;= 75</code> gives <code>true</code>; then <code>true &lt;= 60</code> converts <code>true</code> to 1, and <code>1 &lt;= 60</code> is true. (For an age of 10, <code>false</code> becomes 0, and <code>0 &lt;= 60</code> is also true.) So the expression is true for every age. The fix is two comparisons joined by AND: <code>age &gt;= 18 &amp;&amp; age &lt;= 60</code>.</p></div></details>
+  <details class="q"><summary>What does <code>console.log(typeof 5 + 5);</code> print?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. number5</li><li>B. number</li><li>C. 10</li><li>D. NaN</li></ul>
+    <p><b>Answer: A.</b> <code>typeof</code> grabs only the operand next to it, so <code>typeof 5</code> runs first and gives the string "number". Then <code>"number" + 5</code> joins, giving "number5". To get the type of the sum, write <code>typeof (5 + 5)</code>, which is "number".</p></div></details>
+  <details class="q"><summary>Which statement about <code>&amp;&amp;</code>, <code>||</code> and <code>??</code> is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>&amp;&amp;</code> always evaluates both of its operands</li><li>B. <code>&amp;&amp;</code> and <code>||</code> always return <code>true</code> or <code>false</code></li><li>C. <code>||</code> stops at the first truthy operand and returns that operand</li><li>D. <code>??</code> treats 0 as missing, exactly like <code>||</code></li></ul>
+    <p><b>Answer: C.</b> That is short-circuit evaluation, and it is why <code>name || "Guest"</code> works as a default. A is wrong: <code>&amp;&amp;</code> stops at a falsy left side. B is wrong: they return one of the operands, as <code>"" || "Guest"</code> giving "Guest" shows. D is wrong: <code>??</code> keeps 0.</p></div></details>
+  <details class="q"><summary>What does <code>console.log(1 + 2 + "3" + 4 + 5);</code> print?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 3345.</b> Left to right: <code>1 + 2</code> is 3 (both numbers, so add); <code>3 + "3"</code> is "33" (a string has appeared, so join); then <code>"33" + 4</code> is "334" and <code>"334" + 5</code> is "3345". Once a string has appeared, everything to its right is joined.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>An <b>expression</b> works out to one value; a <b>statement</b> is a complete instruction. Operators act on operands.</li>
+    <li><code>+ - * / % **</code> do arithmetic. <code>/</code> keeps the decimal; <code>%</code> is the remainder, not a percentage.</li>
+    <li><code>x++</code> and <code>++x</code> both add 1. Inside a bigger expression, postfix gives the old value and prefix the new one.</li>
+    <li><code>+</code> joins text as soon as a string is involved, working left to right; the other arithmetic operators turn strings into numbers. Typed input is always a string, so use <code>Number()</code> first.</li>
+    <li><code>=</code> stores. <code>+=</code>, <code>-=</code>, <code>*=</code>, <code>/=</code>, <code>%=</code> and <code>**=</code> update a variable using its current value.</li>
+    <li>Comparisons produce <code>true</code> or <code>false</code>. Use <code>===</code> and <code>!==</code>; <code>==</code> converts types first, so <code>0 == ""</code> is true. <code>NaN</code> equals nothing.</li>
+    <li><code>&amp;&amp;</code>, <code>||</code> and <code>!</code> combine conditions. <code>&amp;&amp;</code> and <code>||</code> short-circuit and return an operand. <code>||</code> replaces any falsy value; <code>??</code> replaces only <code>null</code> and <code>undefined</code>.</li>
+    <li>Precedence: brackets, then <code>**</code>, then <code>* / %</code>, then <code>+ -</code>, then comparisons, then <code>&amp;&amp;</code>, then <code>||</code> and <code>??</code>, then the ternary and assignment. When in doubt, add brackets.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Result or effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>7 / 2</code></td><td><code>3.5</code> &mdash; division keeps the decimal</td></tr>
+      <tr><td><code>17 % 5</code></td><td><code>2</code> &mdash; the remainder</td></tr>
+      <tr><td><code>2 ** 3</code></td><td><code>8</code> &mdash; power</td></tr>
+      <tr><td><code>x++</code> / <code>++x</code></td><td><code>x</code> goes up by 1; the expression gives the old / the new value</td></tr>
+      <tr><td><code>"5" + 2</code></td><td><code>"52"</code> &mdash; <code>+</code> joins when a string is involved</td></tr>
+      <tr><td><code>"5" - 2</code></td><td><code>3</code> &mdash; other operators convert to numbers</td></tr>
+      <tr><td><code>x += 5</code></td><td>Same as <code>x = x + 5</code></td></tr>
+      <tr><td><code>5 === "5"</code></td><td><code>false</code> &mdash; different types</td></tr>
+      <tr><td><code>5 == "5"</code></td><td><code>true</code> &mdash; converts first; avoid <code>==</code></td></tr>
+      <tr><td><code>a &amp;&amp; b</code></td><td>True only if both are true; stops at the first falsy operand</td></tr>
+      <tr><td><code>a || b</code></td><td>True if either is true; stops at the first truthy operand</td></tr>
+      <tr><td><code>!a</code></td><td>The opposite of <code>a</code></td></tr>
+      <tr><td><code>name || "Guest"</code></td><td>"Guest" whenever <code>name</code> is falsy</td></tr>
+      <tr><td><code>marks ?? 0</code></td><td>0 only when <code>marks</code> is <code>null</code> or <code>undefined</code></td></tr>
+      <tr><td><code>typeof 42</code></td><td><code>"number"</code></td></tr>
+      <tr><td><code>m &gt;= 40 ? "Pass" : "Fail"</code></td><td>One of two values, chosen by the condition</td></tr>
+      <tr><td><code>(80 + 90) / 2</code></td><td><code>85</code> &mdash; brackets first</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Expressions_and_operators" target="_blank" rel="noopener noreferrer">MDN &mdash; Expressions and operators<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every operator family in one guide, with a short example for each.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Operators/Operator_precedence" target="_blank" rel="noopener noreferrer">MDN &mdash; Operator precedence<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The full ranking table, for the day you need to settle an argument.</span></li>
+    <li><a href="https://javascript.info/operators" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Basic operators, maths<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a second voice, with small tasks and their solutions at the end.</span></li>
+    <li><a href="https://javascript.info/nullish-coalescing-operator" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Nullish coalescing operator<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">More examples of <code>??</code> against <code>||</code>, and why they cannot be mixed without brackets.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

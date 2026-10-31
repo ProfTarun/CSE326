@@ -194,6 +194,27 @@ svg .cap { fill: #0B2545; font-size: 11px; font-weight: 800;
   var(--saffron); }
 .ex .out.on { display: block; }
 
+/* console panel under a JavaScript example (filled by runshim.js) */
+.ex .rc { border-top: 1px solid #22324A; background: #0F1B2D; color: #E6EDF7;
+  font-family: var(--mono); font-size: 12.8px; line-height: 1.5; }
+.ex .rc[hidden] { display: none; }
+.ex .rc-head { display: flex; align-items: center; justify-content: space-between;
+  padding: 5px 10px 5px 14px; background: #16243A; color: #93A9C7;
+  font: 800 11px/1 var(--font); letter-spacing: .1em; text-transform: uppercase; }
+.ex .rc-clear { background: none; border: 1px solid #33465F; color: #B9C7DA;
+  border-radius: 6px; padding: 3px 9px; font: 600 11px var(--font); cursor: pointer; }
+.ex .rc-body { max-height: 240px; overflow: auto; }
+.rc-line { padding: 4px 14px; border-bottom: 1px solid rgba(255,255,255,.06);
+  white-space: pre-wrap; overflow-wrap: anywhere; }
+.rc-line.rc-warn { color: #FFD58A; background: rgba(255,200,0,.07); }
+.rc-line.rc-error { color: #FFA3A3; background: rgba(255,80,80,.09); }
+.rc-line.rc-info { color: #9FD3FF; }
+.rc-line.rc-empty { color: #7D8DA3; font-style: italic; }
+.rc-table { border-collapse: collapse; margin: 2px 0; }
+.rc-table th, .rc-table td { border: 1px solid #33465F; padding: 2px 8px; text-align: left; }
+.rc-table th { color: #93A9C7; }
+
+
 /* live demo boxes (rendered directly on the page) */
 .demo { margin: 12px 0 18px; padding: 14px 16px; border: 1px dashed #CBD5E1;
   border-radius: 12px; background: #FBFCFE; font-size: .95em; }

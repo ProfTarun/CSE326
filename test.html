@@ -4,8 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>Mock test | CSE326</title>
-<link rel="stylesheet" href="css/theme.css?v=2026-10-28">
-<link rel="stylesheet" href="css/site.css?v=2026-10-28">
+<link rel="stylesheet" href="css/theme.css?v=2026-10-31">
+<link rel="stylesheet" href="css/site.css?v=2026-10-31">
 <style>
   .rules{background:linear-gradient(90deg,var(--warn-bg),
     rgba(255,248,235,.35));border-left:4px solid #F0A429;padding:15px 18px;
@@ -79,9 +79,9 @@
 </div>
 <div id="barSlot"></div>
 
-<script src="js/check.js?v=2026-10-28"></script>
-<script src="js/ai.js?v=2026-10-28"></script>
-<script src="js/app.js?v=2026-10-28"></script>
+<script src="js/check.js?v=2026-10-31"></script>
+<script src="js/ai.js?v=2026-10-31"></script>
+<script src="js/app.js?v=2026-10-31"></script>
 <script>
 "use strict";
 mountShell("test.html");
@@ -200,6 +200,12 @@ function selectedChapters() {
   return CHAPTERS.filter(function (c) { return SEL[c.n]; }).map(function (c) { return c.n; });
 }
 
+/* chapters that have at least one question - the ones a count should name */
+function withQuestions(list) {
+  var counts = chapterCounts();
+  return list.filter(function (n) { return counts[n]; });
+}
+
 function poolFor(list) {
   var want = {};
   list.forEach(function (n) { want[n] = 1; });
@@ -237,7 +243,7 @@ function toggleChapter(n) {
 /* Repaint only the counters and the button, so ticking a box does not
    rebuild the list and lose the reader's scroll position. */
 function refreshPickerState() {
-  var chosen = selectedChapters(), pool = poolFor(chosen);
+  var chosen = withQuestions(selectedChapters()), pool = poolFor(chosen);
   CHAPTERS.forEach(function (c) {
     var el = $("chk" + c.n);
     if (el) el.checked = !!SEL[c.n];
@@ -275,7 +281,10 @@ function sizeOptions(total) {
 function setup() {
   var counts = chapterCounts(), pool = poolFor(selectedChapters());
 
-  var groups = UNITS.map(function (u) {
+  /* a unit with no questions yet (Units 4-6) is left out of the picker */
+  var groups = UNITS.filter(function (u) {
+    return CHAPTERS.some(function (c) { return c.unit === u.id && counts[c.n]; });
+  }).map(function (u) {
     var rows = CHAPTERS.filter(function (c) { return c.unit === u.id; })
       .map(function (c) {
         var n = counts[c.n] || 0;
@@ -356,8 +365,8 @@ function start() {
   QS = shuffle(pool.slice()).slice(0, want);
   PICK = {}; DONE = false;
 
-  var chosen = selectedChapters();
-  var scope = chosen.length === CHAPTERS.length
+  var chosen = withQuestions(selectedChapters());
+  var scope = chosen.length === withQuestions(CHAPTERS.map(function (c) { return c.n; })).length
     ? "whole syllabus"
     : chosen.length === 1 ? "chapter " + chosen[0]
     : chosen.length + " chapters";

@@ -1,0 +1,824 @@
+<article class="chapter" data-ch="76">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 76 &middot; Website Hosting using GitHub Pages</p>
+  <h1>Website Hosting using GitHub Pages</h1>
+  <p class="lead">Until now every page you built lived on your own laptop, and nobody else in the world could open it. This chapter puts it on the Internet. GitHub Pages turns the repository you pushed in Chapter 75 into a real website with an address you can send to anyone. It is free, it takes about ten clicks, and the few things that go wrong go wrong in predictable ways.</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A server is a computer that waits for requests and answers them, and a <code>404</code> status means "no such file here" (<a href="book.html?ch=2">Chapter 2</a>).</li>
+      <li>A relative path is read from the folder of the current page; <code>../</code> goes up one folder; a leading <code>/</code> starts from the top of the site (<a href="book.html?ch=8">Chapter 8</a>).</li>
+      <li>A tidy project keeps <code>index.html</code> at the top, with <code>css/</code>, <code>js/</code> and <code>assets/</code> beside it, every name in lower case with hyphens (<a href="book.html?ch=73">Chapter 73</a>).</li>
+      <li><code>git add</code>, <code>git commit -m</code> and <code>git push origin main</code> send your latest work to your GitHub repository (<a href="book.html?ch=75">Chapter 75</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain what web hosting is, and tell a repository URL from a published URL.</li>
+      <li>Say why GitHub Pages can host a portfolio or a quiz but not a site with logins or a database.</li>
+      <li>Prepare a project for deployment: <code>index.html</code> at the root, relative paths, lower-case file names, a clean console.</li>
+      <li>Publish a repository through Settings &rarr; Pages, and update the live site by pushing again.</li>
+      <li>Work out the exact URL a path requests, and explain why <code>/css/style.css</code> breaks a project site.</li>
+      <li>Diagnose 404s, missing styles, broken images and an old version from their symptoms.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>76.1 From your laptop to everyone: what hosting means</h2>
+  <p>While you build a site you view it through Live Server, at an address like <code>http://127.0.0.1:5500/index.html</code>. The number <code>127.0.0.1</code> always means <i>this very computer</i>; its nickname is <span class="jw" data-def="A name that always means 'this same computer'. A site at localhost can be opened only on the machine that is running it.">localhost</span>. That is why nobody else can see your page.</p>
+  <p>To let anyone open your pages, the files must sit on a computer that is <b>switched on day and night</b>, <b>connected to the Internet with a public address</b>, and running <b>web server software</b> that answers requests &mdash; the server role from Chapter 2. Keeping your files on such a computer is called <span class="jw" data-def="Keeping your website's files on a computer that is always switched on and connected, so anyone's browser can ask it for them.">web hosting</span>; whoever runs that computer is the <b>hosting service</b>. Copying your finished files onto it is called <b>deploying</b> (or publishing) the site.</p>
+  <div class="plain"><p>Hosting means: put a copy of your site on a computer that never sleeps, so that anybody's browser, anywhere, at any hour, can ask it for your pages.</p></div>
+  <p>Five words get mixed up all the time in this topic:</p>
+  <table class="tbl">
+    <thead><tr><th>Word</th><th>What it is</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Local site</b></td><td>Your files, opened on your own machine</td><td><code>http://127.0.0.1:5500/</code> &mdash; only you can see it</td></tr>
+      <tr><td><b>Repository</b></td><td>Where the code and its history are stored</td><td><code>https://github.com/ananya-k/portfolio</code> &mdash; shows the <i>code</i></td></tr>
+      <tr><td><b>Hosting service</b></td><td>The always-on computer that sends your files to visitors</td><td>GitHub Pages, Netlify, a college server</td></tr>
+      <tr><td><b>Live URL</b></td><td>The public address people type to see the site</td><td><code>https://ananya-k.github.io/portfolio/</code></td></tr>
+      <tr><td><b>Deployment</b></td><td>Putting the finished files on the host and switching them on</td><td>Pushing to <code>main</code> with Pages turned on</td></tr>
+    </tbody>
+  </table>
+  <div class="callout why"><b>Key idea.</b> A repository <b>stores</b> code; it is not automatically a website. Hosting is what turns a folder of files into a site people can visit. GitHub offers both in the same place, which is why students confuse them.</div>
+  <details class="qc">
+    <summary>Quick check: Rahul opens the link <code>http://127.0.0.1:5500/index.html</code> that Asha sent him. What does he see?</summary>
+    <p>Not Asha's site. <code>127.0.0.1</code> always means "this computer", so his browser asks his own laptop. If he is not running Live Server he gets "This site can't be reached"; if he is, he sees his <i>own</i> project. A localhost address can never be shared.</p>
+  </details>
+</section>
+
+<section id="s2">
+  <h2>76.2 Static hosting and backend servers</h2>
+  <p>Hosts come in two kinds, and the difference decides whether GitHub Pages can host your project at all.</p>
+  <p>A <b>static host</b> does the simplest job possible. A request arrives for <code>about.html</code>; the host finds that file and sends it <b>exactly as it is stored</b>, the same bytes to every visitor. It can serve any kind of file &mdash; HTML, CSS, JavaScript, images, fonts, PDFs, JSON &mdash; but it never runs any of your code itself.</p>
+  <p>A <b>backend server</b> (a dynamic host) does more. A request arrives for <code>/my-marks</code>; the server <b>runs code</b> &mdash; Node.js with Express, Python with Django, PHP, Java&hellip; &mdash; which checks who is asking, reads a database and <b>builds a fresh page</b> for that one person. Logins, saved comments, payments and anything with a database need a server like this.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Top row: a static host finds a file and sends it unchanged, then the browser runs the JavaScript. Bottom row: a backend server runs code, reads a database and builds a fresh page for each visitor.">
+      <text x="20" y="22" class="t b">STATIC HOST &mdash; GitHub Pages, Netlify</text>
+      <rect x="20" y="34" width="125" height="56" rx="10" class="box saf"/>
+      <text x="82" y="57" class="t c">Browser asks</text>
+      <text x="82" y="77" class="t c">for about.html</text>
+      <path d="M147 62 L171 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="175" y="34" width="125" height="56" rx="10" class="box gry"/>
+      <text x="237" y="57" class="t c">Host finds</text>
+      <text x="237" y="77" class="t c">the file</text>
+      <path d="M302 62 L326 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="330" y="34" width="125" height="56" rx="10" class="box grn"/>
+      <text x="392" y="57" class="t c">Sends it exactly</text>
+      <text x="392" y="77" class="t c">as it is stored</text>
+      <path d="M457 62 L481 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="485" y="34" width="125" height="56" rx="10" class="box saf"/>
+      <text x="547" y="57" class="t c">Browser runs</text>
+      <text x="547" y="77" class="t c">the JavaScript</text>
+      <text x="310" y="110" class="t c s">The same file for every visitor. No code of yours runs on the host.</text>
+      <text x="20" y="148" class="t b">BACKEND SERVER &mdash; Node/Express, PHP, Django (not on Pages)</text>
+      <rect x="20" y="160" width="125" height="56" rx="10" class="box saf"/>
+      <text x="82" y="183" class="t c">Browser asks</text>
+      <text x="82" y="203" class="t c">for /my-marks</text>
+      <path d="M147 188 L171 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="175" y="160" width="125" height="56" rx="10" class="box blu"/>
+      <text x="237" y="183" class="t c">Server runs</text>
+      <text x="237" y="203" class="t c">your code</text>
+      <path d="M302 188 L326 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="330" y="160" width="125" height="56" rx="10" class="box blu"/>
+      <text x="392" y="183" class="t c">Reads the</text>
+      <text x="392" y="203" class="t c">database</text>
+      <path d="M457 188 L481 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="485" y="160" width="125" height="56" rx="10" class="box grn"/>
+      <text x="547" y="183" class="t c">Builds a fresh</text>
+      <text x="547" y="203" class="t c">page for Asha</text>
+      <text x="310" y="236" class="t c s">A different answer for each visitor. Needs a computer that runs your code.</text>
+    </svg>
+    <figcaption><b>Figure 76.1</b> A static host only fetches and sends; a backend server runs code and sends something new each time. GitHub Pages is the top row.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> The notice board outside your department office is a static host. Anyone walking past reads exactly what is pinned &mdash; the same sheet for everybody, at any hour, with nobody on duty. You cannot hand the board a form, because there is no one behind it. The help desk inside is a backend server: you ask "what are my marks?", and the clerk looks you up in the register and writes an answer just for you. GitHub Pages is a notice board. Updating it means pinning up a new sheet (pushing a new commit), and because the board stands in a public corridor, you never pin up anything secret.</div>
+  <h3>Static does not mean boring</h3>
+  <p>A common mistake is "a static site cannot have JavaScript". It can. The host sends <code>main.js</code> exactly as it sends <code>logo.png</code>, and then the <b>visitor's browser</b> runs it. So quizzes, calculators, games, a to-do list saved with <code>localStorage</code> (Chapter 64) and a weather page that fetches a public API (Chapter 65) all work on a static host.</p>
+  <pre class="code" data-run data-title="Static, yet interactive - change the marks and press Show grade" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; color: #14243B; }
+  input, button { font: inherit; padding: 6px 10px; }
+  #result { margin-top: 12px; font-size: 18px; font-weight: 700; }
+&lt;/style&gt;
+&lt;h3&gt;Grade calculator&lt;/h3&gt;
+&lt;label&gt;Marks out of 100:
+  &lt;input id="marks" type="number" min="0" max="100" value="82"&gt;&lt;/label&gt;
+&lt;button id="go"&gt;Show grade&lt;/button&gt;
+&lt;p id="result"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const marksBox = document.querySelector("#marks");
+  const result = document.querySelector("#result");
+
+  function gradeFor(marks) {
+    if (marks &gt;= 90) return "A+";
+    if (marks &gt;= 75) return "A";
+    if (marks &gt;= 60) return "B";
+    if (marks &gt;= 40) return "C";
+    return "Re-appear";
+  }
+
+  function show() {
+    const marks = Number(marksBox.value);
+    const grade = gradeFor(marks);
+    result.textContent = `Marks ${marks}: grade ${grade}`;
+    console.log("Marks:", marks, "Grade:", grade);
+  }
+
+  document.querySelector("#go").addEventListener("click", show);
+  show();   // once at the start, for the value already in the box
+  console.log("The host only sent this file. The browser did all the work.");
+&lt;/script&gt;</pre>
+  <p>Run it: the console shows <code>Marks: 82 Grade: A</code> and then the second message. Try 95, then 30. Nothing here talks to a server after the page has arrived, so a static host is all it needs. What it could <b>not</b> do is save Asha's marks so that Rahul sees them on his phone &mdash; sharing data between visitors needs a server with a database.</p>
+  <table class="tbl">
+    <thead><tr><th>Works on GitHub Pages</th><th>Needs a backend (host it somewhere else)</th></tr></thead>
+    <tbody>
+      <tr><td>Portfolio, r&eacute;sum&eacute; and landing pages</td><td>A Node.js / Express API</td></tr>
+      <tr><td>Documentation and course notes</td><td>Server code in PHP, Python or Java</td></tr>
+      <tr><td>Quiz, game, to-do list (saved in the visitor's browser)</td><td>Your own database; logins</td></tr>
+      <tr><td>A dashboard that fetches a public HTTPS API</td><td>A contact form that stores messages</td></tr>
+      <tr><td>A JSON data file you update by pushing</td><td>Payments; a secret API key</td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p>A static host only <b>sends files</b>. Any thinking happens afterwards, inside the visitor's own browser. If your project needs thinking on the host &mdash; checking a password, saving a message for everyone &mdash; a static host cannot do it.</p></div>
+  <div class="callout warn"><b>Everything on Pages is public.</b> Every file of a published site can be downloaded by anyone, including the API key you "hid" in <code>js/config.js</code>. Nothing sent to a browser is secret (Chapter 1), and on a static host every file is sent to the browser. Secrets belong on a backend server.</div>
+  <details class="qc">
+    <summary>Quick check: can a to-do list that saves its tasks with <code>localStorage</code> be hosted on GitHub Pages?</summary>
+    <p>Yes. Its files are ordinary static files, and the saving happens in the visitor's own browser, not on the host. The catch: each visitor sees only their own list. A list shared between Asha and Rahul would need a backend.</p>
+  </details>
+</section>
+
+<section id="s3">
+  <h2>76.3 What GitHub Pages is</h2>
+  <p><b>GitHub Pages is a hosting service for static websites &mdash; HTML, CSS, JavaScript and other static files &mdash; published directly from a GitHub repository.</b> Pages reads the files from your repository and serves them at a <code>github.io</code> address. Three facts worth knowing:</p>
+  <ul>
+    <li><b>It is free for public repositories</b> on the GitHub Free plan. Publishing from a <i>private</i> repository needs a paid plan (GitHub Pro, Team or Enterprise), and even then the published site is normally public: a private repository hides the code, not the website.</li>
+    <li><b>It uses HTTPS automatically</b>: every <code>github.io</code> address starts with <code>https://</code>.</li>
+    <li><b>It updates itself</b>: once switched on, every push to the publishing branch publishes the new version.</li>
+  </ul>
+  <h3>User site and project site</h3>
+  <p>Pages makes two kinds of site, and the only thing that decides which one you get is <b>the name of the repository</b>:</p>
+  <table class="tbl">
+    <thead><tr><th>Site type</th><th>Repository name</th><th>Published URL</th><th>How many</th></tr></thead>
+    <tbody>
+      <tr><td><b>User site</b></td><td><code>USERNAME.github.io</code>, e.g. <code>ananya-k.github.io</code></td><td><code>https://ananya-k.github.io/</code></td><td>One per account</td></tr>
+      <tr><td><b>Project site</b></td><td>Any other name, e.g. <code>portfolio</code></td><td><code>https://ananya-k.github.io/portfolio/</code></td><td>One per repository</td></tr>
+    </tbody>
+  </table>
+  <p>Look at the project site's address: the repository name has become <b>the first folder of the path</b>. A project site does not own the whole <code>ananya-k.github.io</code> address; it lives in a sub-folder of it, the <b>project subpath</b>. Section 76.7 is about the trouble this causes.</p>
+  <pre class="code">https://ananya-k.github.io/portfolio/about.html
+        ^^^^^^^^ ^^^^^^^^^ ^^^^^^^^^ ^^^^^^^^^^
+        username GitHub    repo name the file</pre>
+  <h3>Two URLs, two audiences</h3>
+  <p>Every published project has two addresses, and students regularly hand in the wrong one. The <b>repository URL</b>, <code>https://github.com/ananya-k/portfolio</code>, shows the <b>code</b>: file list, README, commits &mdash; for developers. The <b>published URL</b>, <code>https://ananya-k.github.io/portfolio/</code>, shows the <b>website</b> itself &mdash; for users, teachers and recruiters.</p>
+  <div class="callout exam"><b>Exam tip.</b> A user-site URL has no repository name in its path (<code>https://USERNAME.github.io/</code>); a project-site URL ends with it (<code>https://USERNAME.github.io/REPOSITORY/</code>). An option starting <code>https://github.com/</code> is the repository, not the website; <code>https://REPOSITORY.github.io/USERNAME/</code> has the two names swapped.</div>
+</section>
+
+<section id="s4">
+  <h2>76.4 How a repository becomes a website</h2>
+  <p>Deployment with Pages is a chain of six stages. You already know the first three from Chapter 75; the last three are new.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 222" role="img" aria-label="Six stages: local site, commit, push, configure Pages, publish workflow, live URL. A dashed arrow shows that every later push runs publishing again. Below, the repository URL shows code and the published URL shows the website.">
+      <rect x="5" y="20" width="100" height="80" rx="10" class="box saf"/>
+      <text x="55" y="44" class="t c b">1 Local site</text>
+      <text x="55" y="64" class="t c s">works with</text>
+      <text x="55" y="82" class="t c s">Live Server</text>
+      <path d="M107 60 L123 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="127" y="20" width="100" height="80" rx="10" class="box"/>
+      <text x="177" y="44" class="t c b">2 Commit</text>
+      <text x="177" y="64" class="t c s">git commit -m</text>
+      <text x="177" y="82" class="t c s">snapshot files</text>
+      <path d="M229 60 L245 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="249" y="20" width="100" height="80" rx="10" class="box"/>
+      <text x="299" y="44" class="t c b">3 Push</text>
+      <text x="299" y="64" class="t c s">git push</text>
+      <text x="299" y="82" class="t c s">origin main</text>
+      <path d="M351 60 L367 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="371" y="20" width="100" height="80" rx="10" class="box blu"/>
+      <text x="421" y="44" class="t c b">4 Configure</text>
+      <text x="421" y="64" class="t c s">Settings, Pages</text>
+      <text x="421" y="82" class="t c s">main, / (root)</text>
+      <path d="M473 60 L489 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="493" y="20" width="100" height="80" rx="10" class="box gry"/>
+      <text x="543" y="44" class="t c b">5 Publish</text>
+      <text x="543" y="64" class="t c s">Pages workflow</text>
+      <text x="543" y="82" class="t c s">Actions tab &#10003;</text>
+      <path d="M595 60 L611 60" class="edge" marker-end="url(#arr)"/>
+      <rect x="615" y="20" width="100" height="80" rx="10" class="box grn"/>
+      <text x="665" y="44" class="t c b">6 Live URL</text>
+      <text x="665" y="64" class="t c s">open, test,</text>
+      <text x="665" y="82" class="t c s">share</text>
+      <path d="M299 102 C299 136 543 136 543 106" class="edge saf dash" marker-end="url(#arr-saf)"/>
+      <text x="421" y="148" class="t c s">every later push to main runs stages 5 and 6 again by itself</text>
+      <rect x="5" y="162" width="350" height="52" rx="10" class="box gry"/>
+      <text x="180" y="183" class="t c b">Repository URL &mdash; shows the CODE</text>
+      <text x="180" y="203" class="t c mono">github.com/ananya-k/portfolio</text>
+      <rect x="365" y="162" width="350" height="52" rx="10" class="box grn"/>
+      <text x="540" y="183" class="t c b">Published URL &mdash; shows the WEBSITE</text>
+      <text x="540" y="203" class="t c mono">ananya-k.github.io/portfolio/</text>
+    </svg>
+    <figcaption><b>Figure 76.2</b> Stage 4 is done once; after that, a push is all it takes. Share the green address, not the grey one.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Local site.</b> It works with Live Server, and the Console is clean.</li>
+    <li><b>Commit.</b> <code>git add .</code> and <code>git commit -m "..."</code> snapshot the final files.</li>
+    <li><b>Push.</b> <code>git push origin main</code> copies the commits to GitHub. The files are now in the repository &mdash; but still <i>not</i> a website.</li>
+    <li><b>Configure Pages</b> (once). In Settings &rarr; Pages you choose a <span class="jw" data-def="A named line of commits inside a Git repository. Most projects publish from the branch called main.">branch</span> (usually <code>main</code>) and a folder in it (usually <code>/ (root)</code>, the top of the repository).</li>
+    <li><b>Publish.</b> GitHub runs an automatic <span class="jw" data-def="A list of jobs GitHub runs on its own computers whenever something happens, such as a push. You can watch each run in the Actions tab.">workflow</span>, shown in the <b>Actions</b> tab as <i>pages build and deployment</i>, which copies the files from that branch and folder onto GitHub's web servers.</li>
+    <li><b>Live URL.</b> The site is at <code>https://ananya-k.github.io/portfolio/</code>. Open it, test it, share it.</li>
+  </ol>
+  <div class="plain"><p>Pushing puts your files in the <b>repository</b>. Switching Pages on tells GitHub: "whenever <code>main</code> changes, copy its files onto your web servers". From that moment, <b>push = publish</b>.</p></div>
+  <p>Publishing usually finishes within a minute or two; GitHub's documentation allows up to ten minutes. So when a change "has not appeared", look at the Actions tab before changing any code.</p>
+  <h3>One thing the publishing step may do to your files</h3>
+  <p>When you publish from a branch, GitHub passes your files through <b>Jekyll</b>, a tool that can turn Markdown files into HTML pages. Ordinary HTML, CSS and JavaScript come out unchanged, with two side effects. First, Jekyll <b>skips files and folders whose names begin with an underscore</b>, so a folder called <code>_images/</code> never reaches the live site; rename it, or add an empty file called <code>.nojekyll</code> at the top of the publishing folder to switch Jekyll off. Second, if there is no <code>index.html</code>, Pages uses <code>index.md</code> or <code>README.md</code> as the home page &mdash; which is why a mis-named <code>index.html</code> can show up as "my site shows my README".</p>
+</section>
+
+<section id="s5">
+  <h2>76.5 Prepare the site before you push</h2>
+  <p>Most deployment problems are created before anything is deployed, so a five-minute check on your laptop saves an hour later. Start with the folder shape from Chapter 73:</p>
+  <pre class="code">portfolio/
+&#9500;&#9472;&#9472; index.html          &larr; the home page: exactly this name, at the top
+&#9500;&#9472;&#9472; about.html
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; style.css
+&#9500;&#9472;&#9472; js/
+&#9474;   &#9492;&#9472;&#9472; main.js
+&#9492;&#9472;&#9472; assets/
+    &#9492;&#9472;&#9472; images/
+        &#9492;&#9472;&#9472; logo.png</pre>
+  <table class="tbl">
+    <thead><tr><th>Check</th><th>Why it matters</th></tr></thead>
+    <tbody>
+      <tr><td><b><code>index.html</code> at the top of the folder</b></td><td>A folder address such as <code>&hellip;/portfolio/</code> is answered with that folder's <code>index.html</code>. A home page called <code>home.html</code> or <code>Index.html</code> gives a 404 (or your README).</td></tr>
+      <tr><td><b>Relative paths only</b></td><td><code>href="css/style.css"</code>, <code>src="assets/images/logo.png"</code>. Never <code>C:\Users\&hellip;</code> or <code>file:///&hellip;</code> (they exist only on your laptop), never a leading <code>/</code> (section 76.7).</td></tr>
+      <tr><td><b>Lower-case names, hyphens, no spaces</b></td><td><code>Logo.PNG</code> and <code>logo.png</code> are different files online. Spaces become <code>%20</code> in addresses. Write <code>team-photo.jpg</code>.</td></tr>
+      <tr><td><b>Zero console errors, zero 404s</b></td><td>DevTools locally (Chapter 69): no red lines in the Console or the Network panel.</td></tr>
+      <tr><td><b>External APIs use HTTPS</b></td><td>Pages is served over <code>https://</code>, so the browser blocks a <code>fetch</code> to an <code>http://</code> address as <span class="jw" data-def="A secure https:// page trying to load something over plain, unencrypted http://. Browsers block it to keep the page secure.">mixed content</span>. The API must also allow requests from other sites (CORS, Chapter 65).</td></tr>
+      <tr><td><b>Everything committed and pushed</b></td><td><code>git status</code> should say <i>nothing to commit, working tree clean</i>. A file that was never added never reaches GitHub.</td></tr>
+    </tbody>
+  </table>
+  <div class="callout why"><b>Key idea.</b> If it does not work with Live Server and a clean console, it will not work on GitHub Pages either. The reverse is <b>not</b> guaranteed: two bugs hide on your laptop &mdash; capital letters in file names, and paths that start with <code>/</code>.</div>
+  <h3>Why capital letters only hurt online</h3>
+  <p>Windows treats <code>Logo.PNG</code> and <code>logo.png</code> as the same file, so <code>&lt;img src="assets/images/logo.png"&gt;</code> happily finds <code>Logo.PNG</code> on your laptop. GitHub Pages, like most web servers, treats file names as <span class="jw" data-def="Treating capital and small letters as different. On a case-sensitive server, Logo.png and logo.png are two different names.">case-sensitive</span>: <code>Logo.PNG</code> and <code>logo.png</code> are two different names, and only one of them exists. The image is broken online and perfect at home.</p>
+  <div class="plain"><p>Your laptop forgives capital letters; the server does not. Name every file in small letters, and type every path exactly as the file is named.</p></div>
+  <p>One more trap on Windows: if you rename <code>Logo.PNG</code> to <code>logo.png</code> in File Explorer, Git usually does <b>not notice</b> a change that is only in capital letters, and the repository keeps the old name. Rename it through Git instead:</p>
+  <pre class="code">git mv assets/images/Logo.PNG assets/images/logo.png
+git commit -m "Rename logo to lower case"
+git push
+
+# if git mv complains, go through a temporary name:
+git mv assets/images/Logo.PNG assets/images/temp.png
+git mv assets/images/temp.png assets/images/logo.png</pre>
+  <p>Here is the checklist as a little program. It looks at the files in Rahul's project and the paths in his HTML, and reports what will break online.</p>
+  <pre class="code" data-run data-title="A pre-push checker - fix Rahul's lists until it says Ready to push" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #14243B; font-size: 14px; }
+  li { margin: 4px 0; }
+  .ok  { color: #138808; font-weight: 700; }
+  .bad { color: #C42B2B; font-weight: 700; }
+&lt;/style&gt;
+&lt;p id="verdict"&gt;&lt;/p&gt;
+&lt;ol id="list"&gt;&lt;/ol&gt;
+&lt;script&gt;
+  // Every file in Rahul's project folder, exactly as Git will upload it
+  const files = [
+    "Index.html",
+    "css/style.css",
+    "js/main.js",
+    "assets/Logo.PNG",
+    "assets/team photo.jpg"
+  ];
+
+  // Every href and src written inside his HTML
+  const links = [
+    "css/style.css",
+    "/js/main.js",
+    "assets/logo.png",
+    "C:\\Users\\rahul\\Desktop\\site\\team.jpg",
+    "http://api.example.com/marks.json"
+  ];
+
+  const problems = [];
+  function report(what, detail) {
+    problems.push({ what, detail });
+  }
+
+  // 1. The home page must be called exactly index.html, at the top
+  if (!files.includes("index.html")) {
+    report("home page", "no index.html at the top of the folder");
+  }
+
+  // 2. File names: small letters only, no spaces
+  for (const f of files) {
+    if (f !== f.toLowerCase()) report("file name", `${f} has capital letters`);
+    if (f.includes(" ")) report("file name", `"${f}" has a space`);
+  }
+
+  // 3. Links: relative, and spelled exactly like a real file
+  for (const link of links) {
+    if (link.startsWith("https://")) continue;     // another site, over HTTPS: fine
+    if (link.startsWith("http://")) {
+      report("link", `${link} is http:// and will be blocked on an https:// site`);
+    } else if (link.includes(":\\")) {
+      report("link", `${link} points into your own computer`);
+    } else if (link.startsWith("/")) {
+      report("link", `${link} starts with / and will miss a project site`);
+    } else if (!files.includes(link)) {
+      const near = files.find(f =&gt; f.toLowerCase() === link.toLowerCase());
+      report("link", near ? `${link} - but the file is called ${near}` : `${link} - no such file`);
+    }
+  }
+
+  console.table(problems);
+  const verdict = document.querySelector("#verdict");
+  verdict.textContent = problems.length === 0
+    ? "Ready to push."
+    : `${problems.length} problems to fix before you push:`;
+  verdict.className = problems.length === 0 ? "ok" : "bad";
+  console.log(verdict.textContent);
+
+  for (const p of problems) {
+    const li = document.createElement("li");
+    li.textContent = `${p.what}: ${p.detail}`;
+    document.querySelector("#list").append(li);
+  }
+&lt;/script&gt;</pre>
+  <p>As written it finds <b>8 problems</b>: no <code>index.html</code>, two names with capitals, one with a space, and four bad links (a root path, a capital-letter mismatch, a <code>C:\</code> path, an <code>http://</code> API). Now play Rahul: rename <code>Index.html</code> to <code>index.html</code>, <code>assets/Logo.PNG</code> to <code>assets/logo.png</code> and <code>assets/team photo.jpg</code> to <code>assets/team-photo.jpg</code>; change the links to <code>js/main.js</code>, <code>assets/team-photo.jpg</code> and <code>https://api.example.com/marks.json</code>; and Run again until it says <b>Ready to push.</b></p>
+</section>
+
+<section id="s6">
+  <h2>76.6 Deploy it, step by step</h2>
+  <p>The first deployment takes about ten minutes; after that, publishing a change takes one command.</p>
+  <ol>
+    <li><b>Create or open a GitHub repository.</b> Make it <b>Public</b> (on the free plan, Pages needs a public repository).</li>
+    <li><b>Put the website files in it.</b> Push from your computer (Chapter 75), or use <i>Add file &rarr; Upload files</i> on GitHub. <code>index.html</code> must be at the top of the repository, not inside another folder.</li>
+    <li><b>Open the repository's Settings tab</b> (the last tab along the top).</li>
+    <li><b>Click Pages</b> in the left sidebar.</li>
+    <li><b>Source:</b> under <i>Build and deployment</i>, choose <b>Deploy from a branch</b>.</li>
+    <li><b>Branch:</b> choose <b><code>main</code></b>, and folder <b><code>/ (root)</code></b>.</li>
+    <li><b>Click Save.</b></li>
+    <li><b>Wait</b> for the deployment: the Actions tab's <i>pages build and deployment</i> run shows a yellow dot while it works, a green tick when done, a red cross if it failed.</li>
+    <li><b>Open the published URL.</b> Settings &rarr; Pages now says <i>Your site is live at&hellip;</i>, with a <b>Visit site</b> button.</li>
+    <li><b>Verify; fix problems; push again.</b> Click every link, check every image, open the Console on the live site, try it on a phone.</li>
+  </ol>
+  <pre class="code">ananya-k / portfolio  &rsaquo;  Settings  &rsaquo;  Pages        (recreated; GitHub's layout may change)
+
+GitHub Pages
+  &#10003; Your site is live at https://ananya-k.github.io/portfolio/        [ Visit site ]
+
+Build and deployment
+  Source    [ Deploy from a branch &#9662; ]
+  Branch    [ main &#9662; ]   [ / (root) &#9662; ]   [ Save ]</pre>
+  <p>The folder menu offers only <code>/ (root)</code> or <code>/docs</code>; pick <code>/docs</code> only if you keep the website inside a <code>docs</code> folder. The Source menu's other choice, <i>GitHub Actions</i>, is for sites that need a build tool first; a plain HTML, CSS and JavaScript site does not.</p>
+  <h3>Redeploying: just push</h3>
+  <p>You never go back to Settings to publish a change. Edit, commit, push:</p>
+  <pre class="code"># fixed a spelling mistake in index.html, then:
+git add index.html
+git commit -m "Fix typo in About section"
+git push
+
+# Actions tab: a new run appears; when it shows a green tick,
+# reload the live site</pre>
+  <p>Pages was switched on once, in step 7; from then on every push to <code>main</code> starts a new deployment by itself.</p>
+</section>
+
+<section id="s7">
+  <h2>76.7 Paths on a project site: the subpath problem</h2>
+  <p>This is the most common reason a site that is perfect on a laptop arrives broken on GitHub Pages: the text appears, but with no styling, no pictures and no JavaScript. Here are Chapter 8's path rules again, applied to a real project site.</p>
+  <p>When the browser meets <code>href="css/style.css"</code> on the page <code>https://ananya-k.github.io/portfolio/about.html</code>, it drops the file name to get the page's <b>folder</b>, <code>https://ananya-k.github.io/portfolio/</code>, adds the path to the end, and requests <code>https://ananya-k.github.io/portfolio/css/style.css</code>.</p>
+  <p>A path that <b>starts with <code>/</code></b> means "start from the very top of the domain": the browser keeps only <code>https://ananya-k.github.io</code> and adds the path to that. <code>/css/style.css</code> becomes <code>https://ananya-k.github.io/css/style.css</code> &mdash; <code>portfolio</code> has gone, and there is no such file.</p>
+  <table class="tbl">
+    <thead><tr><th>Written in <code>about.html</code></th><th>Browser requests</th><th>Result</th></tr></thead>
+    <tbody>
+      <tr><td><code>css/style.css</code></td><td><code>https://ananya-k.github.io/portfolio/css/style.css</code></td><td>200 &#10003;</td></tr>
+      <tr><td><code>./css/style.css</code></td><td><code>https://ananya-k.github.io/portfolio/css/style.css</code></td><td>200 &#10003; (<code>./</code> means "this folder")</td></tr>
+      <tr><td><code>/css/style.css</code></td><td><code>https://ananya-k.github.io/css/style.css</code></td><td>404 &#10007; outside the project</td></tr>
+      <tr><td><code>../css/style.css</code></td><td><code>https://ananya-k.github.io/css/style.css</code></td><td>404 &#10007; climbed out of the project</td></tr>
+      <tr><td><code>assets/Logo.png</code></td><td><code>https://ananya-k.github.io/portfolio/assets/Logo.png</code></td><td>404 &#10007; the file is <code>logo.png</code></td></tr>
+    </tbody>
+  </table>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 264" role="img" aria-label="The address space of ananya-k.github.io: the project site is the portfolio folder inside it. The relative path css/style.css starts in the page's folder and finds portfolio/css/style.css. The root path /css/style.css starts at the top of the domain, where there is no such file.">
+      <rect x="16" y="14" width="270" height="244" rx="12" class="box gry"/>
+      <text x="30" y="38" class="t b mono">ananya-k.github.io/</text>
+      <text x="30" y="56" class="t s">the domain root: what a leading / means</text>
+      <rect x="34" y="68" width="236" height="144" rx="10" class="box"/>
+      <text x="48" y="90" class="t b mono">portfolio/</text>
+      <text x="150" y="90" class="t s">the project site</text>
+      <text x="66" y="114" class="t mono">index.html</text>
+      <text x="66" y="138" class="t mono">about.html</text>
+      <text x="152" y="138" class="t s b">&larr; you are here</text>
+      <text x="66" y="162" class="t mono">css/</text>
+      <rect x="78" y="170" width="104" height="26" rx="6" class="box grn"/>
+      <text x="88" y="188" class="t mono">style.css</text>
+      <rect x="34" y="222" width="150" height="26" rx="6" class="box red"/>
+      <text x="44" y="240" class="t mono">css/style.css</text>
+      <rect x="330" y="60" width="274" height="76" rx="10" class="box grn"/>
+      <text x="344" y="82" class="t mono">href="css/style.css"</text>
+      <text x="344" y="102" class="t s">starts in the page's folder, /portfolio/</text>
+      <text x="344" y="122" class="t s b">&rarr; /portfolio/css/style.css &middot; 200 OK</text>
+      <rect x="330" y="172" width="274" height="76" rx="10" class="box red"/>
+      <text x="344" y="194" class="t mono">href="/css/style.css"</text>
+      <text x="344" y="214" class="t s">starts at the top of the domain, /</text>
+      <text x="344" y="234" class="t s b">&rarr; /css/style.css &middot; 404 Not Found</text>
+      <path d="M328 112 L186 182" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M328 214 L190 234" class="edge dash" marker-end="url(#arr)"/>
+    </svg>
+    <figcaption><b>Figure 76.3</b> A project site is one folder inside the domain. A path without a leading slash stays inside the project; one with a slash starts at the top of the domain, where your files are not.</figcaption>
+  </figure>
+  <h3>Why did it work on my laptop?</h3>
+  <p>Because Live Server serves <b>your project folder as the top of the site</b>: <code>http://127.0.0.1:5500/</code> <i>is</i> your <code>portfolio</code> folder, so <code>/css/style.css</code> really was your file. Online, the top of <code>ananya-k.github.io</code> belongs to Ananya's user site, not to her portfolio. For the same reason a root path works on a <b>user</b> site and breaks when the same files are published as a <b>project</b> site. Relative paths work in all three places &mdash; laptop, user site, project site.</p>
+  <div class="plain"><p>A path <b>without</b> a slash at the front says "start from the folder this page is in". A path <b>with</b> a slash at the front says "start from the very top of the domain". On a project site the very top is not your project &mdash; so leave the slash off.</p></div>
+  <p>Pages inside sub-folders need one more step. From <code>blog/first-post.html</code> the stylesheet is <b>up one folder</b>, so that page writes <code>../css/style.css</code>, while <code>index.html</code> writes <code>css/style.css</code>.</p>
+  <p>JavaScript's <code>new URL(path, page)</code> resolves a path exactly the way the browser does, which makes it a perfect checking tool:</p>
+  <pre class="code" data-run data-title="Where does this path really go? - edit either box" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #14243B; font-size: 14px; }
+  label { display: block; margin-bottom: 8px; }
+  input { display: block; width: 100%; box-sizing: border-box; margin-top: 3px;
+          padding: 6px; font: 13px ui-monospace, Consolas, monospace; }
+  #answer { font-family: ui-monospace, Consolas, monospace; background: #F1F5F9;
+            padding: 8px; border-radius: 6px; word-break: break-all; }
+&lt;/style&gt;
+&lt;label&gt;The page you are on
+  &lt;input id="page" value="https://ananya-k.github.io/portfolio/about.html"&gt;&lt;/label&gt;
+&lt;label&gt;A path written inside that page
+  &lt;input id="path" value="/css/style.css"&gt;&lt;/label&gt;
+&lt;p id="answer"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // new URL(path, page) works out an address exactly as the browser does
+  function resolve(path, page) {
+    return new URL(path, page).href;
+  }
+
+  const pageBox = document.querySelector("#page");
+  const pathBox = document.querySelector("#path");
+  const answer = document.querySelector("#answer");
+
+  function show() {
+    try {
+      answer.textContent = "The browser asks for: " + resolve(pathBox.value, pageBox.value);
+    } catch (err) {
+      answer.textContent = "The page address must be a full URL starting with https://";
+    }
+  }
+  pageBox.addEventListener("input", show);
+  pathBox.addEventListener("input", show);
+  show();
+
+  // Five paths that could be written in about.html
+  const page = "https://ananya-k.github.io/portfolio/about.html";
+  const tries = ["css/style.css", "./css/style.css", "/css/style.css",
+                 "../css/style.css", "assets/Logo.png"];
+  console.table(tries.map(p =&gt; ({ written: p, requested: resolve(p, page) })));
+&lt;/script&gt;</pre>
+  <p>The console table reproduces the table above. Now experiment in the boxes: change the page to <code>https://ananya-k.github.io/portfolio/blog/first-post.html</code> and try <code>css/style.css</code> (wrong folder) and <code>../css/style.css</code> (right). Then change the page to the user site <code>https://ananya-k.github.io/index.html</code> and see that <code>/css/style.css</code> and <code>css/style.css</code> now give the same answer &mdash; the reason root paths only bite on project sites.</p>
+  <details class="qc">
+    <summary>Quick check: on <code>https://ananya-k.github.io/portfolio/about.html</code>, which URL does <code>href="css/style.css"</code> request?</summary>
+    <p><code>https://ananya-k.github.io/portfolio/css/style.css</code>. A relative path is added to the folder of the current page, which is <code>/portfolio/</code>.</p>
+  </details>
+</section>
+
+<section id="s8">
+  <h2>76.8 When it goes wrong: reading the symptoms</h2>
+  <p>Almost every deployment error is the same thing underneath: <b>the browser asked for one particular file and the server said 404</b>. So the method is always the same:</p>
+  <ol>
+    <li>Open the <b>live</b> site, not your local copy.</li>
+    <li>Press <kbd>F12</kbd>, open the <b>Network</b> panel, and reload.</li>
+    <li>Click a red row with status <b>404</b>: <i>Request URL</i> shows exactly which address was asked for.</li>
+    <li>Compare it with your repository's file list, letter by letter, capitals included.</li>
+  </ol>
+  <table class="tbl">
+    <thead><tr><th>Symptom</th><th>Likely cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>404 for the whole site</td><td>Pages not switched on, wrong branch or folder, or still deploying</td><td>Check Settings &rarr; Pages and the Actions tab; wait, then reload</td></tr>
+      <tr><td>The site shows your README, or 404 at the main address</td><td>No <code>index.html</code> at the top of the publishing folder (<code>Index.html</code>, <code>home.html</code>, or in a sub-folder)</td><td>Rename or move it to <code>index.html</code> at the root</td></tr>
+      <tr><td>Page loads with no styles</td><td>Wrong CSS path, or a path starting with <code>/</code></td><td>Use relative <code>href="css/style.css"</code>; check Network</td></tr>
+      <tr><td>Buttons do nothing</td><td>The JS file is a 404, or there is a console error</td><td>Fix the script path; read the Console on the live site</td></tr>
+      <tr><td>Broken images</td><td>Capitals do not match, or the image was never pushed</td><td>Match the case (<code>git mv</code>); <code>git status</code>; push it</td></tr>
+      <tr><td>A whole folder is missing online</td><td>Its name starts with <code>_</code>, so Jekyll skipped it</td><td>Rename it, or add an empty <code>.nojekyll</code> file at the root</td></tr>
+      <tr><td>Old version still showing</td><td>Deployment still running, or the browser's cache</td><td>Check Actions; hard refresh with <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td></tr>
+      <tr><td>Wrong content published</td><td>The publishing branch or folder is not what you think</td><td>Settings &rarr; Pages: <code>main</code> and <code>/ (root)</code> (or <code>/docs</code>)</td></tr>
+      <tr><td>API request blocked</td><td>An <code>http://</code> API (mixed content), or the API does not allow other sites (CORS)</td><td>Use an HTTPS API that allows cross-origin requests</td></tr>
+      <tr><td>Form or login "doesn't save"</td><td>Expecting a backend on a static host</td><td>Use an external form service, or host a backend elsewhere</td></tr>
+    </tbody>
+  </table>
+  <h3>"I pushed, but nothing changed"</h3>
+  <p>Two things can show you an old version. The deployment may not have finished, so look at the Actions tab. Or your browser's <span class="jw" data-def="A store of copies of files the browser downloaded earlier, kept so it does not have to download them again on the next visit.">cache</span> may be showing yesterday's <code>style.css</code> (Chapter 74). A <b>hard refresh</b> &mdash; <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on Windows and Linux, <kbd>Cmd</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> on a Mac &mdash; fetches every file again; a private (incognito) window, which starts with an empty cache, is another quick test.</p>
+  <div class="callout warn"><b>Do not "fix" a site that is still deploying.</b> A student pushes, reloads ten seconds later, sees the old page, changes three more things and pushes again &mdash; and now has three new bugs. Check the Actions tab first. Green tick and still old? Hard refresh. Only then debug.</div>
+  <p>A finishing touch: a file named <code>404.html</code> at the top of the publishing folder is shown whenever someone asks for an address that does not exist, instead of GitHub's plain error page.</p>
+  <p>The example below is a pretend GitHub Pages server. It knows the files in Ananya's repository and follows the host's real rules: a folder address means that folder's <code>index.html</code>; a name must match exactly, capitals included; and anything outside <code>/portfolio/</code> is not part of this project site.</p>
+  <pre class="code" data-run data-title="A pretend GitHub Pages server - type any address into the box" data-h="330">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #14243B; font-size: 14px; }
+  input { width: 100%; box-sizing: border-box; padding: 6px;
+          font: 13px ui-monospace, Consolas, monospace; }
+  .r { font-family: ui-monospace, Consolas, monospace; font-size: 13px; padding: 4px 8px;
+       margin: 3px 0; border-radius: 6px; word-break: break-all; }
+  .ok  { background: #E8F5E9; }
+  .bad { background: #FDECEC; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;Ask the pretend server for any address:&lt;/b&gt;&lt;/p&gt;
+&lt;input id="url" value="https://ananya-k.github.io/portfolio/assets/Logo.png"&gt;
+&lt;div id="one"&gt;&lt;/div&gt;
+&lt;p&gt;&lt;b&gt;What happens when the home page loads:&lt;/b&gt;&lt;/p&gt;
+&lt;div id="log"&gt;&lt;/div&gt;
+&lt;script&gt;
+  // The files in Ananya's repository: branch main, folder / (root)
+  const repo = ["index.html", "about.html", "css/style.css",
+                "js/main.js", "assets/logo.png"];
+  const site = "/portfolio/";        // a project site lives in this folder
+
+  // How a static host answers one request: find the file, or say 404
+  function serve(address) {
+    const url = new URL(address);
+    if (url.hostname !== "ananya-k.github.io") return "(this pretend server only knows ananya-k.github.io)";
+    const path = url.pathname;                         // e.g. "/portfolio/css/style.css"
+    if (path === "/portfolio") return "301 Moved: adds the missing / at the end";
+    if (!path.startsWith(site)) return "404 Not Found: outside the /portfolio/ site";
+    let file = decodeURIComponent(path.slice(site.length));        // "css/style.css"
+    if (file === "" || file.endsWith("/")) file += "index.html";   // a folder means its index.html
+    return repo.includes(file) ? "200 OK: sends " + file : "404 Not Found: no file called " + file;
+  }
+
+  // Show one answer on the page: green for 200 or 301, red for anything else
+  function line(where, answer, label = "") {
+    const div = document.createElement("div");
+    div.className = "r " + (/^(200|301)/.test(answer) ? "ok" : "bad");
+    div.textContent = label + answer;
+    where.append(div);
+  }
+
+  // 1. The home page, then every file it asks for
+  const page = "https://ananya-k.github.io/portfolio/";
+  const log = document.querySelector("#log");
+  line(log, serve(page), "the page itself &rarr; ");
+  console.log(page, "&rarr;", serve(page));
+
+  const wanted = ["css/style.css", "/css/style.css", "js/main.js",
+                  "assets/Logo.png", "about.html"];
+  for (const path of wanted) {
+    const address = new URL(path, page).href;
+    const answer = serve(address);
+    line(log, answer, path + " &rarr; ");
+    console.log(path, "&rarr;", address, "&rarr;", answer);
+  }
+
+  // 2. Your own experiments
+  const box = document.querySelector("#url");
+  const one = document.querySelector("#one");
+  function ask() {
+    one.textContent = "";
+    try {
+      line(one, serve(box.value));
+    } catch (err) {
+      line(one, "Type a full address starting with https://");
+    }
+  }
+  box.addEventListener("input", ask);
+  ask();
+&lt;/script&gt;</pre>
+  <p>The page itself and three of its files come back 200; <code>/css/style.css</code> and <code>assets/Logo.png</code> come back 404. In the box, change <code>Logo</code> to <code>logo</code> and watch it turn green. Then try <code>https://ananya-k.github.io/portfolio</code> without the final slash (GitHub really does redirect it), <code>https://ananya-k.github.io/portfolio/</code> (the folder gives you <code>index.html</code>) and <code>https://ananya-k.github.io/css/style.css</code> (outside the project).</p>
+  <details class="qc">
+    <summary>Quick check: on Rahul's live quiz, the Network panel shows <code>GET https://rahul-dev.github.io/js/app.js</code> &mdash; 404. His repository is called <code>quiz</code>. What is the bug?</summary>
+    <p>The address has lost <code>/quiz/</code>, so his home page almost certainly says <code>src="/js/app.js"</code> with a leading slash. Changing it to <code>src="js/app.js"</code> makes the browser request <code>https://rahul-dev.github.io/quiz/js/app.js</code>, where the file really is.</p>
+  </details>
+</section>
+
+<section id="s9">
+  <h2>76.9 Your own domain name (briefly)</h2>
+  <p>A <code>github.io</code> address is free and perfectly respectable. If you would rather have <code>www.ananyak.in</code>, you can buy that name yearly from a domain registrar and point it at GitHub Pages. Names are turned into the numbers of real computers by the <span class="jw" data-def="Domain Name System: the Internet's phone book. It turns a name like lpu.in into the number of the computer that answers for it.">DNS</span>, so connecting a domain means adding two or three records to that phone book:</p>
+  <ol>
+    <li>In <b>Settings &rarr; Pages &rarr; Custom domain</b>, type <code>www.ananyak.in</code> and click Save. When you publish from a branch, GitHub commits a small file called <code>CNAME</code> to your repository to record it.</li>
+    <li>In the registrar's DNS settings, add the records below: <code>www</code> points at your <code>github.io</code> address (without the repository name); the bare name (written <code>@</code>) points at GitHub Pages' four IP addresses.</li>
+    <li>Wait: DNS changes can take up to 24 hours to spread.</li>
+    <li>Tick <b>Enforce HTTPS</b> in Settings &rarr; Pages once it becomes available.</li>
+  </ol>
+  <pre class="code">Type    Name    Value
+CNAME   www     ananya-k.github.io
+A       @       185.199.108.153
+A       @       185.199.109.153
+A       @       185.199.110.153
+A       @       185.199.111.153</pre>
+  <p>Notice what happens to the paths: the site now lives at the top of its own domain instead of inside <code>/portfolio/</code>. Relative paths keep working; root paths change meaning yet again.</p>
+</section>
+
+<section id="s10">
+  <h2>76.10 Case study: Ananya's portfolio goes live</h2>
+  <p>Ananya wants one link to put on her r&eacute;sum&eacute;. Her portfolio uses semantic landmarks (<code>header</code>, <code>nav</code>, <code>main</code>, <code>section</code>), a mobile-first layout and only relative paths. Every link inside the page is an in-page anchor such as <code>#projects</code>, so it works on any subpath.</p>
+  <pre class="code">portfolio/
+&#9500;&#9472;&#9472; index.html
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; style.css
+&#9500;&#9472;&#9472; js/
+&#9474;   &#9492;&#9472;&#9472; main.js
+&#9492;&#9472;&#9472; assets/
+    &#9492;&#9472;&#9472; images/</pre>
+  <p>In her real project the page is three files joined by relative paths: <code>&lt;link rel="stylesheet" href="css/style.css"&gt;</code> in the head and <code>&lt;script src="js/main.js" defer&gt;&lt;/script&gt;</code>. A runnable example has to be one page, so below the three are joined, with a comment at each join.</p>
+  <pre class="code" data-run data-tall data-title="Ananya's portfolio - press Menu, then widen the window past 768px" data-h="420">&lt;!-- In the real project: index.html, css/style.css and js/main.js --&gt;
+&lt;style&gt;
+  /* ---- css/style.css ---- */
+  * { box-sizing: border-box; }
+  body { margin: 0; font-family: system-ui, sans-serif; color: #14243B; }
+  .site-header { display: flex; flex-wrap: wrap; align-items: center;
+                 justify-content: space-between; gap: 8px;
+                 padding: 12px 16px; background: #0B2545; }
+  .logo { color: #fff; font-weight: 800; text-decoration: none; }
+  .menu-toggle { font: inherit; padding: 6px 12px; border-radius: 6px;
+                 border: 1px solid #fff; background: transparent; color: #fff; }
+  .nav { display: none; flex-direction: column; width: 100%; }
+  .nav.open { display: flex; }
+  .nav a { color: #fff; padding: 6px 0; }
+  main { padding: 0 16px 16px; }
+  .hero h1 { font-size: 1.4rem; }
+  .btn { display: inline-block; background: #E07B1E; color: #fff; padding: 8px 16px;
+         border-radius: 999px; text-decoration: none; font-weight: 700; }
+  .cards { display: grid; gap: 1rem; grid-template-columns: 1fr;
+           padding: 0; list-style: none; }
+  .card { border: 1px solid #E3E9F0; border-radius: 10px; padding: 12px; }
+  img { max-width: 100%; height: auto; }
+
+  @media (min-width: 768px) {
+    .menu-toggle { display: none; }
+    .nav { display: flex; flex-direction: row; gap: 1.5rem; width: auto; }
+    .cards { grid-template-columns: repeat(3, 1fr); }
+  }
+&lt;/style&gt;
+
+&lt;!-- ---- index.html ---- --&gt;
+&lt;header class="site-header"&gt;
+  &lt;a href="#top" class="logo"&gt;Ananya K&lt;/a&gt;
+  &lt;button class="menu-toggle" aria-expanded="false" aria-controls="site-nav"&gt;Menu&lt;/button&gt;
+  &lt;nav id="site-nav" class="nav"&gt;
+    &lt;a href="#about"&gt;About&lt;/a&gt;
+    &lt;a href="#skills"&gt;Skills&lt;/a&gt;
+    &lt;a href="#projects"&gt;Projects&lt;/a&gt;
+    &lt;a href="#contact"&gt;Contact&lt;/a&gt;
+  &lt;/nav&gt;
+&lt;/header&gt;
+
+&lt;main id="top"&gt;
+  &lt;section class="hero"&gt;
+    &lt;h1&gt;Hi, I'm Ananya. I build accessible web apps.&lt;/h1&gt;
+    &lt;a class="btn" href="#projects"&gt;See my work&lt;/a&gt;
+  &lt;/section&gt;
+  &lt;section id="about"&gt;&lt;h2&gt;About&lt;/h2&gt;
+    &lt;p&gt;First-year B.Tech CSE student at LPU who likes tidy code.&lt;/p&gt;&lt;/section&gt;
+  &lt;section id="skills"&gt;&lt;h2&gt;Skills&lt;/h2&gt;
+    &lt;ul&gt;&lt;li&gt;HTML&lt;/li&gt;&lt;li&gt;CSS&lt;/li&gt;&lt;li&gt;JavaScript&lt;/li&gt;&lt;li&gt;Git and GitHub&lt;/li&gt;&lt;/ul&gt;&lt;/section&gt;
+  &lt;section id="projects"&gt;&lt;h2&gt;Projects&lt;/h2&gt;
+    &lt;ul class="cards"&gt;
+      &lt;li class="card"&gt;&lt;b&gt;Task Manager&lt;/b&gt;&lt;br&gt;Live site and code&lt;/li&gt;
+      &lt;li class="card"&gt;&lt;b&gt;TechFest Site&lt;/b&gt;&lt;br&gt;Live site and code&lt;/li&gt;
+      &lt;li class="card"&gt;&lt;b&gt;Weather App&lt;/b&gt;&lt;br&gt;Live site and code&lt;/li&gt;
+    &lt;/ul&gt;&lt;/section&gt;
+  &lt;section id="contact"&gt;&lt;h2&gt;Contact&lt;/h2&gt;
+    &lt;p&gt;ananya@example.com&lt;/p&gt;&lt;/section&gt;
+&lt;/main&gt;
+
+&lt;script&gt;
+  // ---- js/main.js ----
+  const toggle = document.querySelector(".menu-toggle");
+  const nav = document.querySelector("#site-nav");
+
+  toggle.addEventListener("click", () =&gt; {
+    const open = nav.classList.toggle("open");   // true when the class was added
+    toggle.setAttribute("aria-expanded", open);
+    console.log("Menu open:", open);
+  });
+
+  // Needed ONLY inside this book's preview frame, so the #links scroll.
+  // On your real site the browser does this by itself: leave it out.
+  document.querySelectorAll('a[href^="#"]').forEach(link =&gt; {
+    link.addEventListener("click", event =&gt; {
+      event.preventDefault();
+      document.querySelector(link.getAttribute("href")).scrollIntoView();
+    });
+  });
+&lt;/script&gt;</pre>
+  <p>In a preview narrower than 768 pixels you see the phone layout: press <b>Menu</b> and the console prints <code>Menu open: true</code>; press again for <code>Menu open: false</code>. <code>classList.toggle</code> returns whether the class is now present, and that value goes into <code>aria-expanded</code> for screen readers (Chapter 59). From 768 pixels up (widen the window, or use <i>Open in Playground</i>) the button disappears, the links sit in a row and the cards go from one column to three.</p>
+  <h3>Push, publish, verify</h3>
+  <pre class="code">git add .
+git commit -m "Build portfolio v1"
+git push origin main
+
+# GitHub: Settings &rarr; Pages &rarr; Deploy from a branch &middot; main &middot; / (root) &rarr; Save
+# Actions tab: pages build and deployment &#10003; (green)
+# Open: https://ananya-k.github.io/portfolio/</pre>
+  <p>Then she tests the <b>live</b> address, not her laptop copy: every menu link, every image, the Console &mdash; and the site on her <b>phone</b>, where most visitors will see it. Finally she adds the live link to the top of her <code>README.md</code> (Chapter 75), so anyone who finds the repository can jump to the working site.</p>
+  <div class="callout exam"><b>Your task.</b> Build your own portfolio (or adapt Ananya's). Push it to a <b>public</b> repository, enable Pages from <code>main</code> and <code>/ (root)</code>, test the live URL on a phone, and submit <b>both</b> the repository URL and the live URL.</div>
+  <h3>Deployment checklist: before you submit</h3>
+  <table class="tbl">
+    <thead><tr><th>Check</th><th>How to confirm it</th></tr></thead>
+    <tbody>
+      <tr><td>The website runs locally</td><td>Live Server, clean Console and Network</td></tr>
+      <tr><td>HTML, CSS and JavaScript are organised</td><td><code>index.html</code> at the top; <code>css/</code>, <code>js/</code>, <code>assets/</code>; lower-case names</td></tr>
+      <tr><td>The repository contains the latest code</td><td><code>git status</code> clean; newest commit on GitHub</td></tr>
+      <tr><td>The README is complete, with the live link</td><td>It renders on the repository page</td></tr>
+      <tr><td>The Pages source is configured correctly</td><td>Deploy from a branch, <code>main</code>, <code>/ (root)</code></td></tr>
+      <tr><td>The published website loads</td><td>The <code>github.io</code> address shows your home page</td></tr>
+      <tr><td>Images and styles work</td><td>No 404s in the <b>live</b> site's Network panel</td></tr>
+      <tr><td>Navigation works</td><td>Every link clicked on the live site</td></tr>
+      <tr><td>The mobile layout works</td><td>A real phone, or the DevTools device toolbar</td></tr>
+      <tr><td>No major console errors remain</td><td>No red lines in the live site's Console</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>76.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I pushed my code, so my website is live."</b><br>A push only stores the code in the repository. Until Pages is switched on, <code>github.com/you/project</code> shows a file list, not a website.</div>
+    <div class="r"><b>&#10003; "Pages is switched on once; after that, every push publishes."</b><br>Settings &rarr; Pages &rarr; Deploy from a branch, <code>main</code>, <code>/ (root)</code>, Save. Then share the <code>github.io</code> address.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A static site cannot have JavaScript."</b><br>The host does not run the JavaScript, but it sends the file, and the visitor's browser runs it.</div>
+    <div class="r"><b>&#10003; "Static means the host sends files unchanged."</b><br>Quizzes, games and pages that fetch public APIs all work. Only server code, databases and secrets are ruled out.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "It works on my laptop, so the paths must be right."</b><br>Windows ignores capital letters, and Live Server makes <code>/</code> mean your project folder.</div>
+    <div class="r"><b>&#10003; "Test the live site too, with the Network panel open."</b><br>Lower-case names and relative paths remove both bugs.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The live site didn't change, so my push failed."</b><br>Publishing takes a minute or two (up to ten), and your browser may show a cached copy.</div>
+    <div class="r"><b>&#10003; "Check the Actions tab, then hard-refresh."</b><br>Green tick plus <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd> settles it.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary>Which of these projects can be hosted on GitHub Pages as it is?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A Node.js and Express API that stores orders</li><li>B. A PHP login page that checks passwords in MySQL</li><li>C. A portfolio built from HTML, CSS, JavaScript and images</li><li>D. A Django shop that takes payments</li></ul>
+    <p><b>Answer: C.</b> GitHub Pages is a static host: it sends files unchanged and runs no code of yours. A, B and D all need server code and a database.</p></div></details>
+  <details class="q"><summary>The GitHub user <code>rahul-dev</code> publishes the repository <code>quiz-app</code> with GitHub Pages from <code>main</code> / <code>(root)</code>. What is the published URL?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. https://github.com/rahul-dev/quiz-app</li><li>B. https://rahul-dev.github.io/</li><li>C. https://quiz-app.github.io/rahul-dev/</li><li>D. https://rahul-dev.github.io/quiz-app/</li></ul>
+    <p><b>Answer: D.</b> Any repository not named <code>rahul-dev.github.io</code> is a project site, published at <code>https://USERNAME.github.io/REPOSITORY/</code>. A is the repository (the code), B is the user site, and C swaps the two names.</p></div></details>
+  <details class="q"><summary>Predict the URL: the page <code>https://ananya-k.github.io/portfolio/about.html</code> contains <code>&lt;link rel="stylesheet" href="css/style.css"&gt;</code>. Which address does the browser request?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>https://ananya-k.github.io/portfolio/css/style.css</code>.</b> A relative path is added to the folder of the current page, and that folder is <code>/portfolio/</code>.</p></div></details>
+  <details class="q"><summary>A project site at <code>https://ananya-k.github.io/portfolio/</code> shows its text but no styling. Its <code>index.html</code> contains <code>&lt;link rel="stylesheet" href="/css/style.css"&gt;</code>. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. GitHub Pages does not support external CSS files</li><li>B. The leading <code>/</code> makes the browser request <code>https://ananya-k.github.io/css/style.css</code>, outside the project</li><li>C. CSS files must sit next to <code>index.html</code>, never in a folder</li><li>D. The stylesheet must be linked at the end of the body</li></ul>
+    <p><b>Answer: B.</b> A leading slash means "start from the top of the domain", which skips <code>/portfolio/</code>, so the request is a 404. <code>href="css/style.css"</code> fixes it.</p></div></details>
+  <details class="q"><summary>Rahul's image shows on his Windows laptop but is broken on GitHub Pages. The file is <code>assets/Logo.PNG</code> and the tag is <code>&lt;img src="assets/logo.png" alt="Logo"&gt;</code>. What is wrong?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The server is case-sensitive, so <code>logo.png</code> and <code>Logo.PNG</code> are different files</li><li>B. GitHub Pages cannot serve PNG images</li><li>C. Images must be stored in the root folder</li><li>D. The alt text must match the file name</li></ul>
+    <p><b>Answer: A.</b> Windows ignores capital letters; GitHub Pages does not. Rename the file to <code>logo.png</code> with <code>git mv</code>, commit and push.</p></div></details>
+  <details class="q"><summary>What does this print? <code>console.log(new URL("../img/a.png", "https://x.github.io/site/blog/post.html").href);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>https://x.github.io/site/img/a.png</code>.</b> The page's folder is <code>/site/blog/</code>; <code>../</code> goes up one folder to <code>/site/</code>; then <code>img/a.png</code> is added.</p></div></details>
+  <details class="q"><summary>GitHub Pages shows a site's home page from a file with which exact name, at the top of the publishing folder?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. home.html</li><li>B. Index.html</li><li>C. main.html</li><li>D. index.html</li></ul>
+    <p><b>Answer: D.</b> The folder address <code>&hellip;/portfolio/</code> is answered with that folder's <code>index.html</code>. <code>Index.html</code> is a different name on a case-sensitive server; without an <code>index.html</code>, Pages falls back to <code>index.md</code> or <code>README.md</code>, or shows a 404.</p></div></details>
+  <details class="q"><summary>Meera pushed a fix twenty seconds ago, but the live site still shows the old version. What is the best first step?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Delete the repository and create a new one</li><li>B. Check the Actions tab until the run shows a green tick, then hard-refresh with Ctrl+Shift+R</li><li>C. Rename index.html to home.html</li><li>D. Change the Pages source folder to /docs</li></ul>
+    <p><b>Answer: B.</b> Publishing takes a minute or two (up to ten), and the browser may be showing a cached copy. A destroys the history, C breaks the home page, D publishes the wrong folder.</p></div></details>
+  <details class="q"><summary>Ananya wants a recruiter reading her r&eacute;sum&eacute; to see her working portfolio. Which address should she write?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. https://github.com/ananya-k/portfolio</li><li>B. http://127.0.0.1:5500/index.html</li><li>C. https://ananya-k.github.io/portfolio/</li><li>D. https://github.com/ananya-k/portfolio/settings/pages</li></ul>
+    <p><b>Answer: C.</b> The published <code>github.io</code> URL shows the website. A shows the code, B exists only on her own laptop, and D is a settings page only she can open.</p></div></details>
+  <details class="q"><summary>Which sequence publishes a site with GitHub Pages for the first time?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Commit, push to main, Settings &rarr; Pages &rarr; Deploy from a branch (main, / (root)) &rarr; Save, wait for the Actions run, open the github.io URL</li><li>B. Settings &rarr; Pages, then run git init, then share the repository URL</li><li>C. Push to main and share the github.com address, because the repository is the website</li><li>D. Push to main, then make the repository private so that Pages starts</li></ul>
+    <p><b>Answer: A.</b> The files must be in the repository, Pages must be switched on once, and the result is the <code>github.io</code> address. A repository URL shows code, not a site, and a private repository on the free plan cannot use Pages.</p></div></details>
+  <details class="q"><summary>Meera adds a "Contact me" form to her portfolio on GitHub Pages. Visitors press Send, but the messages are never stored anywhere. Why?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. GitHub Pages blocks every form</li><li>B. The form's method attribute must be in capital letters</li><li>C. The repository must be made private first</li><li>D. A static host only sends files; there is no server code to receive and store the message</li></ul>
+    <p><b>Answer: D.</b> Storing a message needs a backend: an external form service, or a backend hosted elsewhere. The form itself still displays, which is why A is wrong.</p></div></details>
+  <details class="q"><summary>Rahul's weather page on GitHub Pages calls a paid API. He put the API key in <code>js/config.js</code> and says it is safe because "nobody will look in that folder". Is he right?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: No.</b> The page loads <code>config.js</code>, so the file is sent to every visitor's browser, where anyone can read it in DevTools (Sources or Network) or by typing its address. A secret key belongs on a backend server; since this one is already public, he should revoke it and create a new one.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Hosting means keeping your files on an always-on, connected computer that answers requests. A repository stores code; it is not automatically a website.</li>
+    <li>A static host sends files exactly as stored; JavaScript runs in the visitor's browser. GitHub Pages is static: no server code, no database, no secrets.</li>
+    <li>User site: repository <code>USERNAME.github.io</code> &rarr; <code>https://USERNAME.github.io/</code>. Project site: any other repository &rarr; <code>https://USERNAME.github.io/REPOSITORY/</code>. Share the <code>github.io</code> address, not the <code>github.com</code> one.</li>
+    <li>Deploy: push, then Settings &rarr; Pages &rarr; Deploy from a branch &rarr; <code>main</code>, <code>/ (root)</code> &rarr; Save; wait for the Actions run; open the URL. After that, every push redeploys.</li>
+    <li>Before pushing: <code>index.html</code> at the root, relative paths, lower-case names without spaces, a clean console, HTTPS APIs, everything committed.</li>
+    <li>A leading <code>/</code> means the top of the domain, outside a project site. Write <code>css/style.css</code>, never <code>/css/style.css</code>.</li>
+    <li>Diagnose on the live site with the Network panel: most failures are one 404 for one file. An old version means a deployment still running or the cache (<kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd>).</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code / setting</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>git push origin main</code></td><td>Sends your commits; with Pages on, starts a new deployment</td></tr>
+      <tr><td>Settings &rarr; Pages &rarr; Deploy from a branch &rarr; <code>main</code> &rarr; <code>/ (root)</code> &rarr; Save</td><td>Switches Pages on (done once)</td></tr>
+      <tr><td><code>https://USERNAME.github.io/</code></td><td>User site, from the repository <code>USERNAME.github.io</code></td></tr>
+      <tr><td><code>https://USERNAME.github.io/REPOSITORY/</code></td><td>Project site, from any other repository</td></tr>
+      <tr><td><code>href="css/style.css"</code></td><td>From the page's own folder &mdash; works everywhere</td></tr>
+      <tr><td><code>href="/css/style.css"</code></td><td>From the top of the domain &mdash; breaks on a project site</td></tr>
+      <tr><td><code>href="../css/style.css"</code></td><td>Up one folder first &mdash; for pages inside sub-folders</td></tr>
+      <tr><td><code>new URL(path, page).href</code></td><td>Shows the exact address a path resolves to</td></tr>
+      <tr><td><code>git mv Logo.PNG logo.png</code></td><td>A capital-letter rename that Git records</td></tr>
+      <tr><td><kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>R</kbd></td><td>Hard refresh: fetch every file again, ignoring the cache</td></tr>
+      <tr><td><code>.nojekyll</code> (empty file at the root)</td><td>Switches Jekyll off, so <code>_folders</code> are published too</td></tr>
+      <tr><td><code>404.html</code> at the root</td><td>Your own page for addresses that do not exist</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam. Open one when you want a second explanation, or when GitHub's screens have moved since this was written.</p>
+  <ul>
+    <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/about-github-pages" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; About GitHub Pages<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">User, organization and project sites, and the address each one gets.</span></li>
+    <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/creating-a-github-pages-site" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; Creating a GitHub Pages site<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official click-by-click steps, kept up to date when the Settings screen changes.</span></li>
+    <li><a href="https://docs.github.com/en/pages/getting-started-with-github-pages/troubleshooting-404-errors-for-github-pages-sites" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; Troubleshooting 404 errors<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">GitHub's own list of reasons a Pages site says 404, starting with the entry file.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/URL/URL" target="_blank" rel="noopener noreferrer">MDN &mdash; URL() constructor<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How <code>new URL(path, base)</code> resolves relative and root paths, with examples.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf, with tools and tutorials for every unit, is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

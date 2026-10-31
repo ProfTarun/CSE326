@@ -1,0 +1,687 @@
+<article class="chapter" data-ch="48">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 48 &middot; Functions</p>
+  <h1>Functions</h1>
+  <p class="lead">Every program you have written so far runs from top to bottom once and stops. A function changes that. You write a job once, give it a name, and run it whenever you like, with different values each time. Every real JavaScript program is built out of functions, and from Chapter 53 onwards you will pass them around as easily as numbers.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>const</code> and <code>let</code> create named variables; names use letters, digits, <code>_</code> and <code>$</code>, written in camelCase (<a href="book.html?ch=42">Chapter 42</a>).</li>
+      <li>An expression works out to one value, and <code>+</code> joins text as soon as a string is involved (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>Template literals in backticks drop values into text with <code>${ }</code> (<a href="book.html?ch=45">Chapter 45</a>).</li>
+      <li><code>if</code> and <code>else</code> choose which lines run, and a grade ladder checks the highest band first (<a href="book.html?ch=47">Chapter 47</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Give three reasons to put code in a function.</li>
+      <li>Write a function declaration, call it, and point to its name, parameters, body and <code>return</code>.</li>
+      <li>Tell parameters from arguments, and predict what happens with missing, extra and default arguments.</li>
+      <li>Explain the difference between returning a value and logging it, and say when a call gives <code>undefined</code>.</li>
+      <li>Write the same function as a declaration, a function expression and an arrow function, including implicit return and returning an object.</li>
+      <li>Tell <code>f</code> from <code>f()</code>, and hand a function to another function.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>48.1 Why functions?</h2>
+  <p>You have been <i>using</i> functions since Chapter 41. <code>console.log("Hi")</code> is a call to a function. So are <code>Number("40")</code>, <code>Math.round(4.6)</code> and <code>"asha".toUpperCase()</code>. Somebody wrote each of them once, gave it a name, and now millions of programs run it with one short line. In this chapter you learn to write your own.</p>
+  <p>Start with a problem. A campus shop adds 18% GST to each price. Without functions, the formula is copied for every item:</p>
+  <pre class="code">const bookTotal = 450 + 450 * 18 / 100;     // 531
+const lampTotal = 200 + 200 * 18 / 100;     // 236
+const bagTotal  = 1200 + 1200 * 18 / 100;   // 1416</pre>
+  <p>It works. But when the rate changes to 12%, there are three lines to edit, and if you miss one, one price is quietly wrong. With a function, the formula is written once:</p>
+  <pre class="code">function withGst(price) {
+  return price + price * 18 / 100;
+}
+
+const bookTotal = withGst(450);    // 531
+const lampTotal = withGst(200);    // 236
+const bagTotal  = withGst(1200);   // 1416</pre>
+  <p>That small change shows the three reasons functions exist:</p>
+  <ul>
+    <li><b>Reuse.</b> Write the steps once and run them as often as you like, for three items or three thousand.</li>
+    <li><b>A name for a task.</b> <code>withGst(450)</code> says what it does. A program made of well-named functions reads almost like sentences.</li>
+    <li><b>One place to fix.</b> When GST changes, you edit one line inside <code>withGst</code>, and every price that uses it is right at once.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> The hostel mess keeps a recipe card for chai: <i>for N cups, boil N cups of water with N spoons of tea leaves, then add milk and sugar</i>. Writing the card once is <b>defining</b> a function, and the blank N is its <b>parameter</b>. Each time the cook makes chai, the card is <b>called</b> with a real number &mdash; 2 cups at breakfast, 40 for the evening crowd &mdash; and that number is the <b>argument</b>. The cups handed over the counter are the <b>return value</b>. Improve the card once (less sugar) and every pot from then on is better. And a cook who only shouts "chai is ready!" without handing you a cup has given you news, not chai. Keep that cook in mind for section 48.4.</div>
+</section>
+
+<section id="s2">
+  <h2>48.2 Writing and calling a function</h2>
+  <p>Here is the first example from your lecture slides. It is a <b>function declaration</b>: a statement that creates a function and gives it a name.</p>
+  <pre class="code">function add(a, b) {
+  return a + b;
+}
+
+// Invocation
+const sum = add(5, 3);
+console.log("Function Declaration - Sum:", sum);   // Function Declaration - Sum: 8</pre>
+  <p>Read the first three lines piece by piece:</p>
+  <ul>
+    <li><code>function</code> is a <span class="jw" data-def="A word JavaScript keeps for its own grammar, such as function, return, const or if. You cannot use it as a name.">keyword</span>. It tells JavaScript that a function definition starts here.</li>
+    <li><code>add</code> is the function's name. The rules for variable names apply (Chapter 42).</li>
+    <li><code>(a, b)</code> are the <b>parameters</b>: names for the values the function will be given. The round brackets are compulsory, even when they are empty.</li>
+    <li>The curly braces hold the <span class="jw" data-def="The lines between a function's curly braces. They run each time the function is called.">body</span>, the instructions that run each time the function is used.</li>
+    <li><code>return a + b;</code> works out <code>a + b</code> and hands the answer back (section 48.4).</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="The declaration function add(a, b) with its keyword, name, parameters and body labelled; below it the call const sum = add(5, 3), with 5 and 3 going up into a and b, and the returned 8 coming back down into sum">
+      <text x="20" y="74" class="t b">DEFINE</text>
+      <text x="20" y="170" class="t b">CALL</text>
+      <text x="153" y="42" class="t c s">keyword</text>
+      <text x="229" y="42" class="t c s">name</text>
+      <text x="297" y="42" class="t c s">parameters</text>
+      <text x="425" y="42" class="t c s">body: runs on every call</text>
+      <rect x="110" y="52" width="86" height="34" rx="6" class="box gry"/><text x="153" y="74" class="t c mono">function</text>
+      <rect x="204" y="52" width="50" height="34" rx="6" class="box saf"/><text x="229" y="74" class="t c mono b">add</text>
+      <rect x="262" y="52" width="70" height="34" rx="6" class="box blu"/><text x="297" y="74" class="t c mono">(a, b)</text>
+      <rect x="340" y="52" width="170" height="34" rx="6" class="box grn"/><text x="425" y="74" class="t c mono">{ return a + b; }</text>
+      <rect x="96" y="148" width="100" height="34" rx="6" class="box gry"/><text x="146" y="170" class="t c mono">const sum =</text>
+      <rect x="204" y="148" width="50" height="34" rx="6" class="box saf"/><text x="229" y="170" class="t c mono b">add</text>
+      <rect x="262" y="148" width="70" height="34" rx="6" class="box blu"/><text x="297" y="170" class="t c mono">(5, 3)</text>
+      <path d="M297 146 L297 90" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="308" y="122" class="t s">5 goes into a, 3 into b</text>
+      <path d="M480 88 L480 216 L146 216 L146 186" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="488" y="152" class="t s">returns 8</text>
+      <text x="146" y="140" class="t c s">stores the answer</text>
+      <text x="229" y="200" class="t c s">call</text>
+      <text x="297" y="200" class="t c s">arguments</text>
+      <text x="313" y="236" class="t c s">return a + b sends 8 back: the call becomes 8, so sum is 8</text>
+    </svg>
+    <figcaption><b>Figure 48.1</b> A call is a round trip: the arguments travel up into the parameters, the body runs, and the returned value comes back down to the place where the call was written.</figcaption>
+  </figure>
+  <p>Writing the declaration does <b>not</b> run it. It only stores the instructions under the name <code>add</code>, like writing a recipe card and putting it in a drawer. Nothing happens until a line <b>calls</b> the function by writing its name followed by round brackets: <code>add(5, 3)</code>. The slides call this the <span class="jw" data-def="Calling a function: telling it to run now. Invoke and call mean the same thing.">invocation</span>. JavaScript then jumps into the body, runs it from the top with <code>a</code> as 5 and <code>b</code> as 3, and comes back with the answer.</p>
+  <p>You can call a function as many times as you like, and each call starts the body afresh. Good names begin with a verb, because a function <i>does</i> something: <code>calculateTotal</code>, <code>showMessage</code>, <code>formatName</code>. A function that answers yes or no usually starts with <code>is</code>, <code>has</code> or <code>can</code>, as in <code>isPassed</code> or <code>hasPaid</code>.</p>
+  <pre class="code" data-run data-title="The slide's function declaration - add your own calls, then Run again" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the lecture example: a function declaration
+  function add(a, b) {
+    return a + b;
+  }
+
+  // invocation: calling the function
+  const sum = add(5, 3);
+  console.log("Function Declaration - Sum:", sum);   // Function Declaration - Sum: 8
+
+  // one definition, as many calls as you like
+  console.log("add(10, 20) is", add(10, 20));        // 30
+  console.log("add(1.5, 2.5) is", add(1.5, 2.5));    // 4
+  console.log("add(add(1, 2), 3) is", add(add(1, 2), 3));   // 6 - the inner call runs first
+
+  // no parameters, but the brackets are still needed
+  function sayWelcome() {
+    console.log("Welcome to CSE326!");
+  }
+  sayWelcome();     // Welcome to CSE326!
+  sayWelcome();     // Welcome to CSE326!  (the body runs again, from the top)
+
+  // defined but never called: its body never runs
+  function neverCalled() {
+    console.log("You will not see this line");
+  }
+&lt;/script&gt;</pre>
+  <p>Two things to notice in the Console. <code>add(add(1, 2), 3)</code> works because the inner call runs first and becomes 3, so the outer call is just <code>add(3, 3)</code>. And "You will not see this line" never appears: <code>neverCalled</code> was defined, but no line ever called it.</p>
+  <details class="qc"><summary>Quick check: you wrote a function, pressed Run, and nothing appeared in the Console. What is the most likely reason?</summary><p>You defined it but never called it. A definition only stores the instructions. Add a call &mdash; the name plus round brackets, such as <code>showResult();</code> &mdash; on a line after the definition.</p></details>
+</section>
+
+<section id="s3">
+  <h2>48.3 Parameters and arguments</h2>
+  <p>Two words are used for the values in brackets, and examiners expect you to keep them apart:</p>
+  <ul>
+    <li>A <b>parameter</b> is a name written in the <b>definition</b>: <code>a</code> and <code>b</code> in <code>function add(a, b)</code>. It is a variable that exists only inside the function, while it runs.</li>
+    <li>An <b>argument</b> is the actual value written in the <b>call</b>: <code>5</code> and <code>3</code> in <code>add(5, 3)</code>.</li>
+  </ul>
+  <p>When the call happens, each argument is copied into the parameter in the same position: the first argument into the first parameter, the second into the second. Names play no part in the matching; only the order does.</p>
+  <div class="plain"><p>A parameter is a blank on a form; an argument is what you write in the blank. The function is written once, with blanks. Every call fills the blanks in again, left to right.</p></div>
+  <div class="callout exam"><b>Exam tip.</b> <b>P</b>arameter = <b>P</b>laceholder, in the definition. <b>A</b>rgument = <b>A</b>ctual value, in the call. In <code>area(4, 3)</code> the arguments are 4 and 3; the parameters are whatever names the definition uses.</div>
+  <h3>Order matters, and the count is not checked</h3>
+  <p>Because matching is by position, swapping two arguments silently gives a wrong answer. With <code>percentage(obtained, total)</code>, the call <code>percentage(60, 75)</code> is 80, but <code>percentage(75, 60)</code> is 125. JavaScript also never complains about the number of arguments. Pass too few and the missing parameters hold <code>undefined</code>, so <code>area(12)</code> works out <code>12 * undefined</code>, which is <code>NaN</code>. Pass too many and the extras are ignored.</p>
+  <h3>Default parameters</h3>
+  <p>You can give a parameter a <b>default value</b> with <code>=</code> in the definition. The default is used when that argument is missing, or is <code>undefined</code>:</p>
+  <pre class="code">function percentage(obtained, total = 100) {
+  return obtained * 100 / total;
+}
+percentage(85);       // 85   total was left out, so it is 100
+percentage(60, 75);   // 80   total is 75 this time</pre>
+  <p>A default does <b>not</b> replace other empty-looking values. <code>greet("")</code>, <code>greet(0)</code> and <code>greet(null)</code> each pass a real value, so the default stays unused. This is stricter than <code>??</code> from Chapter 44, which also replaces <code>null</code>. Put parameters with defaults last, so the ones that must always be given come first.</p>
+  <h3>Any number of arguments: rest parameters</h3>
+  <p><code>Math.max(85, 92, 78)</code> accepts as many numbers as you give it. Your own function can do the same with a <b>rest parameter</b>: three dots before the last parameter's name. It gathers all the remaining arguments into one array (Chapter 50), which has a <code>length</code> just as a string does:</p>
+  <pre class="code">function register(course, ...students) {
+  return course + " has " + students.length + " students";
+}
+register("CSE326", "Asha", "Rahul", "Meera");   // "CSE326 has 3 students"</pre>
+  <p>Only the last parameter can be a rest parameter, and there can be only one. Adding up everything it collected needs a loop (Chapter 52) or <code>reduce</code> (Chapter 53).</p>
+  <pre class="code" data-run data-title="Parameters lab: order, count, defaults and rest - change the arguments" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the floor of a room: two parameters
+  function area(length, width) {
+    return length * width;
+  }
+  console.log("Classroom 12 m by 8 m:", area(12, 8));   // 96
+  console.log("Too few arguments:", area(12));         // NaN  (width is undefined)
+  console.log("Too many arguments:", area(12, 8, 5));  // 96   (the 5 is ignored)
+
+  // order matters: first argument into the first parameter
+  function percentage(obtained, total = 100) {
+    return obtained * 100 / total;
+  }
+  console.log("60 out of 75:", percentage(60, 75));         // 80
+  console.log("Swapped by mistake:", percentage(75, 60));   // 125
+  console.log("85, total left out:", percentage(85));       // 85  (total uses its default, 100)
+
+  // a default is used only when the argument is missing or undefined
+  function greet(name = "Guest") {
+    return "Hello, " + name + "!";
+  }
+  console.log(greet("Asha"));      // Hello, Asha!
+  console.log(greet());            // Hello, Guest!
+  console.log(greet(undefined));   // Hello, Guest!
+  console.log(greet(""));          // Hello, !   ("" is a real value, so no default)
+
+  // a rest parameter gathers all the remaining arguments into one array
+  function register(course, ...students) {
+    console.log(course, "has", students.length, "students:", students);
+  }
+  register("CSE326", "Asha", "Rahul", "Meera");   // CSE326 has 3 students: ['Asha', 'Rahul', 'Meera']
+  register("CSE305");                             // CSE305 has 0 students: []
+&lt;/script&gt;</pre>
+  <details class="qc"><summary>Quick check: in <code>function area(length, width) { ... }</code> called as <code>area(4, 3)</code>, which are the parameters and which are the arguments?</summary><p><code>length</code> and <code>width</code> are the parameters, because they are written in the definition. 4 and 3 are the arguments, because they are the values in the call. Inside that call, <code>length</code> is 4 and <code>width</code> is 3.</p></details>
+</section>
+
+<section id="s4">
+  <h2>48.4 return: handing the answer back</h2>
+  <p><code>return</code> does two jobs at once:</p>
+  <ol>
+    <li>It <b>hands a value back</b> to the place where the function was called. The call <code>add(5, 3)</code> is an expression (Chapter 44), and its value is whatever the function returned: 8. Any type can be returned &mdash; a number, a string, a boolean.</li>
+    <li>It <b>ends the function immediately</b>. Any lines after it, in that run, are skipped.</li>
+  </ol>
+  <div class="callout why"><b>Key idea.</b> When the function returns, the call is replaced by the returned value. So a call can go anywhere a value can: <code>add(5, 3) * 2</code> is 16, <code>`Total: ${add(5, 3)}`</code> is "Total: 8", and <code>add(add(1, 2), 3)</code> passes one call's answer into another.</div>
+  <h3>return is not console.log</h3>
+  <p>This is the commonest confusion for beginners, because in the Console both seem to "give the answer". Compare two functions that look almost the same:</p>
+  <pre class="code">function addAndShow(a, b) {
+  console.log(a + b);     // shows the answer in the Console
+}
+
+function addAndGive(a, b) {
+  return a + b;           // hands the answer back to the caller
+}
+
+const x = addAndShow(5, 3);   // the Console shows 8, but x is undefined
+const y = addAndGive(5, 3);   // the Console shows nothing, and y is 8</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Left: addAndGive returns a + b, and 8 comes back so y is 8. Right: addAndShow sends 8 to the Console panel, nothing comes back, so x is undefined">
+      <path d="M310 14 L310 230" class="edge dash"/>
+      <text x="155" y="22" class="t c b">return: give it back</text>
+      <text x="465" y="22" class="t c b">console.log: show it</text>
+      <rect x="25" y="36" width="260" height="52" rx="10" class="box grn"/>
+      <text x="155" y="57" class="t c mono s">function addAndGive(a, b)</text>
+      <text x="155" y="77" class="t c mono b">return a + b;</text>
+      <path d="M155 90 L155 128" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="165" y="114" class="t s">8 comes back</text>
+      <rect x="25" y="130" width="260" height="52" rx="10" class="box"/>
+      <text x="155" y="151" class="t c mono">const y = addAndGive(5, 3);</text>
+      <text x="155" y="171" class="t c b">y is 8</text>
+      <text x="155" y="206" class="t c s">The answer goes back into the program:</text>
+      <text x="155" y="222" class="t c s">store it, add to it, put it on the page.</text>
+      <rect x="328" y="36" width="180" height="52" rx="10" class="box saf"/>
+      <text x="418" y="57" class="t c mono s">function addAndShow(a, b)</text>
+      <text x="418" y="77" class="t c mono b">console.log(a + b);</text>
+      <path d="M510 62 L530 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="532" y="36" width="76" height="52" rx="10" class="box ink"/>
+      <text x="570" y="57" class="t c w s">Console</text>
+      <text x="570" y="77" class="t c w b">8</text>
+      <path d="M418 90 L418 128" class="edge dash" marker-end="url(#arr)"/>
+      <text x="428" y="114" class="t s">nothing comes back</text>
+      <rect x="328" y="130" width="280" height="52" rx="10" class="box red"/>
+      <text x="468" y="151" class="t c mono">const x = addAndShow(5, 3);</text>
+      <text x="468" y="171" class="t c b">x is undefined</text>
+      <text x="465" y="206" class="t c s">Only a person reading the Console sees 8;</text>
+      <text x="465" y="222" class="t c s">the program itself gets undefined.</text>
+    </svg>
+    <figcaption><b>Figure 48.2</b> <code>return</code> sends the answer back into the program, where it can be used. <code>console.log</code> sends it out to the Console for a person to read, and the program gets <code>undefined</code>.</figcaption>
+  </figure>
+  <p><code>console.log</code> writes text into the Console for a <i>person</i> to read. The program itself gets nothing back. So when you need the answer for anything else &mdash; storing it, adding to it, comparing it, putting it on the page &mdash; the function must <code>return</code> it. In the recipe card picture, <code>console.log</code> is the cook shouting "chai is ready!"; <code>return</code> is the cup put into your hand.</p>
+  <div class="plain"><p><code>console.log</code> talks to you, the programmer watching the Console. <code>return</code> talks to the rest of the program. A function that calculates something should return it, and let whoever called it decide whether to print it.</p></div>
+  <h3>No return means undefined</h3>
+  <p>Every call gives back <i>some</i> value. If the body ends without reaching a <code>return</code>, or reaches a bare <code>return;</code> with no value, the call gives <code>undefined</code>. That explains a puzzle you will meet often: <code>console.log(addAndShow(2, 3))</code> prints two lines, 5 and then <code>undefined</code>. The inner call prints 5 itself and returns nothing; the outer <code>console.log</code> then prints that nothing.</p>
+  <h3>return ends the function</h3>
+  <p>Because <code>return</code> leaves at once, a decision often needs no <code>else</code> (Chapter 47):</p>
+  <pre class="code">function result(marks) {
+  if (marks &gt;= 40) {
+    return "Pass";
+  }
+  return "Fail";      // reached only when marks is below 40
+}</pre>
+  <p>For 72, the first <code>return</code> runs and the function is over, so the last line is never reached. For 35, the condition is false and JavaScript carries on to <code>return "Fail"</code>. Leaving early like this is called an <b>early return</b>, or a guard.</p>
+  <div class="callout warn"><b>Keep the value on the same line as <code>return</code>.</b> If you press Enter straight after the word <code>return</code>, JavaScript ends the statement at the line break and returns <code>undefined</code>. The value on the next line is never reached, and no error warns you. Write <code>return a + b;</code> on one line, or open a bracket on the return line, <code>return (</code>, when the expression is long.</div>
+  <pre class="code" data-run data-title="return or console.log? Predict each Console line before you Run" data-h="160">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;p&gt;The rest of the answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  function addAndShow(a, b) {
+    console.log("addAndShow prints:", a + b);   // talks to YOU
+  }
+
+  function addAndGive(a, b) {
+    return a + b;                               // hands the answer BACK
+  }
+
+  const x = addAndShow(5, 3);      // addAndShow prints: 8
+  const y = addAndGive(5, 3);      // (prints nothing)
+  console.log("x is", x);          // x is undefined
+  console.log("y is", y);          // y is 8
+  console.log("x * 2 is", x * 2);  // NaN
+  console.log("y * 2 is", y * 2);  // 16
+
+  // a call is an expression, so its answer can go anywhere a value can
+  console.log("Nested:", addAndGive(addAndGive(1, 2), 10));   // Nested: 13
+  document.getElementById("out").textContent = `On the page: 5 + 3 = ${addAndGive(5, 3)}`;
+
+  // return ends the function at once, so no else is needed
+  function result(marks) {
+    if (marks &gt;= 40) {
+      return "Pass";
+    }
+    return "Fail";                 // reached only when marks is below 40
+  }
+  console.log("72:", result(72));  // 72: Pass
+  console.log("35:", result(35));  // 35: Fail
+
+  // the trap: a line break straight after return
+  function broken(a, b) {
+    return
+      a + b;
+  }
+  console.log("broken(5, 3) is", broken(5, 3));   // broken(5, 3) is undefined
+&lt;/script&gt;</pre>
+  <p>The line on the page comes from <code>addAndGive</code>'s returned value dropped into a template literal; changing the page like this is taught properly in Chapter 56. <code>addAndShow</code> could never do that, because it has nothing to give back.</p>
+  <details class="qc"><summary>Quick check: what does <code>result(40)</code> return, and which line ends the function?</summary><p><code>"Pass"</code>. The test is <code>marks &gt;= 40</code>, and 40 is greater than or equal to 40, so the first <code>return "Pass";</code> runs and ends the function there. The line <code>return "Fail";</code> is never reached.</p></details>
+</section>
+
+<section id="s5">
+  <h2>48.5 Function expressions: a function is a value</h2>
+  <p>The second slide writes a function a different way:</p>
+  <pre class="code">const multiply = function (a, b) {
+  return a * b;
+};
+
+// Invocation
+const product = multiply(4, 6);
+console.log("Function Expression - Product:", product);   // Function Expression - Product: 24</pre>
+  <p>This is a <b>function expression</b>. The word <code>function</code> now appears where a value is expected, on the right of <code>=</code>, so it creates a function <i>as a value</i>, and <code>const</code> stores that value in the variable <code>multiply</code>. There is no name after the word <code>function</code>: the function is <span class="jw" data-def="Having no name of its own. An anonymous function is reached through the variable that holds it.">anonymous</span>, and you reach it through the variable. The semicolon after the closing brace ends the <code>const</code> statement, exactly as in <code>const price = 450;</code>.</p>
+  <p>You call it the same way, <code>multiply(4, 6)</code>, and inside it works exactly like a declaration. The one practical difference: a function declaration can be called even on a line <i>above</i> the one where it is written, while a function expression cannot be used until its line has run and the variable holds the function. Chapter 49 explains why; the word is hoisting. Use <code>const</code> for function expressions, so the name cannot be pointed at something else by accident.</p>
+  <h3>f or f(): referring and calling</h3>
+  <p>The function expression makes one fact plain: <b>a function is a value</b>, just as 24 and "Asha" are. So there are two very different things you can write:</p>
+  <table class="tbl">
+    <thead><tr><th>You write</th><th>It means</th><th><code>typeof</code> gives</th></tr></thead>
+    <tbody>
+      <tr><td><code>multiply</code></td><td>The function itself: the recipe card, not yet used</td><td><code>"function"</code></td></tr>
+      <tr><td><code>multiply(4, 6)</code></td><td>Run it now; the value is whatever it returns, 24</td><td><code>"number"</code></td></tr>
+    </tbody>
+  </table>
+  <p>Because a function is a value, you can store it in another variable (<code>const times = multiply;</code> gives the same function a second name), and you can hand it to another function as an argument. The function that receives it can call it whenever it wants:</p>
+  <pre class="code">function doTwice(task) {
+  task();
+  task();
+}
+function cheer() {
+  console.log("Well played!");
+}
+doTwice(cheer);     // prints "Well played!" twice</pre>
+  <p><code>doTwice(cheer)</code> hands over the function itself, and <code>doTwice</code> runs it twice. <code>doTwice(cheer())</code> is a different instruction. The brackets make <code>cheer</code> run <i>right now</i>, once, and what gets handed over is its return value, <code>undefined</code>. When <code>doTwice</code> then tries <code>task()</code>, the result is <i>TypeError: task is not a function</i>. People make exactly this slip with buttons in Chapter 57, and passing functions around is the whole subject of Chapters 53 and 54.</p>
+  <div class="plain"><p>No brackets: you are talking <i>about</i> the function, like holding up the recipe card. Brackets: you are telling it to run <i>now</i>, and what you get is the finished dish.</p></div>
+  <pre class="code" data-run data-title="Functions are values - then switch on the last line to see the classic slip fail" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the lecture example: a function expression
+  const multiply = function (a, b) {
+    return a * b;
+  };
+  const product = multiply(4, 6);
+  console.log("Function Expression - Product:", product);   // Function Expression - Product: 24
+
+  // no brackets: the function itself.  brackets: run it and use the answer
+  console.log("typeof multiply:", typeof multiply);              // function
+  console.log("typeof multiply(4, 6):", typeof multiply(4, 6));  // number
+  console.log(multiply);                                         // &fnof; multiply()
+
+  // a function is a value, so it can be copied into another variable...
+  const times = multiply;
+  console.log("times(2, 5) is", times(2, 5));                    // 10
+
+  // ...and handed to another function, which calls it
+  function doTwice(task) {
+    task();
+    task();
+  }
+  function cheer() {
+    console.log("Well played!");
+  }
+  doTwice(cheer);       // Well played!  (twice)
+
+  // the classic slip: cheer() runs NOW and hands over undefined.
+  // Delete the // at the start of the next line and Run again to see it fail:
+  // doTwice(cheer());   // Well played!  (once), then TypeError: task is not a function
+&lt;/script&gt;</pre>
+  <p>In this book's Console panel a function shows as <code>&fnof; multiply()</code>; Chrome's own DevTools prints the function's whole text instead. Either way it is the function, not an answer. (The function has no name after the word <code>function</code>, but JavaScript copies the variable's name onto it for messages like this one.) Now delete the <code>//</code> in front of <code>doTwice(cheer());</code> on the last line and run it again: you get one "Well played!" and then the TypeError, with its line number. Read it, then delete the brackets after <code>cheer</code> and run once more.</p>
+</section>
+
+<section id="s6">
+  <h2>48.6 Arrow functions</h2>
+  <p>The third slide uses the shortest form of all:</p>
+  <pre class="code">const subtract = (a, b) =&gt; a - b;
+
+// Invocation
+const difference = subtract(8, 3);
+console.log("Arrow Function - Difference:", difference);   // Arrow Function - Difference: 5</pre>
+  <p>An <b>arrow function</b> is a shorter way to write a function expression. The symbol <code>=&gt;</code>, an equals sign and a greater-than sign with no space between them, is read "gives": <i>a and b give a minus b</i>. Figure 48.3 builds it from the function expression in two steps.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Three lines that make the same function. A function expression; step 1 removes the word function and adds an arrow after the brackets; step 2 removes the braces and the word return because the body is one answer">
+      <text x="12" y="36" class="t b">Function</text>
+      <text x="12" y="52" class="t b">expression</text>
+      <rect x="170" y="18" width="440" height="40" rx="8" class="box gry"/>
+      <text x="390" y="43" class="t c mono">const subtract = function (a, b) { return a - b; };</text>
+      <path d="M390 60 L390 92" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="12" y="110" class="t b">Step 1</text>
+      <text x="12" y="126" class="t s">drop function, add =&gt;</text>
+      <rect x="170" y="94" width="440" height="40" rx="8" class="box saf"/>
+      <text x="390" y="119" class="t c mono">const subtract = (a, b) <tspan style="font-weight:800">=&gt;</tspan> { return a - b; };</text>
+      <path d="M390 136 L390 168" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="12" y="186" class="t b">Step 2</text>
+      <text x="12" y="202" class="t s">one answer: drop { }</text>
+      <text x="12" y="216" class="t s">and the word return</text>
+      <rect x="170" y="170" width="440" height="40" rx="8" class="box grn"/>
+      <text x="390" y="195" class="t c mono">const subtract = (a, b) <tspan style="font-weight:800">=&gt;</tspan> a - b;</text>
+      <text x="310" y="240" class="t c s">All three lines make the same function: subtract(8, 3) is 5 every time.</text>
+    </svg>
+    <figcaption><b>Figure 48.3</b> From function expression to arrow function: take out the word <code>function</code> and add <code>=&gt;</code>; then, if the body is a single answer, take out the braces and <code>return</code> as well.</figcaption>
+  </figure>
+  <p>Step 2 works only when the whole body is one expression. Then the braces and the word <code>return</code> are left out, and the value of that expression is returned automatically. This is called an <span class="jw" data-def="Returning a value without writing the word return. An arrow function with no braces returns its one expression automatically.">implicit return</span>, and a body without braces is a <b>concise body</b>. When a function needs several lines of work, keep the braces &mdash; and with braces you must write <code>return</code> yourself, as in any other function.</p>
+  <div class="plain"><p>An arrow function is a function expression with the word <code>function</code> taken out and <code>=&gt;</code> added after the brackets. If the whole body is one answer, you may also drop the braces and the word <code>return</code>; JavaScript returns that answer for you.</p></div>
+  <h3>The bracket rules</h3>
+  <table class="tbl">
+    <thead><tr><th>Situation</th><th>Write</th><th>Note</th></tr></thead>
+    <tbody>
+      <tr><td>Two or more parameters</td><td><code>(a, b) =&gt; a + b</code></td><td>Round brackets required</td></tr>
+      <tr><td>Exactly one parameter</td><td><code>n =&gt; n * 2</code></td><td>Brackets optional; <code>(n) =&gt; n * 2</code> is the same</td></tr>
+      <tr><td>No parameters</td><td><code>() =&gt; "Lab day"</code></td><td>Empty brackets required</td></tr>
+      <tr><td>Several lines of work</td><td><code>(a, b) =&gt; { const t = a + b; return t / 2; }</code></td><td>Braces, so <code>return</code> is required</td></tr>
+      <tr><td>Returning an object</td><td><code>() =&gt; ({ marks: 90 })</code></td><td>Round brackets around the braces</td></tr>
+    </tbody>
+  </table>
+  <div class="callout warn"><b>Two traps with braces.</b> First, <code>(a, b) =&gt; { a + b }</code> returns <code>undefined</code>: the braces make a block body, and a block body returns only what a <code>return</code> statement hands back. Second, to return an object (Chapter 51) from a concise body, wrap it in round brackets. Without them JavaScript reads the <code>{</code> as the start of a body, not of an object, and you get <code>undefined</code> or a SyntaxError.</div>
+  <pre class="code" data-run data-title="Arrow functions in every shape - try removing a return or a bracket" data-h="140">&lt;p&gt;The answers are in the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // the lecture example: an arrow function
+  const subtract = (a, b) =&gt; a - b;
+  const difference = subtract(8, 3);
+  console.log("Arrow Function - Difference:", difference);   // Arrow Function - Difference: 5
+
+  // one parameter: brackets optional.  no parameters: empty brackets
+  const double = n =&gt; n * 2;
+  const today = () =&gt; "Lab day";
+  console.log("double(21):", double(21));   // 42
+  console.log("today():", today());         // Lab day
+
+  // braces make a block body, and a block body needs return
+  const addRight = (a, b) =&gt; { return a + b; };
+  const addWrong = (a, b) =&gt; { a + b; };
+  console.log("With return:", addRight(2, 3));     // 5
+  console.log("Forgot return:", addWrong(2, 3));   // undefined
+
+  // several lines of work: braces AND return
+  const average = (a, b, c) =&gt; {
+    const total = a + b + c;
+    return total / 3;
+  };
+  console.log("Average of 80, 64, 51:", average(80, 64, 51));   // 65
+
+  // returning an object: round brackets around the braces
+  const makeStudent = (name, marks) =&gt; ({ name: name, marks: marks });
+  console.log(makeStudent("Meera", 91));    // {name: 'Meera', marks: 91}
+&lt;/script&gt;</pre>
+  <p>Arrow functions also treat the word <code>this</code> differently, which matters when a function belongs to an object (Chapter 51). For calculations like the ones in this chapter, all three forms behave the same:</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>Declaration</th><th>Expression</th><th>Arrow</th></tr></thead>
+    <tbody>
+      <tr><td>Looks like</td><td><code>function add(a, b) { return a + b; }</code></td><td><code>const add = function (a, b) { return a + b; };</code></td><td><code>const add = (a, b) =&gt; a + b;</code></td></tr>
+      <tr><td>Name</td><td>Its own name, <code>add</code></td><td>Anonymous; reached through the variable</td><td>Anonymous; reached through the variable</td></tr>
+      <tr><td>Callable above its line?</td><td>Yes (Chapter 49)</td><td>No</td><td>No</td></tr>
+      <tr><td>Returns without writing <code>return</code>?</td><td>No</td><td>No</td><td>Yes, with a concise body</td></tr>
+      <tr><td>Typical use</td><td>The main named jobs of a program</td><td>A function kept in a variable</td><td>Short functions, and functions handed to other functions (Chapter 53)</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: rewrite <code>function square(n) { return n * n; }</code> as the shortest possible arrow function.</summary><p><code>const square = n =&gt; n * n;</code> &mdash; one parameter, so no brackets are needed, and one answer, so no braces and no <code>return</code>. <code>square(7)</code> is 49 either way.</p></details>
+</section>
+
+<section id="s7">
+  <h2>48.7 Writing good functions</h2>
+  <p>A function that works is not automatically a good one. Five habits make functions easy to read, test and reuse:</p>
+  <ol>
+    <li><b>One job each, and a name that says it.</b> <code>calculateTotal</code>, <code>formatName</code> and <code>isPassed</code> each promise one thing. If the honest name needs the word "and", it is two functions.</li>
+    <li><b>Inputs through parameters, answer through <code>return</code>.</b> Do not bake numbers into the body or reach for variables outside it.</li>
+    <li><b>Keep it short.</b> If you need to scroll to read a function, it is probably doing several jobs.</li>
+    <li><b>Prefer pure functions</b>, explained below.</li>
+    <li><b>Copied the same lines twice? Make a function.</b> Programmers call this rule DRY: Don't Repeat Yourself.</li>
+  </ol>
+  <pre class="code">// hard to reuse: the numbers are baked in, and it prints instead of returning
+function report() {
+  console.log("Asha:", 156 * 100 / 200, "%");
+}
+
+// easy to reuse: values in, one answer out
+function percentage(obtained, total = 100) {
+  return obtained * 100 / total;
+}</pre>
+  <h3>Pure functions and side effects</h3>
+  <p>A <span class="jw" data-def="A function whose answer depends only on its arguments, and which changes nothing outside itself.">pure function</span> has two properties: its answer depends only on its arguments, so the same arguments always give the same answer; and it changes nothing outside itself. <code>add</code>, <code>percentage</code> and <code>withGst</code> are pure. Anything a function changes outside itself &mdash; printing to the Console, changing the page, changing an outside variable &mdash; is called a <span class="jw" data-def="Anything a function changes outside itself: printing, changing the page, or changing a variable that lives outside it.">side effect</span>.</p>
+  <pre class="code">let total = 0;                   // a variable outside any function
+
+function addToTotal(amount) {    // NOT pure: it changes total, outside itself
+  total = total + amount;
+}
+
+function addPrices(a, b) {       // pure: same inputs, same answer, nothing else touched
+  return a + b;
+}</pre>
+  <p>Call <code>addToTotal(50)</code> twice and <code>total</code> is 100: the same call had a different effect the second time. <code>addPrices(40, 25)</code> is 65 today, tomorrow and on every call, which makes it easy to test. Side effects are not wrong &mdash; showing results is why programs exist &mdash; but keep them in a few clearly named functions and do the calculating in pure ones. The next section is built exactly that way.</p>
+  <h3>Fixing Chapter 45's repeated lines</h3>
+  <p>Chapter 45 capitalised a name with two almost identical lines, one per word, and promised that a function would help. Here it is:</p>
+  <pre class="code">function capitalise(word) {
+  return word[0].toUpperCase() + word.slice(1).toLowerCase();
+}
+
+const parts = "  aSHA kUMAR ".trim().split(" ");                  // ['aSHA', 'kUMAR']
+console.log(`${capitalise(parts[0])} ${capitalise(parts[1])}`);   // Asha Kumar</pre>
+  <p>The rule "capital first letter, small letters after" now lives in one place. Improve it there, and every name in the program benefits.</p>
+</section>
+
+<section id="s8">
+  <h2>48.8 Build it: a report card from small functions</h2>
+  <p>The final example puts the chapter's worked examples together: a greeting with a default, a percentage, a grade from an <code>if</code> ladder with early returns, and a one-line arrow function. One more function, <code>showCard</code>, is the only one that touches the page. Change the name or the marks and press the button.</p>
+  <pre class="code" data-run data-title="Build it: five small functions make a report card - change the marks, press the button" data-h="340">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #3C4A60; }
+  label { display: block; font-size: 14px; margin: 8px 0 3px; }
+  input { padding: 6px 8px; width: 170px; }
+  button { margin-top: 12px; padding: 8px 16px; font-weight: 700; cursor: pointer; }
+  .card { margin-top: 14px; border: 1px solid #E3E9F0; border-radius: 12px;
+          padding: 12px 16px; max-width: 340px; box-shadow: 0 2px 8px rgba(16,32,64,.08); }
+  .card h3 { margin: 0 0 6px; color: #0B2545; }
+  .card p { margin: 4px 0; }
+&lt;/style&gt;
+&lt;label for="who"&gt;Name&lt;/label&gt;
+&lt;input id="who" value="Asha"&gt;
+&lt;label for="got"&gt;Marks obtained (out of 200)&lt;/label&gt;
+&lt;input id="got" type="number" value="156"&gt;
+&lt;br&gt;
+&lt;button id="go"&gt;Make report card&lt;/button&gt;
+&lt;div class="card"&gt;
+  &lt;h3 id="hello"&gt;&lt;/h3&gt;
+  &lt;p id="score"&gt;&lt;/p&gt;
+  &lt;p id="grade"&gt;&lt;/p&gt;
+&lt;/div&gt;
+&lt;script&gt;
+  // 1. a greeting with a default parameter
+  function greeting(name = "Student") {
+    return `Welcome, ${name}!`;
+  }
+
+  // 2. a percentage: two values in, one answer out
+  function percentage(obtained, total = 100) {
+    return obtained * 100 / total;
+  }
+
+  // 3. a grade: highest band first, early returns (Chapter 47)
+  function gradeFor(percent) {
+    if (percent &gt;= 80) {
+      return "A";
+    }
+    if (percent &gt;= 60) {
+      return "B";
+    }
+    if (percent &gt;= 40) {
+      return "C";
+    }
+    return "F";
+  }
+
+  // 4. a yes/no question as a one-line arrow function
+  const hasPassed = percent =&gt; percent &gt;= 40;
+
+  // 5. the only function that touches the page; it uses the four above
+  function showCard() {
+    const name = document.getElementById("who").value.trim();
+    const obtained = Number(document.getElementById("got").value);
+    const percent = percentage(obtained, 200);
+    const grade = gradeFor(percent);
+
+    // an empty box gives "", a real value, so call greeting() with no argument instead
+    const hello = name === "" ? greeting() : greeting(name);
+
+    document.getElementById("hello").textContent = hello;
+    document.getElementById("score").textContent = `Score: ${obtained} / 200 = ${percent}%`;
+    document.getElementById("grade").textContent =
+      `Grade ${grade}, ${hasPassed(percent) ? "passed" : "not passed"}`;
+    console.log(hello, percent + "%", "grade", grade);
+  }
+
+  console.log(greeting());                    // Welcome, Student!
+  console.log(gradeFor(92), gradeFor(35));    // A F
+  showCard();                                 // Welcome, Asha! 78% grade B
+  document.getElementById("go").addEventListener("click", showCard);   // no brackets!
+&lt;/script&gt;</pre>
+  <p>Trace the first card. <code>percentage(156, 200)</code> returns 78. <code>gradeFor(78)</code> tests 80 first (false), then 60 (true), and returns <code>"B"</code> without looking further. <code>hasPassed(78)</code> returns <code>true</code>, so the ternary picks "passed". Now clear the name box and press the button: an empty box gives <code>""</code>, which is a real value, so <code>showCard</code> calls <code>greeting()</code> with no argument and the default "Student" appears.</p>
+  <p>Look at the last line: <code>addEventListener("click", showCard)</code>. There are no brackets after <code>showCard</code>, because you are handing the function to the browser to run later, on every click (Chapter 57). With <code>showCard()</code> it would run once, straight away, and hand over <code>undefined</code>. Try typing 250 as well: the card cheerfully reports 125%, because nothing checks the input yet. That is the job of Chapter 60.</p>
+</section>
+
+<section id="mistakes">
+  <h2>48.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Writing a function runs it."</b><br>A definition only stores the instructions under a name.</div>
+    <div class="r"><b>&#10003; "A function runs only when it is called: its name plus round brackets."</b><br><code>add(5, 3)</code> runs it; <code>function add(a, b) { ... }</code> only defines it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>console.log</code> inside a function gives the answer back."</b><br>It shows the answer in the Console; the caller receives <code>undefined</code>.</div>
+    <div class="r"><b>&#10003; "<code>return</code> gives the answer back; <code>console.log</code> only shows it."</b><br>Calculate and <code>return</code>; let the caller decide whether to print.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Parameters and arguments are the same thing."</b><br>They are two ends of the same handover.</div>
+    <div class="r"><b>&#10003; "Parameters are the names in the definition; arguments are the values in the call."</b><br>They are matched by position, first to first.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "JavaScript warns me if I pass the wrong number of arguments."</b><br>It never does.</div>
+    <div class="r"><b>&#10003; "Missing arguments become <code>undefined</code>; extra ones are ignored, silently."</b><br>That is why <code>area(12)</code> is <code>NaN</code> and not an error.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>(a, b) =&gt; { a + b }</code> returns the sum."</b><br>Braces make a block body, which returns <code>undefined</code> unless it has a <code>return</code>.</div>
+    <div class="r"><b>&#10003; "Braces need <code>return</code>; without braces the answer is returned automatically."</b><br>Write <code>(a, b) =&gt; a + b</code> or <code>(a, b) =&gt; { return a + b; }</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "<code>addEventListener("click", showCard())</code> hands over the function."</b><br>The brackets run <code>showCard</code> immediately and hand over its result.</div>
+    <div class="r"><b>&#10003; "No brackets hands over the function; brackets hand over its result."</b><br>Write <code>addEventListener("click", showCard)</code>.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>In <code>function area(length, width) { return length * width; }</code> called as <code>area(4, 3)</code>, what are 4 and 3?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Parameters</li><li>B. Arguments</li><li>C. Return values</li><li>D. Keywords</li></ul>
+    <p><b>Answer: B.</b> Values written in a call are arguments. The parameters are <code>length</code> and <code>width</code>, the names in the definition. The return value is 12, which the call produces.</p></div></details>
+  <details class="q"><summary>What does this print? <code>function show(a, b) { console.log(a + b); } const r = show(2, 3); console.log(r);</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 5 and then 5</li><li>B. 5 only</li><li>C. 5 and then undefined</li><li>D. undefined and then 5</li></ul>
+    <p><b>Answer: C.</b> <code>show</code> prints 5 itself, but it has no <code>return</code>, so <code>r</code> is <code>undefined</code>, and the second line prints that. A would need <code>return a + b;</code> inside <code>show</code>.</p></div></details>
+  <details class="q"><summary>Which line is a correct arrow-function version of <code>function subtract(a, b) { return a - b; }</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>const subtract = (a, b) =&gt; { a - b };</code></li><li>B. <code>const subtract =&gt; (a, b) a - b;</code></li><li>C. <code>function subtract =&gt; (a, b) { return a - b; }</code></li><li>D. <code>const subtract = (a, b) =&gt; a - b;</code></li></ul>
+    <p><b>Answer: D.</b> Parameters, then <code>=&gt;</code>, then the answer, with an implicit return. A is the tempting one: it runs, but the braces make a block body with no <code>return</code>, so every call gives <code>undefined</code>. B and C are SyntaxErrors.</p></div></details>
+  <details class="q"><summary>What does this print? <code>function greet(name = "Guest") { return "Hi " + name; } console.log(greet(), greet(null));</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Hi Guest Hi null</li><li>B. Hi Guest Hi Guest</li><li>C. Hi undefined Hi null</li><li>D. TypeError</li></ul>
+    <p><b>Answer: A.</b> The first call passes nothing, so <code>name</code> takes the default. The second passes <code>null</code>, which is a real value, so the default is not used and <code>"Hi " + null</code> gives "Hi null". A default replaces only a missing or <code>undefined</code> argument.</p></div></details>
+  <details class="q"><summary>With <code>function add(a, b) { return a + b; }</code>, what does <code>console.log(add(5));</code> print?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 5</li><li>B. undefined</li><li>C. An error saying an argument is missing</li><li>D. NaN</li></ul>
+    <p><b>Answer: D.</b> JavaScript does not check the number of arguments. <code>b</code> is <code>undefined</code>, and <code>5 + undefined</code> is <code>NaN</code>. The function does return something, so it is not B.</p></div></details>
+  <details class="q"><summary>The lecture writes <code>const multiply = function (a, b) { return a * b; };</code>. What kind of function is this, and what is <code>multiply(4, 6)</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: a function expression,</b> giving 24. An anonymous function is created as a value on the right of <code>=</code> and stored in the constant <code>multiply</code>; calling it with 4 and 6 returns <code>4 * 6</code>. Unlike a declaration, it cannot be called on a line above this one.</p></div></details>
+  <details class="q"><summary>Predict every line this prints. <code>function check(m) { if (m &gt;= 40) { return "Pass"; } console.log("checking..."); return "Fail"; } console.log(check(55)); console.log(check(20));</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: three lines &mdash; Pass, then checking..., then Fail.</b> For 55 the first <code>return</code> ends the function before the <code>console.log</code> inside it, so only "Pass" is printed. For 20 the test is false, so "checking..." is printed inside the function, and then the returned "Fail" is printed by the outer <code>console.log</code>.</p></div></details>
+  <details class="q"><summary>Which statement about <code>cheer</code> and <code>cheer()</code> is correct?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Both run the function</li><li>B. <code>cheer</code> runs the function; <code>cheer()</code> only refers to it</li><li>C. <code>cheer</code> is the function itself; <code>cheer()</code> runs it and gives back its return value</li><li>D. They are the same, because brackets are optional</li></ul>
+    <p><b>Answer: C.</b> Without brackets you refer to the function as a value, which is what you hand to <code>addEventListener</code> or to another function. With brackets you run it now. B has it exactly backwards.</p></div></details>
+  <details class="q"><summary>What is <code>f(3)</code> after <code>const f = x =&gt; { x * 10 };</code>?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 30</li><li>B. undefined</li><li>C. NaN</li><li>D. SyntaxError</li></ul>
+    <p><b>Answer: B.</b> The braces make a block body, and it has no <code>return</code>, so the call gives <code>undefined</code>. The multiplication happens and is thrown away. <code>x =&gt; x * 10</code> would give 30.</p></div></details>
+  <details class="q"><summary>Which arrow function returns the object <code>{ marks: 90 }</code>?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>() =&gt; ({ marks: 90 })</code></li><li>B. <code>() =&gt; { marks: 90 }</code></li><li>C. <code>() =&gt; return { marks: 90 }</code></li><li>D. <code>() =&gt; [marks: 90]</code></li></ul>
+    <p><b>Answer: A.</b> The round brackets tell JavaScript the braces are an object, not a body. In B the braces are read as a body, so it returns <code>undefined</code>. C is a SyntaxError (<code>return</code> needs braces), and D is not valid syntax.</p></div></details>
+  <details class="q"><summary>What does this print? <code>function register(course, ...names) { return names.length; } console.log(register("CSE326", "Asha", "Rahul"));</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 3</li><li>B. 2</li><li>C. 1</li><li>D. undefined</li></ul>
+    <p><b>Answer: B.</b> "CSE326" goes into <code>course</code>; the rest parameter gathers only the <i>remaining</i> arguments, "Asha" and "Rahul", so its length is 2. A counts the course as well.</p></div></details>
+  <details class="q"><summary>A student writes the function below and gets <code>undefined</code>. Why, and what is the fix? <code>function total(a, b) { return</code> (Enter) <code>a + b; }</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> JavaScript ends the statement at the line break straight after <code>return</code>, so the function returns <code>undefined</code> and the line <code>a + b;</code> is never reached. No error is shown. Fix: keep the value on the same line, <code>return a + b;</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A function packs a job under a name: write it once, call it as often as you like, and fix it in one place.</li>
+    <li><code>function name(parameters) { body }</code> defines; <code>name(arguments)</code> calls. Defining does not run anything.</li>
+    <li>Parameters are names in the definition; arguments are values in the call, matched by position. Missing ones are <code>undefined</code>, extra ones are ignored, <code>= value</code> gives a default, and <code>...rest</code> gathers the remainder into an array.</li>
+    <li><code>return</code> hands a value back and ends the function at once. With no <code>return</code>, a call gives <code>undefined</code>. <code>console.log</code> only shows a value; it gives nothing back.</li>
+    <li>A function expression stores a function as a value: <code>const f = function (a, b) { ... };</code>. An arrow function is the short form: <code>(a, b) =&gt; a - b</code>.</li>
+    <li>An arrow with no braces returns its one expression; with braces it needs <code>return</code>; to return an object, wrap it in <code>({ })</code>.</li>
+    <li><code>f</code> is the function; <code>f()</code> runs it. Hand over <code>f</code> when another function should run it later.</li>
+    <li>Good functions do one job, have verb names, take inputs as parameters, return their answer, and are pure where possible.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>function add(a, b) { return a + b; }</code></td><td>Declares a function named <code>add</code></td></tr>
+      <tr><td><code>add(5, 3)</code></td><td>Calls it; the call's value is 8</td></tr>
+      <tr><td><code>function greet(name = "Guest")</code></td><td>Default used when the argument is missing or <code>undefined</code></td></tr>
+      <tr><td><code>function f(first, ...rest)</code></td><td><code>rest</code> gathers the remaining arguments into an array</td></tr>
+      <tr><td><code>return x;</code></td><td>Hands <code>x</code> back and ends the function</td></tr>
+      <tr><td><code>return;</code> or no <code>return</code></td><td>The call gives <code>undefined</code></td></tr>
+      <tr><td><code>const m = function (a, b) { return a * b; };</code></td><td>Function expression stored in a variable</td></tr>
+      <tr><td><code>const s = (a, b) =&gt; a - b;</code></td><td>Arrow function with an implicit return</td></tr>
+      <tr><td><code>n =&gt; n * 2</code></td><td>One parameter: brackets optional</td></tr>
+      <tr><td><code>() =&gt; "Hi"</code></td><td>No parameters: empty brackets</td></tr>
+      <tr><td><code>(a, b) =&gt; { return a + b; }</code></td><td>Block body: <code>return</code> required</td></tr>
+      <tr><td><code>() =&gt; ({ marks: 90 })</code></td><td>Returns an object</td></tr>
+      <tr><td><code>f</code> versus <code>f()</code></td><td>The function itself versus running it</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Functions" target="_blank" rel="noopener noreferrer">MDN &mdash; Functions guide<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Declarations, expressions, parameters and return, with short examples of each.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Functions/Arrow_functions" target="_blank" rel="noopener noreferrer">MDN &mdash; Arrow function expressions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every bracket rule, the object-literal trap, and how arrows differ from ordinary functions.</span></li>
+    <li><a href="https://javascript.info/function-basics" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Functions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same ground in a second voice, with good advice on naming and small tasks at the end.</span></li>
+    <li><a href="https://javascript.info/arrow-functions-basics" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Arrow functions, the basics<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A short page on concise and block bodies, with exercises that convert ordinary functions to arrows.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

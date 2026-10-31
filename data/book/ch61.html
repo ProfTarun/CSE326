@@ -1,0 +1,787 @@
+<article class="chapter" data-ch="61">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 61 &middot; Regular Expressions</p>
+  <h1>Regular Expressions</h1>
+  <p class="lead">"Ten digits, starting with 6, 7, 8 or 9." "Six digits, never starting with 0." "Three capital letters, then three digits." You can say these rules in one breath, and with a regular expression you can hand the same rule to JavaScript in one short line. This chapter teaches the small set of symbols that make up those lines, how to read a pattern left to right like a sentence, and the four methods that use one to check, find and change text.</p>
+  <p class="meta">About 36 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A string is text in quotes; <code>includes</code>, <code>replace</code>, <code>replaceAll</code> and <code>split</code> search and reshape it and always hand back a new string (<a href="book.html?ch=45">Chapter 45</a>).</li>
+      <li>A Boolean is <code>true</code> or <code>false</code>, and an <code>if</code> runs its block only when the condition is <code>true</code> (<a href="book.html?ch=47">Chapter 47</a>).</li>
+      <li>On submit, a validation script reads each box's <code>.value</code>, trims it, decides, and writes a message next to the box (<a href="book.html?ch=60">Chapter 60</a>).</li>
+      <li>The HTML <code>pattern</code> attribute, paired with <code>title</code>, makes the browser check a box's whole value (<a href="book.html?ch=18">Chapter 18</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what a regular expression is, write one as <code>/.../flags</code> or with <code>new RegExp("...")</code>, and avoid the double-backslash trap.</li>
+      <li>Use character classes, the shorthands <code>\d \w \s</code> (and <code>\D \W \S</code>), the dot, and the quantifiers <code>? * + {n} {n,} {n,m}</code>.</li>
+      <li>Explain why a validation pattern needs <code>^</code> and <code>$</code>, and predict what <code>test()</code> returns with and without them.</li>
+      <li>Use groups <code>( )</code>, alternation <code>|</code> and escaping such as <code>\.</code>, and read any pattern aloud piece by piece.</li>
+      <li>Check, extract and change text with <code>test()</code>, <code>match()</code>, <code>matchAll()</code> and <code>replace()</code>, using the <code>g</code> and <code>i</code> flags.</li>
+      <li>Write and explain patterns for an Indian mobile number, a PIN code, a registration number and a simple email, and build a password-strength meter from separate small tests.</li>
+      <li>Put a pattern into an HTML <code>pattern</code> attribute and test any pattern step by step.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>61.1 A pattern instead of exact text</h2>
+  <p>Chapter 45 taught you to search for <i>exact</i> text: <code>"CSE326".includes("326")</code> is <code>true</code>. But a mobile number box must accept <i>any</i> ten digits, and you cannot list ten thousand million phone numbers. What you can do is describe their <b>shape</b>: "ten digits, nothing else".</p>
+  <p>A <span class="jw" data-def="A short pattern that describes what a piece of text should look like, such as 'exactly ten digits'. Often shortened to regex.">regular expression</span> (<b>regex</b> for short; JavaScript calls the object <code>RegExp</code>) is exactly that: a pattern, written in a small language of symbols, that describes a <i>kind</i> of text. JavaScript can then tell you whether a string fits, find the parts that fit, or change them. The lecture's first example is the rule for a phone number:</p>
+  <pre class="code">const pattern = /^\d{10}$/;
+console.log(pattern.test("9876543210"));   // true
+console.log(pattern.test("98765"));        // false</pre>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="The pattern slash caret backslash d brace 10 brace dollar slash split into six pieces, each with its meaning">
+      <rect x="20" y="24" width="60" height="50" rx="8" class="box gry"/>
+      <text x="50" y="55" class="t c b mono">/</text>
+      <rect x="95" y="24" width="80" height="50" rx="8" class="box saf"/>
+      <text x="135" y="55" class="t c b mono">^</text>
+      <rect x="190" y="24" width="90" height="50" rx="8" class="box blu"/>
+      <text x="235" y="55" class="t c b mono">\d</text>
+      <rect x="295" y="24" width="100" height="50" rx="8" class="box blu"/>
+      <text x="345" y="55" class="t c b mono">{10}</text>
+      <rect x="410" y="24" width="80" height="50" rx="8" class="box saf"/>
+      <text x="450" y="55" class="t c b mono">$</text>
+      <rect x="505" y="24" width="95" height="50" rx="8" class="box gry"/>
+      <text x="552" y="55" class="t c b mono">/</text>
+      <text x="50" y="98" class="t c s">pattern</text>
+      <text x="50" y="114" class="t c s">begins</text>
+      <text x="135" y="98" class="t c s">start of</text>
+      <text x="135" y="114" class="t c s">the text</text>
+      <text x="235" y="98" class="t c s">one digit,</text>
+      <text x="235" y="114" class="t c s">0 to 9</text>
+      <text x="345" y="98" class="t c s">exactly 10</text>
+      <text x="345" y="114" class="t c s">of the thing before</text>
+      <text x="450" y="98" class="t c s">end of</text>
+      <text x="450" y="114" class="t c s">the text</text>
+      <text x="552" y="98" class="t c s">pattern</text>
+      <text x="552" y="114" class="t c s">ends</text>
+      <rect x="20" y="146" width="580" height="44" rx="10" class="box grn"/>
+      <text x="310" y="166" class="t c b">Read aloud: "from the start, ten digits, then the end"</text>
+      <text x="310" y="182" class="t c s">so "9876543210" fits, and "98765" (too short) or "98765 43210" (a space) do not</text>
+    </svg>
+    <figcaption><b>Figure 61.1</b> The lecture's pattern taken apart. The two slashes only mark where the pattern begins and ends; the four pieces between them are the rule.</figcaption>
+  </figure>
+  <p>The method <code>test()</code> belongs to the pattern. You give it a string and it answers with a Boolean: <code>true</code> if the string fits the pattern, <code>false</code> if it does not. That single yes-or-no answer is what a validation script needs, which is why Chapter 60 kept writing <code>if (!pattern.test(value))</code>.</p>
+  <div class="callout analogy"><b>Picture this.</b> An India Post form has a row of six small boxes for the PIN code, one digit per box. The row of boxes <i>is</i> a pattern: it does not say which PIN you live at, only what any PIN must look like. The clerk checks the shape at a glance: a box left empty, a letter in a box, or a seventh digit squeezed in after the last box, and the form comes back. A regular expression is the same row of boxes written in symbols, and <code>^</code> and <code>$</code> are the two hard edges at the ends of the row, so nothing can be written before the first box or after the last.</div>
+  <pre class="code" data-run data-title="The lecture's pattern on five phone numbers - change the list and Run again" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  code, li { font-family: ui-monospace, Consolas, monospace; }
+  li { margin: 4px 0; }
+  .yes { color: #138808; }
+  .no { color: #C42B2B; }
+&lt;/style&gt;
+&lt;p&gt;Pattern: &lt;code&gt;/^\d{10}$/&lt;/code&gt; - exactly ten digits, nothing else&lt;/p&gt;
+&lt;ul id="out"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  const pattern = /^\d{10}$/;
+
+  console.log(pattern.test("9876543210"));   // true
+  console.log(pattern.test("98765"));        // false
+
+  // The same two, and three more, in the Console and on the page
+  const tries = ["9876543210", "98765", "98765 43210", "98765432101", "98765abcde"];
+  const out = document.getElementById("out");
+
+  for (const text of tries) {
+    const ok = pattern.test(text);
+    console.log(`"${text}" -&gt;`, ok);
+    const li = document.createElement("li");
+    li.textContent = `"${text}" ${ok ? "matches" : "does not match"}`;
+    li.className = ok ? "yes" : "no";
+    out.append(li);
+  }
+&lt;/script&gt;</pre>
+  <p>The Console starts with the slide's two lines, <code>true</code> and <code>false</code>. Then the loop tries five strings, and only <code>"9876543210"</code> gets <code>true</code>: <code>"98765"</code> is too short, <code>"98765 43210"</code> has a space, <code>"98765432101"</code> has eleven digits and <code>"98765abcde"</code> has letters.</p>
+</section>
+
+<section id="s2">
+  <h2>61.2 Writing a pattern: slashes, flags and new RegExp</h2>
+  <p>There are two ways to make a regular expression. The usual one is a <b>literal</b>: the pattern written straight into your code between two forward slashes, like <code>/^\d{10}$/</code>. It is not a string, so it has no quotes. Just as <code>[1, 2, 3]</code> makes an array and <code>{ }</code> makes an object, the slashes make a RegExp object (<code>typeof /a/</code> is <code>"object"</code>).</p>
+  <p>After the closing slash you may add one or more <span class="jw" data-def="A letter written after the closing slash that changes how the whole pattern searches, such as g for every match or i to ignore capital letters.">flags</span>. Two matter in this course:</p>
+  <table class="tbl">
+    <thead><tr><th>Flag</th><th>Stands for</th><th>Effect</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>g</code></td><td>global</td><td>Find <b>every</b> match, not just the first (used with <code>match</code>, <code>matchAll</code> and <code>replace</code>)</td><td><code>/\d+/g</code></td></tr>
+      <tr><td><code>i</code></td><td>ignore case</td><td>Capital and small letters count as the same</td><td><code>/java/i</code> finds Java, java and JAVA</td></tr>
+      <tr><td><code>gi</code></td><td>both</td><td>Every match, any case</td><td><code>/java/gi</code></td></tr>
+    </tbody>
+  </table>
+  <p>The second way builds the pattern from a <b>string</b>, at the moment the code runs:</p>
+  <pre class="code">const a = /^\d{10}$/;                 // a literal: written between slashes
+const b = new RegExp("^\\d{10}$");    // the same pattern, built from a string
+console.log(a, b);                    // /^\d{10}$/ /^\d{10}$/
+console.log(b.test("9876543210"));    // true</pre>
+  <p>The longer form lets the pattern come from a variable, such as a search box; the flags go in a second string:</p>
+  <pre class="code">const word = "java";                        // imagine this came from a search box
+const finder = new RegExp(word, "gi");
+console.log("Java, java, JAVA".match(finder)); // ['Java', 'java', 'JAVA']</pre>
+  <p>In <code>b</code> the string says <code>"^\\d{10}$"</code>, with <b>two</b> backslashes. Inside any JavaScript string, a backslash is the string's own escape character (Chapter 45: <code>\n</code> is a new line, <code>\"</code> is a quote). The string eats one backslash before the RegExp ever sees it. Forget the doubling and the pattern quietly changes meaning:</p>
+  <pre class="code">const wrong = new RegExp("^\d{10}$");
+console.log(wrong);                       // /^d{10}$/   the backslash has vanished
+console.log(wrong.test("9876543210"));    // false
+console.log(wrong.test("dddddddddd"));    // true  - ten letter d's!</pre>
+  <div class="plain">
+    <p>Between slashes, write the pattern exactly as it is: <code>/\d/</code>. Inside quotes for <code>new RegExp</code>, every backslash must be written twice: <code>new RegExp("\\d")</code>. Use the slash form whenever you know the pattern while writing the code, which is almost always. Keep <code>new RegExp</code> for patterns built from a variable.</p>
+  </div>
+  <p>One more trap with user text: <code>new RegExp("C++")</code> throws <code>SyntaxError: Invalid regular expression: /C++/: Nothing to repeat</code>, because <code>+</code> is a pattern symbol (61.4). To find exact text, the plain string methods of Chapter 45 have no such trap.</p>
+  <details class="qc"><summary>Quick check: what pattern does new RegExp("\\w+", "i") make, written as a literal?</summary><div class="a">
+    <p><code>/\w+/i</code>. The string <code>"\\w+"</code> holds one backslash, a <code>w</code> and a <code>+</code>, and the second argument becomes the flag after the closing slash.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>61.3 One character at a time: classes, shorthands and the dot</h2>
+  <p>A pattern is read from left to right, and each piece of it normally stands for <b>one character</b> of the text. The simplest piece is a <b>literal character</b>: a letter or digit with no special meaning stands for itself. <code>/cat/</code> means "a c, then an a, then a t", so it finds <i>cat</i> inside <i>concatenate</i>. Patterns are case-sensitive unless you add the <code>i</code> flag, so <code>/cat/</code> does not find <i>Cat</i>.</p>
+  <h3>Character classes: one character from a set</h3>
+  <p>Square brackets make a <span class="jw" data-def="A set of characters written in square brackets, such as [aeiou]. It matches exactly ONE character, which must be one of those in the set.">character class</span>. However long the list inside, a class stands for exactly <b>one</b> character, which must be one of those listed. A dash between two characters means "everything from this one to that one".</p>
+  <table class="tbl">
+    <thead><tr><th>Class</th><th>Matches one character that is&hellip;</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><code>[aeiou]</code></td><td>a, e, i, o or u</td><td><code>/[aeiou]/</code> finds a vowel in "sea", none in "sky"</td></tr>
+      <tr><td><code>[a-z]</code></td><td>a small English letter, a to z</td><td>not &eacute;, not a capital</td></tr>
+      <tr><td><code>[A-Z]</code></td><td>a capital English letter</td><td>from the slide</td></tr>
+      <tr><td><code>[0-9]</code></td><td>a digit</td><td><code>/[0-9]/</code> is true for "CSE326"</td></tr>
+      <tr><td><code>[A-Za-z]</code></td><td>any English letter, either case</td><td>two ranges in one class</td></tr>
+      <tr><td><code>[6-9]</code></td><td>6, 7, 8 or 9</td><td>the first digit of an Indian mobile number</td></tr>
+      <tr><td><code>[^0-9]</code></td><td><b>not</b> a digit</td><td>a <code>^</code> straight after <code>[</code> turns the set inside out</td></tr>
+    </tbody>
+  </table>
+  <p>Inside the brackets most symbols lose their special meaning: <code>[.]</code> matches only a real full stop. Three keep a job: the dash makes a range, a <code>^</code> placed first means "not", and the backslash still works, so <code>[\s@]</code> means "a whitespace character or an @". That <code>^</code> is unrelated to the "start of text" <code>^</code> of 61.5; same key, different job.</p>
+  <h3>Shorthands: classes you will use every day</h3>
+  <p>Some classes are so common that they have a two-character shorthand. Each is still <i>one</i> character of the text.</p>
+  <table class="tbl">
+    <thead><tr><th>Shorthand</th><th>Same as</th><th>Meaning</th><th>Capital letter = the opposite</th></tr></thead>
+    <tbody>
+      <tr><td><code>\d</code></td><td><code>[0-9]</code></td><td>a <b>d</b>igit</td><td><code>\D</code> anything that is not a digit</td></tr>
+      <tr><td><code>\w</code></td><td><code>[A-Za-z0-9_]</code></td><td>a "<b>w</b>ord" character: English letter, digit or underscore</td><td><code>\W</code> anything else, such as a space, @ or !</td></tr>
+      <tr><td><code>\s</code></td><td>(space, tab, new line&hellip;)</td><td>a white<b>s</b>pace character</td><td><code>\S</code> anything that is not whitespace</td></tr>
+      <tr><td><code>.</code></td><td></td><td><b>any</b> character at all, except a line break</td><td></td></tr>
+    </tbody>
+  </table>
+  <p>Small letter "is one", capital letter "is anything but". Note that <code>\w</code> means <i>English</i> letters only: <code>/^\w+$/.test("Jos&eacute;")</code> is <code>false</code>.</p>
+  <div class="plain">
+    <p>A class in square brackets is one box that accepts any character from a short list. <code>\d</code>, <code>\w</code> and <code>\s</code> are ready-made lists (digits; letters, digits and _; spaces). The capital versions accept everything <i>except</i> that list. The dot accepts any character at all.</p>
+  </div>
+  <p>The dot is the dangerous one, because in ordinary writing a dot is a full stop. In a pattern it is "any one character": <code>/c.t/</code> matches <i>cat</i>, <i>cut</i> and <i>c9t</i>, but not <i>ct</i>. A real full stop is written <code>\.</code> (61.6).</p>
+</section>
+
+<section id="s4">
+  <h2>61.4 How many: quantifiers</h2>
+  <p>Writing <code>\d\d\d\d\d\d\d\d\d\d</code> for ten digits would work, but it is unreadable. A <span class="jw" data-def="A symbol written straight after a piece of a pattern that says how many times that piece may repeat, such as + for one or more, or {10} for exactly ten.">quantifier</span> written straight after a piece says how many times that piece repeats.</p>
+  <table class="tbl">
+    <thead><tr><th>Quantifier</th><th>How many of the piece before it</th><th>Example</th><th>Matches</th></tr></thead>
+    <tbody>
+      <tr><td><code>?</code></td><td>0 or 1 (it is optional)</td><td><code>/colou?r/</code></td><td>color, colour</td></tr>
+      <tr><td><code>*</code></td><td>0 or more</td><td><code>/go*gle/</code></td><td>ggle, gogle, google, gooogle&hellip;</td></tr>
+      <tr><td><code>+</code></td><td>1 or more</td><td><code>/go+gle/</code></td><td>gogle, google&hellip; but not ggle</td></tr>
+      <tr><td><code>{n}</code></td><td>exactly n</td><td><code>/\d{6}/</code></td><td>six digits in a row</td></tr>
+      <tr><td><code>{n,}</code></td><td>n or more</td><td><code>/[A-Za-z]{3,}/</code></td><td>at least three letters (Chapter 18's example)</td></tr>
+      <tr><td><code>{n,m}</code></td><td>from n to m</td><td><code>/\d{1,3}/</code></td><td>one, two or three digits</td></tr>
+    </tbody>
+  </table>
+  <p>Three rules:</p>
+  <ol>
+    <li><b>A quantifier repeats only the one piece just before it.</b> In <code>/ha+/</code> the <code>+</code> repeats the <code>a</code>, not <code>ha</code>, so it matches <i>haaa</i> but not <i>hahaha</i>. To repeat several characters together, put them in a group: <code>/(ha)+/</code> (61.6).</li>
+    <li><b>No spaces inside the braces.</b> <code>{1,3}</code> means one to three. <code>{1, 3}</code>, with a space, is not a quantifier at all; JavaScript reads it as the six ordinary characters <code>{</code>, <code>1</code>, <code>,</code>, space, <code>3</code>, <code>}</code>. So <code>/^\d{1, 3}$/.test("5")</code> is <code>false</code>, and no error warns you.</li>
+    <li><b>Quantifiers are greedy.</b> <code>+</code>, <code>*</code> and <code>{n,m}</code> take as many characters as they can. <code>"Room 2026".match(/\d+/)</code> finds <code>"2026"</code>, all four digits, not just the <code>"2"</code>.</li>
+  </ol>
+  <p>The next example tries one pattern on one string per line. Predict each line before you press Run.</p>
+  <pre class="code" data-run data-title="Classes, shorthands, the dot and quantifiers - predict each line before you Run" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+&lt;/style&gt;
+&lt;p&gt;Each Console line is one pattern tried on one piece of text.
+Change a pattern or a text, then press Run again.&lt;/p&gt;
+
+&lt;script&gt;
+  function check(pattern, text) {
+    console.log(`${pattern} on "${text}": ${pattern.test(text)}`);
+  }
+
+  console.log("--- one character from a set ---");
+  check(/[aeiou]/, "sky");        // is there a vowel anywhere?
+  check(/[aeiou]/, "sea");
+  check(/[0-9]/, "CSE326");
+  check(/[^0-9]/, "2026");        // [^...] means NOT one of these
+
+  console.log("--- shorthands and the dot ---");
+  check(/\d\d/, "Room 4");        // two digits side by side?
+  check(/\d\d/, "Room 42");
+  check(/\s/, "AshaKumar");       // any whitespace?
+  check(/\w/, "!!!");             // any letter, digit or _ ?
+  check(/c.t/, "cut");            // the dot: any one character
+  check(/c.t/, "ct");
+
+  console.log("--- how many ---");
+  check(/colou?r/, "color");      // ?  the u is optional
+  check(/colou?r/, "colour");
+  check(/go+gle/, "ggle");        // +  at least one o
+  check(/go*gle/, "ggle");        // *  no o at all is fine
+  check(/\d{3}/, "Room 42");      // {3}  three digits in a row
+  check(/\d{3}/, "Room 12345");   // true! it CONTAINS three digits (61.5)
+&lt;/script&gt;</pre>
+  <p>Most lines go as you would guess. <code>/[^0-9]/</code> is <code>false</code> for "2026" because every character there <i>is</i> a digit; <code>/c.t/</code> is <code>false</code> for "ct" because the dot needs one character to stand on; <code>/go+gle/</code> rejects "ggle" while <code>/go*gle/</code> accepts it, since <code>*</code> allows zero. Stop at the last line: <code>/\d{3}/</code> on <code>"Room 12345"</code> prints <code>true</code>, though the text has five digits. The next section explains why.</p>
+  <details class="qc"><summary>Quick check: which of "ac", "abc", "abbbc" does /ab+c/ match? And /ab*c/?</summary><div class="a">
+    <p><code>/ab+c/</code> needs at least one b, so it matches "abc" and "abbbc" but not "ac". <code>/ab*c/</code> allows zero b's, so it matches all three.</p></div></details>
+</section>
+
+<section id="s5">
+  <h2>61.5 Anchors: why validation needs ^ and $</h2>
+  <p>On its own, <code>test()</code> asks a loose question: <i>is there a match <b>anywhere</b> inside this text?</i> It slides the pattern along the string and says <code>true</code> the moment any stretch fits, so <code>/\d{3}/</code> found "123" inside "Room 12345". For searching that is right. For a form it is a disaster: <code>/\d{10}/</code> accepts "Call 9876543210 now" and "98765432101", because both <i>contain</i> ten digits in a row.</p>
+  <p>The cure is a pair of <span class="jw" data-def="A symbol that matches a position in the text rather than a character. ^ is the very start of the text and $ is the very end.">anchors</span>. <code>^</code> means "the very start of the text" and <code>$</code> means "the very end". They match a <i>position</i>, not a character; they use up nothing. Put <code>^</code> first and <code>$</code> last, and the pattern must stretch from the first character to the last, with nothing left over on either side.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Without anchors the ten digits are found inside a longer text; with anchors the whole text must be the ten digits">
+      <rect x="20" y="30" width="125" height="44" rx="8" class="box gry"/>
+      <text x="82" y="57" class="t c mono">/\d{10}/</text>
+      <rect x="160" y="30" width="70" height="44" rx="6" class="box"/>
+      <text x="195" y="57" class="t c mono">Call</text>
+      <rect x="235" y="30" width="150" height="44" rx="6" class="box grn"/>
+      <text x="310" y="57" class="t c mono">9876543210</text>
+      <rect x="390" y="30" width="60" height="44" rx="6" class="box"/>
+      <text x="420" y="57" class="t c mono">now</text>
+      <text x="465" y="49" class="t b">true</text>
+      <text x="465" y="66" class="t s">found inside</text>
+      <rect x="20" y="110" width="125" height="44" rx="8" class="box saf"/>
+      <text x="82" y="137" class="t c mono">/^\d{10}$/</text>
+      <text x="160" y="104" class="t b mono">^</text>
+      <text x="444" y="104" class="t b mono">$</text>
+      <rect x="160" y="110" width="70" height="44" rx="6" class="box red"/>
+      <text x="195" y="137" class="t c mono">Call</text>
+      <rect x="235" y="110" width="150" height="44" rx="6" class="box"/>
+      <text x="310" y="137" class="t c mono">9876543210</text>
+      <rect x="390" y="110" width="60" height="44" rx="6" class="box red"/>
+      <text x="420" y="137" class="t c mono">now</text>
+      <text x="465" y="129" class="t b">false</text>
+      <text x="465" y="146" class="t s">extra text at the edges</text>
+      <rect x="20" y="190" width="125" height="44" rx="8" class="box saf"/>
+      <text x="82" y="217" class="t c mono">/^\d{10}$/</text>
+      <text x="235" y="184" class="t b mono">^</text>
+      <text x="379" y="184" class="t b mono">$</text>
+      <rect x="235" y="190" width="150" height="44" rx="6" class="box grn"/>
+      <text x="310" y="217" class="t c mono">9876543210</text>
+      <text x="465" y="209" class="t b">true</text>
+      <text x="465" y="226" class="t s">fills the whole text</text>
+    </svg>
+    <figcaption><b>Figure 61.2</b> Without anchors (top) the pattern only has to fit <i>somewhere</i>. With <code>^</code> and <code>$</code> (middle and bottom) it has to fill the text from edge to edge, so any extra character at either end makes the answer <code>false</code>.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="No anchors, only ^, and both - five texts against three patterns" data-h="230">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  table { border-collapse: collapse; font-size: 14px; }
+  th, td { border: 1px solid #CBD5E1; padding: 5px 9px; }
+  th, td:first-child { font-family: ui-monospace, Consolas, monospace; }
+  .t { color: #138808; font-weight: 700; }
+  .f { color: #C42B2B; }
+&lt;/style&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;text&lt;/th&gt;&lt;th&gt;/\d{10}/&lt;/th&gt;&lt;th&gt;/^\d{10}/&lt;/th&gt;&lt;th&gt;/^\d{10}$/&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody id="rows"&gt;&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;script&gt;
+  const anywhere = /\d{10}/;      // ten digits somewhere inside
+  const atStart = /^\d{10}/;      // ten digits right at the start
+  const whole = /^\d{10}$/;       // ten digits, and nothing else
+
+  const inputs = ["9876543210", "98765432101", "Call 9876543210", "9876543210 now", "98765"];
+  const results = [];
+
+  for (const text of inputs) {
+    const row = {
+      text: text,
+      anywhere: anywhere.test(text),
+      atStart: atStart.test(text),
+      whole: whole.test(text),
+    };
+    results.push(row);
+
+    // the same row, drawn on the page
+    const tr = document.createElement("tr");
+    for (const value of [row.text, row.anywhere, row.atStart, row.whole]) {
+      const td = document.createElement("td");
+      td.textContent = value;
+      if (value === true) td.className = "t";
+      if (value === false) td.className = "f";
+      tr.append(td);
+    }
+    document.getElementById("rows").append(tr);
+  }
+  console.table(results);
+&lt;/script&gt;</pre>
+  <p>Read the Console table column by column. <b>anywhere</b> says <code>true</code> for the first four texts. <b>atStart</b> rejects "Call 9876543210" (it starts with C) but still accepts "98765432101" and "9876543210 now", because nothing checks what follows. Only <b>whole</b> gives the answer a form needs: <code>true</code> for "9876543210" and <code>false</code> for everything else.</p>
+  <div class="callout why"><b>Key idea.</b> <b>Searching</b> asks "is it in there somewhere?", so leave the anchors off. <b>Validating</b> asks "is the whole thing exactly this shape?", so begin with <code>^</code> and end with <code>$</code>. Forgetting them never throws an error; the form just lets bad values through.</div>
+  <details class="qc"><summary>Quick check: /^\d{6}$/ is the PIN rule. What does it say for "1444110", and why?</summary><div class="a">
+    <p><code>false</code>. Six digits fit from the start, but then a seventh digit is left before the end, and <code>$</code> demands the end right there. Without the <code>$</code>, <code>/^\d{6}/</code> would wrongly say <code>true</code>.</p></div></details>
+</section>
+
+<section id="s6">
+  <h2>61.6 Groups, either-or, and escaping</h2>
+  <h3>Groups ( ) and alternation |</h3>
+  <p>Round brackets make a <b>group</b>: several pieces treated as one unit. A quantifier after a group repeats the whole group, and the bar <code>|</code> inside a group means "or". The bar is called <b>alternation</b>: try this alternative, or that one.</p>
+  <pre class="code">console.log(/^(ha)+$/.test("hahaha"));          // true:  the group "ha", repeated
+console.log(/^ha+$/.test("hahaha"));            // false: + repeats only the a
+console.log(/^(jpg|png|gif)$/.test("png"));     // true:  one of the three
+console.log(/^(jpg|png|gif)$/.test("png.exe")); // false: ".exe" is left over
+console.log(/^(\+91)?[6-9]\d{9}$/.test("+919876543210"));  // true: +91 is optional</pre>
+  <p>The last line combines everything so far: a group holding <code>\+91</code>, made optional by <code>?</code>, then the mobile number. Groups have a second job: they remember the text they matched, so you can pull it out later (61.7).</p>
+  <div class="callout warn"><b>The bar splits the whole pattern.</b> Without a group, <code>|</code> divides everything on its left from everything on its right. <code>/^cat|dog$/</code> does <i>not</i> mean "exactly cat or exactly dog". It means "<code>^cat</code> <b>or</b> <code>dog$</code>": text that starts with cat, or text that ends with dog. So it says <code>true</code> for "catapult" and for "hotdog". Write <code>/^(cat|dog)$/</code> to keep the anchors outside the choice.</div>
+  <h3>Escaping: when you mean the symbol itself</h3>
+  <p>These characters have jobs in the pattern language: <code>. * + ? ^ $ ( ) [ ] { } | \ /</code>. They are the <span class="jw" data-def="A character with a special job in a pattern, such as . or + or $. To mean the character itself, put a backslash in front of it.">metacharacters</span>. When you want one of them to mean just itself, put a backslash in front: <code>\.</code> is a real full stop, <code>\+</code> a real plus sign, <code>\/</code> a real slash, <code>\$</code> a real dollar sign, and <code>\\</code> a real backslash.</p>
+  <pre class="code">console.log(/lpu.in/.test("lpu-in"));        // true:  the dot matched the "-"
+console.log(/lpu\.in/.test("lpu-in"));       // false: \. is only a real dot
+console.log(/lpu\.in/.test("lpu.in"));       // true
+console.log(/^\d{2}\/\d{2}\/\d{4}$/.test("30/10/2026"));   // true: \/ is a real slash</pre>
+  <p>Without the backslashes, the first <code>/</code> in the date would end the pattern early: a SyntaxError. The unescaped dot is quieter: no error, it just accepts too much.</p>
+  <h3>Reading a pattern left to right</h3>
+  <p>Any pattern can be read with one method. Split it into pieces, each being <b>one thing</b> (a character, a class, a shorthand or a group) plus its quantifier, if any, and say each piece aloud in order. Take a car number plate such as PB08AB1234:</p>
+  <table class="tbl">
+    <thead><tr><th>Piece</th><th>Say it as</th><th>In PB08AB1234</th></tr></thead>
+    <tbody>
+      <tr><td><code>^</code></td><td>from the start</td><td></td></tr>
+      <tr><td><code>[A-Z]{2}</code></td><td>two capital letters</td><td>PB (the state)</td></tr>
+      <tr><td><code>\d{2}</code></td><td>two digits</td><td>08 (the district)</td></tr>
+      <tr><td><code>[A-Z]{1,2}</code></td><td>one or two capital letters</td><td>AB (the series)</td></tr>
+      <tr><td><code>\d{4}</code></td><td>four digits</td><td>1234</td></tr>
+      <tr><td><code>$</code></td><td>then the end</td><td></td></tr>
+    </tbody>
+  </table>
+  <p>Put together, <code>/^[A-Z]{2}\d{2}[A-Z]{1,2}\d{4}$/</code> accepts "PB08AB1234" and "PB08A1234" and rejects "PB08AB1234XYZ". To <i>write</i> a pattern, run the method backwards: say the rule in words, piece by piece, then turn each phrase into symbols.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="The mobile pattern caret, 6 to 9, nine digits, dollar, checked against two numbers: one starting with 9 passes, one starting with 5 fails at the first character">
+      <rect x="20" y="20" width="80" height="40" rx="8" class="box saf"/>
+      <text x="60" y="45" class="t c b mono">^</text>
+      <rect x="120" y="20" width="110" height="40" rx="8" class="box blu"/>
+      <text x="175" y="45" class="t c b mono">[6-9]</text>
+      <rect x="250" y="20" width="210" height="40" rx="8" class="box blu"/>
+      <text x="355" y="45" class="t c b mono">\d{9}</text>
+      <rect x="480" y="20" width="80" height="40" rx="8" class="box saf"/>
+      <text x="520" y="45" class="t c b mono">$</text>
+      <path d="M175 60 L175 94" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M355 60 L355 94" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="60" y="124" class="t c s">start</text>
+      <rect x="120" y="100" width="110" height="40" rx="6" class="box grn"/>
+      <text x="175" y="125" class="t c mono">9</text>
+      <rect x="250" y="100" width="210" height="40" rx="6" class="box grn"/>
+      <text x="355" y="125" class="t c mono">876543210</text>
+      <text x="520" y="117" class="t c s">end</text>
+      <text x="520" y="133" class="t c b">true</text>
+      <text x="60" y="184" class="t c s">start</text>
+      <rect x="120" y="160" width="110" height="40" rx="6" class="box red"/>
+      <text x="175" y="185" class="t c mono">5</text>
+      <rect x="250" y="160" width="210" height="40" rx="6" class="box gry"/>
+      <text x="355" y="178" class="t c mono">876543210</text>
+      <text x="355" y="194" class="t c s">never checked</text>
+      <text x="520" y="177" class="t c s">stops at 5</text>
+      <text x="520" y="193" class="t c b">false</text>
+    </svg>
+    <figcaption><b>Figure 61.3</b> Each piece of the pattern takes its share of the text in order. For "9876543210" every piece is satisfied up to the end. For "5876543210" the class <code>[6-9]</code> fails on the very first character, so the answer is <code>false</code> without looking further.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Brackets ( ) glue pieces into one unit so a quantifier or a choice applies to all of them. The bar | means "or", and it splits everything around it unless it sits inside brackets. A backslash in front of a symbol, such as <code>\.</code>, makes it mean just itself. To read a pattern, chop it into "one thing + how many" and say each chunk aloud.</p>
+  </div>
+</section>
+
+<section id="s7">
+  <h2>61.7 Four methods: test, match, matchAll and replace</h2>
+  <p>You already know <code>test()</code>. The other three are <b>string</b> methods that accept a pattern where Chapter 45 used plain text. Notice the sides: <code>pattern.test(text)</code>, but <code>text.match(pattern)</code>.</p>
+  <table class="tbl">
+    <thead><tr><th>Call</th><th>Question it answers</th><th>Gives back</th></tr></thead>
+    <tbody>
+      <tr><td><code>pattern.test(text)</code></td><td>Does it fit?</td><td><code>true</code> or <code>false</code></td></tr>
+      <tr><td><code>text.match(/.../)</code></td><td>What is the first match, and where?</td><td>An array: <code>[0]</code> is the matched text, <code>[1]</code>, <code>[2]</code>&hellip; the groups, plus <code>.index</code>. <code>null</code> if nothing fits</td></tr>
+      <tr><td><code>text.match(/.../g)</code></td><td>What are all the matches?</td><td>An array of every matched string, or <code>null</code></td></tr>
+      <tr><td><code>text.matchAll(/.../g)</code></td><td>All matches, each with its groups</td><td>A sequence you loop over with <code>for...of</code>. The <code>g</code> is compulsory</td></tr>
+      <tr><td><code>text.replace(/.../, "new")</code></td><td>Change the first match (all of them with <code>g</code>)</td><td>A new string. The original is untouched</td></tr>
+    </tbody>
+  </table>
+  <p>Two details. When nothing matches, <code>match</code> gives <code>null</code>, not an empty array, so <code>"Asha".match(/\d/g).length</code> crashes with a TypeError; <code>("Asha".match(/\d/g) || []).length</code> safely gives 0. And in <code>replace</code>, the new text may contain <code>$1</code>, <code>$2</code>&hellip;, meaning "what group 1, group 2&hellip; matched".</p>
+  <pre class="code" data-run data-title="match, matchAll and replace on marks, dates and phone numbers - all output in the Console" data-h="140">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+&lt;/style&gt;
+&lt;p&gt;Everything this example finds and changes is printed in the Console.&lt;/p&gt;
+
+&lt;script&gt;
+  const report = "Asha scored 85, Rahul 92 and Meera 78.";
+
+  // match() WITHOUT g: the first match, and where it was found
+  const first = report.match(/\d+/);
+  console.log("First number:", first[0], "at position", first.index);
+
+  // match() WITH g: every match, in an array of strings
+  const all = report.match(/\d+/g);
+  console.log("All numbers:", all);
+
+  let total = 0;
+  for (const mark of all) {
+    total += Number(mark);              // each match is text, so convert it
+  }
+  console.log("Total:", total);
+
+  // no match at all gives null, not an empty array
+  console.log("Digits in 'Asha':", "Asha".match(/\d/g));
+
+  // matchAll(): every match AND its groups (the g flag is compulsory)
+  const data = "Asha:85, Rahul:92, Meera:78";
+  for (const m of data.matchAll(/([A-Za-z]+):(\d+)/g)) {
+    console.log(m[1], "scored", m[2]);
+  }
+
+  // replace(): without g only the first; with g every one; i ignores case
+  const s = "I like java. Java is fun. JAVA!";
+  console.log(s.replace(/java/, "JavaScript"));
+  console.log(s.replace(/java/gi, "JavaScript"));
+
+  // groups in the replacement: $1 is group 1, $2 is group 2 ...
+  console.log("30-10-2026".replace(/(\d{2})-(\d{2})-(\d{4})/, "$3-$2-$1"));
+
+  // two everyday clean-ups
+  console.log("+91 98765-43210".replace(/\D/g, ""));       // keep only the digits
+  console.log("  too   many    spaces ".trim().replace(/\s+/g, " "));
+
+  // split at "one or more whitespace characters"
+  console.log("Web  pages   are fun".split(/\s+/));
+&lt;/script&gt;</pre>
+  <p>Trace the Console from the top.</p>
+  <ul>
+    <li><code>First number: 85 at position 12</code>. Without <code>g</code>, <code>match</code> stops at the first run of digits; <code>.index</code> counts from 0.</li>
+    <li><code>All numbers: ['85', '92', '78']</code>, then <code>Total: 255</code>. The matches are <b>strings</b>, hence <code>Number()</code>; without it <code>+=</code> would join text.</li>
+    <li><code>Digits in 'Asha': null</code>. No match gives <code>null</code>.</li>
+    <li><code>Asha scored 85</code>, <code>Rahul scored 92</code>, <code>Meera scored 78</code>. Each <code>m</code> from <code>matchAll</code> is like a <code>match</code> result: <code>m[1]</code> is the name group, <code>m[2]</code> the marks group.</li>
+    <li><code>I like JavaScript. Java is fun. JAVA!</code> (only the first, small-letter "java"), then with <code>gi</code>: <code>I like JavaScript. JavaScript is fun. JavaScript!</code></li>
+    <li><code>2026-10-30</code>. The groups caught day, month and year; <code>"$3-$2-$1"</code> reversed them.</li>
+    <li><code>919876543210</code> and <code>too many spaces</code>: <code>\D</code> with <code>g</code> deletes every non-digit; <code>\s+</code> squeezes each run of spaces to one.</li>
+    <li><code>['Web', 'pages', 'are', 'fun']</code>. Chapter 45 promised this: splitting at <code>/\s+/</code> leaves no empty pieces between double spaces (trim first, or a leading space still leaves one).</li>
+  </ul>
+  <div class="callout warn"><b>Never put g on a pattern you use with test().</b> A <code>g</code> pattern remembers where its last match ended (in <code>lastIndex</code>) and starts the next search there. With <code>const re = /a/g;</code>, three calls of <code>re.test("cat")</code> give <code>true</code>, <code>false</code>, <code>true</code>, so a validation pattern with <code>g</code> can reject a correct value every other time. Keep <code>g</code> for <code>match</code>, <code>matchAll</code> and <code>replace</code> (<code>matchAll</code> without it throws a TypeError).</div>
+  <details class="qc"><summary>Quick check: what do "banana".replace(/a/, "o") and "banana".replace(/a/g, "o") give?</summary><div class="a">
+    <p><code>"bonana"</code> and <code>"bonono"</code>. Without <code>g</code> only the first <i>a</i> is replaced; with <code>g</code> every one is. <code>"banana"</code> itself is unchanged in both cases, because strings never change.</p></div></details>
+</section>
+
+<section id="s8">
+  <h2>61.8 Patterns you will actually use</h2>
+  <p>Here are the everyday Indian patterns, each read aloud the 61.6 way. All of them are for <b>validating</b>, so all of them have <code>^</code> and <code>$</code>.</p>
+  <table class="tbl">
+    <thead><tr><th>Field</th><th>Pattern</th><th>Read it as</th><th>Passes / fails</th></tr></thead>
+    <tbody>
+      <tr><td>Indian mobile</td><td><code>/^[6-9]\d{9}$/</code></td><td>Start, one digit 6&ndash;9, nine more digits, end</td><td>9876543210 / 5876543210</td></tr>
+      <tr><td>PIN code</td><td><code>/^[1-9]\d{5}$/</code></td><td>Start, a digit 1&ndash;9 (no PIN starts with 0), five more digits, end</td><td>144411 / 044411</td></tr>
+      <tr><td>LPU registration no.</td><td><code>/^\d{8}$/</code></td><td>Exactly eight digits</td><td>12215678 / 12215678A</td></tr>
+      <tr><td>Course code</td><td><code>/^[A-Z]{3}\d{3}$/</code></td><td>Three capitals, three digits</td><td>CSE326 / cse326</td></tr>
+      <tr><td>Simple email</td><td><code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code></td><td>Non-space, non-@ characters, an @, more of them, a real dot, more of them</td><td>asha@lpu.in / asha@lpu</td></tr>
+    </tbody>
+  </table>
+  <p>People type phone numbers in many styles, such as <code>+91 98765-43210</code>. Rather than a pattern that allows every style, <b>clean first, then check</b>:</p>
+  <pre class="code">const typed = "+91 98765-43210";
+const cleaned = typed.replace(/[\s-]/g, "");             // "+919876543210"
+console.log(/^(\+91)?[6-9]\d{9}$/.test(cleaned));        // true</pre>
+  <h3>The email trap</h3>
+  <p>The email pattern is deliberately simple and lets some nonsense through. The official address rules allow strange forms almost nobody uses; a regex that follows them exactly is hundreds of characters long, unreadable, and still cannot tell you whether the mailbox exists. Real sites do a simple shape check to catch slips such as a missing @, then send a confirmation email. Only that proves the address is real.</p>
+  <p>The test bench below tries each pattern from the table on values that should pass and values that should fail, and marks any line that surprised us.</p>
+  <pre class="code" data-run data-title="A test bench - five patterns, good and bad values, and one honest surprise" data-h="160">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  #sum { font-weight: 700; }
+&lt;/style&gt;
+&lt;p&gt;A test bench: every pattern is tried on values that should pass and values
+that should fail. A line marked SURPRISE did not do what we expected.&lt;/p&gt;
+&lt;p id="sum"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const rules = [
+    { name: "Mobile", pattern: /^[6-9]\d{9}$/,
+      good: ["9876543210", "6012345678"], bad: ["5876543210", "987654321", "98765 43210"] },
+    { name: "PIN code", pattern: /^[1-9]\d{5}$/,
+      good: ["144411", "110001"], bad: ["044411", "14441", "1444110"] },
+    { name: "Reg. number", pattern: /^\d{8}$/,
+      good: ["12215678"], bad: ["1221567", "12215678A"] },
+    { name: "Course code", pattern: /^[A-Z]{3}\d{3}$/,
+      good: ["CSE326", "INT219"], bad: ["cse326", "CSE3260"] },
+    { name: "Email", pattern: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+      good: ["asha@lpu.in", "rahul.k@gmail.com"], bad: ["asha@lpu", "asha lpu.in", "asha@lpu..in"] },
+  ];
+
+  // Try one value; say what happened; give back true if it was what we expected
+  function tryValue(rule, text, expected) {
+    const result = rule.pattern.test(text);
+    const note = result === expected ? "" : "   &lt;-- SURPRISE";
+    console.log(`"${text}" ${result ? "accepted" : "rejected"}${note}`);
+    return result === expected;
+  }
+
+  let tried = 0;
+  let surprises = 0;
+  for (const rule of rules) {
+    console.log(`--- ${rule.name}: ${rule.pattern}`);
+    for (const text of rule.good) {
+      tried++;
+      if (!tryValue(rule, text, true)) surprises++;
+    }
+    for (const text of rule.bad) {
+      tried++;
+      if (!tryValue(rule, text, false)) surprises++;
+    }
+  }
+  console.log("Surprises:", surprises);
+  document.getElementById("sum").textContent =
+    `${rules.length} patterns, ${tried} values tried, ${surprises} surprise(s) - see the Console.`;
+&lt;/script&gt;</pre>
+  <p>Every mobile, PIN, registration and course-code line behaves as the table says. Then the last email line says <code>"asha@lpu..in" accepted   &lt;-- SURPRISE</code>, and the Console ends <code>Surprises: 1</code>. Why? The <code>[^\s@]+</code> after the @ is greedy: it first takes all of <code>lpu..in</code>, then gives characters back until a <code>\.</code> can follow, and settles on <code>lpu.</code>, dot included, since a dot is neither a space nor an @. Then <code>\.</code> takes the second dot and the last <code>[^\s@]+</code> takes <code>in</code>. The rule, not the code, let it through.</p>
+  <p>That is what a <b>list of bad values</b> is for: it finds the holes in your rule before your users do. This hole is harmless (the confirmation email would bounce), so we keep the simple pattern.</p>
+  <h3>Password strength: several small tests, not one monster</h3>
+  <p>"At least 8 characters, with a small letter, a capital, a digit and a symbol" is really five questions. Each is a tiny pattern <b>without</b> anchors, because each asks "is there at least one of these <i>anywhere</i>?": <code>/[a-z]/</code>, <code>/[A-Z]/</code>, <code>/\d/</code>, and <code>/[^A-Za-z0-9]/</code> for "not a letter or digit". Length needs no regex: <code>pw.length &gt;= 8</code>.</p>
+  <p>Online you will find one-line versions such as <code>/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/</code>. It works, but it is hard to read and cannot tell the user <i>which</i> rule failed. Separate tests can, and they turn straight into a checklist.</p>
+  <pre class="code" data-run data-title="Password strength from five small tests - type a password and watch the ticks" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  input { font-size: 16px; padding: 6px 8px; width: 240px; max-width: 100%; }
+  ul { padding-left: 4px; list-style: none; }
+  li { margin: 3px 0; color: #C42B2B; }
+  li.ok { color: #138808; }
+  li::before { content: "\2717  "; }
+  li.ok::before { content: "\2713  "; }
+  #verdict { font-weight: 700; }
+&lt;/style&gt;
+&lt;label for="pw"&gt;Choose a password&lt;/label&gt;&lt;br&gt;
+&lt;input id="pw" type="text" autocomplete="off" spellcheck="false"&gt;
+&lt;ul&gt;
+  &lt;li id="len"&gt;At least 8 characters&lt;/li&gt;
+  &lt;li id="lower"&gt;A small letter (a-z)&lt;/li&gt;
+  &lt;li id="upper"&gt;A capital letter (A-Z)&lt;/li&gt;
+  &lt;li id="digit"&gt;A digit (0-9)&lt;/li&gt;
+  &lt;li id="symbol"&gt;Something else: a symbol such as @ # ! or a space&lt;/li&gt;
+&lt;/ul&gt;
+&lt;p id="verdict" role="status"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  // One rule, one small test. No pattern here has ^ or $, because each one
+  // asks "is there at least ONE of these anywhere in the password?"
+  const rules = [
+    { id: "len",    passes: (pw) =&gt; pw.length &gt;= 8 },
+    { id: "lower",  passes: (pw) =&gt; /[a-z]/.test(pw) },
+    { id: "upper",  passes: (pw) =&gt; /[A-Z]/.test(pw) },
+    { id: "digit",  passes: (pw) =&gt; /\d/.test(pw) },
+    { id: "symbol", passes: (pw) =&gt; /[^A-Za-z0-9]/.test(pw) },
+  ];
+  const words = ["", "very weak", "weak", "fair", "good", "strong"];
+
+  function score(pw) {
+    let count = 0;
+    for (const rule of rules) {
+      if (rule.passes(pw)) count++;
+    }
+    return count;
+  }
+
+  function show() {
+    const pw = document.getElementById("pw").value;
+    for (const rule of rules) {
+      document.getElementById(rule.id).className = rule.passes(pw) ? "ok" : "";
+    }
+    const n = score(pw);
+    document.getElementById("verdict").textContent =
+      pw === "" ? "Type a password to see how strong it is." : `${n} of 5 rules met: ${words[n]}`;
+  }
+
+  document.getElementById("pw").addEventListener("input", show);
+  show();
+
+  // The same five tests on four passwords, in the Console
+  for (const pw of ["asha", "asha2026", "Asha2026", "Asha@2026"]) {
+    console.log(`${pw}: ${score(pw)} of 5 - ${words[score(pw)]}`);
+  }
+&lt;/script&gt;</pre>
+  <p>On Run, the Console scores four passwords: <code>asha: 1 of 5 - very weak</code>, <code>asha2026: 3 of 5 - fair</code> (small letter, digit, exactly 8 characters), <code>Asha2026: 4 of 5 - good</code> and <code>Asha@2026: 5 of 5 - strong</code>. Now type in the box. Each key press fires <code>input</code> (Chapter 57) and the five tests run again: type <code>A</code> and only "A capital letter" turns green; at <code>Asha2026</code> four are green; add the <code>@</code> and all five are.</p>
+  <div class="plain">
+    <p>For a rule with several parts, write one small pattern per part and test them one by one: readable code, and a precise message for each part not yet met. Save the anchors for patterns that must describe the <i>whole</i> value.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <h2>61.9 Patterns in HTML, and testing a pattern step by step</h2>
+  <p>The same patterns work without any JavaScript, in the HTML <code>pattern</code> attribute that Chapter 18 introduced. Three differences from the JavaScript form:</p>
+  <ol>
+    <li><b>No slashes and no flags.</b> Write <code>pattern="[6-9]\d{9}"</code>, not <code>pattern="/[6-9]\d{9}/"</code>, or the slashes become characters the value must contain.</li>
+    <li><b>It is anchored for you.</b> The browser treats your pattern as <code>^(?:</code>&hellip;<code>)$</code>: "start, your whole pattern as one group, end". So the whole value must match, and even <code>pattern="cat|dog"</code> means "exactly cat or exactly dog".</li>
+    <li><b>An empty box is not checked.</b> An empty value passes; add <code>required</code> if the box must be filled. A broken pattern, such as <code>[6-9</code>, is silently ignored, so every value passes. The browser also reads the pattern with the stricter <code>v</code> flag, under which a bare <code>-</code> or <code>(</code> inside <code>[ ]</code> counts as broken: write <code>[\s\-]</code>, not <code>[\s-]</code>. Test your patterns!</li>
+  </ol>
+  <pre class="code">&lt;label for="mobile"&gt;Mobile number&lt;/label&gt;
+&lt;input id="mobile" name="mobile" required
+       pattern="[6-9]\d{9}" title="10 digits, starting with 6, 7, 8 or 9"&gt;</pre>
+  <p>From JavaScript, this box answers <code>checkValidity()</code> with <code>true</code> for <code>9876543210</code> and <code>false</code> for <code>Call 9876543210 now</code>, and its <code>validity.patternMismatch</code> flag (Chapter 60) is <code>true</code> in the second case.</p>
+  <div class="callout exam"><b>Exam tip.</b> In JavaScript, <code>/[6-9]\d{9}/.test("Call 9876543210 now")</code> is <code>true</code>, because there are no anchors. The same text in a box with <code>pattern="[6-9]\d{9}"</code> is <b>invalid</b>, because the attribute always demands a whole-value match. Questions love that difference.</div>
+  <h3>Testing a pattern, one piece at a time</h3>
+  <p>When a pattern misbehaves, do not stare at it. Build it up a piece at a time and test after every piece: <code>\d</code> (any digit?), then <code>\d{10}</code> (ten in a row?), then <code>[6-9]\d{9}</code> (first one 6&ndash;9?), then the anchors. Try the same pass and fail values at every step; when a result surprises you, the piece you just added is the culprit.</p>
+  <p>The tester below does exactly that. Type a pattern without slashes and test values, one per line. For each value the table shows what <code>test()</code> says, and what a <code>pattern=""</code> attribute would say with its automatic anchors and its <code>v</code> flag.</p>
+  <pre class="code" data-run data-title="A pattern tester - build a pattern piece by piece and watch both columns" data-h="360">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; color: #0B2545; }
+  label { display: block; font-weight: 600; margin-top: 8px; }
+  input, textarea { font: 15px ui-monospace, Consolas, monospace; padding: 6px 8px;
+                    width: 320px; max-width: 100%; box-sizing: border-box; }
+  table { border-collapse: collapse; margin-top: 8px; font-size: 14px; }
+  th, td { border: 1px solid #CBD5E1; padding: 4px 8px; }
+  td:first-child { font-family: ui-monospace, Consolas, monospace; white-space: pre; }
+  .t { color: #138808; font-weight: 700; }
+  .f { color: #C42B2B; }
+  #message { color: #C42B2B; min-height: 20px; margin: 6px 0 0; }
+&lt;/style&gt;
+&lt;label for="pat"&gt;Pattern (no slashes)&lt;/label&gt;
+&lt;input id="pat" value="[6-9]\d{9}" spellcheck="false"&gt;
+&lt;label for="lines"&gt;Test values, one per line&lt;/label&gt;
+&lt;textarea id="lines" rows="5" spellcheck="false"&gt;9876543210
+5876543210
+987654321
+Call 9876543210 now&lt;/textarea&gt;
+&lt;p id="message"&gt;&lt;/p&gt;
+&lt;table&gt;
+  &lt;thead&gt;&lt;tr&gt;&lt;th&gt;value&lt;/th&gt;&lt;th&gt;test()&lt;/th&gt;&lt;th&gt;as pattern=""&lt;/th&gt;&lt;/tr&gt;&lt;/thead&gt;
+  &lt;tbody id="rows"&gt;&lt;/tbody&gt;
+&lt;/table&gt;
+
+&lt;script&gt;
+  const pat = document.getElementById("pat");
+  const lines = document.getElementById("lines");
+  const message = document.getElementById("message");
+  const rows = document.getElementById("rows");
+
+  function cell(tr, value) {
+    const td = document.createElement("td");
+    td.textContent = value;
+    if (value === true) td.className = "t";
+    if (value === false) td.className = "f";
+    tr.append(td);
+  }
+
+  function run() {
+    rows.textContent = "";
+    let search, whole;
+    try {
+      search = new RegExp(pat.value);                  // like /.../ in code
+      whole = new RegExp("^(?:" + pat.value + ")$", "v");   // what pattern="..." does
+    } catch (error) {
+      message.textContent = "Not a valid pattern yet: " + error.message;
+      return;
+    }
+    message.textContent = "";
+    console.log("Pattern:", search);
+    const values = lines.value.split("\n").filter((v) =&gt; v !== "");
+    for (const value of values) {
+      const tr = document.createElement("tr");
+      cell(tr, value);
+      cell(tr, search.test(value));
+      cell(tr, whole.test(value));
+      rows.append(tr);
+      console.log(`"${value}" test(): ${search.test(value)}, as pattern: ${whole.test(value)}`);
+    }
+  }
+
+  pat.addEventListener("input", run);
+  lines.addEventListener("input", run);
+  run();
+&lt;/script&gt;</pre>
+  <p>On Run, the Console prints <code>Pattern: /[6-9]\d{9}/</code> and one line per value. The first three agree in both columns: <code>true</code>, <code>false</code> (starts with 5), <code>false</code> (only nine digits). The fourth, <code>"Call 9876543210 now"</code>, says <code>test(): true, as pattern: false</code>: the anchor difference from the exam tip, live.</p>
+  <p>Now replay the method in the pattern box; each key press reruns the tester. With <code>\d</code>, <code>test()</code> says <code>true</code> to every value (each contains a digit) and the pattern column says <code>false</code> to all (none is a single digit). While you type <code>{10}</code>, a red line flashes up: under the <code>v</code> flag a half-typed <code>{</code> is broken. With <code>\d{10}</code> complete, the nine-digit line turns <code>false</code>, but 5876543210 is accepted in both columns, so add the <code>[6-9]</code>. Delete the closing <code>]</code> and a red line explains: <code>Not a valid pattern yet: Invalid regular expression: /[6-9\d{9}/: Unterminated character class</code>; that <code>try...catch</code> is how a page survives a pattern typed by a user. Finally try <code>cat|dog</code> on the lines cat, catapult and hotdog: <code>test()</code> says <code>true</code> to all three, the pattern column only to cat.</p>
+</section>
+
+<section id="mistakes">
+  <h2>61.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "/\d{10}/.test(value) checks that the value is ten digits."</b><br>It checks that the value <i>contains</i> ten digits somewhere, so "98765432101" and "Call 9876543210 now" pass.</div>
+    <div class="r"><b>&#10003; "Validation patterns start with ^ and end with $."</b><br><code>/^\d{10}$/</code> must fill the whole value. Only the HTML <code>pattern</code> attribute adds the anchors for you.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The dot means a full stop, so /lpu.in/ checks for lpu.in."</b><br>The dot means <i>any</i> character, so "lpu-in" and "lpuxin" pass too.</div>
+    <div class="r"><b>&#10003; "A real dot is \. (or [.])."</b><br>The same goes for every metacharacter: <code>\+</code>, <code>\$</code>, <code>\(</code>, <code>\/</code>&hellip;</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "new RegExp("^\d+$") is the same as /^\d+$/."</b><br>The string swallows the backslash, leaving <code>/^d+$/</code>, a pattern for the letter d.</div>
+    <div class="r"><b>&#10003; "Inside a string, write every backslash twice."</b><br><code>new RegExp("^\\d+$")</code>. Better still, use the slash form whenever the pattern is fixed.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Adding g to a validation pattern does no harm."</b><br>With <code>g</code>, <code>test()</code> carries on from where the previous search stopped and can say <code>false</code> to a correct value on the next call.</div>
+    <div class="r"><b>&#10003; "No g with test(); g is for match, matchAll and replace."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A clever enough regex proves an email address (or a name) is real."</b><br>A pattern only checks shape. <code>/^[A-Za-z ]+$/</code> even rejects a real name like D'Souza.</div>
+    <div class="r"><b>&#10003; "Patterns catch typing slips; real checks happen elsewhere."</b><br>A confirmation email proves the address. Keep name rules generous, and remember the server must check everything again (Chapter 60).</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three ask you to predict what the code prints.</p>
+  <details class="q"><summary>What does the <code>test()</code> method of a regular expression return?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>true</code> or <code>false</code></li><li>B. The matched text</li><li>C. The position of the match</li><li>D. An array of all matches</li></ul>
+    <p><b>Answer: A.</b> B and C describe <code>match()</code> without <code>g</code>; D is <code>match()</code> with <code>g</code>.</p></div></details>
+  <details class="q"><summary>Which pattern accepts both "color" and "colour", and nothing else?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>/^colou*r$/</code></li><li>B. <code>/^colo?ur$/</code></li><li>C. <code>/^colou?r$/</code></li><li>D. <code>/^col(ou)r$/</code></li></ul>
+    <p><b>Answer: C.</b> <code>u?</code> makes the u optional. A also accepts "colouuur", because <code>*</code> allows any number. B makes the <i>o</i> optional instead and rejects "color". D accepts only "colour".</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log(/\d{10}/.test("My number is 98765432101"));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: true.</b> With no anchors, <code>test()</code> only asks whether ten digits in a row appear <i>somewhere</i>, and the eleven-digit run contains ten. <code>/^\d{10}$/</code> would print <code>false</code>.</p></div></details>
+  <details class="q"><summary>Why does a pattern used to <i>validate</i> a form field need <code>^</code> at the start and <code>$</code> at the end?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Without them JavaScript throws a SyntaxError</li><li>B. They make the match ignore capital letters</li><li>C. They make the pattern find every match</li><li>D. Without them the pattern only has to match part of the value, so extra characters slip through</li></ul>
+    <p><b>Answer: D.</b> Anchors force the pattern to fill the whole value. A tempts, but a missing anchor never causes an error; it silently accepts bad input. B describes the <code>i</code> flag and C the <code>g</code> flag.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log("a1b22c333".match(/\d+/g));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>['1', '22', '333']</code>.</b> With <code>g</code>, <code>match</code> returns every match, as strings; <code>\d+</code> is greedy, so each run of digits comes out whole.</p></div></details>
+  <details class="q"><summary>A product code must be PRD followed by exactly four digits, and nothing else. Which pattern is right?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>/^[PRD]\d{4}$/</code></li><li>B. <code>/^PRD\d4$/</code></li><li>C. <code>/PRD\d{4}/</code></li><li>D. <code>/^PRD\d{4}$/</code></li></ul>
+    <p><b>Answer: D.</b> A means <i>one</i> letter, P or R or D, then four digits. B means one digit followed by the character 4. C has no anchors, so "xPRD12345" passes.</p></div></details>
+  <details class="q"><summary>A student writes <code>const re = new RegExp("^\d{6}$");</code> for PIN codes, and <code>re.test("144411")</code> gives <code>false</code>. Why?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Inside the string, <code>\d</code> lost its backslash, so the pattern became <code>/^d{6}$/</code>: six letter d's</li><li>B. <code>new RegExp</code> cannot use anchors</li><li>C. <code>test()</code> works only with literal <code>/.../</code> patterns</li><li>D. PIN codes need the <code>g</code> flag</li></ul>
+    <p><b>Answer: A.</b> The string swallowed the backslash. Write <code>new RegExp("^\\d{6}$")</code>, or simply <code>/^\d{6}$/</code>. D would add the lastIndex trap.</p></div></details>
+  <details class="q"><summary>What is the value of <code>"Red red RED".replace(/red/gi, "blue")</code>?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. "blue red RED"</li><li>B. "Red blue RED"</li><li>C. "blue blue blue"</li><li>D. "Red red RED"</li></ul>
+    <p><b>Answer: C.</b> <code>i</code> ignores case and <code>g</code> replaces every match. Without <code>g</code> (but with <code>i</code>) you would get A; with neither flag you would get B, the only small-letter "red".</p></div></details>
+  <details class="q"><summary>A box has <code>pattern="[6-9]\d{9}"</code>. The user types <code>Call 9876543210 now</code>. What happens on submit?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is accepted, because the value contains a valid number</li><li>B. It is rejected, because the pattern attribute must match the whole value</li><li>C. Nothing is checked, because the pattern has no slashes</li><li>D. It is accepted, because there is no ^ or $</li></ul>
+    <p><b>Answer: B.</b> The browser anchors a <code>pattern</code> attribute automatically, so the whole value must be the number. A and D would be right for <code>test()</code> in JavaScript. C is backwards: the attribute is written <i>without</i> slashes.</p></div></details>
+  <details class="q"><summary><span>What does this print, and why? <code>console.log(/^cat|dog$/.test("catapult"));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: true.</b> The bar splits the whole pattern into <code>^cat</code> <b>or</b> <code>dog$</code>, and "catapult" starts with cat. To mean "exactly cat or exactly dog", group the choice: <code>/^(cat|dog)$/</code>, which prints <code>false</code> here.</p></div></details>
+  <details class="q"><summary>Which quantifier means "zero or one time", that is, optional?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>*</code></li><li>B. <code>+</code></li><li>C. <code>{1}</code></li><li>D. <code>?</code></li></ul>
+    <p><b>Answer: D.</b> <code>?</code> is 0 or 1. <code>*</code> (A) is 0 or more, <code>+</code> (B) is 1 or more, and <code>{1}</code> (C) is exactly one.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A regular expression is a pattern that describes a <i>kind</i> of text. Write it as <code>/.../flags</code>, or as <code>new RegExp("...", "flags")</code> with every backslash doubled.</li>
+    <li>Each piece normally stands for one character: a literal, a class <code>[a-z]</code> / <code>[^0-9]</code>, a shorthand <code>\d \w \s</code> (capitals mean "not"), or the dot (any character).</li>
+    <li>Quantifiers repeat the piece just before them: <code>?</code> 0&ndash;1, <code>*</code> 0+, <code>+</code> 1+, <code>{n}</code>, <code>{n,}</code>, <code>{n,m}</code> (no spaces). They are greedy.</li>
+    <li>Without anchors a pattern matches <i>anywhere</i>. Validation needs <code>^</code> and <code>$</code> so the pattern fills the whole value.</li>
+    <li><code>( )</code> groups pieces and remembers what they matched; <code>|</code> means "or" and splits the whole pattern unless grouped; <code>\</code> makes a metacharacter literal, as in <code>\.</code>.</li>
+    <li><code>test</code> says yes or no; <code>match</code> gives the first match (all with <code>g</code>) or <code>null</code>; <code>matchAll</code> needs <code>g</code>; <code>replace</code> with <code>g</code> changes every match and <code>$1</code> reuses a group. No <code>g</code> with <code>test</code>.</li>
+    <li>Patterns check shape, not truth: clean input first, use separate small tests for multi-part rules, keep email checks simple, and test with values that should fail.</li>
+    <li>The HTML <code>pattern</code> attribute takes no slashes, is anchored automatically, skips empty boxes and silently ignores a broken pattern.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>/^\d{10}$/.test(v)</code></td><td><code>true</code> if <code>v</code> is exactly ten digits</td></tr>
+      <tr><td><code>/^[6-9]\d{9}$/</code></td><td>Indian mobile number</td></tr>
+      <tr><td><code>/^[1-9]\d{5}$/</code></td><td>PIN code (six digits, not starting with 0)</td></tr>
+      <tr><td><code>/^[^\s@]+@[^\s@]+\.[^\s@]+$/</code></td><td>Simple email shape</td></tr>
+      <tr><td><code>new RegExp("^\\d+$", "i")</code></td><td>Build a pattern from a string (double the backslashes)</td></tr>
+      <tr><td><code>text.match(/\d+/)</code></td><td>First match: <code>[0]</code>, groups, <code>.index</code>; or <code>null</code></td></tr>
+      <tr><td><code>text.match(/\d+/g)</code></td><td>Array of every match (strings), or <code>null</code></td></tr>
+      <tr><td><code>for (const m of text.matchAll(/(\w+):(\d+)/g))</code></td><td>Every match with its groups <code>m[1]</code>, <code>m[2]</code></td></tr>
+      <tr><td><code>text.replace(/java/gi, "JS")</code></td><td>Replace every match, ignoring case</td></tr>
+      <tr><td><code>text.replace(/\D/g, "")</code></td><td>Keep only the digits</td></tr>
+      <tr><td><code>text.split(/\s+/)</code></td><td>Split at runs of whitespace</td></tr>
+      <tr><td><code>&lt;input pattern="[6-9]\d{9}" title="..."&gt;</code></td><td>Same rule in HTML: no slashes, anchored automatically</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Regular_expressions" target="_blank" rel="noopener noreferrer">MDN &mdash; Regular expressions guide<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every symbol and flag, with a cheat sheet and links to each method.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Global_Objects/RegExp/test" target="_blank" rel="noopener noreferrer">MDN &mdash; RegExp.prototype.test()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact behaviour of test(), including the lastIndex trap with the g flag.</span></li>
+    <li><a href="https://javascript.info/regular-expressions" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Regular expressions<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A friendly, step-by-step series of short lessons with exercises, from classes to lookahead.</span></li>
+    <li><a href="https://regex101.com/" target="_blank" rel="noopener noreferrer">regex101<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Type a pattern and test text; it explains every piece in words. Pick the ECMAScript (JavaScript) flavour.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

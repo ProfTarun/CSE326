@@ -1,0 +1,577 @@
+<article class="chapter" data-ch="69">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 69 &middot; Browser Developer Tools</p>
+  <h1>Browser Developer Tools</h1>
+  <p class="lead">Your files say what you meant to build. The browser knows what it actually built &mdash; which styles won, which picture failed to arrive, what a variable held at the moment things went wrong. Developer tools let you look inside the browser and see all of that for yourself. Once you can use them, you stop guessing at bugs and start looking at them.</p>
+  <p class="meta">About 36 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>Debugging means reproduce, read the error, isolate, guess, test, fix and retest; <code>console.log</code> with a label and the <code>debugger</code> statement are your first tools (<a href="book.html?ch=68">Chapter 68</a>).</li>
+      <li><code>localStorage</code> keeps text keys and values for a site until they are removed; <code>sessionStorage</code> forgets when the tab closes (<a href="book.html?ch=64">Chapter 64</a>).</li>
+      <li><code>document.querySelector("#id")</code> returns the first matching element, or <code>null</code> when nothing matches (<a href="book.html?ch=48">Chapter 48</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Open DevTools three ways on Windows and on a Mac, and pick the right panel for a problem.</li>
+      <li>Use the Elements panel to inspect the live page, edit HTML and CSS temporarily, read computed styles and the box model, and force a <code>:hover</code> state.</li>
+      <li>Use the Console to read errors with their file and line, run expressions, use <code>$0</code>, and clear and filter messages.</li>
+      <li>Pause code with a breakpoint, step over, into and out of lines, and read the Scope, Watch and Call Stack panes.</li>
+      <li>Read the Network panel's status codes, sizes and timings, disable the cache, throttle the connection and find a failed request.</li>
+      <li>View, edit and clear localStorage, sessionStorage and cookies in the Application panel; test a page at phone width; run a first Lighthouse report.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>69.1 What developer tools are</h2>
+  <p>Chrome, Edge, Firefox and Safari each carry a free, built-in set of inspection and debugging tools called the <b>developer tools</b> or <b>DevTools</b>. Their whole job fits in one sentence: they show you <b>what the page really is &mdash; not what you think you wrote</b>.</p>
+  <p>Between your files and the screen, a lot happens. The browser downloads the files, repairs small mistakes in your HTML, builds the <span class="jw" data-def="The browser's live family tree of everything on the page, built from your HTML and changed by your JavaScript.">DOM</span>, decides which CSS rule wins for each element, runs your JavaScript (which may add or remove elements) and stores data. When the page looks wrong, the cause is somewhere in that chain. Rereading your source file shows only the start of the chain; DevTools shows every link.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 200" role="img" aria-label="Six DevTools panels, each with the question it answers: Elements, what is really on the page; Console, what went wrong; Sources, what the code is doing; Network, what was downloaded; Application, what the site saved; Performance, why it is slow">
+      <rect x="20" y="20" width="180" height="76" rx="10" class="box blu"/>
+      <text x="110" y="46" class="t c b">Elements</text>
+      <text x="110" y="66" class="t s c">What is really on the page?</text>
+      <text x="110" y="82" class="t s c">HTML, CSS, box sizes</text>
+      <rect x="230" y="20" width="180" height="76" rx="10" class="box red"/>
+      <text x="320" y="46" class="t c b">Console</text>
+      <text x="320" y="66" class="t s c">What went wrong?</text>
+      <text x="320" y="82" class="t s c">Errors, logs, quick tests</text>
+      <rect x="440" y="20" width="180" height="76" rx="10" class="box saf"/>
+      <text x="530" y="46" class="t c b">Sources</text>
+      <text x="530" y="66" class="t s c">What is my code doing?</text>
+      <text x="530" y="82" class="t s c">Pause and step line by line</text>
+      <rect x="20" y="110" width="180" height="76" rx="10" class="box grn"/>
+      <text x="110" y="136" class="t c b">Network</text>
+      <text x="110" y="156" class="t s c">What was downloaded?</text>
+      <text x="110" y="172" class="t s c">Files, status codes, timing</text>
+      <rect x="230" y="110" width="180" height="76" rx="10" class="box gry"/>
+      <text x="320" y="136" class="t c b">Application</text>
+      <text x="320" y="156" class="t s c">What did the site save?</text>
+      <text x="320" y="172" class="t s c">Storage and cookies</text>
+      <rect x="440" y="110" width="180" height="76" rx="10" class="box"/>
+      <text x="530" y="136" class="t c b">Performance</text>
+      <text x="530" y="156" class="t s c">Why is it slow?</text>
+      <text x="530" y="172" class="t s c">Long tasks and scores</text>
+    </svg>
+    <figcaption><b>Figure 69.1</b> Each panel answers one question. Choosing the panel is choosing the question you want answered.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> A patient tells the doctor, "I feel unwell." A good doctor does not guess. She takes the temperature, listens with a stethoscope and, if needed, orders an X-ray. Each instrument answers one question, and together they turn "unwell" into a diagnosis. DevTools is your instrument tray: Elements is the X-ray of the page's structure, the Console is the patient's own account of what hurts, Network is the record of everything that went in. The skill is knowing which instrument to pick up first.</div>
+  <p>This chapter uses <b>Chrome</b>, as the lecture slides do. <b>Edge</b> is built on the same engine and its DevTools are practically identical; Firefox and Safari have the same panels under slightly different names. Everything here works on your own Live Server <code>localhost</code> site as well as on any public website.</p>
+</section>
+
+<section id="s2">
+  <h2>69.2 Opening DevTools</h2>
+  <p>There are three ways in, and you will use all three.</p>
+  <ol>
+    <li><b>Right-click &rarr; Inspect.</b> Right-click any element and choose <b>Inspect</b>. DevTools opens on the Elements panel with that very element selected &mdash; the most useful way, because it takes you straight to the thing you are worried about.</li>
+    <li><b>The browser menu.</b> In Chrome: the <b>&#8942;</b> menu &rarr; <b>More tools</b> &rarr; <b>Developer tools</b>. Edge and Firefox have the same item under More tools.</li>
+    <li><b>A keyboard shortcut</b> &mdash; the fastest once your fingers know it.</li>
+  </ol>
+  <table class="tbl">
+    <thead><tr><th>Action (Chrome / Edge)</th><th>Windows / Linux</th><th>macOS</th></tr></thead>
+    <tbody>
+      <tr><td>Open or close DevTools</td><td><code>F12</code> or <code>Ctrl+Shift+I</code></td><td><code>Cmd+Option+I</code></td></tr>
+      <tr><td>Open straight to the Console</td><td><code>Ctrl+Shift+J</code></td><td><code>Cmd+Option+J</code></td></tr>
+      <tr><td>Inspect-element mode (then click on the page)</td><td><code>Ctrl+Shift+C</code></td><td><code>Cmd+Shift+C</code></td></tr>
+      <tr><td>Device toolbar (phone sizes)</td><td><code>Ctrl+Shift+M</code></td><td><code>Cmd+Shift+M</code></td></tr>
+    </tbody>
+  </table>
+  <p>The device-toolbar shortcut works only while DevTools has the focus; pressed on the page itself, <code>Ctrl+Shift+M</code> does something else in Chrome. <b>Safari</b> hides its tools until you switch on <b>Settings &rarr; Advanced &rarr; Show features for web developers</b>. On some laptops <code>F12</code> needs the <code>Fn</code> key held down.</p>
+  <p>DevTools opens docked to the side or bottom of the window; the <b>&#8942;</b> menu inside it can move it or pop it out into its own window. Across the top runs a row of tabs: <b>Elements, Console, Sources, Network, Performance, Memory, Application</b> and more, with any that do not fit hidden behind <b>&raquo;</b>.</p>
+  <div class="callout why"><b>Key idea.</b> This book's Run examples live in small frames, and DevTools can see inside them. Right-click inside a preview and choose Inspect to open Elements on the example's own HTML. In the Console, the drop-down near the top-left (normally <b>top</b>) chooses which frame your typed commands run in; pick the example's frame to talk to its variables.</div>
+</section>
+
+<section id="s3">
+  <h2>69.3 The Elements panel: the live page</h2>
+  <p>On the left of the Elements panel is the <b>DOM tree</b>: the page's elements, nested like folders, with triangles to open and close them. On the right are panes about the selected element &mdash; <b>Styles</b>, <b>Computed</b>, <b>Layout</b> and others. Hover over a line in the tree and that element lights up on the page.</p>
+  <h3>The DOM is not your file</h3>
+  <p>The tree is the <b>live DOM</b>. It includes every element your JavaScript added, leaves out what it removed, and shows the browser's repairs: forget to close a <code>&lt;p&gt;</code> and the tree shows it closed; write table rows without a <code>&lt;tbody&gt;</code> and the tree shows one anyway. What the server actually sent is <b>View page source</b> (<code>Ctrl+U</code>). Next to the selected element you will see <code>== $0</code>: in the Console, <code>$0</code> now means that element (section 69.4).</p>
+  <h3>Editing the page live</h3>
+  <p>Double-click a tag name, attribute or text to edit it; press <code>Delete</code> to remove the selected element, or drag it elsewhere. Right-click for <b>Edit as HTML</b>, <b>Add attribute</b> and more; <code>Ctrl+Z</code> undoes.</p>
+  <p>The <b>Styles</b> pane lists every CSS rule matching the selected element, strongest at the top, each with its file and line. Click a value to change it, click at the end of a rule to add a declaration, untick a checkbox to switch one off. A <b>struck-through</b> declaration is not being used. Usually it lost: a rule with a stronger selector, or equal strength written later, set that property. If a warning triangle sits beside it too, the browser could not understand it &mdash; a misspelling such as <code>colour: red</code>.</p>
+  <div class="callout warn"><b>DevTools edits are temporary.</b> They change the page in the browser's memory, never your files; reload and every change is gone. So experiment freely, and copy a value that looks right into your <code>styles.css</code> by hand.</div>
+  <div class="plain"><b>In plain words:</b> the Elements panel shows the page as the browser built it, lets you try changes instantly, and forgets them all on reload. Experiment there, then type what worked into your real file.</div>
+  <h3>Computed styles and the box model</h3>
+  <p>Styles shows the argument; the <b>Computed</b> tab shows the verdict: each property once, with the final value after every rule, inherited value and default was weighed. Expand a property to see which rule supplied it.</p>
+  <p>At the top of Computed (and at the bottom of Styles) sits the <b>box model</b> diagram: nested rectangles for <b>margin</b>, <b>border</b>, <b>padding</b> and <b>content</b>, labelled in pixels. Hover over a layer and the page shades it &mdash; the one-glance answer to "where is this extra space coming from?"</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 560 262" role="img" aria-label="The box model as four nested boxes: margin 10 on the outside, then border 2, then padding 8, then content 200 pixels wide; the width on screen is 2 plus 8 plus 200 plus 8 plus 2, which is 220 pixels">
+      <rect x="20" y="16" width="520" height="204" rx="6" class="box gry"/>
+      <text x="34" y="36" class="t s">margin 10</text>
+      <rect x="60" y="48" width="440" height="140" rx="4" class="box red"/>
+      <text x="74" y="68" class="t s">border 2</text>
+      <rect x="100" y="78" width="360" height="82" rx="4" class="box saf"/>
+      <text x="114" y="97" class="t s">padding 8</text>
+      <rect x="150" y="106" width="260" height="44" rx="4" class="box blu"/>
+      <text x="280" y="133" class="t c b">content: 200 wide</text>
+      <text x="280" y="246" class="t c">On screen: 2 + 8 + 200 + 8 + 2 = 220 px wide</text>
+    </svg>
+    <figcaption><b>Figure 69.2</b> The box model as DevTools draws it, for the <code>.note</code> paragraph in the example below. With the normal <code>box-sizing</code>, <code>width</code> sets only the content, so padding and border are added on top.</figcaption>
+  </figure>
+  <h3>Forcing hover and focus</h3>
+  <p>A <code>:hover</code> style vanishes the moment you move the mouse to DevTools. The <b>:hov</b> button at the top of the Styles pane offers checkboxes for <code>:hover</code>, <code>:active</code>, <code>:focus</code>, <code>:visited</code> and more; tick one and the selected element stays in that state until you untick it. The <b>.cls</b> button beside it adds or removes classes.</p>
+  <p>Run the example, right-click the teal heading and choose Inspect. Find the crossed-out <code>color: navy</code>, open Computed, and hover over the second list item &mdash; it is in the tree, though nowhere in the HTML.</p>
+  <pre class="code" data-run data-title="What the Elements panel sees - inspect the heading, then the list" data-h="240">&lt;style&gt;
+  h1 { color: navy; }
+  #title { color: teal; }
+  .note { width: 200px; padding: 8px; border: 2px solid orange; margin: 10px; }
+  .btn:hover { background: gold; }
+&lt;/style&gt;
+&lt;h1 id="title"&gt;TechFest 2026&lt;/h1&gt;
+&lt;p class="note"&gt;Box model test&lt;/p&gt;
+&lt;ul id="list"&gt;&lt;li&gt;Workshop&lt;/li&gt;&lt;/ul&gt;
+&lt;button class="btn"&gt;Hover me&lt;/button&gt;
+&lt;script&gt;
+  // JavaScript adds an item: it is in the DOM, not in the HTML above
+  const li = document.createElement("li");
+  li.textContent = "Hackathon (added by JavaScript)";
+  document.querySelector("#list").append(li);
+
+  const title = document.querySelector("#title");
+  console.log("Colour that won:", getComputedStyle(title).color);
+
+  // Add up the box from its computed values, as in Figure 69.2
+  const box = getComputedStyle(document.querySelector(".note"));
+  const px = (name) =&gt; parseFloat(box[name]);   // "8px" becomes 8
+  const onScreen = px("borderLeftWidth") + px("paddingLeft") + px("width") +
+                   px("paddingRight") + px("borderRightWidth");
+  console.log("Width on screen:", onScreen);
+  console.log("Items in the list:", document.querySelectorAll("#list li").length);
+&lt;/script&gt;</pre>
+  <p>The console prints <b>Colour that won: rgb(0, 128, 128)</b> (teal, as the browser stores colours), <b>Width on screen: 220</b> and <b>Items in the list: 2</b>. <code>getComputedStyle</code> is the Computed tab in code form, and 220 is the sum in Figure 69.2 (on a laid-out page, <code>element.offsetWidth</code> gives it in one step). <code>#title</code> beats <code>h1</code> because an id selector is stronger than a tag selector. To see the gold button without hovering, select it and tick <b>:hover</b> under :hov.</p>
+  <details class="qc"><summary>Quick check: you change a colour in the Styles pane and it looks perfect. You press F5. What happens, and why?</summary><p>The old colour comes back. DevTools changed only the copy of the page in the browser's memory; reloading builds the page again from your unchanged files. Copy the value into your CSS file to keep it.</p></details>
+</section>
+
+<section id="s4">
+  <h2>69.4 The Console panel: messages and experiments</h2>
+  <p>The Console is a <b>noticeboard</b> where the browser and your code post messages, and a <b>scratchpad</b> where you type JavaScript and see the answer straight away.</p>
+  <h3>Reading messages</h3>
+  <p>Messages come at different levels, coloured so you can tell them apart:</p>
+  <ul>
+    <li><code>console.log(...)</code> and <code>console.info(...)</code> &mdash; plain messages.</li>
+    <li><code>console.warn(...)</code> &mdash; yellow, with a warning sign: something looks odd but the program carried on.</li>
+    <li><code>console.error(...)</code> &mdash; red: something failed. The browser's own uncaught errors also appear in red as <b>Uncaught</b>, the error type and its message, such as <code>Uncaught TypeError: Cannot read properties of null (reading 'addEventListener')</code>.</li>
+    <li><code>console.table(...)</code> &mdash; an array of objects drawn as a table.</li>
+  </ul>
+  <p>On the right of every message is a link such as <code>app.js:3</code>: the file and line that produced it. Click it and DevTools jumps to that line in the Sources panel. The triangle beside a red error opens its <span class="jw" data-def="The list of function calls that led to a line, newest at the top: who called whom to get here.">call stack</span> &mdash; the chain of function calls that led there &mdash; and any logged object or array has a triangle that opens it to show every property.</p>
+  <h3>Running JavaScript at the prompt</h3>
+  <p>At the bottom of the Console is a <b>&rsaquo;</b> prompt. Type any expression, press Enter, and the Console shows its value on a line starting with <b>&larr;</b>. It runs inside the current page, so it sees the page's global variables and elements: <code>document.title</code> gives the page's title, and <code>tasks.length</code> says how many items a global array <code>tasks</code> holds right now. Chrome often previews the answer in grey before you press Enter.</p>
+  <p>The up arrow brings back earlier commands, and <code>Shift+Enter</code> starts a new line without running. Typing <code>console.log("hi")</code> prints <code>hi</code> and then <code>&larr; undefined</code>; that <code>undefined</code> is not an error, just the value <code>console.log</code> itself returns.</p>
+  <p>A few shortcuts exist <b>only</b> at the Console prompt, not in your scripts. <code>$0</code> is the element selected in Elements (<code>$1</code> the one before it). <code>$("css selector")</code> is a quick <code>document.querySelector</code> (unless the page defines its own <code>$</code>), and <code>$$("css selector")</code> gives an array of every match. Select a heading in Elements, switch to Console and type <code>$0.textContent</code> or <code>$0.style.color = "red"</code>.</p>
+  <h3>Keeping the noise down</h3>
+  <ul>
+    <li><b>Clear</b> the Console with the &#8856; button at the top, with <code>Ctrl+L</code>, or by running <code>console.clear()</code>.</li>
+    <li><b>Filter</b> with the text box: type <code>total</code> and only messages containing "total" stay visible.</li>
+    <li><b>Choose levels</b> with the <b>Default levels</b> drop-down: tick only Errors to hide everything else. <code>console.debug</code> messages count as "Verbose", hidden by default.</li>
+    <li><b>Preserve log</b> (Console settings, the gear icon) keeps messages across a reload or navigation.</li>
+  </ul>
+  <pre class="code" data-run data-title="Console levels, a table and a type test - compare with the Console panel" data-h="140">&lt;p id="out"&gt;Open the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  console.log("Application started");
+  console.warn("Check the form input");
+  console.error("Unable to load data");
+
+  const students = [
+    { name: "Asha", marks: 91 },
+    { name: "Rahul", marks: 78 },
+    { name: "Meera", marks: 85 }
+  ];
+  console.table(students);
+
+  // Testing an assumption about types, the way you would at the prompt
+  console.log('"5" * 2 gives', "5" * 2, typeof ("5" * 2));
+  console.log('"5" + 2 gives', "5" + 2, typeof ("5" + 2));
+&lt;/script&gt;</pre>
+  <p>You get three lines at three levels, a three-row table with the columns <b>(index)</b>, <b>name</b> and <b>marks</b>, then <b>"5" * 2 gives 10 number</b> and <b>"5" + 2 gives 52 string</b>. Multiplication turns the text <code>"5"</code> into a number; <code>+</code> with a string joins text instead &mdash; the reason to write <code>Number(input.value)</code> before doing sums with a form value. In the real Chrome Console, typing <code>"5" + 2</code> at the prompt shows <code>&larr; '52'</code>; the quotes mark a string.</p>
+  <div class="plain"><b>In plain words:</b> the Console is where problems announce themselves, with a clickable file and line. It is also a calculator inside your page, so you can check a hunch in two seconds.</div>
+</section>
+
+<section id="s5">
+  <h2>69.5 The Sources panel: pausing your code</h2>
+  <p><code>console.log</code> shows a value at one moment, and only the values you thought to print. The Sources panel can <b>freeze</b> your program mid-run, show every variable, and then move forward one line at a time &mdash; the most powerful debugging skill there is.</p>
+  <p>The place where the program freezes is a <span class="jw" data-def="A marker you put on a line of code that tells the browser: stop just before running this line, so I can look around.">breakpoint</span>. Using one takes seven small steps:</p>
+  <ol>
+    <li><b>Open Sources</b> and find your file (say <code>app.js</code>) in the file tree under the Page tab; <code>Ctrl+P</code> opens a file by name.</li>
+    <li><b>Set a breakpoint</b> by clicking a line number, say 5. A blue marker appears; click again to remove it.</li>
+    <li><b>Trigger the code</b>: reload the page, or click the button that runs it.</li>
+    <li><b>Paused.</b> The page freezes and line 5 is highlighted ("Paused on breakpoint"). That line has <b>not run yet</b>.</li>
+    <li><b>Inspect.</b> Hover over a variable to see its value, or read the <b>Scope</b> pane.</li>
+    <li><b>Step</b> forward one line at a time with the buttons described below.</li>
+    <li><b>Resume</b> (<code>F8</code>) to run freely until the next breakpoint.</li>
+  </ol>
+  <h3>Reading the panes while paused</h3>
+  <ul>
+    <li><b>Scope</b> lists every variable the paused line can see, with its current value. <b>Local</b> holds the function's parameters and variables; <code>let</code> and <code>const</code> variables made inside a loop or other <code>{ }</code> block get their own <b>Block</b> section; <b>Global</b> holds <code>window</code> and everything on it. Double-click a value to edit it and try a "what if".</li>
+    <li><b>Watch</b> holds expressions you choose. Click <b>+</b> and type, say, <code>total &gt; 200</code>; it is re-evaluated every time the program pauses.</li>
+    <li><b>Call Stack</b> shows how you got here: the current function on top, its caller below, and so on down to the script. Click a lower line to see the caller's variables.</li>
+    <li><b>Breakpoints</b> lists your breakpoints with checkboxes, so you can switch them off without losing them.</li>
+  </ul>
+  <h3>Stepping: over, into, out</h3>
+  <p>The stepping buttons sit above the panes. Each runs some code and pauses again:</p>
+  <ul>
+    <li><b>Step over</b> (<code>F10</code>) runs the highlighted line completely &mdash; including any function it calls &mdash; and pauses on the next statement to run.</li>
+    <li><b>Step into</b> (<code>F11</code>) goes <i>inside</i> the function called on this line and pauses on its first line.</li>
+    <li><b>Step out</b> (<code>Shift+F11</code>) finishes the current function and pauses back in the function that called it.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 640 266" role="img" aria-label="Paused on the line total plus-equals lineTotal of item. Step into leads into the lineTotal function; step over leads to the loop's next step, the i++ in the for line; step out leads from lineTotal back to the calling line">
+      <text x="200" y="24" class="t c b">calculateTotal(items)</text>
+      <text x="515" y="24" class="t c b">lineTotal(item)</text>
+      <rect x="40" y="36" width="320" height="150" rx="10" class="box"/>
+      <rect x="48" y="96" width="304" height="24" rx="4" class="box saf"/>
+      <text x="56" y="62" class="t s mono">for (let i = 0; i &lt; items.length; i++) {</text>
+      <text x="72" y="88" class="t s mono">const item = items[i];</text>
+      <text x="72" y="113" class="t s mono b">total += lineTotal(item);</text>
+      <text x="56" y="140" class="t s mono">}</text>
+      <text x="56" y="166" class="t s mono">return total;</text>
+      <rect x="410" y="36" width="210" height="70" rx="10" class="box blu"/>
+      <text x="418" y="76" class="t s mono">return item.price * item.qty;</text>
+      <path d="M352 104 L384 104 L384 70 L404 70" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M48 108 L30 108 L30 58 L48 58" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M500 106 L500 126 L362 126" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M40 210 L70 210" class="edge saf"/>
+      <text x="80" y="214" class="t s">Step into (F11): go inside lineTotal, pause on its first line</text>
+      <path d="M40 232 L70 232" class="edge grn"/>
+      <text x="80" y="236" class="t s">Step over (F10): run the whole line, pause on the next step (here i++)</text>
+      <path d="M40 254 L70 254" class="edge dash"/>
+      <text x="80" y="258" class="t s">Step out (Shift+F11): finish this function, pause back in the caller</text>
+    </svg>
+    <figcaption><b>Figure 69.3</b> Paused on the highlighted line, the three step buttons go to three different places. Step into is the only one that stops inside <code>lineTotal</code>.</figcaption>
+  </figure>
+  <h3>Conditional breakpoints and the debugger statement</h3>
+  <p>A breakpoint inside a loop pauses on every pass, which is tiresome with 500 students. Right-click the line number, choose <b>Add conditional breakpoint</b> and type a condition such as <code>i === 1</code> or <code>item.price &gt; 1000</code>; the program pauses there only when it is true. The same menu offers <b>Add logpoint</b>, which prints a message each time the line is reached without pausing &mdash; a <code>console.log</code> you never have to delete from your file.</p>
+  <p>The other way to pause you met in Chapter 68: write <code>debugger;</code> in your code. With DevTools open, the program pauses there as if a breakpoint were set; with DevTools closed, the statement does nothing. It suits this book's example frames, whose code is hard to find in the file tree. Delete it before you publish.</p>
+  <pre class="code" data-run data-title="Pause it yourself - open DevTools first, then Run, then step" data-h="140">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  function lineTotal(item) {
+    return item.price * item.qty;
+  }
+
+  function calculateTotal(items) {
+    let total = 0;
+    for (let i = 0; i &lt; items.length; i++) {
+      const item = items[i];
+      debugger;                     // pauses here only while DevTools is open
+      total += lineTotal(item);
+    }
+    return total;
+  }
+
+  const cart = [
+    { price: 100, qty: 2 },
+    { price: 50, qty: 1 }
+  ];
+  const result = calculateTotal(cart);
+  console.log("Total:", result);
+  document.querySelector("#out").textContent = `Total: ₹${result}`;
+&lt;/script&gt;</pre>
+  <p>With DevTools closed, the example simply prints <b>Total: 250</b>. With DevTools open, Run pauses on the <code>debugger</code> line. Scope shows <code>total: 0</code> and, under Block, <code>i: 0</code> and <code>item: {price: 100, qty: 2}</code>. Press <code>F8</code> and it pauses again with <code>i: 1</code>, <code>item: {price: 50, qty: 1}</code> and <code>total: 200</code> &mdash; this pass's <code>+=</code> has not run yet. Press <code>F10</code> twice (past <code>debugger</code>, then over the <code>total</code> line) and it becomes 250; on another run, press <code>F10</code> once and then <code>F11</code> to land inside <code>lineTotal</code>.</p>
+  <div class="plain"><b>In plain words:</b> a breakpoint is a pause button you place on a line. While paused you can read every variable, then move forward one line at a time and watch the values change, until one of them goes wrong.</div>
+  <details class="qc"><summary>Quick check: paused on <code>total += lineTotal(item);</code>, you want to see the multiplication inside <code>lineTotal</code> happen. Which button?</summary><p><b>Step into (F11).</b> Step over would run <code>lineTotal</code> completely without stopping inside it.</p></details>
+</section>
+
+<section id="s6">
+  <h2>69.6 The Network panel: everything the page downloaded</h2>
+  <p>A web page is never one file. The HTML asks for CSS, JavaScript, images and fonts, and the JavaScript may ask a server for data. Each is a separate <b>request</b>, and the Network panel lists every one with its result. It records only while DevTools is open, so <b>open it first, then reload</b> the page.</p>
+  <table class="tbl">
+    <thead><tr><th>Name</th><th>Status</th><th>Type</th><th>Size</th><th>Time</th></tr></thead>
+    <tbody>
+      <tr><td>index.html</td><td>200</td><td>document</td><td>2.1 kB</td><td>38 ms</td></tr>
+      <tr><td>styles.css</td><td>200</td><td>stylesheet</td><td>4.3 kB</td><td>22 ms</td></tr>
+      <tr><td>app.js</td><td>200</td><td>script</td><td>6.8 kB</td><td>30 ms</td></tr>
+      <tr><td>logo.png</td><td>404</td><td>png</td><td>0.3 kB</td><td>18 ms</td></tr>
+      <tr><td>hero.jpg</td><td>200</td><td>jpeg</td><td>1.9 MB</td><td>820 ms</td></tr>
+      <tr><td>students</td><td>500</td><td>fetch</td><td>0.2 kB</td><td>140 ms</td></tr>
+    </tbody>
+  </table>
+  <p>Each row is one request (values illustrative); failed rows are red. Filter buttons above the list (Doc, CSS, JS, Fetch/XHR, Img...) show one <b>Type</b> at a time. <b>Size</b> is how much travelled, or "(memory cache)" / "(disk cache)" for a file the browser already had. The <b>Waterfall</b> column draws each request as a bar on a timeline. Note <code>hero.jpg</code> too: almost 2 MB and most of a second, on a fast connection.</p>
+  <h3>Status codes</h3>
+  <p>The status is a three-digit <span class="jw" data-def="A three-digit number a server sends back with every file, saying how the request went: 200 means fine, 404 means not found.">HTTP status code</span>, and the first digit tells you the story:</p>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Meaning</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td>2xx</td><td>Success</td><td><code>200 OK</code></td></tr>
+      <tr><td>3xx</td><td>Look elsewhere, or use your saved copy</td><td><code>301</code> moved permanently; <code>304 Not Modified</code> &mdash; your cached copy is still good</td></tr>
+      <tr><td>4xx</td><td>The request was wrong (client error)</td><td><code>404 Not Found</code>; <code>403 Forbidden</code></td></tr>
+      <tr><td>5xx</td><td>The server failed (server error)</td><td><code>500 Internal Server Error</code></td></tr>
+    </tbody>
+  </table>
+  <p>A 404 usually means a wrong path in your own HTML or CSS. A 500 is the server's fault, but your page must still cope: as Chapter 70 explains, <code>fetch</code> does not reject on a 404 or 500, so your code must check <code>response.ok</code> and show a friendly message.</p>
+  <h3>Looking inside one request</h3>
+  <p>Click any row for tabs: <b>Headers</b> (URL, method such as GET, status, headers both ways), <b>Preview</b> (images shown, JSON as a tree), <b>Response</b> (the raw text), <b>Initiator</b> (which file and line asked for it, perhaps <code>index.html:12</code>) and <b>Timing</b> (waiting for the server versus downloading).</p>
+  <div class="callout warn"><b>Capital letters matter on servers.</b> Your HTML asks for <code>logo.png</code>; the file is called <code>Logo.png</code>. Windows ignores the difference, so Live Server may show the logo happily. GitHub Pages and most real web servers run Linux, where names must match exactly, and the logo becomes a 404 the moment you deploy. Keep file names lower-case, and read the Name and Initiator of every red row.</div>
+  <h3>Disable cache and throttling</h3>
+  <p>Browsers keep copies of downloaded files in the <span class="jw" data-def="A store of copies the browser keeps of files it has already downloaded, so it need not fetch them again.">cache</span>, so the next visit is faster &mdash; which can show you yesterday's CSS after today's edit. Tick <b>Disable cache</b> at the top of the Network panel and every reload fetches fresh files. It applies only while DevTools is open.</p>
+  <p>Next to it is the <span class="jw" data-def="Deliberately slowing something down, here the internet connection, so you can feel what a slow user feels.">throttling</span> drop-down, normally <b>No throttling</b>. Choose <b>Slow 4G</b> or <b>3G</b> to feel how your page loads on a weak hostel signal, or <b>Offline</b> to test the no-connection case your error handling must survive. Preset names vary a little between Chrome versions. Remember to set it back.</p>
+  <pre class="code" data-run data-title="One picture loads, one fails, a pretend API answers - open Network, then Run" data-h="200">&lt;img id="good" src="media/campus.svg" alt="Campus map" width="120"&gt;
+&lt;img id="bad" src="media/banner.svg" alt="Banner" width="120"&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const out = document.querySelector("#out");
+
+  // "load" on window waits until every picture has loaded or failed
+  window.addEventListener("load", async () =&gt; {
+    for (const img of document.querySelectorAll("img")) {
+      if (img.naturalWidth &gt; 0) {
+        console.log(img.id, "picture loaded");
+      } else {
+        console.error(img.id, "picture failed - find the red row in Network");
+      }
+    }
+
+    // A pretend server: JSON made into a file the frame can fetch offline
+    const data = [{ name: "Asha", marks: 91 }];
+    const url = URL.createObjectURL(
+      new Blob([JSON.stringify(data)], { type: "application/json" })
+    );
+    const response = await fetch(url);
+    console.log("Pretend API status:", response.status, response.ok);
+    out.textContent = `Pretend API answered ${response.status}.`;
+  });
+&lt;/script&gt;</pre>
+  <p>The console shows <b>good picture loaded</b>, then in red <b>bad picture failed - find the red row in Network</b>, then <b>Pretend API status: 200 true</b>. There is no <code>banner.svg</code> in the media folder, so its Network row is red with status 404; the pretend API is a <code>blob:</code> row. (This book hands the working picture to the frame inline, so it may show as a <code>data:</code> row.)</p>
+</section>
+
+<section id="s7">
+  <h2>69.7 The Application panel: what the site saved</h2>
+  <p>Websites keep small pieces of data in your browser: a chosen theme, a half-filled form, a login session. The Application panel shows all of it, grouped by <span class="jw" data-def="The scheme, name and port of a website, such as http://localhost:5500. Each one gets its own separate storage.">origin</span> &mdash; the site's address without the path, such as <code>http://localhost:5500</code>. The <b>Storage</b> list on the left holds:</p>
+  <ul>
+    <li><b>Local storage</b> and <b>Session storage</b> &mdash; open one and click the site's origin for a table of keys and values. Double-click a value to edit it, select a row and press <code>Delete</code> to remove it, or use the clear button to empty them all. If the table lags behind your code, click its refresh icon.</li>
+    <li><b>IndexedDB</b> &mdash; a larger in-browser database, for bigger apps.</li>
+    <li><b>Cookies</b> &mdash; small values the browser sends back to the server with every request to that site, listed with name, value, domain, expiry and flags. A cookie marked <b>HttpOnly</b> cannot be read by JavaScript at all, which is why servers set login cookies that way.</li>
+  </ul>
+  <table class="tbl">
+    <thead><tr><th>Storage</th><th>Lasts</th><th>Sent to the server?</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td>localStorage</td><td>Until code or the user clears it</td><td>No</td><td>Theme, saved drafts</td></tr>
+      <tr><td>sessionStorage</td><td>Until the tab is closed</td><td>No</td><td>Progress through a multi-step form</td></tr>
+      <tr><td>Cookies</td><td>Until their expiry date (or the browser closes, if none is set)</td><td>Yes, with every request to that site</td><td>Login sessions, set by the server</td></tr>
+    </tbody>
+  </table>
+  <p>Editing storage by hand tests your code. Delete the <code>theme</code> key and reload: does the page behave for a first-time visitor? Type <code>banana</code> into a key that should hold JSON: does your <code>try...catch</code> cope? The top <b>Storage</b> item's <b>Clear site data</b> button wipes the site's storage, cookies and cache together, so you see the site as a brand-new visitor does.</p>
+  <div class="callout warn"><b>Never store passwords, tokens or personal data in localStorage.</b> Any script running on the page can read it, including a bad script that sneaked in. If you can see it in the Application panel, so can an attacker's code.</div>
+  <pre class="code" data-run data-title="A theme switch that remembers - click it, then look in Application" data-h="160">&lt;style&gt;
+  body.dark { background: #1e293b; color: #f8fafc; }
+&lt;/style&gt;
+&lt;p&gt;Theme demo for TechFest 2026&lt;/p&gt;
+&lt;button id="toggle"&gt;Switch theme&lt;/button&gt;
+&lt;script&gt;
+  const saved = localStorage.getItem("theme");
+  console.log("Saved theme on arrival:", saved);
+  if (saved === "dark") {
+    document.body.classList.add("dark");
+  }
+
+  document.querySelector("#toggle").addEventListener("click", () =&gt; {
+    const isDark = document.body.classList.toggle("dark");
+    const theme = isDark ? "dark" : "light";
+    localStorage.setItem("theme", theme);   // see it under Local storage
+    console.log("Theme is now:", theme);
+  });
+&lt;/script&gt;</pre>
+  <p>The console first shows <b>Saved theme on arrival: null</b>, because nothing is saved yet. Clicks then print <b>Theme is now: dark</b>, <b>Theme is now: light</b>, and so on. One honest warning: this book's frames have no address of their own, so they use a temporary in-memory stand-in for <code>localStorage</code> that Run again wipes and the Application panel cannot see. Open a copy with Live Server, and a <code>theme</code> row appears under <code>http://127.0.0.1:5500</code>, survives a reload, and vanishes on Clear site data.</p>
+  <details class="qc"><summary>Quick check: which of the three stores is sent to the server with every request?</summary><p><b>Cookies.</b> localStorage and sessionStorage stay in the browser; the server never sees them unless your JavaScript sends them.</p></details>
+</section>
+
+<section id="s8">
+  <h2>69.8 Phones, speed and scores</h2>
+  <h3>The device toolbar</h3>
+  <p>Most of your users are on phones. Press <code>Ctrl+Shift+M</code> (or click the phone-and-tablet icon at the top-left of DevTools) and the page is redrawn in a resizable frame; choose <b>Responsive</b> and type a width, or pick a phone. The toolbar sets the page's <span class="jw" data-def="The rectangle of the screen the page is drawn in. On a phone it is narrow; on a laptop it is wide.">viewport</span> width, imitates a touch screen and the phone's screen sharpness, and can throttle the network too.</p>
+  <p>Test at least three widths: about <b>375 px</b> (phone), <b>768 px</b> (tablet) and <b>1280 px</b> (laptop). The classic clue is a <b>horizontal scroll bar</b> at phone width: something is wider than the screen. Hover down the tree in Elements; the element sticking out past the edge is the culprit. The toolbar is a good imitation, not a real phone, so check the finished site on an actual handset too.</p>
+  <h3>The Performance panel</h3>
+  <p>When a page feels slow to respond &mdash; you click Search and nothing happens for half a second &mdash; the Performance panel shows why. Press record, do the slow action, press Stop, and you get a timeline of everything the browser did. The <b>Main</b> track shows the work of the single thread that runs your JavaScript and also draws the page, as coloured blocks stacked by which function called which.</p>
+  <p>Any piece of work longer than <b>50 milliseconds</b> is a <b>long task</b>, marked with a red corner and red stripes; during it the page cannot respond to clicks or typing. Click it, and the <b>Bottom-Up</b> tab names the functions that took the most time &mdash; say, a <code>renderList</code> that calls <code>appendChild</code> 500 times. Fix that function, record again, and compare. Chapter 74 goes deeper into measuring speed.</p>
+  <h3>Lighthouse: a first report card</h3>
+  <p>The <b>Lighthouse</b> panel (behind <b>&raquo;</b> if hidden) audits a page. Choose Mobile or Desktop and the categories &mdash; <b>Performance</b>, <b>Accessibility</b>, <b>Best Practices</b> and <b>SEO</b> &mdash; and click <b>Analyze page load</b>. You get a score from 0 to 100 for each (90 and above green, 50&ndash;89 orange, below 50 red) and a list of specific problems such as "Buttons do not have an accessible name", each linked to its fix. Run it in an Incognito window, because extensions can drag scores down. Lighthouse is a guide, not a verdict, but its failing audits make a good to-do list before you deploy.</p>
+</section>
+
+<section id="s9">
+  <h2>69.9 Case study: fix a broken webpage</h2>
+  <p>Here is the lecture's hands-on exercise. The TechFest 2026 ticket page has four problems, each found fastest with a <b>different</b> panel. Try to find all four before reading the solution, writing down for each: <b>symptom &rarr; panel &rarr; cause &rarr; fix</b>.</p>
+  <p>Expected: a banner at the top, three event cards that fit on a phone, and a ticket box where 3 tickets at ₹150 each, with 10% off for 3 or more, shows <b>Total: ₹405</b>.</p>
+  <p><b>index.html</b> (the important part):</p>
+  <pre class="code">&lt;header class="hero"&gt;
+  &lt;img src="images/Banner.png" alt="TechFest banner"&gt;
+  &lt;h1&gt;TechFest 2026&lt;/h1&gt;
+&lt;/header&gt;
+&lt;section class="cards"&gt;
+  &lt;article class="card"&gt;Workshop · ₹200&lt;/article&gt;
+  &lt;article class="card"&gt;Hackathon · ₹300&lt;/article&gt;
+  &lt;article class="card"&gt;Talks · ₹100&lt;/article&gt;
+&lt;/section&gt;
+&lt;label for="tickets"&gt;Tickets&lt;/label&gt;
+&lt;input id="tickets" type="number" min="1" value="3"&gt;
+&lt;button id="buyBtn"&gt;Buy tickets&lt;/button&gt;
+&lt;p id="summary" aria-live="polite"&gt;&lt;/p&gt;
+&lt;script src="app.js"&gt;&lt;/script&gt;</pre>
+  <p><b>styles.css</b>:</p>
+  <pre class="code">.cards { display: flex; gap: 16px; }
+.card  { flex: 0 0 400px; padding: 24px; }   /* never grow, never shrink: always 400px */</pre>
+  <p><b>app.js</b>:</p>
+  <pre class="code">const PRICE = 150; // per ticket
+const ticketsInput = document.querySelector("#tickets");
+const buyBtn = document.querySelector("#buy-btn");
+const summary = document.querySelector("#summary");
+
+buyBtn.addEventListener("click", () =&gt; {
+  const qty = Number(ticketsInput.value);
+  let total = qty * PRICE;
+  // 3 or more tickets get 10% off
+  if (qty &gt; 3) {
+    total = total * 0.9;
+  }
+  summary.textContent = `Total: ₹${total}`;
+});</pre>
+  <p>The image on disk is <code>images/banner.png</code>, all lower-case, and the site is tested on a case-sensitive server, as when deployed.</p>
+  <h3>The solution, panel by panel</h3>
+  <table class="tbl">
+    <thead><tr><th>Symptom</th><th>Panel</th><th>Cause</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Banner image missing</td><td>Network</td><td>A red row: <code>GET images/Banner.png</code> &rarr; 404. The file is <code>banner.png</code>; servers are case-sensitive.</td><td><code>src="images/banner.png"</code></td></tr>
+      <tr><td>Cards run off the screen on a phone</td><td>Elements</td><td>At 375 px in the device toolbar, hovering a card shows it is 448 px wide (400 + 24 + 24 padding). <code>flex: 0 0 400px</code> forbids shrinking, and the row cannot wrap.</td><td><code>.cards { flex-wrap: wrap; }</code><br><code>.card { flex: 1 1 220px; }</code></td></tr>
+      <tr><td>Buy button does nothing</td><td>Console</td><td>Red on load: <code>TypeError: Cannot read properties of null (reading 'addEventListener')</code> at <code>app.js:6</code>. The id is <code>buyBtn</code> but the code asks for <code>#buy-btn</code>, so <code>buyBtn</code> is <code>null</code>.</td><td><code>querySelector("#buyBtn")</code></td></tr>
+      <tr><td>3 tickets show ₹450, not ₹405</td><td>Sources</td><td>A breakpoint on the <code>if</code> shows <code>qty: 3</code>; Watch <code>qty &gt; 3</code> says <code>false</code>, so the discount is skipped. Off-by-one: "3 or more" means <code>&gt;=</code>.</td><td><code>if (qty &gt;= 3) { ... }</code></td></tr>
+    </tbody>
+  </table>
+  <p>Notice the order you would meet them. The Console error appears the moment the page loads, and until it is fixed the button cannot run at all, so you could not even reach the fourth bug: fix errors first, then wrong answers. The fourth bug produces <b>no error message</b>; it is a logical error, and only pausing the code and reading the values reveals it.</p>
+  <div class="callout warn"><b>Why the stylesheet says <code>flex: 0 0 400px</code>.</b> With only <code>width: 400px</code> (as on the slide), the cards would <i>not</i> overflow: flex items may shrink by default, so the browser squeezes all three to fit. The bug needs something that stops the shrinking &mdash; <code>flex-shrink: 0</code>, a <code>min-width</code>, or <code>flex: 0 0 400px</code>. The Elements panel settles such claims.</div>
+  <p>Here is the page after all four fixes. Run it and click <b>Buy tickets</b>; to see a bug come back, change <code>&gt;=</code> to <code>&gt;</code> and run again.</p>
+  <pre class="code" data-run data-title="The TechFest page with all four fixes - click Buy tickets" data-h="340">&lt;style&gt;
+  body { font-family: sans-serif; }
+  .hero img { width: 100%; max-height: 90px; object-fit: cover; }
+  .cards { display: flex; flex-wrap: wrap; gap: 16px; }
+  .card { flex: 1 1 220px; padding: 24px; border: 1px solid #ccc; border-radius: 8px; }
+&lt;/style&gt;
+&lt;header class="hero"&gt;
+  &lt;img src="media/campus.svg" alt="TechFest banner"&gt;
+  &lt;h1&gt;TechFest 2026&lt;/h1&gt;
+&lt;/header&gt;
+&lt;section class="cards"&gt;
+  &lt;article class="card"&gt;Workshop · ₹200&lt;/article&gt;
+  &lt;article class="card"&gt;Hackathon · ₹300&lt;/article&gt;
+  &lt;article class="card"&gt;Talks · ₹100&lt;/article&gt;
+&lt;/section&gt;
+&lt;p&gt;
+  &lt;label for="tickets"&gt;Tickets&lt;/label&gt;
+  &lt;input id="tickets" type="number" min="1" value="3"&gt;
+  &lt;button id="buyBtn"&gt;Buy tickets&lt;/button&gt;
+&lt;/p&gt;
+&lt;p id="summary" aria-live="polite"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const PRICE = 150; // per ticket
+  const ticketsInput = document.querySelector("#tickets");
+  const buyBtn = document.querySelector("#buyBtn");
+  const summary = document.querySelector("#summary");
+
+  buyBtn.addEventListener("click", () =&gt; {
+    const qty = Number(ticketsInput.value);
+    let total = qty * PRICE;
+    // 3 or more tickets get 10% off
+    if (qty &gt;= 3) {
+      total = total * 0.9;
+    }
+    summary.textContent = `Total: ₹${total}`;
+    console.log("Tickets:", qty, "Total:", total);
+  });
+&lt;/script&gt;</pre>
+  <p>With the default 3 tickets, the page shows <b>Total: ₹405</b> and the console prints <b>Tickets: 3 Total: 405</b>. Change the box to 2 and you get ₹300 (no discount); 4 gives ₹540. Narrow the window and the cards wrap onto new rows.</p>
+  <details class="qc"><summary>Quick check: which of the four bugs could never be found from the Console alone, and why?</summary><p><b>The ₹450 total.</b> It throws no error; the code simply takes the wrong branch. You need the value of <code>qty</code> and of <code>qty &gt; 3</code> at that moment, which a breakpoint in Sources gives you.</p></details>
+</section>
+
+<section id="mistakes">
+  <h2>69.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I fixed it in DevTools, so it's fixed."</b><br>DevTools edits live in the browser's memory. Reload and the bug is back.</div>
+    <div class="r"><b>&#10003; "I found the fix in DevTools; now I copy it into my file."</b><br>DevTools is the test bench; your files are the product.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The Elements panel shows my HTML file."</b><br>It shows the live DOM: after the browser's repairs and after your JavaScript ran.</div>
+    <div class="r"><b>&#10003; "Elements shows what the page is now; View source shows what the server sent."</b><br>When they differ, that difference is often the clue.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "When paused on a breakpoint, that line has already run."</b><br>Execution freezes just <i>before</i> the highlighted line.</div>
+    <div class="r"><b>&#10003; "Step over once, then read the values the line produced."</b><br>That is why <code>total</code> still showed 200 in the example.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "No red in the Console means no bugs."</b><br>Logical errors, like the ₹450 total, never print anything.</div>
+    <div class="r"><b>&#10003; "A clean Console rules out crashes, not wrong answers."</b><br>For wrong answers, pause the code and check the values.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which key combination opens Chrome DevTools on Windows?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Ctrl+Shift+M</li><li>B. Ctrl+U</li><li>C. Ctrl+Shift+I</li><li>D. Cmd+Option+I</li></ul>
+    <p><b>Answer: C.</b> <code>Ctrl+Shift+I</code> (or <code>F12</code>) opens DevTools on Windows. <code>Cmd+Option+I</code> is the Mac shortcut, <code>Ctrl+Shift+M</code> the device toolbar, <code>Ctrl+U</code> View page source.</p></div></details>
+  <details class="q"><summary>In the Styles pane, the declaration <code>color: navy;</code> appears struck through, with no warning icon beside it. What does that mean?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The browser could not understand the value</li><li>B. Another matching rule set <code>color</code> and won, so this declaration is not used</li><li>C. The declaration was deleted from the CSS file</li><li>D. The element is hidden</li></ul>
+    <p><b>Answer: B.</b> <code>navy</code> is a valid colour, so the declaration lost to a stronger or later rule for the same property. A declaration the browser cannot understand is also struck through, but carries a warning triangle as well &mdash; so A does not fit here. Nothing in DevTools touches your file (C).</p></div></details>
+  <details class="q"><summary>A developer changes <code>padding</code> to <code>16px</code> in the Styles pane, likes the result, and reloads the page. What happens?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The padding goes back to its old value</li><li>B. The new padding stays, because DevTools saved it to styles.css</li><li>C. The page shows an error</li><li>D. The new padding stays until the browser is closed</li></ul>
+    <p><b>Answer: A.</b> DevTools changes only the in-memory page; reloading rebuilds it from the unchanged files. Copy the value into the CSS file by hand.</p></div></details>
+  <details class="q"><summary>A <code>&lt;p&gt;</code> has <code>width: 200px; padding: 8px; border: 2px solid; margin: 10px;</code> and the normal box-sizing. How wide is it on screen, border included?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 200 px</li><li>B. 216 px</li><li>C. 240 px</li><li>D. 220 px</li></ul>
+    <p><b>Answer: D.</b> 2 + 8 + 200 + 8 + 2 = 220. With the default <code>box-sizing: content-box</code>, <code>width</code> sets only the content; padding and border are added on top. Margin lies outside the border; adding it gives the tempting 240.</p></div></details>
+  <details class="q"><summary>Execution is paused on a breakpoint at line 5. Which statement is true?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Line 5 has run; its result is in Scope</li><li>B. Line 5 has not run yet</li><li>C. Lines 5 onwards have been skipped</li><li>D. The whole program has finished</li></ul>
+    <p><b>Answer: B.</b> A breakpoint freezes the program just before the marked line. Step over runs it; Resume carries on to the next breakpoint.</p></div></details>
+  <details class="q"><summary>Paused on <code>total += lineTotal(item);</code>, you press Step over (F10). What happens?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. DevTools pauses on the first line inside <code>lineTotal</code></li><li>B. The program resumes and runs to the end</li><li>C. <code>lineTotal</code> runs completely, <code>total</code> is updated, and DevTools pauses on the next statement to run</li><li>D. The line is skipped without running</li></ul>
+    <p><b>Answer: C.</b> Step over runs the whole line, including the function it calls, and pauses at the next step (in a loop, the <code>i++</code>). Pausing inside <code>lineTotal</code> is what Step into (F11) does.</p></div></details>
+  <details class="q"><summary>In the Network panel, <code>logo.png</code> shows status 404 but the logo appeared fine on your Windows laptop. What is the most likely cause?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. The server crashed</li><li>B. The image is too large</li><li>C. The cache is disabled</li><li>D. The file name differs in capital letters, such as <code>Logo.png</code>, and the live server is case-sensitive</li></ul>
+    <p><b>Answer: D.</b> 404 means no file at that path. Windows ignores capital letters, so it worked locally; Linux servers such as GitHub Pages do not. A server crash would be a 5xx code.</p></div></details>
+  <details class="q"><summary>Where in DevTools can you see and delete the value a site saved with <code>localStorage.setItem("theme", "dark")</code>?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. Application &rarr; Local storage &rarr; the site's origin</li><li>B. Network &rarr; Headers</li><li>C. Elements &rarr; Styles</li><li>D. Sources &rarr; Watch</li></ul>
+    <p><b>Answer: A.</b> The Application panel lists localStorage, sessionStorage, IndexedDB and cookies by origin, and can edit or delete each key. Network shows downloads, not saved data.</p></div></details>
+  <details class="q"><summary>Predict the output. At the Console prompt you type <code>"5" * 2</code>, press Enter, then type <code>"5" + 2</code>.<span class="lvl">L3</span></summary><div class="a">
+    <p><b><code>10</code>, then <code>'52'</code>.</b> <code>*</code> converts the text "5" to the number 5, giving 10. <code>+</code> with a string joins text, giving the string "52" (the quotes mark a string).</p></div></details>
+  <details class="q"><summary>Predict the output. In the broken TechFest code, <code>PRICE</code> is 150, the box holds 3, and the test is <code>if (qty &gt; 3) { total = total * 0.9; }</code>. What does the page show after the button bug is fixed? Then give the corrected line.<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Total: ₹450.</b> 3 &times; 150 = 450, and <code>3 &gt; 3</code> is false, so no discount. "3 or more" needs <code>if (qty &gt;= 3)</code>, giving 450 &times; 0.9 = <b>Total: ₹405</b>.</p></div></details>
+  <details class="q"><summary>Short answer: you set a conditional breakpoint with the condition <code>i === 2</code> inside a loop that runs 5 times (i = 0 to 4). How many times does the program pause there, and when?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Once</b> &mdash; on the third pass, when <code>i</code> is 2. On the other four passes the condition is false and the line runs without stopping.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>DevTools show what the browser actually built, downloaded and stored: <code>F12</code> or <code>Ctrl+Shift+I</code> (<code>Cmd+Option+I</code> on a Mac), or right-click &rarr; Inspect.</li>
+    <li><b>Elements</b> shows the live DOM; edits are lost on reload. Struck-through = not used (invalid if a warning triangle shows); Computed = the final value; :hov forces <code>:hover</code>.</li>
+    <li><b>Console</b> shows errors with a clickable file:line and runs any expression you type; <code>$0</code> is the selected element.</li>
+    <li><b>Sources</b>: a breakpoint pauses <i>before</i> its line. Step over (F10), into (F11), out (Shift+F11), resume (F8); read Scope, Watch and Call Stack.</li>
+    <li><b>Network</b>: 2xx success, 3xx redirect or cached, 4xx client error (404), 5xx server error. Open it before reloading; use Disable cache and throttling.</li>
+    <li><b>Application</b> shows localStorage, sessionStorage and cookies by origin; Clear site data gives a first-visit view.</li>
+    <li>Device toolbar for phone widths; Performance for long tasks (over 50 ms); Lighthouse for 0&ndash;100 scores in four categories.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Tool or code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>F12</code> / <code>Ctrl+Shift+I</code> / <code>Cmd+Option+I</code></td><td>Open or close DevTools</td></tr>
+      <tr><td><code>Ctrl+Shift+J</code> / <code>Ctrl+Shift+C</code></td><td>Open the Console / pick an element on the page</td></tr>
+      <tr><td><code>Ctrl+Shift+M</code></td><td>Device toolbar (with DevTools focused)</td></tr>
+      <tr><td><code>$0</code></td><td>The element selected in Elements (Console only)</td></tr>
+      <tr><td><code>console.clear()</code> / <code>Ctrl+L</code></td><td>Clear the Console</td></tr>
+      <tr><td>Click a line number in Sources</td><td>Set or remove a breakpoint</td></tr>
+      <tr><td><code>debugger;</code></td><td>Pause here when DevTools is open</td></tr>
+      <tr><td><code>F8</code> / <code>F10</code> / <code>F11</code> / <code>Shift+F11</code></td><td>Resume / step over / step into / step out</td></tr>
+      <tr><td>Network: Disable cache, throttling</td><td>Fetch fresh files; imitate a slow or missing connection</td></tr>
+      <tr><td>Application: Clear site data</td><td>Wipe the site's storage, cookies and cache</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.chrome.com/docs/devtools" target="_blank" rel="noopener noreferrer">Chrome for Developers &mdash; Chrome DevTools<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official guide to every panel, with short tutorials for each.</span></li>
+    <li><a href="https://developer.chrome.com/docs/devtools/javascript" target="_blank" rel="noopener noreferrer">Chrome for Developers &mdash; Debug JavaScript<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A guided walk through breakpoints, stepping, Scope and Watch on a small buggy demo page.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Learn_web_development/Howto/Tools_and_setup/What_are_browser_developer_tools" target="_blank" rel="noopener noreferrer">MDN &mdash; What are browser developer tools?<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The same tour across Chrome, Firefox and Safari, with how to open each.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/HTTP/Status" target="_blank" rel="noopener noreferrer">MDN &mdash; HTTP response status codes<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every status code you will see in the Network panel, explained one by one.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

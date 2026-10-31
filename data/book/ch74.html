@@ -1,0 +1,886 @@
+<article class="chapter" data-ch="74">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 74 &middot; Website Performance Fundamentals</p>
+  <h1>Website Performance Fundamentals</h1>
+  <p class="lead">A page can have perfect HTML, tidy CSS and bug-free JavaScript and still fail its visitors: a white screen for six seconds on a phone, a button that freezes when tapped, text that jumps as you reach for a link. This chapter is about the speed a visitor feels: what makes pages slow, how a browser builds a page, the three numbers Google scores, and the fixes that make a site quick.</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>width</code>/<code>height</code> reserve an image's space, <code>srcset</code>/<code>sizes</code> let the browser choose a file, <code>loading="lazy"</code> waits for scrolling (<a href="book.html?ch=8">Chapter 8</a>).</li>
+      <li>DevTools opens with <kbd>F12</kbd>; the Network panel lists every file; the Lighthouse tab audits the page (<a href="book.html?ch=69">Chapter 69</a>).</li>
+      <li>CSS is linked in the <code>&lt;head&gt;</code>; your JavaScript loads with <code>&lt;script src="..." defer&gt;</code> (<a href="book.html?ch=73">Chapter 73</a>).</li>
+      <li><code>createElement</code>, <code>textContent</code> and <code>append</code> build content from JavaScript (<a href="book.html?ch=58">Chapter 58</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Name the three things a visitor feels as performance, the Core Web Vital for each, and its "good" threshold.</li>
+      <li>List the common causes of a slow page and match each to a fix.</li>
+      <li>Explain the browser's loading steps, why CSS blocks rendering and a plain script blocks parsing, and choose between <code>defer</code> and <code>async</code>.</li>
+      <li>Optimise an image: size, format, compression, <code>srcset</code>/<code>sizes</code>, <code>width</code>/<code>height</code>, lazy-loading below the fold.</li>
+      <li>Make CSS and JavaScript cheaper: fewer, smaller, cached files and one DOM update instead of hundreds.</li>
+      <li>Measure with Lighthouse and the Network panel, change one thing, and measure again.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>74.1 What "fast" means to a visitor</h2>
+  <p>Ask a friend whether a website is fast and they will say how it <i>felt</i>: "it took ages to show anything", "I tapped and nothing happened", "the page jumped and I clicked the wrong thing". <b>Website performance</b> is those three: how quickly a page becomes useful, how quickly it reacts, and whether it stays still while loading.</p>
+  <table class="tbl">
+    <thead><tr><th>Pillar</th><th>The visitor's question</th><th>It fails when&hellip;</th></tr></thead>
+    <tbody>
+      <tr><td><b>Loading speed</b></td><td>"How soon do I see the main content?"</td><td>The big photo or headline appears seconds late</td></tr>
+      <tr><td><b>Responsiveness</b></td><td>"When I tap or type, does it react?"</td><td>A click takes half a second to show a change</td></tr>
+      <tr><td><b>Visual stability</b></td><td>"Does it stay where I put my finger?"</td><td>Text and buttons jump as photos arrive</td></tr>
+    </tbody>
+  </table>
+  <p>Figure 74.1 shows one page built two ways, drawn like the <i>filmstrip</i> of snapshots Lighthouse shows for your own page.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 340" role="img" aria-label="Filmstrip of one page loading two ways. The slow build is blank, then shows text that jumps down when the photo arrives, and is finished at 6 seconds. The fast build keeps space for the photo and is finished at 1.2 seconds.">
+      <text x="14" y="76" class="t b">Slow build</text>
+      <text x="14" y="94" class="t s">ready at 6.0 s</text>
+      <text x="14" y="238" class="t b">Fast build</text>
+      <text x="14" y="256" class="t s">ready at 1.2 s</text>
+      <rect x="116" y="28" width="96" height="104" rx="8" class="box"/>
+      <text x="164" y="84" class="t c s">blank</text>
+      <rect x="232" y="28" width="96" height="104" rx="8" class="box"/>
+      <rect x="238" y="34" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="348" y="28" width="96" height="104" rx="8" class="box"/>
+      <rect x="354" y="34" width="84" height="12" rx="3" class="box blu"/>
+      <path d="M354 62 L432 62" class="edge"/><path d="M354 72 L426 72" class="edge"/><path d="M354 82 L418 82" class="edge"/>
+      <rect x="464" y="28" width="96" height="104" rx="8" class="box"/>
+      <rect x="470" y="34" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="470" y="52" width="84" height="36" rx="3" class="box saf"/>
+      <path d="M470 98 L548 98" class="edge"/><path d="M470 108 L542 108" class="edge"/><path d="M470 118 L534 118" class="edge"/>
+      <rect x="580" y="28" width="96" height="104" rx="8" class="box"/>
+      <rect x="586" y="34" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="586" y="52" width="84" height="36" rx="3" class="box saf"/>
+      <path d="M586 98 L664 98" class="edge"/><path d="M586 108 L658 108" class="edge"/>
+      <rect x="586" y="114" width="36" height="12" rx="4" class="box grn"/>
+      <text x="164" y="150" class="t c b">0.5 s</text><text x="164" y="166" class="t c s">white screen</text>
+      <text x="280" y="150" class="t c b">2.0 s</text><text x="280" y="166" class="t c s">header only</text>
+      <text x="396" y="150" class="t c b">3.5 s</text><text x="396" y="166" class="t c s">text appears</text>
+      <text x="512" y="150" class="t c b">5.0 s</text><text x="512" y="166" class="t c s">photo lands: jump &#8595;</text>
+      <text x="628" y="150" class="t c b">6.0 s</text><text x="628" y="166" class="t c s">finally done</text>
+      <rect x="116" y="190" width="96" height="104" rx="8" class="box"/>
+      <rect x="122" y="196" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="122" y="214" width="84" height="36" rx="3" class="box gry"/>
+      <path d="M122 260 L200 260" class="edge"/><path d="M122 270 L194 270" class="edge"/>
+      <rect x="232" y="190" width="96" height="104" rx="8" class="box"/>
+      <rect x="238" y="196" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="238" y="214" width="84" height="36" rx="3" class="box saf"/>
+      <path d="M238 260 L316 260" class="edge"/><path d="M238 270 L310 270" class="edge"/>
+      <rect x="348" y="190" width="96" height="104" rx="8" class="box"/>
+      <rect x="354" y="196" width="84" height="12" rx="3" class="box blu"/>
+      <rect x="354" y="214" width="84" height="36" rx="3" class="box saf"/>
+      <path d="M354 260 L432 260" class="edge"/><path d="M354 270 L426 270" class="edge"/>
+      <rect x="354" y="276" width="36" height="12" rx="4" class="box grn"/>
+      <text x="164" y="312" class="t c b">0.5 s</text><text x="164" y="328" class="t c s">space reserved</text>
+      <text x="280" y="312" class="t c b">1.0 s</text><text x="280" y="328" class="t c s">photo in, no jump</text>
+      <text x="396" y="312" class="t c b">1.2 s</text><text x="396" y="328" class="t c s">done</text>
+      <text x="480" y="228" class="t b">Done at 1.2 s.</text>
+      <text x="480" y="248" class="t s">Nothing moved while it loaded,</text>
+      <text x="480" y="264" class="t s">and taps are answered at once.</text>
+    </svg>
+    <figcaption><b>Figure 74.1</b> One page, two builds (illustrative). The slow build is blank for seconds and its text jumps when the photo lands; the fast build keeps a grey space for the photo.</figcaption>
+  </figure>
+  <div class="callout analogy"><b>Picture this.</b> At a dhaba outside the LPU gate, three things decide whether you come back: how long the first plate takes to arrive, whether the waiter answers when you call, and whether somebody shifts your plate mid-meal so your hand lands in the dal. A web page is judged on the same three.</div>
+  <h3>Why it matters</h3>
+  <ul>
+    <li><b>People leave.</b> Google's research on mobile pages found that as load time grows from one second to three, the chance of a <span class="jw" data-def="When a visitor leaves after seeing only one page, often before it has even finished loading.">bounce</span> rises by 32%.</li>
+    <li><b>Data costs money.</b> On a prepaid pack with a daily limit, a 6 MB page opened ten times is 60 MB of somebody's day.</li>
+    <li><b>Phones are slower than your laptop.</b> A mid-range phone runs JavaScript several times more slowly, and mobile networks add a pause to every file. Test for the budget phone in a hostel corridor.</li>
+    <li><b>Search engines notice.</b> Google counts the Core Web Vitals (Section 74.4) among its "page experience" signals, though relevant content matters most (Chapter 11).</li>
+  </ul>
+  <details class="qc">
+    <summary>Quick check: what are the three things a visitor feels when they say a page is "slow"?</summary>
+    <p>Loading speed (how soon the main content appears), responsiveness (how quickly it reacts to taps and typing) and visual stability (whether content stays still).</p>
+  </details>
+</section>
+
+<section id="s2">
+  <h2>74.2 What makes websites slow</h2>
+  <p>The same few causes turn up again and again. One word first: <b>page weight</b> is the total size of every file a page downloads (HTML, CSS, JavaScript, images, fonts). One phone-camera photo is often 3&ndash;5 MB; a whole well-built page can be under 1 MB.</p>
+  <table class="tbl">
+    <thead><tr><th>Cause</th><th>Typical example</th><th>What the visitor feels</th><th>First fix</th></tr></thead>
+    <tbody>
+      <tr><td><b>Large images</b></td><td>A 4 MB photo shown 400 px wide</td><td>The main picture arrives late; data used up</td><td>Resize, compress, WebP (74.5)</td></tr>
+      <tr><td><b>Too much JavaScript</b></td><td>A whole library for one line</td><td>The page looks ready but taps do nothing</td><td>Remove it, <code>defer</code> it (74.3, 74.6)</td></tr>
+      <tr><td><b>Too many requests</b></td><td>40 small files, each with overhead</td><td>Waiting adds up, file by file</td><td>Combine and remove files (74.6)</td></tr>
+      <tr><td><b>Render-blocking resources</b></td><td><code>&lt;script&gt;</code> in the head without <code>defer</code>; a huge stylesheet</td><td>A blank white screen</td><td><code>defer</code>; small CSS (74.3)</td></tr>
+      <tr><td><b>Unused CSS and JS</b></td><td>A whole framework for three buttons</td><td>Waiting for code that never runs</td><td>Delete it; check Coverage (74.6, 74.7)</td></tr>
+      <tr><td><b>Poor caching</b></td><td>Files re-downloaded every visit</td><td>Every visit as slow as the first</td><td>Cache headers, versioned names (74.6)</td></tr>
+      <tr><td><b>Slow external APIs</b></td><td>The page waits for a 3-second response</td><td>Empty sections, endless spinners</td><td>Show the page, then fill in data (Chapters 65, 72)</td></tr>
+      <tr><td><b>Layout shifts</b></td><td>Images without a size; a banner pushed in at the top</td><td>Content jumps; the wrong button gets tapped</td><td><code>width</code> and <code>height</code>; reserve space (74.4, 74.5)</td></tr>
+    </tbody>
+  </table>
+  <p>Two things make every cause worse on a phone. The network has <span class="jw" data-def="The waiting time for a request to travel to the server and for the first part of the answer to come back, before any data flows. It is paid again for every new file.">latency</span>: each new file can wait a tenth of a second or more before data flows, so forty tiny files keep paying that wait. And the processor is slower, while <b>JavaScript costs twice</b>: to download, then to compile and run. 300 KB of JavaScript keeps a phone busy far longer than a 300 KB photo.</p>
+  <div class="callout why"><b>Key idea.</b> Most slow student projects have two problems: a giant photo straight from the phone camera, and scripts in the <code>&lt;head&gt;</code> without <code>defer</code>. Fix those two and most of the page is fixed.</div>
+</section>
+
+<section id="s3">
+  <h2>74.3 How the browser turns files into a page</h2>
+  <p>To see why those causes hurt, follow the browser from "you pressed Enter" to "you see the page": the <b>critical rendering path</b>, in six simplified steps.</p>
+  <ol>
+    <li><b>Request the HTML:</b> <code>GET /</code> &rarr; <code>index.html</code>.</li>
+    <li><b>Parse the HTML into the DOM.</b> The <span class="jw" data-def="The part of the browser that reads HTML text from top to bottom and turns it into the DOM tree of elements.">parser</span> reads top to bottom and builds the element tree of Chapter 55.</li>
+    <li><b>Discover the other files</b> from <code>&lt;link&gt;</code>, <code>&lt;script&gt;</code> and <code>&lt;img&gt;</code> tags.</li>
+    <li><b>Build the CSSOM, then the render tree.</b> The CSS becomes the <span class="jw" data-def="CSS Object Model: the browser's organised list of every style rule from your CSS, ready to be matched to elements.">CSSOM</span>, combined with the DOM into the <b>render tree</b>: the visible elements only (no <code>display: none</code>), with final styles.</li>
+    <li><b>Download the remaining resources:</b> images, fonts and scripts, several at a time.</li>
+    <li><b>Lay out and paint.</b> <b>Layout</b> works out every box's size and position; <b>paint</b> fills in the pixels.</li>
+  </ol>
+  <figure class="fig">
+    <svg viewBox="0 0 720 256" role="img" aria-label="Critical rendering path: HTML becomes the DOM, CSS becomes the CSSOM, the two combine into the render tree, then layout, then paint. JavaScript can change both trees.">
+      <rect x="16" y="24" width="100" height="44" rx="10" class="box saf"/>
+      <text x="66" y="43" class="t c b">HTML</text>
+      <text x="66" y="59" class="t c s mono">index.html</text>
+      <rect x="16" y="80" width="100" height="44" rx="10" class="box gry"/>
+      <text x="66" y="99" class="t c b">JavaScript</text>
+      <text x="66" y="115" class="t c s">can change both</text>
+      <rect x="16" y="136" width="100" height="44" rx="10" class="box blu"/>
+      <text x="66" y="155" class="t c b">CSS</text>
+      <text x="66" y="171" class="t c s mono">styles.css</text>
+      <rect x="150" y="24" width="110" height="44" rx="10" class="box"/>
+      <text x="205" y="43" class="t c b">DOM</text>
+      <text x="205" y="59" class="t c s">element tree</text>
+      <rect x="150" y="136" width="110" height="44" rx="10" class="box"/>
+      <text x="205" y="155" class="t c b">CSSOM</text>
+      <text x="205" y="171" class="t c s">style rules</text>
+      <rect x="300" y="80" width="120" height="44" rx="10" class="box grn"/>
+      <text x="360" y="99" class="t c b">Render tree</text>
+      <text x="360" y="115" class="t c s">what to draw</text>
+      <rect x="460" y="80" width="100" height="44" rx="10" class="box"/>
+      <text x="510" y="99" class="t c b">Layout</text>
+      <text x="510" y="115" class="t c s">sizes, positions</text>
+      <rect x="600" y="80" width="104" height="44" rx="10" class="box ink"/>
+      <text x="652" y="99" class="t c b w">Paint</text>
+      <text x="652" y="115" class="t c s w">pixels on screen</text>
+      <path d="M116 46 L146 46" class="edge" marker-end="url(#arr)"/>
+      <path d="M116 158 L146 158" class="edge" marker-end="url(#arr)"/>
+      <path d="M116 96 L160 71" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M116 108 L160 133" class="edge dash" marker-end="url(#arr)"/>
+      <path d="M260 52 L297 86" class="edge" marker-end="url(#arr)"/>
+      <path d="M260 152 L297 118" class="edge" marker-end="url(#arr)"/>
+      <path d="M420 102 L456 102" class="edge" marker-end="url(#arr)"/>
+      <path d="M560 102 L596 102" class="edge" marker-end="url(#arr)"/>
+      <rect x="16" y="198" width="336" height="46" rx="10" class="box red"/>
+      <text x="184" y="217" class="t c b">CSS is render-blocking</text>
+      <text x="184" y="234" class="t c s">nothing is painted until the CSS has arrived</text>
+      <rect x="368" y="198" width="336" height="46" rx="10" class="box red"/>
+      <text x="536" y="217" class="t c b">A plain &lt;script&gt; blocks parsing</text>
+      <text x="536" y="234" class="t c s">the parser waits while it downloads and runs</text>
+    </svg>
+    <figcaption><b>Figure 74.2</b> The critical rendering path, simplified. Two trees are built and combined; only then can the browser lay out and paint, so anything that holds up an earlier box holds up the picture.</figcaption>
+  </figure>
+  <div class="plain"><p>HTML becomes a tree, CSS a list of rules; together they decide what is visible and how it looks; then the browser works out where every box goes and only then colours in pixels. Delay any step and you delay what the visitor sees.</p></div>
+  <h3>Two rules that decide when the first pixel appears</h3>
+  <p><b>CSS is <span class="jw" data-def="Something the browser must finish before it is willing to draw anything on the screen.">render-blocking</span>.</b> Nothing is painted until the stylesheets in the <code>&lt;head&gt;</code> arrive. That is deliberate: otherwise you would see unstyled text leap into place (a <i>flash of unstyled content</i>). So do <b>not</b> move CSS to the bottom; keep it <b>small</b>.</p>
+  <p><b>A plain script blocks parsing.</b> Meeting <code>&lt;script src="app.js"&gt;</code>, the parser stops, waits for the download, runs the script, and only then carries on, because a script may change the page being read. In the head, that means a white screen throughout. Parsing and scripts share the <span class="jw" data-def="The single worker inside a browser tab that parses the HTML, runs your JavaScript, calculates layout and paints. It can do only one job at a time.">main thread</span>, which does one job at a time.</p>
+  <p>Watch it. The head script below pretends to be a big file by keeping the main thread busy for 1.5 seconds; the preview stays blank until it lets go.</p>
+  <pre class="code" data-run data-title="A slow script in the head holds up the whole page - watch the blank preview" data-h="230">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Parser order&lt;/title&gt;
+  &lt;script&gt;
+    console.log("1. Script in the head. Is the heading there yet?", document.querySelector("h1") !== null);
+    // pretend this is a big script: the parser cannot read on until it finishes
+    const stopAt = performance.now() + 1500;
+    while (performance.now() &lt; stopAt) {}
+    console.log("2. Head script finished after 1.5 s. Only now can the body be read.");
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Hello from the body&lt;/h1&gt;
+  &lt;script&gt;
+    console.log("3. Script after the heading. Is the heading there now?", document.querySelector("h1") !== null);
+    document.addEventListener("DOMContentLoaded", () =&gt; {
+      console.log("4. DOMContentLoaded: all the HTML has been read");
+    });
+    window.addEventListener("load", () =&gt; {
+      console.log("5. load: the picture and every other file have arrived too");
+    });
+  &lt;/script&gt;
+  &lt;img src="media/campus.svg" alt="Campus scene" width="300" height="150"&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>The console prints five lines in order. Line 1 says <code>false</code>: the body has not been read, so the heading does not exist yet. Line 3 says <code>true</code>. Lines 4 and 5 are the Network panel's blue and red lines (Section 74.7): <code>DOMContentLoaded</code> when all the HTML is parsed, <code>load</code> when every other file has arrived too.</p>
+  <h3>defer and async: download now, run later</h3>
+  <p>Two attributes on an external script remove the blocking: both <b>download the file in parallel</b> while the parser keeps reading. They differ in <i>when the script runs</i> (Figure 74.3 and the table).</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 270" role="img" aria-label="Timelines for a plain script, a deferred script and an async script. The plain script stops the parser while it downloads and runs. defer and async download in parallel; defer runs after the HTML is finished, async runs as soon as it has arrived.">
+      <rect x="150" y="9" width="14" height="11" rx="2" class="box grn"/><text x="170" y="19" class="t s">reading HTML</text>
+      <rect x="252" y="9" width="14" height="11" rx="2" class="box blu"/><text x="272" y="19" class="t s">downloading the script</text>
+      <rect x="414" y="9" width="14" height="11" rx="2" class="box saf"/><text x="434" y="19" class="t s">running it</text>
+      <rect x="504" y="9" width="14" height="11" rx="2" class="box red"/><text x="524" y="19" class="t s">parser stuck, waiting</text>
+      <path d="M290 38 L290 236" class="edge dash"/>
+      <text x="16" y="58" class="t b mono">&lt;script&gt;</text>
+      <text x="16" y="76" class="t s">stop, fetch, run</text>
+      <rect x="160" y="46" width="130" height="18" rx="3" class="box grn"/>
+      <rect x="290" y="46" width="120" height="18" rx="3" class="box red"/>
+      <rect x="410" y="46" width="60" height="18" rx="3" class="box saf"/>
+      <rect x="470" y="46" width="150" height="18" rx="3" class="box grn"/>
+      <rect x="290" y="70" width="120" height="14" rx="3" class="box blu"/>
+      <text x="628" y="60" class="t s b">ready</text>
+      <text x="16" y="130" class="t b mono">&lt;script defer&gt;</text>
+      <text x="16" y="148" class="t s">fetch now, run after HTML</text>
+      <rect x="160" y="118" width="280" height="18" rx="3" class="box grn"/>
+      <rect x="440" y="118" width="60" height="18" rx="3" class="box saf"/>
+      <rect x="290" y="142" width="120" height="14" rx="3" class="box blu"/>
+      <text x="508" y="132" class="t s b">ready</text>
+      <text x="16" y="202" class="t b mono">&lt;script async&gt;</text>
+      <text x="16" y="220" class="t s">fetch now, run on arrival</text>
+      <rect x="160" y="190" width="250" height="18" rx="3" class="box grn"/>
+      <rect x="410" y="190" width="60" height="18" rx="3" class="box saf"/>
+      <rect x="470" y="190" width="30" height="18" rx="3" class="box grn"/>
+      <rect x="290" y="214" width="120" height="14" rx="3" class="box blu"/>
+      <text x="508" y="204" class="t s b">ready</text>
+      <path d="M160 246 L700 246" class="edge" marker-end="url(#arr)"/>
+      <text x="290" y="263" class="t c s">the parser reaches the &lt;script&gt; tag</text>
+      <text x="640" y="263" class="t s">time &#8594;</text>
+    </svg>
+    <figcaption><b>Figure 74.3</b> One script, three ways. A plain script stops the parser while it downloads and runs. <code>defer</code> downloads alongside parsing and runs once the HTML is finished; <code>async</code> runs the moment it arrives, interrupting the parser.</figcaption>
+  </figure>
+  <table class="tbl">
+    <thead><tr><th>Written as</th><th>Runs</th><th>Order kept?</th><th>Use it for</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;script src="app.js"&gt;</code></td><td>At once; parsing stops for download and run</td><td>Yes</td><td>Almost never in the head</td></tr>
+      <tr><td><code>&lt;script src="app.js" defer&gt;</code></td><td>After all the HTML is parsed</td><td><b>Yes</b>, page order</td><td>Your own scripts</td></tr>
+      <tr><td><code>&lt;script src="stats.js" async&gt;</code></td><td>As soon as it arrives</td><td><b>No</b>, arrival order</td><td>Independent scripts (analytics)</td></tr>
+      <tr><td><code>&lt;script type="module" src="main.js"&gt;</code></td><td>Like <code>defer</code>, automatically</td><td>Yes</td><td>Module code (Chapter 73)</td></tr>
+    </tbody>
+  </table>
+  <p>Small print: <code>defer</code> and <code>async</code> work only on scripts with a <code>src</code>; an ordinary inline <code>&lt;script&gt;</code> ignores them. A script at the end of <code>&lt;body&gt;</code> also avoids blocking, but may start downloading later than a deferred one in the head.</p>
+  <div class="plain"><p><code>defer</code>: "fetch it now, run it when the page has been read, in order". <code>async</code>: "fetch it now, run it whenever it turns up".</p></div>
+  <details class="qc">
+    <summary>Quick check: <code>app.js</code> uses a function defined in <code>helpers.js</code>. Should both get <code>defer</code> or <code>async</code>?</summary>
+    <p><code>defer</code>, with <code>helpers.js</code> written first: deferred scripts run in page order, so the helper exists when <code>app.js</code> runs. With <code>async</code>, <code>app.js</code> might run first and fail because the helper is not defined.</p>
+  </details>
+</section>
+
+<section id="s4">
+  <h2>74.4 Core Web Vitals: three feelings, three numbers</h2>
+  <p>To measure feelings, Google defined one number per pillar, the <b>Core Web Vitals</b>: the dhaba's first plate, the waiter's answer, the plate that must not move.</p>
+  <table class="tbl">
+    <thead><tr><th>Vital</th><th>Measures</th><th>Pillar</th><th>Good</th><th>Needs improvement</th><th>Poor</th></tr></thead>
+    <tbody>
+      <tr><td><b>LCP</b> &mdash; Largest Contentful Paint</td><td>When the biggest image or text block in the first screen appears</td><td>Loading</td><td>&le; 2.5 s</td><td>2.5&ndash;4.0 s</td><td>&gt; 4.0 s</td></tr>
+      <tr><td><b>INP</b> &mdash; Interaction to Next Paint</td><td>How long the page takes to visibly answer taps, clicks and keys</td><td>Responsiveness</td><td>&le; 200 ms</td><td>200&ndash;500 ms</td><td>&gt; 500 ms</td></tr>
+      <tr><td><b>CLS</b> &mdash; Cumulative Layout Shift</td><td>How much visible content moves around unexpectedly</td><td>Visual stability</td><td>&le; 0.1</td><td>0.1&ndash;0.25</td><td>&gt; 0.25</td></tr>
+    </tbody>
+  </table>
+  <h3>LCP: when does the main thing appear?</h3>
+  <p>The browser watches the images and text blocks in the first screenful (the <i>viewport</i>) and notes when the <b>largest</b> is painted, usually the hero photo or main heading. That moment is the LCP. It is late when the hero is heavy or lazy-loaded, when render-blocking files delay every paint, or when the server is slow.</p>
+  <details class="qc">
+    <summary>Quick check: a page's hero image appears at 3.1 s for most visitors. Is its LCP good, needs improvement, or poor?</summary>
+    <p><b>Needs improvement</b>: it is between 2.5 s and 4.0 s. Compress and resize the hero, do not lazy-load it, and serve it at its displayed size.</p>
+  </details>
+  <h3>INP: when I tap, does it answer?</h3>
+  <p>Taps and key presses are handled by the main thread, one job at a time; if it is busy with long JavaScript, your tap waits in a queue. <b>INP</b> times each interaction from the input until the browser paints the next frame, and reports one of the slowest of the visit (a few extreme outliers are ignored on busy pages). That time has three parts:</p>
+  <ol>
+    <li><b>Input delay</b>: waiting for the main thread to finish what it was doing.</li>
+    <li><b>Processing</b>: running your event handler.</li>
+    <li><b>Presentation</b>: recalculating layout and painting the change.</li>
+  </ol>
+  <p>A job holding the main thread for more than 50 ms is a <b>long task</b>. INP replaced <b>FID</b> (First Input Delay, only the waiting part of the first interaction) in March 2024; older notes may still mention FID.</p>
+  <p>Feel it yourself. The red button does 600 ms of busy work before it answers. Click it, then at once click the green one:</p>
+  <pre class="code" data-run data-title="A fast and a slow button - click Slow, then Fast at once" data-h="170">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  button { font: inherit; padding: 10px 16px; margin-right: 8px; border: 0;
+           border-radius: 8px; color: #fff; cursor: pointer; }
+  #fast { background: #138808; }
+  #slow { background: #C42B2B; }
+  #out  { margin-top: 14px; font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;button id="fast"&gt;Fast button&lt;/button&gt;
+&lt;button id="slow"&gt;Slow button&lt;/button&gt;
+&lt;p id="out"&gt;Click a button. Then click Slow and, straight away, Fast.&lt;/p&gt;
+&lt;script&gt;
+const out = document.querySelector("#out");
+
+// keeps the main thread busy for ms milliseconds, like a heavy calculation
+function busy(ms) {
+  const end = performance.now() + ms;
+  while (performance.now() &lt; end) {
+    // nothing else on the page can happen while this loop runs
+  }
+}
+
+function report(name, event, start) {
+  const waited = Math.max(0, Math.round(start - event.timeStamp));
+  const ran = Math.round(performance.now() - start);
+  console.log(`${name}: waited ${waited} ms to start, then ran for ${ran} ms`);
+  out.textContent = `${name} answered after about ${waited + ran} ms.`;
+}
+
+document.querySelector("#fast").addEventListener("click", (event) =&gt; {
+  const start = performance.now();
+  report("Fast button", event, start);
+});
+
+document.querySelector("#slow").addEventListener("click", (event) =&gt; {
+  const start = performance.now();
+  busy(600);
+  report("Slow button", event, start);
+});
+&lt;/script&gt;</pre>
+  <p>Alone, Fast waits and runs about a millisecond; Slow runs 600 ms. Click Fast while Slow is busy and Fast reports it <i>waited</i> hundreds of milliseconds: the <b>input delay</b> part of INP, caused by another job's long task. (<code>event.timeStamp</code> is the moment of the click, so <code>start - event.timeStamp</code> is the time queued.)</p>
+  <h3>CLS: does it stay still?</h3>
+  <p>A <b>layout shift</b> is visible content moving without the visitor asking: the paragraph you are reading slides down because an image above it arrived. A jump scores more the more of the screen moves and the further it moves. Jumps less than a second apart form a burst, and <b>CLS reports the worst burst of the visit</b>, with no unit: 0 means nothing moved. Movement within half a second of a tap or key press is expected, so not counted. (Half the screen dropping by a quarter of the screen touches three quarters of it: 0.75 &times; 0.25 = 0.1875.)</p>
+  <p>Usual causes: images and videos without <code>width</code> and <code>height</code>; adverts and "Accept cookies" banners pushed in with no space kept; web fonts swapping in at another size. Fixes: dimensions on every image and video, <code>min-height</code> or <code>aspect-ratio</code> for late arrivals, new content <i>below</i> the reader, and animation with <code>transform</code>, not <code>top</code> or <code>height</code> (Chapter 38).</p>
+  <div class="plain"><p>Tell the browser every picture's size before it arrives, and never push new things in above what the visitor is reading. Then CLS stays close to 0.</p></div>
+  <p>Watch a shift. Both photos "arrive" two seconds after Run; until then each is a blank 1-pixel stand-in (the long <code>data:</code> value). Only the right one has <code>width</code> and <code>height</code>.</p>
+  <pre class="code" data-run data-title="Photo without a size vs with a size - start reading before 2 seconds" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 0; padding: 10px; }
+  .cols { display: flex; gap: 12px; }   /* side by side, even on a narrow phone */
+  .col  { flex: 1 1 0; min-width: 0; border: 1px solid #E3E9F0; border-radius: 10px; padding: 10px; }
+  .col h3 { margin: 0 0 8px; font-size: 14px; color: #0B2545; }
+  img  { display: block; max-width: 100%; background: #E3E9F0; }
+  #a   { max-width: min(240px, 100%); height: auto; }   /* same final size, but nothing reserved */
+  p    { margin: 8px 0 0; font-size: 14px; }
+&lt;/style&gt;
+&lt;div class="cols"&gt;
+  &lt;div class="col"&gt;
+    &lt;h3&gt;No width or height&lt;/h3&gt;
+    &lt;!-- the data: picture is a blank 1-pixel stand-in: the real photo has not arrived yet --&gt;
+    &lt;img id="a" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Campus lawn"&gt;
+    &lt;p&gt;Start reading this line now... &lt;button&gt;Register&lt;/button&gt;&lt;/p&gt;
+  &lt;/div&gt;
+  &lt;div class="col"&gt;
+    &lt;h3&gt;width="240" height="120"&lt;/h3&gt;
+    &lt;img id="b" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7" alt="Campus lawn" width="240" height="120"&gt;
+    &lt;p&gt;Start reading this line now... &lt;button&gt;Register&lt;/button&gt;&lt;/p&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+// pretend the network is slow: the real photo "arrives" after 2 seconds
+setTimeout(() =&gt; {
+  document.querySelector("#a").src = "media/campus.svg";
+  document.querySelector("#b").src = "media/campus.svg";
+  console.log("The photos have arrived. Which line moved?");
+}, 2000);
+
+// Chrome and Edge can measure layout shifts; other browsers skip this part
+if (PerformanceObserver.supportedEntryTypes.includes("layout-shift")) {
+  new PerformanceObserver((list) =&gt; {
+    for (const shift of list.getEntries()) {
+      console.log("Layout shift measured, score:", shift.value.toFixed(3));
+    }
+  }).observe({ type: "layout-shift", buffered: true });
+} else {
+  console.log("This browser cannot measure layout shifts. Watch the left column instead.");
+}
+&lt;/script&gt;</pre>
+  <p>The left photo took no room until its file arrived; then the line and button under it were shoved down, and a reader about to tap Register would miss. For the right photo the browser kept a grey box of the right shape, and nothing moved. Chrome and Edge also print the jump's score (above zero) when the preview is on screen; Firefox and Safari cannot measure shifts.</p>
+  <h3>Real visitors, not one test: the 75th percentile</h3>
+  <p>A page <b>passes</b> only when at least <b>75% of real visits</b> are "good" on all three: the <span class="jw" data-def="The 75th percentile is the value that 75 out of every 100 visits are at or below.">75th percentile</span> of LCP must be at most 2.5 s, of INP 200 ms, of CLS 0.1.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>Lab data</th><th>Field data</th></tr></thead>
+    <tbody>
+      <tr><td>Comes from</td><td>One test on one device (Lighthouse)</td><td>Real visits, collected by Chrome, shown in PageSpeed Insights</td></tr>
+      <tr><td>Good for</td><td>Finding problems; before and after</td><td>What visitors actually experience</td></tr>
+      <tr><td>Includes INP?</td><td>No: nobody taps, so Lighthouse uses <b>Total Blocking Time</b></td><td>Yes</td></tr>
+    </tbody>
+  </table>
+  <div class="callout exam"><b>Exam tip.</b> Learn the "good" limits as one line: <b>2.5 s &middot; 200 ms &middot; 0.1</b> for LCP, INP, CLS. "Poor" starts above <b>4 s &middot; 500 ms &middot; 0.25</b>. "50 ms" describes a long task, not a Core Web Vital.</div>
+</section>
+
+<section id="s5">
+  <h2>74.5 Images: the biggest, easiest win</h2>
+  <p>Images are usually the heaviest part of a student site, and the easiest to fix. Almost every first portfolio has:</p>
+  <pre class="code">&lt;!-- BEFORE: 4000 &times; 3000 px phone photo, 3.8 MB, no size, so the text below jumps when it loads --&gt;
+&lt;img src="campus-photo.jpg"&gt;</pre>
+  <p>4000 &times; 3000 is 12,000,000 pixels; a 400 &times; 300 spot needs 120,000. The file carries <b>a hundred times</b> more picture than anyone sees, and decoded at about 4 bytes per pixel it fills roughly 48 MB of the phone's memory. Done properly, as on the slide:</p>
+  <pre class="code">&lt;!-- AFTER: hero, above the fold --&gt;
+&lt;img src="campus-1200.webp"
+     srcset="campus-600.webp 600w, campus-1200.webp 1200w"
+     sizes="(max-width: 600px) 100vw, 1200px"
+     width="1200" height="675"
+     alt="Students on the main lawn"&gt;
+
+&lt;!-- AFTER: gallery, below the fold --&gt;
+&lt;img src="lab-800.webp" width="800" height="533" loading="lazy" alt="CSE lab"&gt;</pre>
+  <table class="tbl">
+    <thead><tr><th>Version of the hero photo (illustrative)</th><th>Download size</th></tr></thead>
+    <tbody>
+      <tr><td>Original JPEG, 4000 px wide</td><td>3.8 MB</td></tr>
+      <tr><td>Resized JPEG, 1200 px wide</td><td>420 KB</td></tr>
+      <tr><td>WebP, 1200 px wide</td><td><b>180 KB</b> &mdash; about one twentieth of the original</td></tr>
+    </tbody>
+  </table>
+  <p>Six habits produce that result:</p>
+  <h3>1. Make it the right size</h3>
+  <p>Resize the file to the largest size it is shown. Phones pack two or three screen pixels across every CSS pixel (the <code>devicePixelRatio</code>), so an image shown 400 CSS pixels wide is sharpest from a file about 800 pixels wide; beyond twice that, hardly anyone sees a difference. The free browser tool Squoosh resizes and compares side by side.</p>
+  <h3>2. Compress it, in a modern format</h3>
+  <p>A JPEG at quality 75&ndash;85% looks like one at 100% to most eyes and is far smaller. <b>WebP</b> is usually a quarter to a third smaller than JPEG at the same quality, <b>AVIF</b> often smaller again. Current browsers show both; <code>&lt;picture&gt;</code> can add a JPEG fallback (Chapter 8).</p>
+  <table class="tbl">
+    <thead><tr><th>What the image is</th><th>Best format</th></tr></thead>
+    <tbody>
+      <tr><td>A photograph</td><td>WebP or AVIF (JPEG as a fallback)</td></tr>
+      <tr><td>A logo, icon or diagram</td><td>SVG: tiny, sharp at every size</td></tr>
+      <tr><td>A screenshot with text, or transparency</td><td>PNG, or lossless WebP</td></tr>
+      <tr><td>Anything that moves</td><td>A short MP4 or WebM video, not a much bigger GIF</td></tr>
+    </tbody>
+  </table>
+  <h3>3. Let the browser choose the file: srcset and sizes</h3>
+  <p><code>srcset</code> lists the files and their real widths (<code>600w</code> = 600 pixels wide). <code>sizes</code> gives the <i>displayed</i> width: "up to 600 px screens, the full screen width (<code>100vw</code>); otherwise 1200 px".</p>
+  <div class="plain"><p><code>srcset</code> lists the files you offer; <code>sizes</code> says how big the picture will be; the browser, knowing its own screen, downloads one, usually the smallest that still looks sharp.</p></div>
+  <h3>4. Reserve the space: width and height</h3>
+  <p>As in Chapter 8, <code>width</code> and <code>height</code> do not shrink the file. They give the browser the image's <b>shape</b> before a byte arrives, so it keeps a box of the right size. Nor do they lock the shown size, given this common rule:</p>
+  <pre class="code">img { max-width: 100%; height: auto; }   /* shrink to fit a phone, keep the shape */</pre>
+  <p>So a <code>width="1200" height="675"</code> image shown 360 px wide on a phone gets a reserved 360 &times; 202.5 px box.</p>
+  <h3>5. Lazy-load what is below the fold, and only that</h3>
+  <p>"Above the fold" is newspaper language for what you see without scrolling. <code>loading="lazy"</code> makes the browser wait until the visitor scrolls <i>near</i> an image before downloading it, saving megabytes for every visitor who never scrolls that far.</p>
+  <div class="callout warn"><b>Never lazy-load the hero.</b> The big photo at the top is usually the LCP element. Marked lazy, its download waits until layout confirms it is on screen, so LCP gets <i>worse</i>. Load it normally, perhaps with <code>fetchpriority="high"</code> to fetch it before other images.</div>
+  <h3>6. Check what you shipped</h3>
+  <p>Hovering an <code>&lt;img&gt;</code>'s <code>src</code> in the Elements panel shows its <i>intrinsic</i> size (the file's pixels) against its <i>rendered</i> size; Lighthouse flags oversized images. The example does the same check with <code>naturalWidth</code> (the file's width) and <code>width</code> (the shown width), using the 600 px campus SVG as a stand-in photo.</p>
+  <pre class="code" data-run data-title="A mini audit: is each image bigger than the spot it fills?" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  img  { display: block; margin-bottom: 8px; border-radius: 8px; }
+&lt;/style&gt;
+&lt;img src="media/campus.svg" alt="Campus thumbnail" width="150" height="75"&gt;
+&lt;img src="media/campus.svg" alt="Campus banner" width="300" height="150"&gt;
+&lt;script&gt;
+// a tiny version of the "properly size images" check that Lighthouse runs
+window.addEventListener("load", () =&gt; {
+  console.log("This screen's devicePixelRatio:", window.devicePixelRatio);
+  document.querySelectorAll("img").forEach((img) =&gt; {
+    const ratio = img.naturalWidth / img.width;   // img.width: the width it is shown at
+    console.log(`${img.alt}: file is ${img.naturalWidth}px wide, shown at ${img.width}px (${ratio}x)`);
+    if (ratio &gt; 2) {
+      console.warn(`Too big: about ${ratio * ratio}x the pixels this spot needs. Resize the file.`);
+    } else {
+      console.log("Fine: up to 2x keeps it sharp on a high-density phone screen.");
+    }
+  });
+});
+&lt;/script&gt;</pre>
+  <p>The first line shows your screen's <code>devicePixelRatio</code> (often 1 on a lab monitor, 2 or 3 on a phone). The thumbnail reports a 600 px file shown at 150 px, <code>4x</code>, and warns of about 16 times the pixels it needs (four times as wide <i>and</i> as tall). The banner reports <code>2x</code> and passes.</p>
+  <details class="qc">
+    <summary>Quick check: a page has a large banner photo at the top and twelve gallery photos further down. Which should get <code>loading="lazy"</code>?</summary>
+    <p>Only the twelve gallery photos. The banner is probably the LCP element; lazy-loading it delays what LCP measures. All thirteen need <code>width</code> and <code>height</code>.</p>
+  </details>
+</section>
+
+<section id="s6">
+  <h2>74.6 CSS and JavaScript: send less, block less, touch the page less</h2>
+  <h3>Block less</h3>
+  <p>Your own scripts get <code>defer</code>; independent third-party scripts get <code>async</code>, or load after the visitor agrees to analytics. A big feature few visitors use (a chart, a map) can load when opened. CSS stays in the head, but small.</p>
+  <h3>Send less: remove what you do not use</h3>
+  <p>The slide's rule: <i>don't add a 90 KB library for one helper</i>. jQuery once papered over browser differences; today every browser has the tools built in:</p>
+  <pre class="code">// with jQuery: about 85 KB of library (minified) to download and run, for this
+$("#list").html("Loading...");
+
+// without: built into every browser, 0 KB extra
+document.querySelector("#list").textContent = "Loading...";</pre>
+  <p>The same goes for functions nobody calls and CSS rules for deleted elements. The <b>Coverage</b> panel (Section 74.7) shows the bytes of each file that never ran.</p>
+  <h3>Make each file smaller: minify and compress</h3>
+  <p>Spaces, line breaks and comments help people read code; the browser does not need them. <b>Minification</b> strips them out (and, for JavaScript, shortens local variable names):</p>
+  <pre class="code">/* Card styles for the course list */
+.card {
+  background: #ffffff;
+  padding: 16px;
+}
+
+/* minified: 35 characters instead of 87 (comment included) */
+.card{background:#fff;padding:16px}</pre>
+  <p>Build tools (the slide's "minify &amp; bundle" step) produce files such as <code>app.min.js</code> from the readable source you keep in Git (Chapter 75). Most servers, GitHub Pages among them, also <b>compress</b> text on the way out (gzip or Brotli): jQuery's 85 KB minified file travels as about 30 KB. Photos are already compressed, hence Section 74.5. The Network panel shows both <i>transferred</i> and <i>resources</i> (unpacked) sizes.</p>
+  <h3>Fewer requests</h3>
+  <p>Because of latency, forty tiny files cost more than four medium ones. Combine small CSS and JavaScript files (bundling), draw icons with SVG rather than thirty PNGs, and load only the font weights you use. HTTP/2 softens the cost, but every file still has one.</p>
+  <h3>Download once: caching</h3>
+  <p>The browser keeps a <span class="jw" data-def="A store of copies of files the browser has already downloaded, kept so that the next visit can reuse them instead of downloading them again.">cache</span> of downloaded files for reuse. The server says for how long with a header such as <code>Cache-Control: max-age=31536000</code> (one year, in seconds); GitHub Pages says ten minutes, one reason a just-published change can take minutes to appear (Chapter 76). The professional trick is <b>versioned file names</b>: a changed <code>styles.css</code> is published as <code>styles.v2.css</code> (build tools add codes like <code>styles.3f9a1c.css</code>), and the new name forces a fresh download, so files can be cached for a year without anyone seeing an old version. In the Network panel a cached file shows <code>(memory cache)</code> or <code>(disk cache)</code> as its Size.</p>
+  <h3>Touch the page less: one DOM update instead of hundreds</h3>
+  <p>JavaScript can change the DOM and the CSSOM (Figure 74.2), and every change can make the browser redo work. The slide compares two ways of putting 500 students into a list:</p>
+  <pre class="code">// INEFFICIENT: render.js
+for (const s of students) {                 // 500 students
+  list.innerHTML += `&lt;li&gt;${s.name}&lt;/li&gt;`;
+}
+// rebuilds the entire list 500 times; also unsafe with untrusted names
+
+// IMPROVED: render.js
+const fragment = document.createDocumentFragment();
+for (const s of students) {
+  const li = document.createElement("li");
+  li.textContent = s.name;
+  fragment.append(li);
+}
+list.append(fragment);                      // one DOM update</pre>
+  <p>Why is the first so bad? <code>a += b</code> means <code>a = a + b</code>, so each pass turns the <i>whole list</i> back into HTML text, adds one <code>&lt;li&gt;</code>, throws the old elements away and parses the entire string again: the 500th pass rebuilds 500 items to add one. A <code>DocumentFragment</code> is an invisible holding box off the page: build every item inside it, <code>append</code> it once, and the page is updated once.</p>
+  <p>Try both with 800 items, the size of the challenge's list:</p>
+  <pre class="code" data-run data-title="innerHTML += in a loop vs a DocumentFragment - press the button" data-h="250">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .cols { display: flex; gap: 14px; }
+  ul { flex: 1; height: 120px; overflow: auto; margin: 0; padding-left: 34px;
+       border: 1px solid #E3E9F0; border-radius: 8px; }
+  #result { font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;button id="go"&gt;Build 800 items both ways&lt;/button&gt;
+&lt;p id="result"&gt;Press the button.&lt;/p&gt;
+&lt;div class="cols"&gt;&lt;ul id="slow"&gt;&lt;/ul&gt;&lt;ul id="fast"&gt;&lt;/ul&gt;&lt;/div&gt;
+&lt;script&gt;
+const names = [];
+for (let i = 1; i &lt;= 800; i++) {
+  names.push(`Student ${i}`);
+}
+
+function buildSlow(list) {
+  list.innerHTML = "";
+  for (const name of names) {
+    list.innerHTML += `&lt;li&gt;${name}&lt;/li&gt;`;   // turns the whole list into text and rebuilds it
+  }
+}
+
+function buildFast(list) {
+  list.textContent = "";
+  const fragment = document.createDocumentFragment();
+  for (const name of names) {
+    const li = document.createElement("li");
+    li.textContent = name;
+    fragment.append(li);
+  }
+  list.append(fragment);                       // one update to the page
+}
+
+document.querySelector("#go").addEventListener("click", () =&gt; {
+  const slowList = document.querySelector("#slow");
+  const fastList = document.querySelector("#fast");
+
+  let start = performance.now();
+  buildSlow(slowList);
+  const slowMs = performance.now() - start;
+
+  start = performance.now();
+  buildFast(fastList);
+  const fastMs = performance.now() - start;
+
+  console.log("innerHTML += in a loop:", slowMs.toFixed(1), "ms for", slowList.children.length, "items");
+  console.log("DocumentFragment, one append:", fastMs.toFixed(1), "ms for", fastList.children.length, "items");
+  document.querySelector("#result").textContent =
+    `innerHTML loop: ${slowMs.toFixed(1)} ms | fragment: ${fastMs.toFixed(1)} ms`;
+});
+&lt;/script&gt;</pre>
+  <p>Both lists get 800 items. Times vary by machine, but the <code>innerHTML</code> loop is always one long task of tens or hundreds of milliseconds (exactly what ruins INP); the fragment takes a millisecond or two.</p>
+  <p>The slide's last point: instead of 500 click listeners, attach <b>one</b> to the list and ask which item was clicked: <b>event delegation</b> (Chapter 71).</p>
+  <pre class="code">// events.js: one listener for the whole list
+list.addEventListener("click", (event) =&gt; {
+  const li = event.target.closest("li");
+  if (li) selectStudent(li);
+});</pre>
+  <div class="callout warn"><b>Speed and safety point the same way.</b> <code>innerHTML</code> with a student's name inside is also a security hole: a "name" containing HTML tags becomes real elements. <code>textContent</code> is faster and safe (Chapter 77).</div>
+</section>
+
+<section id="s7">
+  <h2>74.7 Measure before and after</h2>
+  <p>The slide calls this <i>evidence over guesses</i>: many "optimisations" change nothing, and some make things worse.</p>
+  <div class="callout why"><b>Key idea.</b> Record the numbers. Change <b>one</b> thing. Measure again. Keep it only if the numbers improve. Change three at once and you never know which helped, or which hurt.</div>
+  <h3>Lighthouse: the score and the to-do list</h3>
+  <ol>
+    <li>Open the page in an <b>incognito window</b>, so extensions do not interfere.</li>
+    <li>DevTools (<kbd>F12</kbd>) &rarr; <b>Lighthouse</b> tab.</li>
+    <li>Mode <b>Navigation</b>, device <b>Mobile</b>, category <b>Performance</b>.</li>
+    <li>Click <b>Analyze page load</b>.</li>
+  </ol>
+  <p>The mobile test pretends to be a mid-range phone on slow 4G, whatever computer runs it. The report gives a <b>score from 0 to 100</b> (0&ndash;49 red, 50&ndash;89 orange, 90&ndash;100 green), the lab metrics behind it, and prioritised suggestions:</p>
+  <table class="tbl">
+    <thead><tr><th>Lab metric</th><th>Means</th></tr></thead>
+    <tbody>
+      <tr><td>First Contentful Paint (FCP)</td><td>When the first text or image appeared</td></tr>
+      <tr><td>LCP and CLS</td><td>As in Section 74.4, in this one test</td></tr>
+      <tr><td>Total Blocking Time (TBT)</td><td>The part of each long task beyond 50 ms while loading, added up: the lab's stand-in for INP</td></tr>
+      <tr><td>Speed Index</td><td>How quickly the visible content filled in</td></tr>
+    </tbody>
+  </table>
+  <h3>The four tools on the slide</h3>
+  <table class="tbl">
+    <thead><tr><th>Tool</th><th>What it tells you</th></tr></thead>
+    <tbody>
+      <tr><td><b>Lighthouse</b></td><td>Scores and a prioritised to-do list</td></tr>
+      <tr><td><b>Network panel</b></td><td>The biggest and slowest files. Tick <b>Disable cache</b> (a first-time visit), pick <b>Slow 4G</b> throttling (<i>Fast 3G</i> in older Chrome), reload, sort by <b>Size</b>. The bottom bar shows requests, bytes, and the <code>DOMContentLoaded</code> (blue line) and <code>load</code> (red line) times</td></tr>
+      <tr><td><b>Performance panel</b></td><td>Which task blocked the main thread. <i>Record and reload</i>; long tasks are marked in red; click one to see the function responsible</td></tr>
+      <tr><td><b>Coverage panel</b></td><td>Bytes of CSS and JS that never ran: &#8942; &rarr; More tools &rarr; Coverage, then reload</td></tr>
+    </tbody>
+  </table>
+  <p>A student page before and after a resized hero, <code>defer</code> and a lazy gallery (illustrative, as on the slide):</p>
+  <table class="tbl">
+    <thead><tr><th>Metric (lab)</th><th>Before</th><th>After</th></tr></thead>
+    <tbody>
+      <tr><td>Lighthouse Performance score</td><td>58</td><td><b>94</b></td></tr>
+      <tr><td>LCP</td><td>4.8 s</td><td><b>1.9 s</b></td></tr>
+      <tr><td>Total Blocking Time</td><td>620 ms</td><td><b>90 ms</b></td></tr>
+      <tr><td>CLS</td><td>0.31</td><td><b>0.02</b></td></tr>
+      <tr><td>Page weight</td><td>5.6 MB</td><td><b>0.9 MB</b></td></tr>
+    </tbody>
+  </table>
+  <p>Two cautions. Lab numbers wobble: run Lighthouse three times and take the middle result. And a lab score, even 100, is one simulated test; for a busy public site, PageSpeed Insights also shows <b>field data</b>, including INP.</p>
+  <p>Sorting numbers into the three bands takes one small function using the thresholds of Section 74.4. A boundary value counts as the better band (2.5 s is still "good").</p>
+  <pre class="code" data-run data-title="Rate a page's Core Web Vitals - change the numbers and run again" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  li   { margin: 4px 0; }
+&lt;/style&gt;
+&lt;ul id="out"&gt;&lt;/ul&gt;
+&lt;script&gt;
+// good if value &lt;= good; poor if value &gt; poor; otherwise needs improvement
+const limits = {
+  LCP: { good: 2.5, poor: 4.0 },   // seconds
+  INP: { good: 200, poor: 500 },   // milliseconds
+  CLS: { good: 0.1, poor: 0.25 }   // no unit
+};
+
+function rate(metric, value) {
+  const { good, poor } = limits[metric];
+  if (value &lt;= good) return "good";
+  if (value &lt;= poor) return "needs improvement";
+  return "poor";
+}
+
+console.log("Hero image at 3.1 s:", rate("LCP", 3.1));
+console.log("LCP of exactly 2.5 s:", rate("LCP", 2.5));
+console.log("A tap answered in 350 ms:", rate("INP", 350));
+console.log("CLS of 0.31:", rate("CLS", 0.31));
+
+// before and after a fix (pretend field data from real visitors)
+const report = [
+  { metric: "LCP", before: 4.8,  after: 1.9 },
+  { metric: "INP", before: 380,  after: 140 },
+  { metric: "CLS", before: 0.31, after: 0.02 }
+];
+report.forEach((row) =&gt; {
+  row.ratedBefore = rate(row.metric, row.before);
+  row.ratedAfter = rate(row.metric, row.after);
+  const li = document.createElement("li");
+  li.textContent = `${row.metric}: ${row.before} (${row.ratedBefore}) to ${row.after} (${row.ratedAfter})`;
+  document.querySelector("#out").append(li);
+});
+console.table(report);
+&lt;/script&gt;</pre>
+  <p>The console prints <code>needs improvement</code> for the 3.1 s hero, <code>good</code> for exactly 2.5 s, <code>needs improvement</code> for 350 ms and <code>poor</code> for a CLS of 0.31. The table shows all three vitals ending <code>good</code>.</p>
+</section>
+
+<section id="s8">
+  <h2>74.8 The challenge: the nine-second page</h2>
+  <p>The slide's 15-minute challenge: this page took nine seconds to become usable on a throttled phone connection. <b>Find at least four improvements</b>, each backed by a before-and-after measurement. Try it before reading the answer.</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;head&gt;
+  &lt;script src="analytics.js"&gt;&lt;/script&gt;
+  &lt;script src="jquery-3.7.1.js"&gt;&lt;/script&gt;
+  &lt;script src="app.js"&gt;&lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;img src="campus-4000px.jpg"&gt;
+  &lt;!-- ... several screens of text ... --&gt;
+  &lt;img src="gallery-1.jpg"&gt;
+  &lt;img src="gallery-2.jpg"&gt;
+  &lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;/body&gt;</pre>
+  <pre class="code">// app.js
+data.forEach((item) =&gt; {
+  $("#list").html($("#list").html() + "&lt;li&gt;" + item + "&lt;/li&gt;");
+});</pre>
+  <p><b>Clues.</b> <code>campus-4000px.jpg</code> is 4.2 MB, shown 400 px wide. jQuery is used for one line. <code>data</code> has 800 items. The text jumps when the images arrive. For each fix write <b>problem &rarr; change &rarr; expected benefit &rarr; measured result</b>.</p>
+  <h3>The answer</h3>
+  <table class="tbl">
+    <thead><tr><th>Problem</th><th>Fix</th><th>Expected benefit</th></tr></thead>
+    <tbody>
+      <tr><td>Render-blocking scripts in the head</td><td><code>&lt;script src="app.js" defer&gt;</code></td><td>HTML parses at once; faster first paint</td></tr>
+      <tr><td>jQuery for one line</td><td>Remove it; use <code>document.querySelector</code></td><td>85 KB or more less JavaScript</td></tr>
+      <tr><td>4.2 MB hero shown at 400 px</td><td>Resize to 800 px, WebP, <code>srcset</code></td><td>Megabytes saved; better LCP</td></tr>
+      <tr><td>No image dimensions</td><td><code>width="800" height="450"</code></td><td>Space reserved; CLS near 0</td></tr>
+      <tr><td>Gallery loads immediately</td><td><code>loading="lazy"</code></td><td>Waits until needed</td></tr>
+      <tr><td>800 HTML rebuilds</td><td>A <code>DocumentFragment</code>, appended once</td><td>Shorter long task; better INP</td></tr>
+    </tbody>
+  </table>
+  <p>Notes. The unminified <code>jquery-3.7.1.js</code> here is roughly 280 KB, so the real saving beats 85 KB. Each <code>.html()</code> call reads the whole list out as text and writes it back: <code>innerHTML +=</code> in jQuery clothing. Analytics is not needed for the page to work, so it can be <code>async</code> (the slide's bonus: should it load before the visitor agrees?). <code>async</code> was wrong for jQuery and <code>app.js</code>: <code>app.js</code> could run first and fail with <code>$ is not defined</code>.</p>
+  <p>The page with all six fixes:</p>
+  <pre class="code">&lt;!-- index.html, fixed --&gt;
+&lt;head&gt;
+  &lt;style&gt;
+    img   { max-width: 100%; height: auto; }   /* shrink on phones, keep the shape */
+    .hero { width: 400px; }                     /* shown 400 px wide, as before */
+  &lt;/style&gt;
+  &lt;script src="app.js" defer&gt;&lt;/script&gt;
+  &lt;script src="analytics.js" async&gt;&lt;/script&gt;   &lt;!-- or load it only after consent --&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;img class="hero" src="campus-800.webp"
+       srcset="campus-400.webp 400w, campus-800.webp 800w"
+       sizes="400px"
+       width="800" height="450" alt="Students on the main lawn"&gt;
+  &lt;!-- ... several screens of text ... --&gt;
+  &lt;img src="gallery-1.webp" width="600" height="400" loading="lazy" alt="CSE lab"&gt;
+  &lt;img src="gallery-2.webp" width="600" height="400" loading="lazy" alt="Library reading room"&gt;
+  &lt;ul id="list"&gt;&lt;/ul&gt;
+&lt;/body&gt;</pre>
+  <pre class="code">// app.js, fixed: no jQuery, one DOM update
+const list = document.querySelector("#list");
+const fragment = document.createDocumentFragment();
+
+data.forEach((item) =&gt; {
+  const li = document.createElement("li");
+  li.textContent = item;          // safe even if an item contains &lt; or &amp;
+  fragment.append(li);
+});
+
+list.append(fragment);            // one update instead of 800</pre>
+  <p>With <code>sizes="400px"</code>, a monitor with a <code>devicePixelRatio</code> of 1 takes the 400 px file; a phone with 2 or more gets the 800 px one. One fix in the four-part format (illustrative numbers): <i>4.2 MB hero shown at 400 px &rarr; 800 px WebP with <code>srcset</code> &rarr; smaller download, earlier LCP &rarr; Network panel: 4.2 MB down to 90 KB; Lighthouse LCP 8.7 s down to 2.4 s.</i> Any four well-justified fixes answer the challenge.</p>
+  <p>You can estimate the bytes saved before opening DevTools. This example adds up what downloads before the visitor scrolls; sizes not in the clues are realistic guesses, and the lazy gallery, several screens down, is left out.</p>
+  <pre class="code" data-run data-title="Page weight before and after the fixes - first load only" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  #out { font-weight: 700; color: #0B2545; }
+&lt;/style&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+const before = [
+  { file: "index.html",        kb: 6 },
+  { file: "analytics.js",      kb: 45 },
+  { file: "jquery-3.7.1.js",   kb: 280 },
+  { file: "app.js",            kb: 3 },
+  { file: "campus-4000px.jpg", kb: 4200 },
+  { file: "gallery-1.jpg",     kb: 900 },
+  { file: "gallery-2.jpg",     kb: 850 }
+];
+const after = [
+  { file: "index.html",        kb: 6 },
+  { file: "analytics.js",      kb: 45 },
+  { file: "app.js",            kb: 2 },
+  { file: "campus-800.webp",   kb: 90 },
+  { file: "gallery-1.webp",    kb: 70, lazy: true },
+  { file: "gallery-2.webp",    kb: 65, lazy: true }
+];
+
+// what the browser downloads before the visitor scrolls
+function firstLoad(files) {
+  return files
+    .filter((f) =&gt; !f.lazy)
+    .reduce((sum, f) =&gt; sum + f.kb, 0);
+}
+
+const b = firstLoad(before);
+const a = firstLoad(after);
+const saved = ((b - a) / b * 100).toFixed(1);
+
+console.table(after);
+console.log("Before, first load:", b, "KB");
+console.log("After, first load:", a, "KB");
+console.log("Saved:", b - a, "KB, which is", saved + "% less");
+console.log("Visits per 1 GB of data - before:", Math.floor(1000000 / b), "after:", Math.floor(1000000 / a));
+document.querySelector("#out").textContent = `First load: ${b} KB before, ${a} KB after (${saved}% less)`;
+&lt;/script&gt;</pre>
+  <p>The console shows the fixed file list as a table, then <code>Before, first load: 6284 KB</code>, <code>After, first load: 143 KB</code>, <code>Saved: 6141 KB, which is 97.7% less</code>, and that one gigabyte (1,000,000 KB) covers <b>159</b> visits to the old page but <b>6993</b> to the new. Most of the saving is the hero.</p>
+</section>
+
+<section id="mistakes">
+  <h2>74.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "It loads instantly on my laptop, so it is fast."</b><br>Your laptop has a fast processor, campus Wi-Fi and the files already cached. Visitors may have none of these.</div>
+    <div class="r"><b>&#10003; "Test the way a visitor arrives."</b><br>Incognito, Disable cache, Slow 4G, Lighthouse in Mobile mode, and a real mid-range phone when you can.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "width and height make an image download faster."</b><br>They do not change the file at all.</div>
+    <div class="r"><b>&#10003; "width and height reserve space; resizing and compressing make it faster."</b><br>Dimensions are for stability (CLS); smaller files are for speed (LCP and page weight). Do both.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A Lighthouse score of 100 means every visitor gets a fast page."</b><br>It is one simulated lab test, with no real taps.</div>
+    <div class="r"><b>&#10003; "A page passes when 75% of real visits are good."</b><br>Lab data finds problems; field data is the verdict.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary>What does Largest Contentful Paint (LCP) measure?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. How long the server takes to send the first byte of the HTML</li><li>B. How much visible content moves while the page loads</li><li>C. When the largest image or text block in the first screen becomes visible</li><li>D. How quickly the page responds to a tap</li></ul>
+    <p><b>Answer: C.</b> LCP is the loading vital. B is CLS, D is INP; time to first byte is a server measurement, not a Core Web Vital.</p></div></details>
+  <details class="q"><summary>Which of these is the "good" threshold for Interaction to Next Paint (INP)?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. 2.5 seconds or less</li><li>B. 200 milliseconds or less</li><li>C. 0.1 or less</li><li>D. 50 milliseconds or less</li></ul>
+    <p><b>Answer: B.</b> 2.5 s is the LCP limit and 0.1 the CLS limit. 50 ms defines a long task, which makes INP worse; it is not the INP threshold.</p></div></details>
+  <details class="q"><summary>Field data shows that a page's CLS is 0.18. How is it rated?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Poor</li><li>B. Good</li><li>C. Needs improvement</li><li>D. It cannot be rated, because CLS is only measured in the lab</li></ul>
+    <p><b>Answer: C.</b> Good is up to 0.1 and poor above 0.25, so 0.18 is between. CLS is measured from real visitors as well as in the lab.</p></div></details>
+  <details class="q"><summary>Which change stops the text below an image from jumping when the image file arrives?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Adding <code>width</code> and <code>height</code> attributes to the <code>&lt;img&gt;</code></li><li>B. Adding <code>loading="lazy"</code></li><li>C. Converting the image to WebP</li><li>D. Moving the scripts to the end of the body</li></ul>
+    <p><b>Answer: A.</b> The two numbers let the browser reserve a box of the right shape before the file arrives. Lazy-loading and WebP change <i>when</i> and <i>how much</i> is downloaded, not whether space is kept.</p></div></details>
+  <details class="q"><summary>Which image should NOT be given <code>loading="lazy"</code>?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The twelfth photo in a gallery far down the page</li><li>B. A logo in the footer</li><li>C. A product photo in the third screen of a long page</li><li>D. The large hero photo at the top of the page</li></ul>
+    <p><b>Answer: D.</b> The hero is in the first screen and usually the LCP element; lazy-loading it holds back its download and makes LCP worse. The other three are below the fold, where lazy-loading helps.</p></div></details>
+  <details class="q"><summary><code>app.js</code> calls a function defined in <code>helpers.js</code>, and both need the finished DOM. Which head markup is correct?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>&lt;script src="helpers.js" async&gt;&lt;/script&gt;&lt;script src="app.js" async&gt;&lt;/script&gt;</code></li><li>B. <code>&lt;script src="helpers.js" defer&gt;&lt;/script&gt;&lt;script src="app.js" defer&gt;&lt;/script&gt;</code></li><li>C. <code>&lt;script src="app.js"&gt;&lt;/script&gt;&lt;script src="helpers.js"&gt;&lt;/script&gt;</code></li><li>D. <code>&lt;script defer&gt;</code> with the code of both files pasted between the tags</li></ul>
+    <p><b>Answer: B.</b> Deferred scripts run after the HTML is parsed, in page order, so the helper exists when <code>app.js</code> runs. A does not keep order; C blocks the parser and runs <code>app.js</code> before its helper exists; in D, <code>defer</code> is ignored on an inline script, so it runs before the DOM is finished.</p></div></details>
+  <details class="q"><summary>What does the console show when this page loads, and why?<span class="lvl">L3</span></summary><div class="a">
+    <pre class="code">&lt;head&gt;
+  &lt;script&gt;
+    console.log(document.querySelector("#title"));
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id="title"&gt;Hi&lt;/h1&gt;
+&lt;/body&gt;</pre>
+    <p><b>Answer: <code>null</code>.</b> A plain script runs the moment the parser reaches it; the body has not been read yet, so no element has id <code>title</code>. Fix: an external file loaded with <code>defer</code>, or a <code>DOMContentLoaded</code> listener.</p></div></details>
+  <details class="q"><summary>Why is <code>list.innerHTML += `&lt;li&gt;${name}&lt;/li&gt;`</code> inside a loop of 800 names so slow?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Modern browsers do not support <code>innerHTML</code></li><li>B. Template literals are slower than <code>+</code></li><li>C. Each <code>+=</code> turns the whole list into text and rebuilds every item, so work grows each pass</li><li>D. The loop repaints the screen 800 times per second</li></ul>
+    <p><b>Answer: C.</b> <code>a += b</code> is <code>a = a + b</code>: the old list is turned into text, one item is added, and the whole string is parsed again. Build the items in a <code>DocumentFragment</code> and append once.</p></div></details>
+  <details class="q"><summary>Which pair are modern image formats that are usually smaller than JPEG at the same quality?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. BMP and TIFF</li><li>B. GIF and PNG</li><li>C. ICO and SVG</li><li>D. WebP and AVIF</li></ul>
+    <p><b>Answer: D.</b> WebP and AVIF compress photographs better than JPEG. BMP and TIFF are huge, GIF has only 256 colours, PNG is lossless and big for photos, ICO is for tiny icons, and SVG suits drawings, not photographs.</p></div></details>
+  <details class="q"><summary>A Lighthouse test has no real person tapping the page. Which lab metric does it use in place of INP?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Total Blocking Time</li><li>B. First Contentful Paint</li><li>C. Speed Index</li><li>D. Cumulative Layout Shift</li></ul>
+    <p><b>Answer: A.</b> TBT adds up how long long tasks blocked the main thread during loading, which is what would have delayed a tap. FCP and Speed Index are about loading; CLS is about movement.</p></div></details>
+  <details class="q"><summary>Using the <code>rate</code> function below, what do the three lines print?<span class="lvl">L3</span></summary><div class="a">
+    <pre class="code">const limits = { LCP: { good: 2.5, poor: 4.0 },
+                 INP: { good: 200, poor: 500 },
+                 CLS: { good: 0.1, poor: 0.25 } };
+function rate(metric, value) {
+  const { good, poor } = limits[metric];
+  if (value &lt;= good) return "good";
+  if (value &lt;= poor) return "needs improvement";
+  return "poor";
+}
+console.log(rate("LCP", 2.5));
+console.log(rate("INP", 500));
+console.log(rate("CLS", 0.3));</pre>
+    <p><b>Answer: <code>good</code>, <code>needs improvement</code>, <code>poor</code>.</b> 2.5 &lt;= 2.5 is true, so a boundary counts as good. 500 is not &lt;= 200 but is &lt;= 500. 0.3 is above 0.25.</p></div></details>
+  <details class="q"><summary>In <code>&lt;img srcset="campus-600.webp 600w, campus-1200.webp 1200w" sizes="(max-width: 600px) 100vw, 1200px" ...&gt;</code>, what does <code>sizes</code> tell the browser?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The file size of each image, in kilobytes</li><li>B. How wide the image will be displayed, so it can pick a file from <code>srcset</code></li><li>C. The largest number of images it may download</li><li>D. The aspect ratio to reserve while the image loads</li></ul>
+    <p><b>Answer: B.</b> <code>srcset</code> lists the files and their pixel widths; <code>sizes</code> gives the displayed width (full screen width on small screens, 1200 px otherwise), which the browser combines with its pixel density to choose. Reserving the shape is the job of <code>width</code> and <code>height</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Performance = loading speed, responsiveness, visual stability. "Good": <b>LCP &le; 2.5 s</b>, <b>INP &le; 200 ms</b>, <b>CLS &le; 0.1</b> (poor above 4 s, 500 ms, 0.25), for 75% of real visits.</li>
+    <li>Usual causes: huge images, too much JavaScript, too many requests, render-blocking files, unused code, poor caching, slow APIs, images without a size.</li>
+    <li>HTML &rarr; DOM, CSS &rarr; CSSOM, render tree, layout, paint. CSS blocks rendering; a plain script blocks parsing.</li>
+    <li><code>defer</code>: after the HTML, in order (your scripts). <code>async</code>: on arrival, any order (independent scripts).</li>
+    <li>Images: at most about 2&times; the shown size, compressed, WebP or AVIF, <code>srcset</code> + <code>sizes</code>, always <code>width</code> + <code>height</code>, lazy only below the fold.</li>
+    <li>CSS and JS: no unused code, minify, compress, fewer files, versioned names for caching; one <code>DocumentFragment</code> append.</li>
+    <li>Measure, change one thing, measure again. Lab data finds problems; field data is the verdict.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;script src="app.js" defer&gt;</code></td><td>Download alongside parsing; run after the HTML, in order</td></tr>
+      <tr><td><code>&lt;script src="stats.js" async&gt;</code></td><td>Download alongside parsing; run on arrival, any order</td></tr>
+      <tr><td><code>&lt;img ... width="800" height="450"&gt;</code></td><td>Reserves the image's space: no layout shift</td></tr>
+      <tr><td><code>img { max-width: 100%; height: auto; }</code></td><td>Shrinks to fit a phone, keeping the shape</td></tr>
+      <tr><td><code>loading="lazy"</code></td><td>Waits for scrolling: below-the-fold images only</td></tr>
+      <tr><td><code>fetchpriority="high"</code></td><td>Fetch the hero image first</td></tr>
+      <tr><td><code>srcset="a-600.webp 600w, a-1200.webp 1200w"</code> + <code>sizes</code></td><td>The browser picks the smallest sharp file</td></tr>
+      <tr><td><code>document.createDocumentFragment()</code> + one <code>append</code></td><td>One DOM update instead of hundreds</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one for a second voice, or to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://web.dev/articles/vitals" target="_blank" rel="noopener noreferrer">web.dev &mdash; Web Vitals<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Google's account of LCP, INP, CLS and the 75th-percentile rule.</span></li>
+    <li><a href="https://web.dev/learn/performance" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn Performance<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A free short course: rendering path, images, scripts, caching.</span></li>
+    <li><a href="https://javascript.info/script-async-defer" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Scripts: async, defer<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">When each kind of script runs, with small examples.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/Performance" target="_blank" rel="noopener noreferrer">MDN &mdash; Web performance<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Guides on lazy loading, the rendering path and measuring.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

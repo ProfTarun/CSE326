@@ -1,0 +1,1237 @@
+<article class="chapter" data-ch="75">
+<style>
+/* the repository-page mock-up for this chapter only - every selector is scoped to .d75 */
+.d75 { font-family: system-ui, -apple-system, "Segoe UI", sans-serif; font-size: 13.5px;
+  color: #1F2328; background: #fff; border: 1px solid #D0D7DE; border-radius: 10px;
+  overflow: hidden; }
+.d75 .top75 { padding: 12px 14px 0; font-size: 15px; }
+.d75 .top75 b { color: #0969DA; font-weight: 600; }
+.d75 .pill75 { display: inline-block; margin-left: 8px; padding: 0 8px; font-size: 11.5px;
+  color: #59636E; border: 1px solid #D0D7DE; border-radius: 999px; }
+.d75 .tabs75 { display: flex; flex-wrap: wrap; gap: 0 18px; padding: 8px 14px 0;
+  border-bottom: 1px solid #D0D7DE; }
+.d75 .tabs75 span { padding: 6px 2px 8px; color: #59636E; }
+.d75 .tabs75 .on75 { color: #1F2328; font-weight: 700; border-bottom: 2px solid #FD8C73; }
+.d75 .bar75 { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; padding: 12px 14px; }
+.d75 .btn75 { padding: 4px 10px; font-weight: 600; background: #F6F8FA;
+  border: 1px solid #D0D7DE; border-radius: 6px; }
+.d75 .go75 { color: #fff; background: #1F883D; border-color: #1F883D; }
+.d75 .sp75 { flex: 1 1 auto; }
+.d75 .mut75 { color: #59636E; }
+.d75 .files75 { margin: 0 14px; border: 1px solid #D0D7DE; border-radius: 6px; }
+.d75 .files75 > div { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 7px 12px;
+  border-top: 1px solid #D0D7DE; }
+.d75 .files75 > div:first-child { border-top: 0; background: #F6F8FA; }
+.d75 .f75 { flex: 0 0 130px; }
+.d75 .readme75 { margin: 14px; border: 1px solid #D0D7DE; border-radius: 6px; }
+.d75 .rh75 { margin: 0; padding: 7px 12px; font-size: 12.5px; font-weight: 700;
+  border-bottom: 1px solid #D0D7DE; }
+.d75 .rb75 { padding: 6px 16px 10px; }
+.d75 .rb75 p { margin: 0 0 6px; }
+.d75 .rt75 { font-size: 19px; font-weight: 700; padding: 4px 0 5px;
+  border-bottom: 1px solid #D0D7DE; }
+@media (max-width: 560px) { .d75 .f75 { flex-basis: 100%; } .d75 .hide75 { display: none; } }
+</style>
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 75 &middot; GitHub Repository Management</p>
+  <h1>GitHub Repository Management</h1>
+  <p class="lead">The night before a deadline, yesterday's change has broken the page and your only backup is a file called index-final-2.html. Git ends that problem: it keeps every saved state of your project and lets you go back to any of them. GitHub keeps a copy online where your teacher, your teammates and future employers can see the work.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A project is one folder: <code>index.html</code> at the top, <code>css/</code>, <code>js/</code> and <code>images/</code> inside, names lowercase with hyphens (<a href="book.html?ch=73">Chapter 73</a>).</li>
+      <li>The HTML links its files with relative paths such as <code>css/styles.css</code> (<a href="book.html?ch=73">Chapter 73</a>).</li>
+      <li>A server is a computer that stores files and answers requests over the Internet (<a href="book.html?ch=2">Chapter 2</a>).</li>
+      <li>Anything sent to a browser can be read by anyone, so secrets never belong in front-end code (<a href="book.html?ch=1">Chapter 1</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain version control, and tell Git (a tool) apart from GitHub (a website).</li>
+      <li>Name the four places work lives and the command that moves it between them.</li>
+      <li>Use <code>init</code>, <code>status</code>, <code>add</code>, <code>commit</code>, <code>log</code> and <code>diff</code>, and read their output.</li>
+      <li>Write clear commit messages.</li>
+      <li>Connect a project to GitHub with <code>remote add</code> and <code>push -u</code>; use <code>pull</code> and <code>clone</code>.</li>
+      <li>Write a useful <code>README.md</code> and a <code>.gitignore</code> that keeps dependencies, clutter and secrets out.</li>
+      <li>Create and merge a branch, settle a simple conflict and describe a pull request.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>75.1 A time machine for your project</h2>
+  <p>Open the folder of almost any first-year project and you will find something like this:</p>
+  <pre class="code">index.html
+index-old.html
+index-final.html
+index-final-2.html
+index-final-REALLY-final.html
+project-backup-15-oct.zip</pre>
+  <p>Each copy was made for a good reason (<i>"let me keep the working version before I try something risky"</i>), but a week later nobody knows which is the latest, what changed between them, or which one your partner has. And when tonight's change breaks the page, you cannot ask the folder to <i>"show me how you looked at six o'clock yesterday."</i></p>
+  <p><b>Version control</b> is the cure: a system that records every saved state of a project, each with a note about what changed, so you can look back at any of them and bring any of them back. The one almost every developer uses is <b>Git</b>. Learn its definition word for word:</p>
+  <div class="callout why"><b>Key idea.</b> Git is a <b>distributed version-control system</b>: it tracks every change to your files as named snapshots, so you can review history, work in parallel and undo mistakes.</div>
+  <p>Each saved state is a <b>commit</b>: a <span class="jw" data-def="A complete picture of something at one moment. A commit records every file in the project exactly as it was when you made it.">snapshot</span> of the whole project at one moment, with an <b>id</b> (a short code such as <code>7d3b5f0</code>), a <b>message</b> you write (<i>Add projects section</i>), the <b>author</b> and the <b>time</b>.</p>
+  <h3>The story of the broken theme</h3>
+  <p>Asha has made three commits on her portfolio. The third added a dark theme, and it broke the layout. She has no backup copy, and she does not need one.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 215" role="img" aria-label="Four commits in a row. The third broke the layout, so the fourth copies the CSS file back from the second.">
+      <path d="M610 76 C 560 20, 320 20, 270 76" class="edge grn dash" marker-end="url(#arr-grn)"/>
+      <text x="440" y="22" class="t c s mono">git restore --source=7d3b5f0 css/styles.css</text>
+      <rect x="30" y="76" width="140" height="64" rx="10" class="box"/>
+      <text x="100" y="101" class="t c b mono">a1c09e2</text>
+      <text x="100" y="121" class="t c s">Initial portfolio</text>
+      <rect x="200" y="76" width="140" height="64" rx="10" class="box grn"/>
+      <text x="270" y="101" class="t c b mono">7d3b5f0</text>
+      <text x="270" y="121" class="t c s">Add projects section</text>
+      <rect x="370" y="76" width="140" height="64" rx="10" class="box red"/>
+      <text x="440" y="101" class="t c b mono">e93a114</text>
+      <text x="440" y="121" class="t c s">New dark theme</text>
+      <rect x="540" y="76" width="140" height="64" rx="10" class="box grn"/>
+      <text x="610" y="101" class="t c b mono">b52f7c8</text>
+      <text x="610" y="121" class="t c s">Restore working CSS</text>
+      <path d="M170 108 L198 108" class="edge" marker-end="url(#arr)"/>
+      <path d="M340 108 L368 108" class="edge" marker-end="url(#arr)"/>
+      <path d="M510 108 L538 108" class="edge" marker-end="url(#arr)"/>
+      <text x="100" y="162" class="t c s">layout works</text>
+      <text x="270" y="162" class="t c s">layout works</text>
+      <text x="440" y="162" class="t c b" style="fill:#C42B2B">layout broken &#10007;</text>
+      <text x="610" y="162" class="t c b" style="fill:#138808">works again &#10003;</text>
+      <path d="M30 184 L680 184" class="edge dash" marker-end="url(#arr)"/>
+      <text x="355" y="204" class="t c s">time &mdash; each commit is a snapshot of the whole project, oldest on the left</text>
+    </svg>
+    <figcaption><b>Figure 75.1</b> The broken commit is not deleted: Asha copies one file back from the last good snapshot and saves that as a new commit.</figcaption>
+  </figure>
+  <pre class="code">$ git log --oneline
+e93a114 (HEAD -&gt; main) New dark theme
+7d3b5f0 Add projects section
+a1c09e2 Initial portfolio
+
+$ git restore --source=7d3b5f0 css/styles.css</pre>
+  <p>The first command lists her history, newest at the top. The second brings back <code>css/styles.css</code> as it was in commit <code>7d3b5f0</code>, when the layout worked. She saves the repaired state as a fourth commit, <i>Restore working CSS</i>. (You will type these yourself by section 75.6.)</p>
+  <p><b>Distributed</b> means every copy &mdash; Asha's laptop, her partner's, GitHub &mdash; holds the <i>complete</i> history. If the Internet goes down Git keeps working; if a laptop is stolen, any other copy has every commit.</p>
+  <h3>Why developers use it</h3>
+  <ul>
+    <li><b>History:</b> who changed what, when, and why.</li>
+    <li><b>Undo:</b> restore a file or revert a commit.</li>
+    <li><b>Experiment safely</b> on a branch.</li>
+    <li><b>Collaborate</b> without emailing zip files.</li>
+  </ul>
+  <div class="plain"><p>Git is a save button with a memory: each press keeps a snapshot of the whole folder with your note under it, and you can pull any old file out of any snapshot later.</p></div>
+</section>
+
+<section id="s2">
+  <h2>75.2 Git and GitHub: a tool and a website</h2>
+  <p>The names sound alike, and beginners (and exam questions) mix them up. They are different things.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>Git</th><th>GitHub</th></tr></thead>
+    <tbody>
+      <tr><td><b>What it is</b></td><td>A program: the version-control tool</td><td>A website hosting Git repositories</td></tr>
+      <tr><td><b>Where it lives</b></td><td>Installed on your computer</td><td>On GitHub's servers, opened in a browser</td></tr>
+      <tr><td><b>Needs the Internet?</b></td><td>No &mdash; works fully offline</td><td>Yes</td></tr>
+      <tr><td><b>What it does</b></td><td>Records commits, keeps history, manages branches</td><td>Keeps an online copy and adds pull requests, issues, code review and GitHub Pages</td></tr>
+      <tr><td><b>Commands</b></td><td><code>init</code>, <code>add</code>, <code>commit</code>, <code>branch</code>, <code>log</code></td><td>Reached with <code>git push</code>, <code>pull</code>, <code>clone</code>, or its web pages</td></tr>
+    </tbody>
+  </table>
+  <p>In one sentence: <b>Git is the tool on your computer; GitHub is a website that hosts Git repositories and adds collaboration.</b> You can use Git without GitHub, but GitHub always uses Git underneath. GitLab and Bitbucket do the same job.</p>
+  <div class="callout warn"><b>Wrong on purpose.</b> "GitHub is the version-control system I install on my laptop." No &mdash; you install <b>Git</b>; GitHub is a service you visit. An exam option that swaps them, or calls them the same, is wrong.</div>
+  <h3>The words you will use every day</h3>
+  <table class="tbl">
+    <thead><tr><th>Word</th><th>Meaning</th></tr></thead>
+    <tbody>
+      <tr><td><b>Repository</b> (repo)</td><td>A project folder plus its full history, e.g. <code>student-dashboard</code></td></tr>
+      <tr><td><b>Commit</b></td><td>A saved snapshot with an id and a message: <code>7d3b5f0 Add projects section</code></td></tr>
+      <tr><td><b>Branch</b></td><td>A separate line of work, e.g. <code>feature/contact-form</code></td></tr>
+      <tr><td><b>Remote</b></td><td>A copy of the repository on a server, usually nicknamed <code>origin</code></td></tr>
+      <tr><td><b>Pull request</b></td><td>A request on GitHub to merge a branch, with review and discussion</td></tr>
+      <tr><td><b>Clone</b></td><td>A full copy of a repository, history included, downloaded to a computer</td></tr>
+      <tr><td><b>HEAD</b></td><td>Git's "you are here" marker: normally the newest commit of your current branch</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: can you use Git on a laptop with no Internet connection?</summary><p>Yes. Commits, history and branches all work offline. Only <code>push</code>, <code>pull</code> and <code>clone</code>, which talk to GitHub, need the Internet.</p></details>
+</section>
+
+<section id="s3">
+  <h2>75.3 Setting up once</h2>
+  <p>Three jobs, done once per computer: install Git, tell it your name, and make a GitHub account.</p>
+  <h3>Install Git</h3>
+  <p>On Windows, install <b>Git for Windows</b> from <code>git-scm.com</code>, accepting the suggested answers (choose <code>main</code> if asked for a default branch name). It brings Git, <b>Git Bash</b> (a command window) and the <b>Git Credential Manager</b>, which handles signing in to GitHub. On a Mac, <code>git --version</code> in Terminal offers to install it; on Linux, <code>sudo apt install git</code>.</p>
+  <h3>Open a terminal</h3>
+  <p>Git is used by typing commands into a <span class="jw" data-def="A window where you type instructions for the computer as text and it types its answers back, instead of you clicking buttons.">terminal</span>. In VS Code, open your project folder and choose <b>Terminal &rarr; New Terminal</b> (<kbd>Ctrl</kbd>+<kbd>`</kbd>); it opens inside the project folder, where Git commands must be typed. A line starting with <code>$</code> is what <b>you type</b> (without the <code>$</code>); other lines are Git's reply.</p>
+  <pre class="code">$ git --version
+git version 2.47.1.windows.1</pre>
+  <p>Your number will differ. If you see <i>'git' is not recognized</i> or <i>command not found</i>, Git is not installed, or the terminal was open while you installed it: close VS Code completely and reopen it.</p>
+  <h3>Tell Git who you are</h3>
+  <pre class="code">$ git config --global user.name "Asha Verma"
+$ git config --global user.email "asha.verma@example.com"
+$ git config --global init.defaultBranch main
+$ git config --global --list
+user.name=Asha Verma
+user.email=asha.verma@example.com
+init.defaultbranch=main</pre>
+  <p>Every commit is stamped with this name and email, which are public on GitHub. <code>--global</code> means "for every project on this computer", so you do it once. Use your GitHub email (or the private <i>no-reply</i> address in GitHub's <b>Settings &rarr; Emails</b>) so commits link to your profile. The third line names every new project's first branch <code>main</code>, as GitHub does (older setups say <code>master</code>; section 75.7 renames it).</p>
+  <div class="callout warn"><b>On a shared lab computer</b>, <code>git config --global user.name</code> with no name prints the name Git is using, often the previous student's. Set your own before you commit, or set it <i>without</i> <code>--global</code> inside your repository, for that project only.</div>
+  <h3>Make a GitHub account</h3>
+  <p>Sign up at <code>github.com</code> (free). Your <b>username</b> appears in every address (<code>github.com/USERNAME/student-dashboard</code>, and in Chapter 76 <code>USERNAME.github.io</code>), so choose one fit for a CV, and turn on two-factor sign-in.</p>
+</section>
+
+<section id="s4">
+  <h2>75.4 Three places your work lives</h2>
+  <p>Get this picture right and every Git command becomes obvious.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 228" role="img" aria-label="Working directory, staging area, local repository and GitHub in a row, joined by git add, git commit and git push, with git pull coming back from GitHub">
+      <path d="M130 60 Q180 10 230 60" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="180" y="26" class="t c b mono">git add</text>
+      <path d="M310 60 Q360 10 410 60" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="360" y="26" class="t c b mono">git commit</text>
+      <path d="M490 60 Q540 10 590 60" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="540" y="26" class="t c b mono">git push</text>
+      <rect x="15" y="60" width="150" height="80" rx="12" class="box saf"/>
+      <text x="90" y="88" class="t c b">Working directory</text>
+      <text x="90" y="107" class="t c s">the files you edit</text>
+      <text x="90" y="125" class="t c s mono">untracked / modified</text>
+      <rect x="195" y="60" width="150" height="80" rx="12" class="box blu"/>
+      <text x="270" y="88" class="t c b">Staging area</text>
+      <text x="270" y="107" class="t c s">picked for next commit</text>
+      <text x="270" y="125" class="t c s mono">staged</text>
+      <rect x="375" y="60" width="150" height="80" rx="12" class="box grn"/>
+      <text x="450" y="88" class="t c b">Local repository</text>
+      <text x="450" y="107" class="t c s">commits kept in .git</text>
+      <text x="450" y="125" class="t c s mono">committed</text>
+      <rect x="555" y="60" width="150" height="80" rx="12" class="box ink"/>
+      <text x="630" y="88" class="t c b w">GitHub (remote)</text>
+      <text x="630" y="107" class="t c s w">shared copy: origin</text>
+      <text x="630" y="125" class="t c s w mono">pushed</text>
+      <path d="M630 140 L630 168 L90 168 L90 144" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="360" y="186" class="t c s">git pull &mdash; bring new commits from GitHub down into your files</text>
+      <path d="M15 198 L525 198" class="edge dash"/>
+      <path d="M555 198 L705 198" class="edge dash"/>
+      <text x="270" y="216" class="t c s b">on your computer (works offline)</text>
+      <text x="630" y="216" class="t c s b">on github.com (online)</text>
+    </svg>
+    <figcaption><b>Figure 75.2</b> Work moves left to right one deliberate step at a time: add chooses, commit saves, push uploads. Pull brings other people's commits down.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Working directory</b> &mdash; the files you edit. Git watches them but saves nothing on its own.</li>
+    <li><b>Staging area</b> &mdash; a waiting list of changes <i>chosen</i> for the next commit (Git's manual also calls it the <i>index</i>).</li>
+    <li><b>Local repository</b> &mdash; the commits, kept in a hidden <code>.git</code> folder inside your project.</li>
+    <li><b>Remote</b> &mdash; a copy on a server, usually GitHub, nicknamed <code>origin</code>.</li>
+  </ol>
+  <p>Why a waiting list? Say you fixed a typo in <code>index.html</code> and half-built a search feature in <code>js/app.js</code>. <code>git add index.html</code> stages only the typo fix, so you can commit <i>Fix heading typo</i> now and the search later. Each commit tells one clean story.</p>
+  <div class="plain"><p>Always in this order: <b>add</b> chooses, <b>commit</b> saves on your computer, <b>push</b> uploads to GitHub. Until you commit, Git has saved nothing; until you push, GitHub knows nothing.</p></div>
+  <div class="callout analogy"><b>Picture this.</b> A photographer at a family wedding. Guests wander round the hall all evening &mdash; your working directory. For each picture the photographer calls onto the stage only the people who belong in it &mdash; <code>git add</code>. Click: the moment is fixed, with a caption underneath &mdash; <code>git commit</code>. The print goes into the album at home (your local repository), and a copy is posted to the relatives' album in another city (<code>git push</code>).</div>
+  <h3>Four states a file can be in</h3>
+  <table class="tbl">
+    <thead><tr><th>State</th><th>Meaning</th><th>How it gets there</th><th><code>git status</code> lists it under</th></tr></thead>
+    <tbody>
+      <tr><td><b>Untracked</b></td><td>New; Git has never saved it</td><td>You create it</td><td>Untracked files</td></tr>
+      <tr><td><b>Modified</b></td><td>Changed since the last commit, not yet chosen</td><td>You edit and save it</td><td>Changes not staged for commit</td></tr>
+      <tr><td><b>Staged</b></td><td>On the waiting list for the next commit</td><td><code>git add</code></td><td>Changes to be committed</td></tr>
+      <tr><td><b>Committed</b></td><td>Stored in a snapshot</td><td><code>git commit</code></td><td>(nothing: "working tree clean")</td></tr>
+    </tbody>
+  </table>
+  <details class="qc"><summary>Quick check: you edit index.html and run git add index.html. Is the change on GitHub now?</summary><p>No. <code>git status</code> shows <i>Changes to be committed: modified: index.html</i>: staged, not committed, not pushed. It reaches GitHub only after <code>git commit</code> and <code>git push</code>.</p></details>
+  <h3>Try it: a toy Git you can click</h3>
+  <p>The example draws the four places as boxes, with a button per command. On load the console shows <code>git status</code> with two untracked files. Then:</p>
+  <ol>
+    <li>Press <b>git add .</b>, <b>git status</b>, then <b>git commit -m</b>: the console prints <code>[main (root-commit) 3f2a9c1] Add page layout</code>; box 3 fills, box 4 (GitHub) stays empty.</li>
+    <li>Click <b>index.html</b> (an edit), then <b>git status</b>: <i>Changes not staged for commit</i>. Press <b>git add .</b> and <b>git status</b>: the quick check, answered.</li>
+    <li>Type <i>Add search feature</i>, commit, then press <b>git log --oneline</b>, <b>git push</b>, <b>git log --oneline</b>. The second log shows <code>(HEAD -&gt; main, origin/main)</code>: GitHub has caught up.</li>
+    <li>Edit <b>index.html</b>, press <b>git add .</b>, edit it <i>again</i>, then <b>git status</b>: the file is listed twice, because only the first edit was staged. Real Git does exactly this.</li>
+  </ol>
+  <pre class="code" data-run data-title="A toy Git - add, commit and push, and watch the four boxes" data-h="330">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 10px; color: #1E293B; }
+  .bar { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; align-items: center; }
+  button { font: 13px system-ui, sans-serif; padding: 6px 10px; border-radius: 8px;
+           border: 1px solid #94A3B8; background: #fff; cursor: pointer; }
+  button.git { font-family: ui-monospace, Consolas, monospace; background: #0B2545;
+               color: #fff; border-color: #0B2545; }
+  input { font: 13px ui-monospace, Consolas, monospace; padding: 6px 8px; width: 170px;
+          border: 1px solid #94A3B8; border-radius: 8px; }
+  .areas { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 8px; }
+  .area { border: 2px solid #CBD5E1; border-radius: 10px; padding: 6px 8px; min-height: 76px; }
+  .area h3 { margin: 0 0 4px; font-size: 11px; text-transform: uppercase; color: #475569; }
+  .area p { margin: 2px 0; font: 12px ui-monospace, Consolas, monospace; }
+  #wd { border-color: #E07B1E; }  #st { border-color: #4F46E5; }
+  #repo { border-color: #138808; }  #gh { border-color: #0B2545; }
+&lt;/style&gt;
+&lt;div class="bar"&gt;
+  &lt;b&gt;Edit and save:&lt;/b&gt;
+  &lt;button data-edit="index.html"&gt;index.html&lt;/button&gt;
+  &lt;button data-edit="css/styles.css"&gt;css/styles.css&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="bar"&gt;
+  &lt;button class="git" id="status"&gt;git status&lt;/button&gt;
+  &lt;button class="git" id="add"&gt;git add .&lt;/button&gt;
+  &lt;input id="msg" value="Add page layout" aria-label="Commit message"&gt;
+  &lt;button class="git" id="commit"&gt;git commit -m&lt;/button&gt;
+  &lt;button class="git" id="log"&gt;git log --oneline&lt;/button&gt;
+  &lt;button class="git" id="push"&gt;git push&lt;/button&gt;
+&lt;/div&gt;
+&lt;div class="areas"&gt;
+  &lt;div class="area" id="wd"&gt;&lt;h3&gt;1 Working directory&lt;/h3&gt;&lt;div id="wdList"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="area" id="st"&gt;&lt;h3&gt;2 Staging area&lt;/h3&gt;&lt;div id="stList"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="area" id="repo"&gt;&lt;h3&gt;3 Local repository&lt;/h3&gt;&lt;div id="repoList"&gt;&lt;/div&gt;&lt;/div&gt;
+  &lt;div class="area" id="gh"&gt;&lt;h3&gt;4 GitHub (origin)&lt;/h3&gt;&lt;div id="ghList"&gt;&lt;/div&gt;&lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+// A toy model of Git. Each file has a draft number: v1, then v2 after an edit...
+const working = { "css/styles.css": 1, "index.html": 1 };
+const staged = {};        // what "git add" has chosen for the next commit
+let snapshot = {};        // every file as it was in the latest commit
+const commits = [];       // oldest first: { id, message }
+let pushed = 0;           // how many of those commits GitHub has
+// Real Git calculates each id from the snapshot; this toy takes the next one.
+const ids = ["3f2a9c1", "5a7c2e1", "9be1d40", "c41e8a2", "e07d3b9", "a62f915"];
+
+function show(listId, lines) {
+  const box = document.getElementById(listId);
+  box.textContent = "";
+  for (const line of lines.length ? lines : ["(empty)"]) {
+    const p = document.createElement("p");
+    p.textContent = line;
+    box.appendChild(p);
+  }
+}
+
+function render() {
+  show("wdList", Object.keys(working).map(f =&gt; f + " v" + working[f]));
+  show("stList", Object.keys(staged).map(f =&gt; f + " v" + staged[f]));
+  show("repoList", commits.map(c =&gt; c.id + " " + c.message).reverse());
+  show("ghList", commits.slice(0, pushed).map(c =&gt; c.id + " " + c.message).reverse());
+}
+
+function gitStatus() {
+  const ready = [], changed = [], untracked = [];
+  for (const file of Object.keys(working)) {
+    const inCommit = snapshot[file];   // undefined if never committed
+    const inStage = staged[file];      // undefined if not staged
+    if (inStage !== undefined) {
+      ready.push((inCommit === undefined ? "new file:   " : "modified:   ") + file);
+    }
+    const known = inStage !== undefined ? inStage : inCommit;
+    if (known === undefined) untracked.push(file);
+    else if (working[file] !== known) changed.push("modified:   " + file);
+  }
+  const out = ["$ git status", "On branch main"];
+  if (commits.length === 0) out.push("No commits yet");
+  if (pushed &gt; 0) {
+    const ahead = commits.length - pushed;
+    out.push(ahead === 0 ? "Your branch is up to date with 'origin/main'."
+      : "Your branch is ahead of 'origin/main' by " + ahead + (ahead === 1 ? " commit." : " commits."));
+  }
+  if (ready.length) out.push("Changes to be committed:", ...ready.map(t =&gt; "    " + t));
+  if (changed.length) out.push("Changes not staged for commit:", ...changed.map(t =&gt; "    " + t));
+  if (untracked.length) out.push("Untracked files:", ...untracked.map(t =&gt; "    " + t));
+  if (ready.length + changed.length + untracked.length === 0) {
+    out.push("nothing to commit, working tree clean");
+  }
+  console.log(out.join("\n"));
+}
+
+function gitAdd() {
+  for (const file of Object.keys(working)) {
+    if (working[file] !== snapshot[file]) staged[file] = working[file];
+  }
+  console.log("$ git add .");
+  render();
+}
+
+function gitCommit() {
+  const message = document.getElementById("msg").value.trim();
+  console.log('$ git commit -m "' + message + '"');
+  const files = Object.keys(staged);
+  if (message === "") {
+    console.log("Aborting commit due to empty commit message.");
+    return;
+  }
+  if (files.length === 0) {
+    console.log('nothing to commit (use "git add" to stage your changes first)');
+    return;
+  }
+  const id = ids[commits.length] || Math.random().toString(16).slice(2, 9);
+  const root = commits.length === 0 ? " (root-commit)" : "";
+  commits.push({ id: id, message: message });
+  snapshot = { ...snapshot, ...staged };
+  for (const file of files) delete staged[file];
+  const count = files.length === 1 ? "1 file changed" : files.length + " files changed";
+  console.log("[main" + root + " " + id + "] " + message + "\n " + count);
+  render();
+}
+
+function gitLog() {
+  const out = ["$ git log --oneline"];
+  if (commits.length === 0) {
+    out.push("fatal: your current branch 'main' does not have any commits yet");
+  }
+  for (let i = commits.length - 1; i &gt;= 0; i--) {     // newest first
+    const labels = [];
+    if (i === commits.length - 1) labels.push("HEAD -&gt; main");
+    if (i === pushed - 1) labels.push("origin/main");
+    const tag = labels.length ? " (" + labels.join(", ") + ") " : " ";
+    out.push(commits[i].id + tag + commits[i].message);
+  }
+  console.log(out.join("\n"));
+}
+
+function gitPush() {
+  const out = ["$ git push"];
+  if (commits.length === 0) {
+    out.push("error: src refspec main does not match any");
+  } else if (pushed === commits.length) {
+    out.push("Everything up-to-date");
+  } else {
+    out.push("To https://github.com/asha-verma/student-dashboard.git");
+    if (pushed === 0) out.push(" * [new branch]      main -&gt; main");
+    else out.push("   " + commits[pushed - 1].id + ".." + commits[commits.length - 1].id + "  main -&gt; main");
+    pushed = commits.length;
+  }
+  console.log(out.join("\n"));
+  render();
+}
+
+document.querySelectorAll("[data-edit]").forEach(button =&gt; {
+  button.addEventListener("click", () =&gt; {
+    const file = button.dataset.edit;
+    working[file] = working[file] + 1;
+    console.log("(you edited " + file + " and saved it: it is now v" + working[file] + ")");
+    render();
+  });
+});
+document.getElementById("status").addEventListener("click", gitStatus);
+document.getElementById("add").addEventListener("click", gitAdd);
+document.getElementById("commit").addEventListener("click", gitCommit);
+document.getElementById("log").addEventListener("click", gitLog);
+document.getElementById("push").addEventListener("click", gitPush);
+
+render();
+console.log("Toy Git ready: two files exist, but Git has never saved them.");
+gitStatus();
+&lt;/script&gt;</pre>
+  <p>The toy assumes the GitHub connection of section 75.7 is made and shortens Git's messages, but the order of events and the meaning of every message are real.</p>
+</section>
+
+<section id="s5">
+  <h2>75.5 Your first repository, command by command</h2>
+  <p>Asha's Chapter 73 project, <code>student-dashboard</code>, holds <code>index.html</code>, <code>css/styles.css</code> and <code>js/app.js</code>. In a VS Code terminal, five commands give it a first commit.</p>
+  <h3>1. git init &mdash; start tracking this folder</h3>
+  <pre class="code">$ git init
+Initialized empty Git repository in C:/Users/asha/Documents/student-dashboard/.git/</pre>
+  <p>That created a hidden folder, <code>.git</code>. <b>That folder is the repository</b>: every commit is stored inside it. Run <code>git init</code> <b>once per project, inside the project folder</b> &mdash; never in your whole Documents folder.</p>
+  <h3>2. git status &mdash; what is going on?</h3>
+  <pre class="code">$ git status
+On branch main
+
+No commits yet
+
+Untracked files:
+  (use "git add &lt;file&gt;..." to include in what will be committed)
+        css/
+        index.html
+        js/
+
+nothing added to commit but untracked files present (use "git add" to track)</pre>
+  <p>You are on the branch <code>main</code>, there are no commits yet, and three things are <b>untracked</b>: Git sees them but has never saved them (an untracked folder is shown once, as <code>css/</code>). <code>git status</code> changes nothing, so <b>run it before and after every other command</b>.</p>
+  <h3>3. git add &mdash; choose what goes into the snapshot</h3>
+  <pre class="code">$ git add .
+$ git status
+On branch main
+
+No commits yet
+
+Changes to be committed:
+  (use "git rm --cached &lt;file&gt;..." to unstage)
+        new file:   css/styles.css
+        new file:   index.html
+        new file:   js/app.js</pre>
+  <p>The dot means "this folder and everything in it"; <code>git add index.html</code> stages one file. <code>git add</code> printed <b>nothing</b>: silence means success.</p>
+  <div class="callout warn"><b>A warning, not an error.</b> On Windows you may see <code>warning: in the working copy of 'index.html', LF will be replaced by CRLF the next time Git touches it</code>. Windows and Mac/Linux end lines with different invisible characters; your files are fine.</div>
+  <h3>4. git commit -m &mdash; save the snapshot</h3>
+  <pre class="code">$ git commit -m "Add page layout"
+[main (root-commit) be8b983] Add page layout
+ 3 files changed, 14 insertions(+)
+ create mode 100644 css/styles.css
+ create mode 100644 index.html
+ create mode 100644 js/app.js</pre>
+  <p><code>main</code> is the branch, and <code>(root-commit)</code> marks the very first commit. <code>be8b983</code> is the commit's id, a <span class="jw" data-def="A fingerprint code Git calculates from the exact contents of a commit. Change one letter in one file and the code comes out completely different. The full code is 40 characters; the first 7 are enough to name a commit.">hash</span>; yours will differ, because it is calculated from the contents, your name and the time. <code>create mode 100644</code> just means "ordinary file".</p>
+  <p><code>-m</code> means "the message follows". Forget it and Git opens a text editor; if it is a black screen of <code>~</code> marks (Vim), press <kbd>Esc</kbd>, type <code>:q!</code> and <kbd>Enter</kbd> to cancel, then run the command again with <code>-m</code>.</p>
+  <h3>5. git log --oneline &mdash; read the history</h3>
+  <pre class="code">$ git log --oneline
+be8b983 (HEAD -&gt; main) Add page layout
+
+$ git branch
+* main</pre>
+  <p><code>HEAD -&gt; main</code> means "you are here, on the branch <code>main</code>". <code>git branch</code> lists the branches; the star marks the one you are on.</p>
+  <h3>Commit messages people can read</h3>
+  <p>A history of <i>update, fix, final2</i> tells you nothing; <i>Add search box, Fix email check in contact form</i> is a diary. Four rules:</p>
+  <ol>
+    <li><b>A command:</b> <i>Add</i>, <i>Fix</i>, <i>Remove</i>, not <i>Added</i>. It should complete <i>"If applied, this commit will ___."</i></li>
+    <li><b>One commit, one idea:</b> a bug fix and a new feature are two commits.</li>
+    <li><b>Short:</b> about 50 characters, capital first letter, no full stop. GitHub cuts first lines over 72 characters.</li>
+    <li><b>Explaining why?</b> A second <code>-m</code> adds a description: <code>git commit -m "Fix email check" -m "Addresses with a + sign were rejected."</code></li>
+  </ol>
+  <p>The checker below tests six sample messages; then type your own and press <b>Check</b>.</p>
+  <pre class="code" data-run data-title="A commit-message checker - try your own messages" data-h="340">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 12px; color: #1E293B; font-size: 14px; }
+  input { font: 14px ui-monospace, Consolas, monospace; padding: 7px 9px; width: 65%;
+          border: 1px solid #94A3B8; border-radius: 8px; }
+  button { font: 14px system-ui, sans-serif; padding: 7px 12px; border-radius: 8px;
+           border: 0; background: #0B2545; color: #fff; cursor: pointer; }
+  ul { padding-left: 18px; }
+  li { margin: 5px 0; }
+  .good { color: #138808; }
+  .fix { color: #C42B2B; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;Check a commit message&lt;/b&gt; (complete the sentence: "If applied, this commit will ...")&lt;/p&gt;
+&lt;input id="mine" value="Added the contact form." aria-label="Your commit message"&gt;
+&lt;button id="check"&gt;Check&lt;/button&gt;
+&lt;ul id="results"&gt;&lt;/ul&gt;
+&lt;script&gt;
+const vague = ["update", "updates", "changes", "stuff", "fix", "misc", "wip", "asdf", "final"];
+const notCommands = ["added", "adding", "fixed", "fixing", "updated", "updating",
+                     "changed", "changing", "removed", "removing", "created", "creating"];
+
+function checkMessage(message) {
+  const subject = message.trim();
+  if (subject === "") return ["the message is empty"];
+  const problems = [];
+  const words = subject.split(/\s+/);
+  if (vague.includes(subject.toLowerCase())) {
+    problems.push("too vague: say WHAT changed");
+  } else if (words.length &lt; 2) {
+    problems.push("too short: say what changed");
+  }
+  if (notCommands.includes(words[0].toLowerCase())) {
+    problems.push('write it as a command: "Add", not "Added"');
+  }
+  if (subject[0] !== subject[0].toUpperCase()) problems.push("start with a capital letter");
+  if (subject.endsWith(".")) problems.push("no full stop at the end");
+  if (subject.length &gt; 50) {
+    problems.push("keep it to about 50 characters (this one has " + subject.length + ")");
+  }
+  return problems;
+}
+
+function report(message) {
+  const problems = checkMessage(message);
+  const verdict = problems.length === 0 ? "GOOD" : "FIX ";
+  const why = problems.length ? " - " + problems.join("; ") : "";
+  console.log(`${verdict} "${message}"${why}`);
+  const li = document.createElement("li");
+  li.className = problems.length === 0 ? "good" : "fix";
+  li.textContent = `${verdict} "${message}"${why}`;
+  document.getElementById("results").appendChild(li);
+}
+
+const samples = [
+  "Add search feature",
+  "update",
+  "Added the contact form.",
+  "Changes",
+  "Fix the bug where the search box ignored capital letters in course names",
+  "Fix email check in contact form"
+];
+samples.forEach(report);
+
+document.getElementById("check").addEventListener("click", () =&gt; {
+  report(document.getElementById("mine").value);
+});
+&lt;/script&gt;</pre>
+  <p>Two samples pass. <i>update</i> fails twice (vague, no capital); <i>Added the contact form.</i> fails twice (past tense, full stop); <i>Changes</i> is vague; the 72-character message suits the second <code>-m</code>, not the first line. The checker is a simple word list: a reminder, not a judge.</p>
+  <div class="callout exam"><b>Exam tip.</b> The best commit message names one specific change as a short command: <i>Add search box to assignment list</i>. <i>update</i>, <i>changes</i> or <i>final</i> are always wrong.</div>
+</section>
+
+<section id="s6">
+  <h2>75.6 Looking back, and going back</h2>
+  <p>Asha adds a search box to <code>index.html</code> and saves:</p>
+  <pre class="code">$ git status
+On branch main
+Changes not staged for commit:
+  (use "git add &lt;file&gt;..." to update what will be committed)
+  (use "git restore &lt;file&gt;..." to discard changes in working directory)
+        modified:   index.html
+
+no changes added to commit (use "git add" and/or "git commit -a")</pre>
+  <h3>git diff &mdash; exactly what changed?</h3>
+  <pre class="code">$ git diff
+diff --git a/index.html b/index.html
+index 37368a2..cff73d3 100644
+--- a/index.html
++++ b/index.html
+@@ -7,6 +7,7 @@
+ &lt;/head&gt;
+ &lt;body&gt;
+   &lt;h1&gt;Student Dashboard&lt;/h1&gt;
++  &lt;input type="search" id="search" placeholder="Search assignments"&gt;
+   &lt;script src="js/app.js" defer&gt;&lt;/script&gt;
+ &lt;/body&gt;
+ &lt;/html&gt;</pre>
+  <p>The first four lines name the file (<code>a/</code> old, <code>b/</code> new). <code>@@ -7,6 +7,7 @@</code> says where: "from line 7, six lines became seven". A line starting with <b><code>+</code></b> was added (green in a terminal), <b><code>-</code></b> was removed (red), and a space marks an unchanged neighbour shown for context. A changed line appears as a <code>-</code> line then a <code>+</code> line.</p>
+  <div class="plain"><p><code>git diff</code> is "spot the difference" done for you: plus added, minus removed. Read it before every commit.</p></div>
+  <p>Plain <code>git diff</code> shows <b>unstaged</b> changes; after <code>git add</code>, <code>git diff --staged</code> shows what will be committed.</p>
+  <pre class="code">$ git add index.html
+$ git commit -m "Add search box"
+[main 92ae75c] Add search box
+ 1 file changed, 1 insertion(+)
+
+$ git log --oneline
+92ae75c (HEAD -&gt; main) Add search box
+be8b983 Add page layout
+
+$ git log
+commit 92ae75c9576ac8dce5432a3a93a51462af68f201 (HEAD -&gt; main)
+Author: Asha Verma &lt;asha.verma@example.com&gt;
+Date:   Thu Oct 29 11:40:00 2026 +0530
+
+    Add search box
+
+commit be8b983065afa3bdf3ffda6c12df66d2f9c972f8
+Author: Asha Verma &lt;asha.verma@example.com&gt;
+Date:   Thu Oct 29 10:15:00 2026 +0530
+
+    Add page layout</pre>
+  <p>History is listed <b>newest first</b>. Plain <code>git log</code> adds the full 40-character id, author and date (<code>+0530</code> is IST). A long log shows a screen at a time: <kbd>Space</kbd> for more, <kbd>q</kbd> to quit.</p>
+  <h3>Going back</h3>
+  <table class="tbl">
+    <thead><tr><th>You want to&hellip;</th><th>Command</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>Throw away edits you have not committed</td><td><code>git restore index.html</code></td><td>The file goes back to its last committed (or staged) version. <b>The edits are gone for good.</b></td></tr>
+      <tr><td>Take a file off the waiting list, keeping your edit</td><td><code>git restore --staged index.html</code></td><td>The change is unstaged; the file on disk is untouched.</td></tr>
+      <tr><td>Bring back one file from an older commit</td><td><code>git restore --source=7d3b5f0 css/styles.css</code></td><td>The file becomes that old version; check it, then <code>add</code> and <code>commit</code> (Figure 75.1).</td></tr>
+      <tr><td>Undo a whole commit</td><td><code>git revert --no-edit e93a114</code></td><td>Git makes a <b>new</b> commit, <i>Revert "New dark theme"</i>, that does the exact opposite of the old one.</td></tr>
+    </tbody>
+  </table>
+  <p>None of these rewrites history: <code>restore</code> changes files and <code>revert</code> adds a commit. Older tutorials write <code>git checkout -- index.html</code> for <code>git restore index.html</code>.</p>
+  <div class="callout warn"><b>Two ways to lose work.</b> Deleting the <code>.git</code> folder throws away every commit; <code>git reset --hard</code> throws away every uncommitted change to tracked files, with no undo.</div>
+</section>
+
+<section id="s7">
+  <h2>75.7 Putting your project on GitHub</h2>
+  <p>So far everything lives on Asha's laptop. Now she connects it to an empty GitHub repository.</p>
+  <h3>Step 1: create an empty repository on GitHub</h3>
+  <p>On <code>github.com</code>, click <b>+</b> &rarr; <b>New repository</b>, name it <code>student-dashboard</code>, and choose <b>Public</b> (anyone can see it; needed for a portfolio) or <b>Private</b>. Leave the README, <code>.gitignore</code> and licence options <b>off</b>: your laptop already has a history, and if GitHub starts its own the first push is refused (fix at the end of this section). Click <b>Create repository</b>; GitHub shows the address, ending in <code>.git</code>.</p>
+  <h3>Step 2: connect and push</h3>
+  <pre class="code">$ git branch -M main
+$ git remote add origin https://github.com/USERNAME/student-dashboard.git
+$ git remote -v
+origin  https://github.com/USERNAME/student-dashboard.git (fetch)
+origin  https://github.com/USERNAME/student-dashboard.git (push)
+$ git push -u origin main</pre>
+  <table class="tbl">
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>git branch -M main</code></td><td>Renames the branch to <code>main</code> (needed if it says <code>master</code>)</td></tr>
+      <tr><td><code>git remote add origin URL</code></td><td>Saves GitHub's address as <code>origin</code>; nothing is sent yet</td></tr>
+      <tr><td><code>git remote -v</code></td><td>Shows the remotes, to check the address</td></tr>
+      <tr><td><code>git push -u origin main</code></td><td>Uploads every commit on <code>main</code>; <code>-u</code> <b>links</b> <code>main</code> to <code>origin/main</code>, so later a plain <code>git push</code> or <code>git pull</code> knows where to go</td></tr>
+    </tbody>
+  </table>
+  <p>Replace <code>USERNAME</code> with yours. The first push prints something like:</p>
+  <pre class="code">Enumerating objects: 10, done.
+Counting objects: 100% (10/10), done.
+Delta compression using up to 8 threads
+Compressing objects: 100% (6/6), done.
+Writing objects: 100% (10/10), 1.05 KiB | 1.05 MiB/s, done.
+Total 10 (delta 1), reused 0 (delta 0), pack-reused 0
+To https://github.com/USERNAME/student-dashboard.git
+ * [new branch]      main -&gt; main
+branch 'main' set up to track 'origin/main'.</pre>
+  <p>The last three lines matter: the destination, <code>main</code> arriving as a new branch, and the <code>-u</code> link.</p>
+  <h3>Signing in</h3>
+  <p>On the first push the <b>Git Credential Manager</b> opens a window: sign in with your browser, approve, and Git remembers you. The <b>GitHub CLI</b> does the same with <code>gh auth login</code>. Your account password typed into the terminal does <i>not</i> work: GitHub stopped accepting passwords for Git in 2021.</p>
+  <div class="callout warn"><b>Never</b> put a password, a GitHub token or any other secret in a source file, a commit message or a screenshot.</div>
+  <h3>What you see on GitHub</h3>
+  <p>Refresh the repository page and your files are there:</p>
+  <div class="demo">
+    <p class="dlab">Illustrative mock-up &mdash; the labels match GitHub; the layout is simplified</p>
+    <div class="d75">
+      <div class="top75"><b>asha-verma</b> / <b>student-dashboard</b><span class="pill75">Public</span></div>
+      <div class="tabs75"><span class="on75">Code</span><span>Issues</span><span>Pull requests</span><span>Actions</span><span>Settings</span></div>
+      <div class="bar75"><span class="btn75">main &#9662;</span><span class="mut75 hide75">1 branch</span><span class="sp75"></span><span class="btn75">Add file &#9662;</span><span class="btn75 go75">Code &#9662;</span></div>
+      <div class="files75">
+        <div><b>asha-verma</b><span class="mut75">Add contact form validation</span><span class="sp75"></span><span class="mut75 hide75">3f2a9c1 &middot; 2 hours ago</span><b>12 commits</b></div>
+        <div><span class="f75">&#128193; css</span><span class="mut75">Add responsive grid</span></div>
+        <div><span class="f75">&#128193; js</span><span class="mut75">Add contact form validation</span></div>
+        <div><span class="f75">&#128193; assets</span><span class="mut75">Compress project images</span></div>
+        <div><span class="f75">&#128196; .gitignore</span><span class="mut75">Keep node_modules and .env out</span></div>
+        <div><span class="f75">&#128196; index.html</span><span class="mut75">Add projects section</span></div>
+        <div><span class="f75">&#128196; README.md</span><span class="mut75">Write setup instructions</span></div>
+      </div>
+      <div class="readme75"><p class="rh75">README.md</p><div class="rb75"><p class="rt75">Student Dashboard</p><p>A responsive dashboard that tracks assignments.</p><p>Live demo: asha-verma.github.io/student-dashboard</p></div></div>
+    </div>
+  </div>
+  <p>Each file shows its last commit's message; <b>12 commits</b> opens the history; <b>Code &#9662;</b> gives the <code>git clone</code> address; <b>Settings</b> holds <b>Pages</b> (Chapter 76); the README is the front page.</p>
+  <table class="tbl">
+    <thead><tr><th>Task</th><th>How</th></tr></thead>
+    <tbody>
+      <tr><td>Create a repository</td><td><b>+</b> &rarr; New repository; Public or Private</td></tr>
+      <tr><td>Add files</td><td><code>git push</code>, or Add file &rarr; Upload files</td></tr>
+      <tr><td>Write a README</td><td>What, why, how to run, live link</td></tr>
+      <tr><td>Manage commits</td><td>Small commits, clear messages</td></tr>
+      <tr><td>Inspect file history</td><td>Open file &rarr; History</td></tr>
+      <tr><td>Create branches</td><td><code>git switch -c feature/contact-form</code></td></tr>
+      <tr><td>Open pull requests</td><td>Compare &amp; pull request &rarr; review &rarr; merge</td></tr>
+      <tr><td>Resolve conflicts</td><td>Edit the markers, test, commit (75.9)</td></tr>
+    </tbody>
+  </table>
+  <h3>The everyday loop</h3>
+  <p>Every session now ends with <b>edit &rarr; <code>add</code> &rarr; <code>commit</code> &rarr; <code>push</code></b>, and <code>git status</code> says whether GitHub is behind:</p>
+  <pre class="code">$ git status
+On branch main
+Your branch is ahead of 'origin/main' by 1 commit.
+  (use "git push" to publish your local commits)
+
+nothing to commit, working tree clean
+
+$ git push
+To https://github.com/USERNAME/student-dashboard.git
+   92ae75c..4d81e0a  main -&gt; main</pre>
+  <p><i>Ahead by 1 commit</i> means "committed here, not yet on GitHub".</p>
+  <h3>Bringing work down: pull and clone</h3>
+  <p>If a teammate pushed, or you added a file on GitHub's website, <code>git pull</code> downloads the new commits and merges them into your files:</p>
+  <pre class="code">$ git pull
+From https://github.com/USERNAME/student-dashboard
+   4d81e0a..34a6310  main       -&gt; origin/main
+Updating 4d81e0a..34a6310
+Fast-forward
+ README.md | 1 +
+ 1 file changed, 1 insertion(+)
+ create mode 100644 README.md
+
+$ git pull
+Already up to date.</pre>
+  <p><code>git clone</code> is for a computer's <b>first</b> copy: the whole repository, history included, in a new folder with <code>origin</code> set up. In a lab, clone at the start of class and push at the end.</p>
+  <pre class="code">$ git clone https://github.com/USERNAME/student-dashboard.git
+Cloning into 'student-dashboard'...
+(a few progress lines)
+$ cd student-dashboard</pre>
+  <div class="plain"><p><b>push</b> = upload my new commits. <b>pull</b> = download new commits into my files. <b>clone</b> = download the whole project the first time. Of this chapter's commands, only these three need the Internet.</p></div>
+  <h3>When the first push is refused</h3>
+  <p>A GitHub repository created <i>with</i> a README holds a commit your laptop lacks, so the push is rejected:</p>
+  <pre class="code">$ git push -u origin main
+To https://github.com/USERNAME/student-dashboard.git
+ ! [rejected]        main -&gt; main (fetch first)
+error: failed to push some refs to 'https://github.com/USERNAME/student-dashboard.git'
+hint: Updates were rejected because the remote contains work that you do not
+hint: have locally. ...</pre>
+  <p>Fetch GitHub's commit, place your work on top of it, and push again:</p>
+  <pre class="code">$ git pull --rebase origin main
+$ git push -u origin main</pre>
+</section>
+
+<section id="s8">
+  <h2>75.8 README.md and .gitignore</h2>
+  <p>Two small files sit at the top of most repositories: one tells people what the project is, the other tells Git what to leave out.</p>
+  <h3>README.md: the front page</h3>
+  <p>The README is what a visitor reads first. In under a minute it should answer: <b>what is this, why, how do I run it, and where is it live?</b> The <code>.md</code> ending means it is written in <span class="jw" data-def="A simple way of writing formatted text with ordinary keyboard symbols: # for a heading, - for a bullet point, [words](address) for a link. GitHub turns it into a formatted page.">Markdown</span>. The template from your lecture slides:</p>
+  <pre class="code"># Student Dashboard
+A responsive dashboard that helps students track assignments and deadlines.
+
+## Features
+- Search and filter assignments
+- Progress bar per course
+- Works on mobile, tablet and desktop
+
+## Technologies used
+HTML5, CSS3 (Grid), JavaScript (ES modules)
+
+## Setup
+1. Clone the repo: git clone &lt;repo-url&gt;
+2. Open the folder in VS Code and start Live Server
+
+## Live demo
+https://USERNAME.github.io/student-dashboard/
+
+## Screenshots
+![Dashboard on desktop](assets/images/desktop.png)</pre>
+  <table class="tbl">
+    <thead><tr><th>You type</th><th>GitHub shows</th></tr></thead>
+    <tbody>
+      <tr><td><code># Title</code> / <code>## Part</code></td><td>A heading / a sub-heading</td></tr>
+      <tr><td><code>- item</code> / <code>1. step</code></td><td>A bullet / a numbered step</td></tr>
+      <tr><td><code>[Open the site](https://...)</code></td><td>A link: words in square brackets, address in round</td></tr>
+      <tr><td><code>![Screenshot](assets/images/desktop.png)</code></td><td>An image with alt text</td></tr>
+      <tr><td><code>**important**</code>; a blank line</td><td><b>Bold</b>; a new paragraph</td></tr>
+    </tbody>
+  </table>
+  <p>Edit the Markdown on the left and the preview follows. This little reader knows only headings, lists, links and paragraphs.</p>
+  <pre class="code" data-run data-title="README.md and how GitHub shows it - edit the left side" data-h="400">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 12px; color: #1E293B; }
+  .wrap { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; }
+  textarea { font: 12.5px ui-monospace, Consolas, monospace; width: 100%; height: 300px;
+             box-sizing: border-box; border: 1px solid #94A3B8; border-radius: 8px; padding: 8px; }
+  #preview { border: 1px solid #D0D7DE; border-radius: 8px; padding: 4px 16px; font-size: 14px; }
+  #preview h1 { font-size: 22px; border-bottom: 1px solid #D0D7DE; padding-bottom: 4px; }
+  #preview h2 { font-size: 17px; border-bottom: 1px solid #D0D7DE; padding-bottom: 3px; }
+  #preview a { color: #0969DA; }
+  .lab { font-size: 12px; font-weight: 700; color: #475569; margin: 0 0 4px; }
+&lt;/style&gt;
+&lt;div class="wrap"&gt;
+  &lt;div&gt;
+    &lt;p class="lab"&gt;README.md - what you type&lt;/p&gt;
+    &lt;textarea id="md" aria-label="README.md source"&gt;
+# Student Dashboard
+A responsive dashboard that helps students track assignments and deadlines.
+
+## Features
+- Search and filter assignments
+- Progress bar per course
+- Works on mobile, tablet and desktop
+
+## Setup
+1. Clone the repository
+2. Open the folder in VS Code and start Live Server
+
+## Live demo
+[Open the dashboard](https://USERNAME.github.io/student-dashboard/)&lt;/textarea&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;p class="lab"&gt;What GitHub shows on the repository page&lt;/p&gt;
+    &lt;div id="preview"&gt;&lt;/div&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+// A tiny Markdown reader: # headings, - and 1. lists, [text](url) links, paragraphs.
+function withLinks(tag, text) {
+  const el = document.createElement(tag);
+  // "See [demo](https://x.io) now" splits into ["See ", "demo", "https://x.io", " now"]
+  const parts = text.split(/\[([^\]]+)\]\(([^)]+)\)/);
+  parts.forEach((part, i) =&gt; {
+    if (i % 3 === 0) {
+      el.append(part);                         // ordinary text
+    } else if (i % 3 === 1) {
+      const a = document.createElement("a");   // the link text...
+      a.textContent = part;
+      a.href = parts[i + 1];                   // ...and the address after it
+      el.append(a);
+    }
+  });
+  return el;
+}
+
+function renderMarkdown(source) {
+  const out = document.getElementById("preview");
+  out.textContent = "";
+  let list = null;
+  for (const raw of source.split("\n")) {
+    const line = raw.trim();
+    if (line === "") { list = null; continue; }
+    const bullet = line.match(/^(- |\d+\. )/);
+    if (bullet) {
+      const type = bullet[1] === "- " ? "UL" : "OL";
+      if (!list || list.tagName !== type) {
+        list = document.createElement(type);
+        out.appendChild(list);
+      }
+      list.appendChild(withLinks("li", line.slice(bullet[1].length)));
+      continue;
+    }
+    list = null;
+    const hashes = line.match(/^(#{1,3}) /);
+    if (hashes) {
+      out.appendChild(withLinks("h" + hashes[1].length, line.slice(hashes[0].length)));
+    } else {
+      out.appendChild(withLinks("p", line));
+    }
+  }
+}
+
+const box = document.getElementById("md");
+renderMarkdown(box.value);
+const preview = document.getElementById("preview");
+console.log("Headings:", preview.querySelectorAll("h1, h2, h3").length,
+            "| lists:", preview.querySelectorAll("ul, ol").length,
+            "| links:", preview.querySelectorAll("a").length);
+box.addEventListener("input", () =&gt; renderMarkdown(box.value));
+&lt;/script&gt;</pre>
+  <p>The console reports <code>Headings: 4 | lists: 2 | links: 1</code> (one <code>#</code> title, three <code>##</code> sections). Delete the space after a <code>#</code> and that line stops being a heading.</p>
+  <h3>.gitignore: what Git must leave alone</h3>
+  <p><code>.gitignore</code> is a plain text file with exactly that name, in the project's top folder. Each line is a pattern; a new file that matches stays untracked: <code>git status</code> does not list it and <code>git add .</code> skips it. The file from the slides:</p>
+  <pre class="code"># dependencies (npm install restores them)
+node_modules/
+# build output
+dist/
+# secrets - never commit
+.env
+# editor and OS clutter
+.vscode/
+.DS_Store
+Thumbs.db</pre>
+  <table class="tbl">
+    <thead><tr><th>Pattern</th><th>What it is, and why keep it out</th></tr></thead>
+    <tbody>
+      <tr><td><code>node_modules/</code></td><td>The project's <span class="jw" data-def="Other people's code that your project needs in order to run, downloaded rather than written by you. One command, npm install, downloads them all again from a list.">dependencies</span>: thousands of files that <code>npm install</code> re-downloads from <code>package.json</code></td></tr>
+      <tr><td><code>dist/</code></td><td>Build output: can be regenerated, and would bury your real changes</td></tr>
+      <tr><td><code>.env</code></td><td>Secrets (passwords, keys): pushed, they are no longer secret</td></tr>
+      <tr><td><code>.vscode/</code>, <code>.DS_Store</code>, <code>Thumbs.db</code></td><td>Your editor settings and hidden macOS/Windows clutter</td></tr>
+    </tbody>
+  </table>
+  <p>The rules: a name ending in <code>/</code> means a <b>folder</b> of that name, anywhere; a plain name like <code>.env</code> matches exactly that name at any depth; <code>*</code> means "any characters" (<code>*.log</code> matches <code>debug.log</code>); <code>#</code> starts a comment. Create <code>.gitignore</code> <b>before</b> your first commit, because it does not affect files Git already tracks; for those, run <code>git rm -r --cached node_modules</code> (the files stay on disk) and commit.</p>
+  <p>The checker below applies these patterns, plus <code>*.log</code>, to fourteen paths. Then delete the <code>.env</code> line and press <b>Check again</b>.</p>
+  <pre class="code" data-run data-title="Which files would Git track? Edit the .gitignore and check again" data-h="380">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; margin: 12px; color: #1E293B; font-size: 14px; }
+  .wrap { display: flex; flex-wrap: wrap; gap: 14px; }
+  textarea { font: 13px ui-monospace, Consolas, monospace; width: 250px; height: 230px;
+             border: 1px solid #94A3B8; border-radius: 8px; padding: 8px; }
+  button { font: 14px system-ui, sans-serif; padding: 7px 12px; border-radius: 8px;
+           border: 0; background: #0B2545; color: #fff; cursor: pointer; margin-top: 6px; }
+  ul { list-style: none; padding: 0; margin: 0; font: 13px ui-monospace, Consolas, monospace; }
+  li { padding: 2px 0; }
+  .kept { color: #138808; }
+  .ignored { color: #94A3B8; text-decoration: line-through; }
+&lt;/style&gt;
+&lt;div class="wrap"&gt;
+  &lt;div&gt;
+    &lt;b&gt;.gitignore&lt;/b&gt;&lt;br&gt;
+    &lt;textarea id="rules" aria-label=".gitignore file"&gt;
+# dependencies (npm install brings them back)
+node_modules/
+# build output
+dist/
+# secrets - never commit
+.env
+# editor and OS clutter
+.vscode/
+.DS_Store
+Thumbs.db
+# log files
+*.log&lt;/textarea&gt;&lt;br&gt;
+    &lt;button id="check"&gt;Check again&lt;/button&gt;
+  &lt;/div&gt;
+  &lt;div&gt;
+    &lt;b&gt;Files in the project folder&lt;/b&gt;
+    &lt;ul id="list"&gt;&lt;/ul&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;script&gt;
+const files = [
+  "index.html", "css/styles.css", "js/app.js", "README.md", ".gitignore",
+  ".env", ".env.example", "node_modules/lodash/lodash.js", "dist/app.min.js",
+  ".vscode/settings.json", "images/Thumbs.db", "assets/.DS_Store",
+  "debug.log", "js/old/error.log"
+];
+
+// Keep only the real rules: drop blank lines and # comments.
+function readRules(text) {
+  return text.split("\n")
+    .map(line =&gt; line.trim())
+    .filter(line =&gt; line !== "" &amp;&amp; !line.startsWith("#"));
+}
+
+// Does one rule match one name? Understands a single * such as "*.log".
+function nameMatches(rule, name) {
+  if (!rule.includes("*")) return rule === name;
+  const [start, end] = rule.split("*");
+  return name.length &gt;= start.length + end.length &amp;&amp;
+         name.startsWith(start) &amp;&amp; name.endsWith(end);
+}
+
+// Returns the rule that ignores this path, or null if Git will track it.
+function ignoredBy(path, rules) {
+  const parts = path.split("/");          // "js/old/error.log" -&gt; 3 parts
+  const folders = parts.slice(0, -1);     // every part except the file name
+  for (const rule of rules) {
+    if (rule.endsWith("/")) {             // "dist/" means a FOLDER called dist
+      const folder = rule.slice(0, -1);
+      if (folders.some(f =&gt; nameMatches(folder, f))) return rule;
+    } else if (parts.some(p =&gt; nameMatches(rule, p))) {
+      return rule;                        // a plain name matches at any depth
+    }
+  }
+  return null;
+}
+
+function check() {
+  const rules = readRules(document.getElementById("rules").value);
+  const list = document.getElementById("list");
+  list.textContent = "";
+  const rows = [];
+  for (const file of files) {
+    const rule = ignoredBy(file, rules);
+    rows.push({ file: file, git: rule ? "ignored by " + rule : "tracked" });
+    const li = document.createElement("li");
+    li.className = rule ? "ignored" : "kept";
+    li.textContent = file;
+    list.appendChild(li);
+  }
+  console.table(rows);
+  const kept = rows.filter(r =&gt; r.git === "tracked").length;
+  console.log("Tracked:", kept, "| Ignored:", rows.length - kept);
+  if (!ignoredBy(".env", rules)) {
+    console.warn("Danger: .env would be committed, and it holds your secrets!");
+  }
+}
+
+check();
+document.getElementById("check").addEventListener("click", check);
+&lt;/script&gt;</pre>
+  <p>The first run prints <code>Tracked: 6 | Ignored: 8</code>, as real Git would. <code>.gitignore</code> itself is tracked (teammates need it), and <code>*.log</code> catches <code>js/old/error.log</code> two folders deep. Without the <code>.env</code> line: 7 and 7, plus a yellow warning.</p>
+  <details class="qc"><summary>Quick check: the .gitignore contains the line .env. Will a file called .env.example be committed?</summary><p>Yes. A plain name matches only that exact name. That is deliberate: <code>.env.example</code> is a template with the setting names and fake values, so teammates know what to put in their own <code>.env</code>.</p></details>
+  <h3>Never commit a secret</h3>
+  <p>A <b>secret</b> lets someone act as you or spend your money: passwords, tokens, private keys, and the <span class="jw" data-def="A long secret code that a service such as a maps, weather or payment company gives you, so its servers know which account is making a request (and who to bill).">API keys</span> that maps, AI and payment services issue. Programs scan public repositories for leaked keys, often within minutes. Keep secrets in an ignored <code>.env</code> file and commit a harmless template:</p>
+  <pre class="code"># .env  - listed in .gitignore, stays on your computer
+WEATHER_API_KEY=7f3a9c0e5b2d4f81a6c3e9d0b4f7a2c1
+
+# .env.example  - committed, so others know which settings exist
+WEATHER_API_KEY=your-key-here</pre>
+  <p>One more catch: <b>front-end code has no safe place for a secret key at all</b>, because every file is sent to the visitor's browser (Chapter 1). Such keys belong on a server (Chapter 77).</p>
+  <div class="callout warn"><b>Already committed a secret?</b> Deleting the file in a new commit is <b>not enough</b>: the old commit still contains it. Treat the key as stolen: <b>revoke or rotate</b> it (cancel it and get a new one) at the service that issued it, immediately. Then add the file to <code>.gitignore</code>, run <code>git rm --cached .env</code>, and commit.</div>
+</section>
+
+<section id="s9">
+  <h2>75.9 Branches and pull requests</h2>
+  <p>In Chapter 76 the dashboard goes live from <code>main</code>. To try a contact form safely, Asha makes a <b>branch</b>, a separate line of work. If the form works she merges it in; if not, she deletes the branch.</p>
+  <pre class="code">$ git switch -c feature/contact-form
+Switched to a new branch 'feature/contact-form'
+
+$ git branch
+* feature/contact-form
+  main</pre>
+  <p><code>git switch -c</code> <b>creates</b> a branch and moves you onto it; the star has moved. Older tutorials write <code>git checkout -b</code> and <code>git checkout main</code> for <code>git switch -c</code> and <code>git switch main</code>. She commits the form, then switches back:</p>
+  <pre class="code">$ git add index.html
+$ git commit -m "Add contact form"
+[feature/contact-form 67bf32e] Add contact form
+ 1 file changed, 1 insertion(+)
+
+$ git switch main
+Switched to branch 'main'</pre>
+  <p>Look at <code>index.html</code> now: <b>the contact form has vanished</b>. Nothing is lost &mdash; Git swapped the files to match the current branch. Commit before you switch: Git refuses if an uncommitted change would be overwritten, and otherwise carries it across.</p>
+  <h3>Merging the branch in</h3>
+  <p>You always merge <i>into</i> the branch you are on, so Asha is on <code>main</code> when she brings the form in:</p>
+  <pre class="code">$ git merge feature/contact-form
+Updating 34a6310..67bf32e
+Fast-forward
+ index.html | 1 +
+ 1 file changed, 1 insertion(+)
+
+$ git branch -d feature/contact-form
+Deleted branch feature/contact-form (was 67bf32e).</pre>
+  <p>This was a <span class="jw" data-def="A merge where main had no new commits of its own, so Git just slides the main label forward to the branch's newest commit. No extra merge commit is needed.">fast-forward</span>: <code>main</code> had not moved since the branch began, so Git slid the label forward. When both lines have new commits, Git makes a <b>merge commit</b> joining them (Figure 75.3). Deleting a merged branch removes only its name.</p>
+  <figure class="fig">
+    <svg viewBox="0 0 720 220" role="img" aria-label="The branch feature/contact-form leaves main after the second commit, gets two commits, and is joined back into main by a merge commit">
+      <path d="M90 70 L600 70" class="edge grn"/>
+      <path d="M613 70 L690 70" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M210 70 C 250 70, 260 150, 300 150" class="edge saf"/>
+      <path d="M300 150 L470 150" class="edge saf"/>
+      <path d="M470 150 C 540 150, 560 70, 600 70" class="edge saf"/>
+      <text x="20" y="74" class="t b">main</text>
+      <text x="20" y="154" class="t b">feature/contact-form</text>
+      <circle cx="90" cy="70" r="11" class="box grn"/>
+      <circle cx="210" cy="70" r="11" class="box grn"/>
+      <circle cx="400" cy="70" r="11" class="box grn"/>
+      <circle cx="600" cy="70" r="13" class="box grn"/>
+      <circle cx="300" cy="150" r="11" class="box saf"/>
+      <circle cx="470" cy="150" r="11" class="box saf"/>
+      <text x="90" y="46" class="t c s">Add page layout</text>
+      <text x="210" y="46" class="t c s">Add search box</text>
+      <text x="400" y="46" class="t c s">Fix heading typo</text>
+      <text x="600" y="46" class="t c s b">Merge contact form</text>
+      <text x="300" y="178" class="t c s">Add contact form</text>
+      <text x="470" y="178" class="t c s">Validate email</text>
+      <text x="150" y="198" class="t s">1. branch off from main</text>
+      <text x="150" y="213" class="t s mono">git switch -c feature/contact-form</text>
+      <text x="600" y="198" class="t c s">2. back on main, join the work in</text>
+      <text x="600" y="213" class="t c s mono">git merge feature/contact-form</text>
+    </svg>
+    <figcaption><b>Figure 75.3</b> A branch is a separate line of commits. Here <code>main</code> also gained a commit (<i>Fix heading typo</i>) while the form was built, so Git makes a merge commit joining the two lines.</figcaption>
+  </figure>
+  <div class="plain"><p>A branch is a named bookmark that moves forward with each commit made on it. Merging means "bring that line of work into this one".</p></div>
+  <details class="qc"><summary>Quick check: git branch prints "  feature/contact-form" and "* main". Which branch are you on, and where will your next commit go?</summary><p>On <code>main</code> (the star marks it), so the next commit goes to <code>main</code>. Run <code>git switch feature/contact-form</code> first if you meant to work on the form.</p></details>
+  <h3>Merge conflicts</h3>
+  <p>Git merges changes to different lines by itself. If both branches changed <b>the same line</b> differently, it stops and asks. Here <code>main</code> made the heading <i>CSE326 Dashboard</i> and <code>feature/title</code> made it <i>My Assignments</i>:</p>
+  <pre class="code">$ git merge feature/title
+Auto-merging index.html
+CONFLICT (content): Merge conflict in index.html
+Automatic merge failed; fix conflicts and then commit the result.</pre>
+  <p>Git has written both versions into the file, between <b>conflict markers</b>:</p>
+  <pre class="code">&lt;body&gt;
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD
+  &lt;h1&gt;CSE326 Dashboard&lt;/h1&gt;
+=======
+  &lt;h1&gt;My Assignments&lt;/h1&gt;
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/title
+  &lt;input type="search" id="search" placeholder="Search assignments"&gt;</pre>
+  <p>Between <code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code> and <code>=======</code> is the version on your current branch (<code>main</code>); after <code>=======</code> comes the incoming one. To resolve it:</p>
+  <ol>
+    <li>Edit the file to say what you want (one version, the other, or a mix) and delete the three marker lines. VS Code's <i>Accept Current / Incoming / Both</i> buttons do this for you.</li>
+    <li>Save, check the page, then <code>git add index.html</code> and <code>git commit -m "Merge feature/title, keep CSE326 heading"</code>.</li>
+  </ol>
+  <p><code>git merge --abort</code> undoes the whole attempt. A conflict is Git asking a human to decide, not a sign you broke anything.</p>
+  <h3>Pull requests: merging with a review</h3>
+  <p>On teams, people push the branch and open a <b>pull request</b> (PR) on GitHub &mdash; <i>"please pull my branch into main"</i> &mdash; a page where teammates read every changed line, comment, and merge with one button:</p>
+  <ol>
+    <li><code>git push -u origin feature/contact-form</code>, then click <b>Compare &amp; pull request</b> on the repository page.</li>
+    <li>Check the direction (<b>base: main</b> &larr; <b>compare: feature/contact-form</b>), describe what changed and why, and click <b>Create pull request</b>.</li>
+    <li>Reviewers read <b>Files changed</b>, comment, and approve or ask for changes; new commits on the branch join the PR automatically.</li>
+    <li>Click <b>Merge pull request</b>, <b>Confirm merge</b>, <b>Delete branch</b>. On your laptop: <code>git switch main</code>, <code>git pull</code>, <code>git branch -d feature/contact-form</code>.</li>
+  </ol>
+  <p>For someone else's project, where you cannot push, first <b>fork</b> it (your own GitHub copy) and open the PR from the fork.</p>
+</section>
+
+<section id="s10">
+  <h2>75.10 The practical Git challenge</h2>
+  <p>The twenty-minute task from your slides, on any small project of your own. The goal: a public repository with a sensible structure, a README that renders, and three meaningful commits.</p>
+  <ol>
+    <li><b>Create a local project</b> &mdash; <code>index.html</code>, <code>css/</code>, <code>js/</code> and a one-line <code>README.md</code>.</li>
+    <li><b>Initialise Git</b> &mdash; <code>git init</code>.</li>
+    <li><b>Make two meaningful commits</b> &mdash; e.g. <i>Add page layout</i>, then <i>Add search feature</i>.</li>
+    <li><b>Create a GitHub repository</b> &mdash; empty, no README.</li>
+    <li><b>Push the project</b> &mdash; <code>remote add</code>, then <code>push -u</code>.</li>
+    <li><b>Update the README</b> from the template in section 75.8 &mdash; commit and push again.</li>
+    <li><b>Verify</b> &mdash; the files are there, it says 3 commits, and the README renders.</li>
+  </ol>
+  <pre class="code"># 1-3: on your computer, inside the project folder
+$ git init
+$ git add .
+$ git commit -m "Add page layout"
+     (build the search feature, save)
+$ git add .
+$ git commit -m "Add search feature"
+
+# 4: on github.com  +  &rarr;  New repository  &rarr;  my-project, empty
+
+# 5: connect and upload
+$ git branch -M main
+$ git remote add origin https://github.com/USERNAME/my-project.git
+$ git push -u origin main
+
+# 6: improve README.md, save, then
+$ git add README.md
+$ git commit -m "Update README"
+$ git push
+
+# 7: check
+$ git log --oneline
+9be1d40 (HEAD -&gt; main, origin/main) Update README
+5a7c2e1 Add search feature
+3f2a9c1 Add page layout</pre>
+  <p>Your ids will differ; <code>origin/main</code> next to <code>HEAD</code> means GitHub has caught up. The repository should have this shape:</p>
+  <pre class="code">github.com/USERNAME/my-project
+my-project/
+&#9500;&#9472;&#9472; README.md
+&#9500;&#9472;&#9472; index.html
+&#9500;&#9472;&#9472; css/
+&#9474;   &#9492;&#9472;&#9472; styles.css
+&#9492;&#9472;&#9472; js/
+    &#9492;&#9472;&#9472; app.js</pre>
+  <table class="tbl">
+    <thead><tr><th>What went wrong</th><th>What Git says</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>Forgot <code>git add</code></td><td><i>nothing added to commit but untracked files present</i></td><td><code>git add .</code>, then commit</td></tr>
+      <tr><td>Pushed before the first commit</td><td><i>error: src refspec main does not match any</i></td><td>Commit first; if the branch is <code>master</code>, <code>git branch -M main</code></td></tr>
+      <tr><td>GitHub repository created with a README</td><td><i>! [rejected] main -&gt; main (fetch first)</i></td><td><code>git pull --rebase origin main</code>, then push</td></tr>
+      <tr><td>Ran <code>remote add</code> twice</td><td><i>error: remote origin already exists.</i></td><td><code>git remote set-url origin</code> + the correct address</td></tr>
+      <tr><td>Commits show someone else's name</td><td>(wrong author on GitHub)</td><td>Set <code>user.name</code> and <code>user.email</code> (section 75.3)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>75.11 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "git add saves my work."</b><br>It only puts changes on the waiting list.</div>
+    <div class="r"><b>&#10003; "add chooses, commit saves, push uploads."</b><br>Until <code>git commit</code>, nothing is in the history.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I committed, so it's on GitHub."</b><br>A commit is stored only on your computer.</div>
+    <div class="r"><b>&#10003; "It's on GitHub after git push."</b><br><i>Ahead of 'origin/main' by 1 commit</i> means you still need to push.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I deleted the file with my API key and committed, so the key is gone."</b><br>Every older commit still contains it.</div>
+    <div class="r"><b>&#10003; "A leaked key must be revoked and replaced at once."</b><br>Prevention is <code>.env</code> in <code>.gitignore</code> from day one.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A merge conflict means I broke something."</b><br>Nothing is broken or lost.</div>
+    <div class="r"><b>&#10003; "Git needs me to choose between two edits of the same line."</b><br>Edit, delete the markers, add, commit &mdash; or <code>git merge --abort</code>.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it.</p>
+  <details class="q"><summary><span>Which statement correctly describes Git and GitHub?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. GitHub is a program on your computer; Git is the website that stores it</li><li>B. Git is a version-control tool on your computer; GitHub is a website that hosts Git repositories</li><li>C. They are two names for the same system</li><li>D. Git only works while connected to GitHub</li></ul>
+    <p><b>Answer: B.</b> A swaps them, C denies the difference, and D is false: commits, logs and branches all work offline.</p></div></details>
+  <details class="q"><summary><span>You edit <code>index.html</code> and run <code>git add index.html</code>. Which statement is now true?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The change is on GitHub</li><li>B. The change is saved in a new commit</li><li>C. The change is staged, but not committed or pushed</li><li>D. Git will ignore <code>index.html</code> from now on</li></ul>
+    <p><b>Answer: C.</b> <code>git add</code> only stages; <code>git commit</code> saves and <code>git push</code> uploads. D confuses staging with <code>.gitignore</code>.</p></div></details>
+  <details class="q"><summary><span>Which command shows which files are untracked, modified or staged, without changing anything?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>git status</code></li><li>B. <code>git log</code></li><li>C. <code>git init</code></li><li>D. <code>git push</code></li></ul>
+    <p><b>Answer: A.</b> <code>git log</code> lists commits, <code>git init</code> creates a repository, <code>git push</code> uploads.</p></div></details>
+  <details class="q"><summary><span>Which is the best commit message?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>update</code></li><li>B. <code>Fixed stuff.</code></li><li>C. <code>final version 2</code></li><li>D. <code>Add search box to assignment list</code></li></ul>
+    <p><b>Answer: D.</b> It names one specific change as a command. The others say nothing about what changed.</p></div></details>
+  <details class="q"><summary><span>In <code>git remote add origin https://github.com/USERNAME/student-dashboard.git</code>, what is <code>origin</code>?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The first commit of the project</li><li>B. The name of the main branch</li><li>C. A nickname for the address of the remote repository on GitHub</li><li>D. The original author of the project</li></ul>
+    <p><b>Answer: C.</b> <code>origin</code> is the conventional name for the remote's address, so later commands can say <code>git push origin main</code> instead of the full URL.</p></div></details>
+  <details class="q"><summary><span>Predict: <code>git log --oneline</code> prints<br><code>9be1d40 (HEAD -&gt; main) Update README</code><br><code>5a7c2e1 Add search feature</code><br><code>3f2a9c1 Add page layout</code><br>Which commit was made first, and what does <code>HEAD -&gt; main</code> tell you?</span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> <code>3f2a9c1 Add page layout</code> was first: the log lists newest at the top. <code>HEAD -&gt; main</code> means you are on <code>main</code> and its latest commit is <code>9be1d40</code>.</p></div></details>
+  <details class="q"><summary><span>A project uses npm packages. Which line belongs in its <code>.gitignore</code>?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>node_modules/</code></li><li>B. <code>index.html</code></li><li>C. <code>README.md</code></li><li>D. <code>css/</code></li></ul>
+    <p><b>Answer: A.</b> <code>npm install</code> can restore the dependencies at any time; the other three are the project itself.</p></div></details>
+  <details class="q"><summary><span>You committed and pushed a file containing a real API key to a public repository. What should you do first?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Delete the file in a new commit and push; that removes it</li><li>B. Rename the repository</li><li>C. Add the file to <code>.gitignore</code>; that hides it from GitHub</li><li>D. Revoke or rotate the key, then stop tracking and ignore the file</li></ul>
+    <p><b>Answer: D.</b> The key may already have been copied, so only cancelling it makes you safe. A leaves it in the older commit; C does nothing to a tracked file; B changes nothing.</p></div></details>
+  <details class="q"><summary><span>What does <code>git switch -c feature/contact-form</code> do?</span><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Deletes the branch <code>feature/contact-form</code></li><li>B. Creates a new branch called <code>feature/contact-form</code> and moves you onto it</li><li>C. Merges <code>feature/contact-form</code> into <code>main</code></li><li>D. Downloads <code>feature/contact-form</code> from GitHub</li></ul>
+    <p><b>Answer: B.</b> <code>-c</code> means create (old spelling: <code>git checkout -b</code>). Deleting is <code>git branch -d</code>; merging is <code>git merge</code>.</p></div></details>
+  <details class="q"><summary><span>After <code>git merge feature/title</code> the file contains:<br><code>&lt;&lt;&lt;&lt;&lt;&lt;&lt; HEAD</code><br><code>  &lt;h1&gt;CSE326 Dashboard&lt;/h1&gt;</code><br><code>=======</code><br><code>  &lt;h1&gt;My Assignments&lt;/h1&gt;</code><br><code>&gt;&gt;&gt;&gt;&gt;&gt;&gt; feature/title</code><br>What do the two parts mean, and how do you finish the merge?</span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> a merge conflict. The <code>HEAD</code> part is the version on your current branch; the part after <code>=======</code> is the incoming one from <code>feature/title</code>. Edit to the heading you want, delete the three marker lines, then <code>git add index.html</code> and <code>git commit</code>.</p></div></details>
+  <details class="q"><summary><span>Your first <code>git push -u origin main</code> is rejected with <i>(fetch first)</i>. You had ticked "Add a README" on GitHub. Cause and fix?</span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Your password is wrong; type it again</li><li>B. The branch must be called master; rename it</li><li>C. GitHub has a README commit your computer lacks; run <code>git pull --rebase origin main</code>, then push</li><li>D. The repository is private; make it public</li></ul>
+    <p><b>Answer: C.</b> Git refuses to overwrite GitHub's commit; <code>--rebase</code> puts your commits on top of it. A wrong password gives a sign-in error, not this rejection.</p></div></details>
+  <details class="q"><summary><span>Which command makes a full copy of a GitHub repository, with its whole history, on a computer that has never had it?</span><span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>git pull</code></li><li>B. <code>git init</code></li><li>C. <code>git push</code></li><li>D. <code>git clone</code></li></ul>
+    <p><b>Answer: D.</b> <code>git pull</code> only updates a copy you already have; <code>git init</code> starts an empty repository.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Git is a <b>distributed</b> version-control system: every copy holds the full history of commits (id, message, author, time).</li>
+    <li><b>Git</b> is an offline tool on your computer; <b>GitHub</b> is a website hosting Git repositories, with pull requests, issues and Pages.</li>
+    <li>Working directory &rarr; (<code>add</code>) staging area &rarr; (<code>commit</code>) local repository &rarr; (<code>push</code>) remote; <code>pull</code> brings commits down.</li>
+    <li>Set <code>user.name</code> and <code>user.email</code> once; run <code>git status</code> constantly; read <code>git diff</code> before committing.</li>
+    <li>Commit messages are short commands about one change: <i>Add search box</i>, not <i>update</i>.</li>
+    <li>To publish: create an <b>empty</b> GitHub repository, then <code>remote add origin URL</code> and <code>push -u origin main</code>. Never put a password or key in a file.</li>
+    <li><code>README.md</code> is the front page; <code>.gitignore</code> keeps out <code>node_modules/</code>, build output, <code>.env</code> and OS clutter. A leaked secret must be revoked.</li>
+    <li>Branches let you experiment safely; merge them back, settle conflicts by editing the markers, and use pull requests to review.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Command</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>git config --global user.name "Asha Verma"</code></td><td>Sets the name on your commits (once)</td></tr>
+      <tr><td><code>git init</code></td><td>Starts tracking this folder (creates <code>.git</code>)</td></tr>
+      <tr><td><code>git status</code></td><td>What changed, what is staged; changes nothing</td></tr>
+      <tr><td><code>git add .</code> / <code>git add index.html</code></td><td>Stages everything / one file</td></tr>
+      <tr><td><code>git commit -m "Add search box"</code></td><td>Saves the staged changes as a snapshot</td></tr>
+      <tr><td><code>git log --oneline</code></td><td>Compact history, newest first</td></tr>
+      <tr><td><code>git diff</code> / <code>git diff --staged</code></td><td>Unstaged / staged line changes</td></tr>
+      <tr><td><code>git restore index.html</code></td><td>Discards uncommitted edits (permanent)</td></tr>
+      <tr><td><code>git restore --source=7d3b5f0 css/styles.css</code></td><td>Brings back a file from an older commit</td></tr>
+      <tr><td><code>git revert --no-edit e93a114</code></td><td>New commit that undoes an old one</td></tr>
+      <tr><td><code>git branch</code></td><td>Lists branches; <code>*</code> = current</td></tr>
+      <tr><td><code>git switch -c feature/x</code> (old: <code>git checkout -b</code>)</td><td>Creates a branch and moves onto it</td></tr>
+      <tr><td><code>git switch main</code></td><td>Moves to an existing branch</td></tr>
+      <tr><td><code>git merge feature/x</code></td><td>Brings that branch into the current one</td></tr>
+      <tr><td><code>git remote add origin URL</code></td><td>Saves GitHub's address as <code>origin</code></td></tr>
+      <tr><td><code>git push -u origin main</code></td><td>First upload; links <code>main</code> to <code>origin/main</code></td></tr>
+      <tr><td><code>git push</code> / <code>git pull</code></td><td>Upload / download-and-merge new commits</td></tr>
+      <tr><td><code>git clone URL</code></td><td>Copies a whole repository into a new folder</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://git-scm.com/book/en/v2" target="_blank" rel="noopener noreferrer">Pro Git (free online book)<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The official Git book; chapters 1 to 3 cover this chapter, with clear diagrams.</span></li>
+    <li><a href="https://docs.github.com/en/get-started/using-git/about-git" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; About Git<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">GitHub's own explanation of repositories, commits and branches.</span></li>
+    <li><a href="https://docs.github.com/en/get-started/start-your-journey/hello-world" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; Hello World<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Creates a repository, a branch and a pull request entirely in the browser.</span></li>
+    <li><a href="https://docs.github.com/en/get-started/git-basics/ignoring-files" target="_blank" rel="noopener noreferrer">GitHub Docs &mdash; Ignoring files<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How <code>.gitignore</code> works, ready-made templates, and untracking a committed file.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of tools and tutorials is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

@@ -1,0 +1,666 @@
+<article class="chapter" data-ch="63">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 63 &middot; Audio and Video Events</p>
+  <h1>Audio and Video Events</h1>
+  <p class="lead">A video player on a website is more than a moving picture. The Play button turns into Pause, the time ticks along, the bar fills up, and a message appears when the lecture ends. All of that is JavaScript talking to the audio or video element. This chapter gives you the commands you can send it, the readings you can take from it and the events it sends back &mdash; and then you build a player of your own.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> play files without a plug-in; <code>controls</code> shows the browser's own player, and autoplay only works when the media is <code>muted</code> (<a href="book.html?ch=10">Chapter 10</a>).</li>
+      <li><code>addEventListener("click", fn)</code> runs <code>fn</code> every time the event happens (<a href="book.html?ch=57">Chapter 57</a>).</li>
+      <li><code>getElementById</code> finds an element and <code>textContent</code> changes its words (<a href="book.html?ch=56">Chapter 56</a>).</li>
+      <li><code>Math.floor(135 / 60)</code> is 2 and <code>135 % 60</code> is 15 (<a href="book.html?ch=44">Chapter 44</a>); <code>"5".padStart(2, "0")</code> is <code>"05"</code> (<a href="book.html?ch=45">Chapter 45</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Control an audio or video element from JavaScript with <code>play()</code>, <code>pause()</code> and its properties.</li>
+      <li>Explain why <code>play()</code> returns a Promise, why a browser may refuse it, and handle the refusal.</li>
+      <li>Read <code>duration</code> only once it is known, and turn seconds into a <code>m:ss</code> time display.</li>
+      <li>Say when each main media event fires: <code>loadedmetadata</code>, <code>canplay</code>, <code>play</code>, <code>playing</code>, <code>pause</code>, <code>timeupdate</code>, <code>seeking</code>, <code>seeked</code>, <code>volumechange</code>, <code>ended</code> and <code>error</code>.</li>
+      <li>Build custom controls: a play/pause toggle, mute, volume, speed and a progress bar you can drag to seek.</li>
+      <li>Keep custom controls accessible, and update the screen from events instead of checking on a timer.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>63.1 From tags to a remote control</h2>
+  <p>Chapter 10 put media on the page with two tags. These are the lecture slide's examples:</p>
+  <pre class="code">&lt;audio id="audioPlayer" controls&gt;
+  &lt;source src="music.mp3" type="audio/mpeg"&gt;
+  Your browser does not support audio.
+&lt;/audio&gt;
+
+&lt;video id="videoPlayer" width="480" controls&gt;
+  &lt;source src="lesson.mp4" type="video/mp4"&gt;
+  Your browser does not support video.
+&lt;/video&gt;</pre>
+  <p>HTML5 plays both directly in the browser, and <code>controls</code> gives each one the browser's own play button, time bar and volume. For many pages that is enough. But notice the <code>id</code> on each element. An id means JavaScript can find it, and once it has the element it can do everything those built-in controls do, and more: start a lecture at the two-minute mark, slow it to 0.75 speed, or show <i>"Lecture finished &mdash; take the quiz"</i> the moment it ends.</p>
+  <pre class="code">const audio = document.getElementById("audioPlayer");
+const video = document.getElementById("videoPlayer");</pre>
+  <p>Each of these is a media element object. <code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> are built on the same foundation, called <span class="jw" data-def="The shared set of methods, properties and events that every audio and video element has. Learn it once and it works for both.">HTMLMediaElement</span>, so everything in this chapter works on both, word for word. Its tools come in three kinds:</p>
+  <ul>
+    <li><b>Commands</b> (methods) &mdash; things you tell it to do: <code>play()</code>, <code>pause()</code>.</li>
+    <li><b>Readings and dials</b> (properties) &mdash; values you can read, and some you can set: <code>currentTime</code>, <code>duration</code>, <code>volume</code>, <code>paused</code>.</li>
+    <li><b>Announcements</b> (events) &mdash; it tells you when something has happened: <code>play</code>, <code>timeupdate</code>, <code>ended</code>.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> Cooking dal in a pressure cooker. You give it <b>commands</b>: light the flame, turn it down. You take <b>readings</b>: how high the flame is, how long it has been on. And the cooker makes <b>announcements</b> of its own: it whistles. Nobody stands at the stove counting the minutes and walking back every ten seconds to check. You listen for the whistle and act then. A media element works the same way: methods are the knobs, properties are the readings, events are the whistles.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Your script sends commands to the media element, reads and sets its properties, and receives events from it">
+      <rect x="20" y="30" width="165" height="180" rx="12" class="box blu"/>
+      <text x="102" y="104" class="t c b">Your script</text>
+      <text x="102" y="126" class="t c s">buttons, sliders</text>
+      <text x="102" y="142" class="t c s">and listener</text>
+      <text x="102" y="158" class="t c s">functions</text>
+      <rect x="435" y="30" width="165" height="180" rx="12" class="box saf"/>
+      <text x="517" y="100" class="t c b mono">&lt;audio&gt; / &lt;video&gt;</text>
+      <text x="517" y="122" class="t c s">a media element:</text>
+      <text x="517" y="138" class="t c s">loads and plays</text>
+      <text x="517" y="154" class="t c s">the file</text>
+      <path d="M190 62 L430 62" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="310" y="52" class="t c b">1 COMMANDS (methods)</text>
+      <text x="310" y="80" class="t c s mono">play()   pause()</text>
+      <path d="M190 112 L430 112" class="edge" marker-end="url(#arr)"/>
+      <path d="M430 124 L190 124" class="edge" marker-end="url(#arr)"/>
+      <text x="310" y="103" class="t c b">2 PROPERTIES (read and set)</text>
+      <text x="310" y="142" class="t c s mono">currentTime  volume  paused</text>
+      <path d="M430 178 L190 178" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="310" y="169" class="t c b">3 EVENTS (announcements)</text>
+      <text x="310" y="196" class="t c s mono">play   timeupdate   ended</text>
+      <text x="310" y="230" class="t c s">You send commands, read and turn the dials, and listen for the announcements.</text>
+    </svg>
+    <figcaption><b>Figure 63.1</b> Commands and properties go from your script to the element; events come back the other way, when the element has something to tell you.</figcaption>
+  </figure>
+</section>
+
+<section id="s2">
+  <h2>63.2 Commands: play() and pause()</h2>
+  <p>Two methods do most of the work:</p>
+  <pre class="code">audio.play();    // start, or carry on from where it was paused
+audio.pause();   // stop moving, but stay at this position</pre>
+  <p><code>pause()</code> keeps the position like a bookmark, so the next <code>play()</code> carries on from there. <b>There is no <code>stop()</code> method.</b> To stop and go back to the beginning, pause and then rewind by setting the position to 0 (63.3 explains <code>currentTime</code>):</p>
+  <pre class="code">audio.pause();
+audio.currentTime = 0;   // "stop" = pause + rewind</pre>
+  <h3>play() answers later, with a Promise</h3>
+  <p>Playback cannot always begin on the spot. The browser may still be loading the file and, more importantly, it may <b>refuse</b>. So <code>play()</code> does not wait. It hands back a <span class="jw" data-def="An object that stands for an answer that is not ready yet. You attach .then() for when it succeeds and .catch() for when it fails.">Promise</span>, the object you met at the end of Chapter 54 that stands for "the answer, when it comes". You attach what should happen next: <code>.then(...)</code> runs if playback starts, and <code>.catch(...)</code> runs if it is refused, receiving an error object whose <code>name</code> says why.</p>
+  <pre class="code">audio.play()
+  .then(() =&gt; console.log("Playing"))
+  .catch((err) =&gt; console.log("Could not play:", err.name));</pre>
+  <table class="tbl">
+    <thead><tr><th><code>err.name</code></th><th>What it means</th></tr></thead>
+    <tbody>
+      <tr><td><code>NotAllowedError</code></td><td>The browser blocked it: sound tried to start before the user had touched the page (the autoplay policy, below)</td></tr>
+      <tr><td><code>NotSupportedError</code></td><td>There is nothing it can play: the file is missing, or in a format this browser cannot read</td></tr>
+      <tr><td><code>AbortError</code></td><td>Interrupted: <code>pause()</code> was called, or a new file was loaded, before playback had begun</td></tr>
+    </tbody>
+  </table>
+  <h3>The autoplay policy</h3>
+  <p>Chapter 10 explained why an autoplaying video must be <code>muted</code>: nobody wants a page that suddenly shouts. JavaScript is held to the same rule. Every modern browser has an <span class="jw" data-def="The browser's rule about when media may start by itself. Sound is blocked until the user has interacted with the page; silent (muted) media may start freely.">autoplay policy</span>: media with sound may only start after a <span class="jw" data-def="A real action by the person using the page, such as a click, a tap or a key press. A line of code running by itself is not one.">user gesture</span> &mdash; a click, a tap or a key press on the page. A <code>play()</code> written straight into the script, running as the page loads, is usually refused with <code>NotAllowedError</code>. The same line inside a click listener works, because the click is the user saying "yes, I want this".</p>
+  <pre class="code">// As the page loads: usually REFUSED for media with sound
+audio.play().catch((err) =&gt; console.log(err.name));   // NotAllowedError
+
+// Inside a click listener: ALLOWED - the click is the user's permission
+playBtn.addEventListener("click", () =&gt; {
+  audio.play().catch((err) =&gt; console.log(err.name));
+});
+
+// Muted media may start by itself
+video.muted = true;
+video.play();</pre>
+  <div class="plain">
+    <p><code>play()</code> means "please start". The browser answers a moment later through the promise: yes (<code>.then</code>) or no (<code>.catch</code>). It says no to sound that tries to start before the user has done anything. So call <code>play()</code> from a click handler, and always add a <code>.catch</code>, so that a refusal is handled quietly instead of appearing as a red "Uncaught (in promise)" error.</p>
+  </div>
+  <pre class="code" data-run data-title="Play, Pause and Stop buttons - press them, then let the tone finish" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  button { padding: 8px 14px; margin-right: 6px; cursor: pointer; }
+  #state { margin-top: 12px; font-weight: 700; }
+&lt;/style&gt;
+&lt;audio id="tone" src="media/tone.wav" preload="auto"&gt;&lt;/audio&gt;
+&lt;p&gt;A 3-second tone with no built-in controls - only these buttons:&lt;/p&gt;
+&lt;button id="playBtn"&gt;Play&lt;/button&gt;
+&lt;button id="pauseBtn"&gt;Pause&lt;/button&gt;
+&lt;button id="stopBtn"&gt;Stop&lt;/button&gt;
+&lt;p id="state"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const tone = document.getElementById("tone");
+  const state = document.getElementById("state");
+
+  // Show two readings, on the page and in the Console
+  function report(label) {
+    const text = `${label}: paused = ${tone.paused}, at ${tone.currentTime.toFixed(1)} s`;
+    state.textContent = text;
+    console.log(text);
+  }
+
+  document.getElementById("playBtn").addEventListener("click", () =&gt; {
+    tone.play()                              // a request: the answer comes later
+      .then(() =&gt; report("Playing"))
+      .catch((err) =&gt; report("Refused - " + err.name));
+  });
+
+  document.getElementById("pauseBtn").addEventListener("click", () =&gt; {
+    tone.pause();                            // stays at this position
+    report("Paused");
+  });
+
+  document.getElementById("stopBtn").addEventListener("click", () =&gt; {
+    tone.pause();                            // there is no stop() method,
+    tone.currentTime = 0;                    // so pause and rewind to 0
+    report("Stopped");
+  });
+
+  report("Ready");
+&lt;/script&gt;</pre>
+  <p>Run it. The Console says <code>Ready: paused = true, at 0.0 s</code>. Press <b>Play</b>: <code>Playing: paused = false, at 0.0 s</code>. Press <b>Pause</b> part-way: the position is kept, perhaps <code>at 1.4 s</code>, and Play carries on from there. <b>Stop</b> pauses and rewinds to <code>0.0</code>. Now press Play and let the tone finish. The label still says <i>Playing</i>, although the sound has stopped. Nothing told the page. That is the job of events (63.4).</p>
+  <details class="qc"><summary>Quick check: a classmate writes video.stop() for a Stop button. What happens, and what should they write?</summary><div class="a">
+    <p>A <code>TypeError</code>: there is no <code>stop</code> method, so <code>video.stop</code> is <code>undefined</code> and calling it fails. Write <code>video.pause(); video.currentTime = 0;</code> &mdash; pause, then rewind.</p></div></details>
+</section>
+
+<section id="s3">
+  <h2>63.3 Readings and dials: the properties</h2>
+  <p>A media element carries a set of properties. Some are readings you can only look at; the others are dials you turn by assigning a new value.</p>
+  <table class="tbl">
+    <thead><tr><th>Property</th><th>What it holds</th><th>Read or set?</th></tr></thead>
+    <tbody>
+      <tr><td><code>currentTime</code></td><td>The playback position in seconds (<code>1.5</code> = one and a half seconds in). Setting it jumps there &mdash; a <span class="jw" data-def="A jump to a different point in the recording, like dragging the progress bar.">seek</span></td><td>Both</td></tr>
+      <tr><td><code>duration</code></td><td>The total length in seconds. <b><code>NaN</code> until the browser has read the file's metadata</b>; <code>Infinity</code> for a live stream</td><td>Read only</td></tr>
+      <tr><td><code>paused</code></td><td><code>true</code> before the first play, after <code>pause()</code>, and after the end; <code>false</code> from the moment <code>play()</code> is called (even while it waits for data)</td><td>Read only</td></tr>
+      <tr><td><code>ended</code></td><td><code>true</code> once playback has reached the end</td><td>Read only</td></tr>
+      <tr><td><code>volume</code></td><td>Loudness from <code>0</code> (silent) to <code>1</code> (full, the default). Anything outside that range throws an error</td><td>Both</td></tr>
+      <tr><td><code>muted</code></td><td><code>true</code> silences it <i>without</i> changing <code>volume</code></td><td>Both</td></tr>
+      <tr><td><code>playbackRate</code></td><td>Speed: <code>1</code> normal, <code>0.5</code> half speed, <code>2</code> double. Modern browsers keep voices at their normal pitch</td><td>Both</td></tr>
+      <tr><td><code>loop</code></td><td><code>true</code> starts again from 0 at the end &mdash; the same switch as the <code>loop</code> attribute</td><td>Both</td></tr>
+    </tbody>
+  </table>
+  <p>The attributes from Chapter 10 work the same way as properties: <code>video.loop = true</code>, <code>video.muted = true</code> and <code>video.controls = false</code> do from JavaScript what the attributes do in HTML. Three details catch beginners.</p>
+  <p><b>Time is a plain number of seconds.</b> A position of one minute fifteen seconds is <code>75</code>, not <code>"1:15"</code>. Turning it into <code>1:15</code> for the screen is your job, and 63.6 shows how.</p>
+  <p><b>The length is not known at first.</b> The length of a recording is stored inside the file, usually near the start, in its <span class="jw" data-def="Data about the data: facts stored inside a media file, such as its length and, for a video, its width and height.">metadata</span>. The browser can only read it after it has fetched those bytes, and your script usually runs before then, so <code>duration</code> is <code>NaN</code>. When the metadata arrives, the element fires the <code>loadedmetadata</code> event, and from then on <code>duration</code> is a real number. The safe pattern checks first, then waits if it has to:</p>
+  <pre class="code">if (audio.readyState &gt;= 1) {
+  showLength();                                         // already known
+} else {
+  audio.addEventListener("loadedmetadata", showLength); // wait for it
+}</pre>
+  <p><code>readyState</code> is a number from 0 to 4 saying how much the element has loaded: 0 means nothing yet; 1 or more means the metadata is in. The <code>if</code> covers a file that arrived very fast, before your listener was added; the <code>else</code> covers the usual case.</p>
+  <div class="plain">
+    <p>The browser does not know how long a song is until it has read the first part of the file. Ask too early and <code>duration</code> says <code>NaN</code>, "not a number". Wait for the <code>loadedmetadata</code> event, then ask.</p>
+  </div>
+  <p><b><code>volume</code> and <code>muted</code> are two separate dials.</b> Set <code>volume</code> to <code>0.5</code>, then <code>muted</code> to <code>true</code>: it goes silent, but <code>volume</code> still says <code>0.5</code>. Un-mute and the old loudness comes back. That is exactly how a mute button should behave.</p>
+  <pre class="code" data-run data-title="The readings before and after the metadata arrives" data-h="200">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } &lt;/style&gt;
+&lt;audio id="tone" src="media/tone.wav" preload="auto" controls&gt;&lt;/audio&gt;
+&lt;p id="info"&gt;Waiting for the file...&lt;/p&gt;
+
+&lt;script&gt;
+  const tone = document.getElementById("tone");
+  const info = document.getElementById("info");
+
+  console.log("At once - duration:", tone.duration, "| paused:", tone.paused);
+
+  function showFacts() {
+    console.log("Metadata - duration:", tone.duration, "seconds");
+    console.log("volume:", tone.volume, "| muted:", tone.muted,
+                "| rate:", tone.playbackRate, "| loop:", tone.loop);
+
+    tone.volume = 0.5;          // half loudness
+    tone.playbackRate = 1.5;    // one and a half times as fast
+    tone.loop = true;           // the same as writing the loop attribute
+    console.log("Changed - volume:", tone.volume, "| rate:", tone.playbackRate,
+                "| loop:", tone.loop);
+
+    try {
+      tone.volume = 1.5;        // more than 1 is not allowed
+    } catch (err) {
+      console.log("volume = 1.5 refused:", err.name);
+    }
+    info.textContent = `Length: ${tone.duration} s. Press play on the bar - fast, quiet, and on repeat.`;
+  }
+
+  if (tone.readyState &gt;= 1) {
+    showFacts();                                   // metadata already here
+  } else {
+    tone.addEventListener("loadedmetadata", showFacts);
+  }
+&lt;/script&gt;</pre>
+  <p>The first Console line runs at once: <code>At once - duration: NaN | paused: true</code>. A moment later the metadata arrives and <code>showFacts</code> runs: <code>duration: 3 seconds</code>; the defaults <code>volume: 1 | muted: false | rate: 1 | loop: false</code>; the new values <code>volume: 0.5 | rate: 1.5 | loop: true</code>; and finally <code>volume = 1.5 refused: IndexSizeError</code>, the error a browser throws for a volume outside 0 to 1. Press play on the bar: three assignments changed what the built-in player does.</p>
+  <details class="qc"><summary>Quick check: the very first line of a script logs video.duration and gets NaN. Why, and what should the script do instead?</summary><div class="a">
+    <p>The browser has not read the file's metadata yet, so it does not know the length. Read <code>duration</code> inside a <code>loadedmetadata</code> listener (or first check <code>readyState &gt;= 1</code>).</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>63.4 Events: the player tells you what happened</h2>
+  <p>Commands and properties let you ask. Events let the element tell. A media element fires events as things happen to it, and you listen with the same <code>addEventListener</code> you used for clicks in Chapter 57:</p>
+  <pre class="code">video.addEventListener("ended", () =&gt; {
+  message.textContent = "Lecture finished - take the quiz!";
+});</pre>
+  <p>These are the events from the lecture slide, plus the four a custom player needs most (<code>canplay</code>, <code>playing</code>, <code>seeking</code>, <code>seeked</code>):</p>
+  <table class="tbl">
+    <thead><tr><th>Event</th><th>Fires when</th><th>Typical use</th></tr></thead>
+    <tbody>
+      <tr><td><code>loadedmetadata</code></td><td>The metadata has been read: <code>duration</code> (and a video's size) is known</td><td>Show the length; set the progress bar's maximum</td></tr>
+      <tr><td><code>canplay</code></td><td>Enough has loaded to start playing</td><td>Hide "Loading&hellip;", enable the Play button</td></tr>
+      <tr><td><code>play</code></td><td>Playback has been asked to start: <code>paused</code> has just become <code>false</code></td><td>Make the toggle button say "Pause"</td></tr>
+      <tr><td><code>playing</code></td><td>Playback has really begun, or carried on after waiting for data</td><td>Hide a buffering spinner</td></tr>
+      <tr><td><code>pause</code></td><td>Playback has been paused &mdash; including at the end, just before <code>ended</code></td><td>Make the toggle button say "Play"</td></tr>
+      <tr><td><code>timeupdate</code></td><td>The position has changed: several times a second while playing (about four in Chrome), and after every seek</td><td>Move the progress bar; update <code>0:42 / 3:15</code></td></tr>
+      <tr><td><code>seeking</code> / <code>seeked</code></td><td>A jump to a new <code>currentTime</code> has begun / finished</td><td>Show "Loading&hellip;" during a long jump</td></tr>
+      <tr><td><code>volumechange</code></td><td><code>volume</code> or <code>muted</code> has changed</td><td>Update the mute button and the volume slider</td></tr>
+      <tr><td><code>ended</code></td><td>Playback has reached the end. <b>Never fires when <code>loop</code> is on</b></td><td>Show "Finished"; start the next track</td></tr>
+      <tr><td><code>error</code></td><td>The file could not be loaded or played</td><td>Show a friendly message</td></tr>
+    </tbody>
+  </table>
+  <p><b><code>play</code> is the request; <code>playing</code> is the reality.</b> On a fast connection they arrive together. On a slow one, <code>play</code> fires the instant you press the button, and <code>playing</code> only when the picture actually moves.</p>
+  <p>Four more facts that exams like:</p>
+  <ul>
+    <li>At the natural end, <code>pause</code> fires <b>first</b> and then <code>ended</code>; afterwards both <code>paused</code> and <code>ended</code> are <code>true</code>.</li>
+    <li>With <code>loop</code> on, the element jumps back to 0 and keeps going, so <code>ended</code> never fires.</li>
+    <li>Unlike <code>click</code>, media events do not bubble up to parent elements. Add the listener to the audio or video element itself.</li>
+    <li>When an element's <code>src</code> fails, <code>error</code> fires on the element and <code>element.error.code</code> says why: 1 aborted, 2 network failure, 3 could not decode, 4 file missing or format not supported. (With several <code>&lt;source&gt;</code> children, a failing file fires <code>error</code> on that <code>&lt;source&gt;</code> instead.)</li>
+  </ul>
+  <figure class="fig">
+    <svg viewBox="0 0 720 200" role="img" aria-label="Timeline of media events: loadedmetadata and canplay as the file loads, play and playing when the user presses Play, repeated timeupdate while playing, seeking and seeked during a jump, then pause and ended at the end">
+      <text x="360" y="26" class="t c b">One playback, as its events arrive (time runs left to right)</text>
+      <path d="M24 100 L700 100" class="edge" marker-end="url(#arr)"/>
+      <circle cx="60" cy="100" r="6" fill="#94A3B8"/>
+      <text x="60" y="84" class="t c s mono">loadedmetadata</text>
+      <circle cx="140" cy="100" r="6" fill="#94A3B8"/>
+      <text x="140" y="124" class="t c s mono">canplay</text>
+      <circle cx="230" cy="100" r="6" fill="#E07B1E"/>
+      <text x="230" y="84" class="t c s mono">play</text>
+      <circle cx="290" cy="100" r="6" fill="#E07B1E"/>
+      <text x="290" y="124" class="t c s mono">playing</text>
+      <circle cx="350" cy="100" r="4" fill="#138808"/>
+      <circle cx="375" cy="100" r="4" fill="#138808"/>
+      <circle cx="400" cy="100" r="4" fill="#138808"/>
+      <circle cx="425" cy="100" r="4" fill="#138808"/>
+      <circle cx="450" cy="100" r="4" fill="#138808"/>
+      <text x="400" y="84" class="t c s mono">timeupdate, timeupdate ...</text>
+      <circle cx="505" cy="100" r="6" fill="#4F46E5"/>
+      <text x="505" y="124" class="t c s mono">seeking</text>
+      <circle cx="555" cy="100" r="6" fill="#4F46E5"/>
+      <text x="555" y="84" class="t c s mono">seeked</text>
+      <circle cx="615" cy="100" r="6" fill="#C42B2B"/>
+      <text x="615" y="124" class="t c s mono">pause</text>
+      <circle cx="668" cy="100" r="6" fill="#C42B2B"/>
+      <text x="668" y="84" class="t c s mono">ended</text>
+      <path d="M44 150 L156 150" class="edge dash"/>
+      <text x="100" y="170" class="t c s">the file loads</text>
+      <path d="M214 150 L306 150" class="edge dash"/>
+      <text x="260" y="170" class="t c s">user presses Play</text>
+      <path d="M340 150 L460 150" class="edge dash"/>
+      <text x="400" y="170" class="t c s">about 4 a second</text>
+      <path d="M490 150 L570 150" class="edge dash"/>
+      <text x="530" y="170" class="t c s">user drags the bar</text>
+      <path d="M600 150 L684 150" class="edge dash"/>
+      <text x="642" y="170" class="t c s">the natural end</text>
+    </svg>
+    <figcaption><b>Figure 63.2</b> The usual order. Loading events come before any click; <code>timeupdate</code> repeats all through playback; at the end <code>pause</code> arrives just before <code>ended</code>.</figcaption>
+  </figure>
+  <p>The best way to learn the order is to watch it. This logger listens for every event in the table and writes each one to the Console with the position at that moment. <code>timeupdate</code> is only counted on the page, because it would flood the Console.</p>
+  <pre class="code" data-run data-title="Event logger - play, pause, drag the bar, change the volume, let it end" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 14px; }
+  button { padding: 6px 12px; margin-top: 8px; cursor: pointer; }
+&lt;/style&gt;
+&lt;audio id="player" controls preload="auto"&gt;&lt;/audio&gt;
+&lt;p&gt;timeupdate has fired &lt;b id="ticks"&gt;0&lt;/b&gt; times.&lt;/p&gt;
+&lt;button id="breakBtn"&gt;Load a missing file&lt;/button&gt;
+
+&lt;script&gt;
+  const player = document.getElementById("player");
+  const ticks = document.getElementById("ticks");
+  let count = 0;
+
+  const names = ["loadedmetadata", "canplay", "play", "playing", "pause",
+                 "seeking", "seeked", "volumechange", "ended"];
+
+  // one listener per event name (forEach from Chapter 53)
+  names.forEach((name) =&gt; {
+    player.addEventListener(name, () =&gt; {
+      console.log(`${name} (at ${player.currentTime.toFixed(2)} s)`);
+    });
+  });
+
+  // timeupdate fires several times a second: count it, do not log it
+  player.addEventListener("timeupdate", () =&gt; {
+    count++;
+    ticks.textContent = count;
+  });
+
+  player.addEventListener("error", () =&gt; {
+    console.log("error - code", player.error.code);
+  });
+
+  document.getElementById("breakBtn").addEventListener("click", () =&gt; {
+    player.src = "no-such-file.mp3";
+  });
+
+  // listeners first, THEN hand over the file, so no event can be missed
+  player.src = "media/tone.wav";
+&lt;/script&gt;</pre>
+  <p>Before you touch anything, the Console shows <code>loadedmetadata (at 0.00 s)</code> and <code>canplay (at 0.00 s)</code>: the file has loaded. Press play on the bar: <code>play</code>, then <code>playing</code>, and the counter on the page climbs by about four a second. Drag the bar: <code>seeking</code>, then <code>seeked</code> (often followed by <code>canplay</code> and <code>playing</code> again, as it gets going from the new spot). Change the volume or mute: <code>volumechange</code>. Let it run out: <code>pause (at 3.00 s)</code> and then <code>ended (at 3.00 s)</code> &mdash; pause really does come first. Finally press <b>Load a missing file</b>: <code>error - code 4</code>, the code for "this file cannot be used".</p>
+  <p>Notice the last line of the script. The file is given to the player <i>after</i> the listeners are attached, so even the earliest event cannot slip past unheard.</p>
+  <details class="qc"><summary>Quick check: a music page sets audio.loop = true and shows "Song over" in an ended listener. When does the message appear?</summary><div class="a">
+    <p>Never. With <code>loop</code> on, the element jumps back to the start and keeps playing, so <code>ended</code> does not fire. To react to each repeat, listen for something else &mdash; for example <code>seeked</code>, which fires as it jumps back to the start.</p></div></details>
+</section>
+
+<section id="s5">
+  <h2>63.5 Listen, don't keep checking</h2>
+  <p>Suppose you want a time display that stays up to date. A tempting first idea is a timer from Chapter 54 that checks ten times a second:</p>
+  <pre class="code">// Polling: asking again and again - works, but wasteful
+setInterval(() =&gt; {
+  time.textContent = formatTime(video.currentTime);
+  if (video.ended) message.textContent = "Finished";
+}, 100);</pre>
+  <p>This is called <span class="jw" data-def="Checking something again and again on a timer to see whether it has changed, instead of being told when it changes.">polling</span>. It works, but it keeps asking for ever: while the video is paused, while the tab is hidden, long after the video has ended. It also reacts late, up to a tenth of a second behind, and a quick pause and resume between two checks is never seen at all. The event version asks nothing. The browser calls your function when &mdash; and only when &mdash; something has changed:</p>
+  <pre class="code">// Events: the browser calls you when something changes
+video.addEventListener("timeupdate", () =&gt; {
+  time.textContent = formatTime(video.currentTime);
+});
+video.addEventListener("ended", () =&gt; {
+  message.textContent = "Finished";
+});</pre>
+  <div class="plain">
+    <p>Polling is walking back to the cooker every ten seconds to see if it is done. Events are waiting for the whistle. For media, use events. Keep <code>setInterval</code> for jobs that really are about clock time, such as the live clock in Chapter 62.</p>
+  </div>
+  <p>The same thinking settles a second question: <b>where should the Play button's label change?</b> Not in its own click handler. Playback can start or stop without your button ever being pressed: the native controls, a keyboard's media keys, the end of the file, another script, or a <code>play()</code> that the browser refused. So the click handler only <i>sends the command</i>, and the <code>play</code> and <code>pause</code> listeners <i>change the screen</i>, because they report what really happened.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 210" role="img" aria-label="The click handler sends a command, the video plays, the play event fires, and its listener updates the screen">
+      <text x="390" y="22" class="t c s">also started by: native controls, media keys, other code</text>
+      <path d="M390 28 L390 48" class="edge dash" marker-end="url(#arr)"/>
+      <rect x="10" y="50" width="130" height="60" rx="10" class="box saf"/>
+      <text x="75" y="75" class="t c b">1 The user</text>
+      <text x="75" y="94" class="t c s">clicks Play</text>
+      <path d="M140 80 L163 80" class="edge" marker-end="url(#arr)"/>
+      <rect x="165" y="50" width="135" height="60" rx="10" class="box blu"/>
+      <text x="232" y="75" class="t c b">2 Click handler</text>
+      <text x="232" y="94" class="t c s mono">video.play()</text>
+      <path d="M300 80 L323 80" class="edge" marker-end="url(#arr)"/>
+      <rect x="325" y="50" width="130" height="60" rx="10" class="box"/>
+      <text x="390" y="75" class="t c b">3 The video</text>
+      <text x="390" y="94" class="t c s">starts playing</text>
+      <path d="M455 80 L478 80" class="edge" marker-end="url(#arr)"/>
+      <rect x="480" y="50" width="130" height="60" rx="10" class="box grn"/>
+      <text x="545" y="75" class="t c b">4 Event</text>
+      <text x="545" y="94" class="t c s mono">"play" fires</text>
+      <path d="M545 110 L545 170 L457 170" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="165" y="145" width="290" height="50" rx="10" class="box grn"/>
+      <text x="310" y="166" class="t c b">5 Listener updates the screen</text>
+      <text x="310" y="184" class="t c s">button says Pause; time and bar move</text>
+      <path d="M163 170 L75 170 L75 112" class="edge grn" marker-end="url(#arr-grn)"/>
+    </svg>
+    <figcaption><b>Figure 63.3</b> The click only sends the command. The screen changes in step 5, from the event, so it stays right however playback was started.</figcaption>
+  </figure>
+</section>
+
+<section id="s6">
+  <h2>63.6 Seconds to minutes: a time display</h2>
+  <p>Players show time as <code>1:15</code>, not <code>75.4</code>. The conversion is the minutes-and-seconds sum from Chapter 44, plus the zero padding from Chapter 45:</p>
+  <pre class="code">function formatTime(seconds) {
+  if (!Number.isFinite(seconds)) return "0:00";   // NaN or Infinity: nothing to show
+  const m = Math.floor(seconds / 60);             // whole minutes
+  const s = Math.floor(seconds % 60);             // seconds left over
+  return `${m}:${String(s).padStart(2, "0")}`;    // 5 becomes "05"
+}</pre>
+  <p>Trace <code>formatTime(75.4)</code>. <code>75.4 / 60</code> is 1.256&hellip;, rounded down to <b>1</b> minute. <code>75.4 % 60</code> is 15.4, rounded down to <b>15</b> seconds. <code>String(15).padStart(2, "0")</code> is <code>"15"</code>, so the result is <code>"1:15"</code>. For 125 seconds the leftover is 5, which padding turns into <code>"05"</code>: <code>"2:05"</code>, not the odd-looking <code>"2:5"</code>.</p>
+  <p>The first line guards against the two values that are not ordinary numbers. <code>Number.isFinite(x)</code> is <code>true</code> only for a normal number, and <code>false</code> for <code>NaN</code> (a <code>duration</code> that is not known yet) and <code>Infinity</code> (a live stream). Without it, the display would read <code>NaN:NaN</code> for a moment on every page load.</p>
+  <pre class="code" data-run data-title="formatTime on seven inputs - predict each line first" data-h="190">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 14px; } &lt;/style&gt;
+&lt;ul id="out"&gt;&lt;/ul&gt;
+
+&lt;script&gt;
+  function formatTime(seconds) {
+    if (!Number.isFinite(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  const out = document.getElementById("out");
+  const inputs = [0, 3, 9.9, 75.4, 125, 3600, NaN];
+
+  inputs.forEach((t) =&gt; {
+    console.log(t, "-&gt;", formatTime(t));
+    const li = document.createElement("li");
+    li.textContent = `${t} seconds -&gt; ${formatTime(t)}`;
+    out.append(li);
+  });
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>0 -&gt; 0:00</code>, <code>3 -&gt; 0:03</code>, <code>9.9 -&gt; 0:09</code> (rounded <i>down</i>, as a player shows it), <code>75.4 -&gt; 1:15</code>, <code>125 -&gt; 2:05</code>, <code>3600 -&gt; 60:00</code> and <code>NaN -&gt; 0:00</code>. An hour-long lecture reads <code>60:00</code>; adding hours would be one more division by 3600, but this course's clips never need it.</p>
+  <details class="qc"><summary>Quick check: what does formatTime(61.9) return?</summary><div class="a">
+    <p><code>"1:01"</code>. <code>Math.floor(61.9 / 60)</code> is 1; <code>61.9 % 60</code> is 1.9, rounded down to 1, padded to <code>"01"</code>.</p></div></details>
+</section>
+
+<section id="s7">
+  <h2>63.7 Build it: a custom player anyone can use</h2>
+  <p>First, a fair question: <b>do you need custom controls at all?</b> The native <code>controls</code> come with keyboard support, screen-reader labels, a captions menu and full screen, all tested by the browser makers. Keep them unless you need a look or a feature they lack. If you do build your own, they must be at least as usable as the ones you replaced:</p>
+  <ul>
+    <li><b>Use real controls</b>: <code>&lt;button&gt;</code>, <code>&lt;input type="range"&gt;</code> and <code>&lt;select&gt;</code>. Tab, Enter, Space and the arrow keys then work for free (Chapter 15). A <code>&lt;div&gt;</code> with a click listener works for nobody without a mouse.</li>
+    <li><b>Give every control an <span class="jw" data-def="The name a screen reader speaks for a control, such as &quot;Play, button&quot;. It comes from the visible text, a label, or aria-label.">accessible name</span></b>: visible text such as "Play", a <code>&lt;label&gt;</code>, or <code>aria-label</code> when nothing visible names it (the seek bar here; an icon-only &#9654; button needs <code>aria-label="Play"</code>).</li>
+    <li><b>Keep the name true.</b> The toggle must say "Pause" while playing. Change it in the <code>play</code> and <code>pause</code> listeners, as 63.5 explained.</li>
+    <li><b>Keep the safety net.</b> Write <code>controls</code> in the HTML and remove it from JavaScript with <code>video.controls = false</code>. If the script fails to load, the native controls are still there. Keep a visible focus outline, and keep your <code>&lt;track&gt;</code> captions.</li>
+  </ul>
+  <p>This is the whole chapter in one player. The clip is a short, silent video, so the volume and mute show their effect in the Console and on the buttons rather than in your ears.</p>
+  <pre class="code" data-run data-title="Project: a custom video player - try it with the mouse, then with Tab and the keys" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #0B2545; }
+  .player { max-width: 380px; background: #F1F5F9; border-radius: 12px; padding: 10px; }
+  video { width: 100%; border-radius: 8px; background: #000; display: block; }
+  #seek { width: 100%; margin: 8px 0 4px; }
+  .bar { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; }
+  button, select { padding: 6px 10px; font: inherit; cursor: pointer; }
+  button:focus-visible, input:focus-visible, select:focus-visible {
+    outline: 3px solid #E07B1E; outline-offset: 2px; }
+  #time { font-variant-numeric: tabular-nums; min-width: 84px; }
+&lt;/style&gt;
+&lt;div class="player"&gt;
+  &lt;video id="video" src="media/clip.webm" preload="auto" controls&gt;&lt;/video&gt;
+  &lt;input id="seek" type="range" min="0" max="0" step="0.1" value="0" aria-label="Seek"&gt;
+  &lt;div class="bar"&gt;
+    &lt;button id="playBtn" type="button"&gt;Play&lt;/button&gt;
+    &lt;span id="time"&gt;0:00 / 0:00&lt;/span&gt;
+    &lt;button id="muteBtn" type="button"&gt;Mute&lt;/button&gt;
+    &lt;label&gt;Volume &lt;input id="vol" type="range" min="0" max="1" step="0.1" value="1"&gt;&lt;/label&gt;
+    &lt;label&gt;Speed
+      &lt;select id="speed"&gt;
+        &lt;option value="0.5"&gt;0.5x&lt;/option&gt;
+        &lt;option value="1" selected&gt;1x&lt;/option&gt;
+        &lt;option value="1.5"&gt;1.5x&lt;/option&gt;
+        &lt;option value="2"&gt;2x&lt;/option&gt;
+      &lt;/select&gt;
+    &lt;/label&gt;
+  &lt;/div&gt;
+&lt;/div&gt;
+&lt;p id="msg" role="status"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const video   = document.getElementById("video");
+  const seek    = document.getElementById("seek");
+  const playBtn = document.getElementById("playBtn");
+  const time    = document.getElementById("time");
+  const muteBtn = document.getElementById("muteBtn");
+  const vol     = document.getElementById("vol");
+  const speed   = document.getElementById("speed");
+  const msg     = document.getElementById("msg");
+
+  video.controls = false;   // our controls take over; without JS the native ones stay
+
+  function formatTime(seconds) {
+    if (!Number.isFinite(seconds)) return "0:00";
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${String(s).padStart(2, "0")}`;
+  }
+
+  // ---- 1. The user acts: each control only sends a COMMAND ----
+  playBtn.addEventListener("click", () =&gt; {
+    if (video.paused) {
+      video.play().catch((err) =&gt; { msg.textContent = "Could not play: " + err.name; });
+    } else {
+      video.pause();
+    }
+  });
+  muteBtn.addEventListener("click", () =&gt; { video.muted = !video.muted; });
+  vol.addEventListener("input", () =&gt; { video.volume = Number(vol.value); });
+  speed.addEventListener("change", () =&gt; { video.playbackRate = Number(speed.value); });
+  seek.addEventListener("input", () =&gt; { video.currentTime = Number(seek.value); });
+
+  // ---- 2. The video reports: EVENTS update the screen ----
+  function showTime() {
+    time.textContent = `${formatTime(video.currentTime)} / ${formatTime(video.duration)}`;
+    seek.value = video.currentTime;
+  }
+  function setUp() {
+    seek.max = video.duration;          // the bar now spans the whole clip
+    showTime();
+    console.log("Ready - length", formatTime(video.duration));
+  }
+  if (video.readyState &gt;= 1) setUp();
+  else video.addEventListener("loadedmetadata", setUp);
+
+  video.addEventListener("timeupdate", showTime);
+  video.addEventListener("play", () =&gt; {
+    playBtn.textContent = "Pause";
+    msg.textContent = "";
+    console.log("play");
+  });
+  video.addEventListener("pause", () =&gt; {
+    playBtn.textContent = "Play";
+    console.log("pause");
+  });
+  video.addEventListener("ended", () =&gt; {
+    msg.textContent = "Finished - press Play to watch again.";
+    console.log("ended");
+  });
+  video.addEventListener("volumechange", () =&gt; {
+    muteBtn.textContent = video.muted ? "Unmute" : "Mute";
+    vol.value = video.volume;
+    console.log("volume", video.volume, "| muted", video.muted);
+  });
+  video.addEventListener("error", () =&gt; {
+    msg.textContent = "Sorry, the video could not be loaded.";
+  });
+&lt;/script&gt;</pre>
+  <p>Run it. The native controls vanish, and the Console says <code>Ready - length 0:03</code> while the display reads <code>0:00 / 0:03</code>. Press <b>Play</b>: the Console says <code>play</code>, and the button turns into <b>Pause</b> because the <code>play</code> listener changed it. The time and the bar move on every <code>timeupdate</code>. At the end the Console shows <code>pause</code> then <code>ended</code>, the button says Play again, and the message invites a replay; <code>play()</code> after the end starts again from 0. Drag the bar to seek. Choose 2x and the clip runs at double speed. Press <b>Mute</b>: <code>volume 1 | muted true</code>, and the button offers <b>Unmute</b>. Move the volume slider while muted and you see a line such as <code>volume 0.5 | muted true</code>: two separate dials, exactly as 63.3 said.</p>
+  <p>Now put the mouse away. Press <kbd>Tab</kbd> until the seek bar has an orange outline and use the arrow keys; Tab on to Play and press <kbd>Space</kbd>; Tab to Speed and choose with the arrows. Every control works from the keyboard, and a screen reader would announce "Seek, slider", "Play, button", "Volume, slider", because each has a name. You wrote no extra code for any of that &mdash; it came from choosing real controls.</p>
+  <table class="tbl">
+    <thead><tr><th>Part of the code</th><th>Why it is there</th></tr></thead>
+    <tbody>
+      <tr><td><code>controls</code> in HTML, <code>video.controls = false</code> in JS</td><td>A safety net: no script, still a usable player</td></tr>
+      <tr><td>Click and input handlers</td><td>Only send commands: <code>play()</code>, <code>pause()</code>, <code>muted</code>, <code>volume</code>, <code>playbackRate</code>, <code>currentTime</code></td></tr>
+      <tr><td><code>readyState</code> check, then <code>loadedmetadata</code></td><td>Sets the bar's maximum only once <code>duration</code> is a real number</td></tr>
+      <tr><td><code>play</code> / <code>pause</code> / <code>volumechange</code> listeners</td><td>Keep every label true, whoever caused the change</td></tr>
+      <tr><td><code>.catch</code> and the <code>error</code> listener</td><td>A refusal or a missing file becomes a message, not a silent failure</td></tr>
+      <tr><td><code>aria-label</code>, <code>&lt;label&gt;</code>, <code>role="status"</code></td><td>Names for the controls; messages that screen readers read out</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="mistakes">
+  <h2>63.8 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "There is a stop() method."</b><br>Calling it throws a TypeError.</div>
+    <div class="r"><b>&#10003; "Stop = pause() + currentTime = 0."</b><br><code>pause()</code> alone keeps the position, like a bookmark.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "I can read duration as soon as the page loads."</b><br>The script usually runs before the file's metadata has arrived, and gets <code>NaN</code>.</div>
+    <div class="r"><b>&#10003; "duration is ready after loadedmetadata."</b><br>Listen for it, or check <code>readyState &gt;= 1</code> first. Guard the display with <code>Number.isFinite</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "play() always starts the sound straight away."</b><br>It is a request, and the browser may refuse it.</div>
+    <div class="r"><b>&#10003; "play() returns a Promise: .then if it starts, .catch if it is refused."</b><br>Sound needs a user gesture first (<code>NotAllowedError</code> otherwise); muted media may start by itself.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "muted = true is the same as volume = 0."</b><br>They are two dials; muting does not touch <code>volume</code>.</div>
+    <div class="r"><b>&#10003; "Muting remembers the volume, so un-muting restores it."</b><br>And <code>volume</code> must stay between 0 and 1, or the browser throws an error.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "ended fires whenever the video stops."</b><br>A pause fires <code>pause</code>, not <code>ended</code>.</div>
+    <div class="r"><b>&#10003; "ended fires only at the real end, right after pause &mdash; and never when loop is on."</b></div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A setInterval that checks currentTime keeps the display up to date."</b><br>It works, but it runs for ever and still reacts late.</div>
+    <div class="r"><b>&#10003; "Update the screen from events: timeupdate, play, pause, volumechange, ended."</b><br>The browser calls you exactly when something changes.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three ask you to predict or explain.</p>
+  <details class="q"><summary>The page has <code>const v = document.getElementById("videoPlayer");</code>. Which line starts playback?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. v.start();</li><li>B. v.run();</li><li>C. v.play();</li><li>D. v.begin();</li></ul>
+    <p><b>Answer: C.</b> <code>play()</code> is the media element's method for starting; its partner is <code>pause()</code>. The other names do not exist, so calling them throws a TypeError.</p></div></details>
+  <details class="q"><summary>What does <code>audio.play()</code> give back?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A Promise that settles when playback starts or is refused</li><li>B. <code>true</code> if playback started, <code>false</code> if not</li><li>C. <code>undefined</code>, like <code>pause()</code></li><li>D. The duration in seconds</li></ul>
+    <p><b>Answer: A.</b> Playback may need loading time and may be blocked, so the answer comes later: <code>.then</code> runs if it starts, <code>.catch</code> if it is refused. C is true of <code>pause()</code>, which is why it tempts.</p></div></details>
+  <details class="q"><summary>Before reading a correct <code>duration</code>, which event must have fired?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. ended</li><li>B. timeupdate</li><li>C. volumechange</li><li>D. loadedmetadata</li></ul>
+    <p><b>Answer: D.</b> The length is part of the file's metadata. Before <code>loadedmetadata</code>, <code>duration</code> is <code>NaN</code>.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const a = document.createElement("audio"); console.log(a.duration, a.paused, a.volume, a.muted);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: NaN true 1 false.</b> There is no file, so the length is unknown (<code>NaN</code>); a new element is not playing (<code>paused</code> is <code>true</code>); the default volume is full (<code>1</code>); and it is not muted.</p></div></details>
+  <details class="q"><summary>A Stop button must halt the video and return it to the beginning. Which code does that?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. video.stop();</li><li>B. video.pause(); video.currentTime = 0;</li><li>C. video.currentTime = video.duration;</li><li>D. video.ended = true;</li></ul>
+    <p><b>Answer: B.</b> There is no <code>stop()</code> (A throws a TypeError). C jumps to the end instead of the start, and D does nothing useful because <code>ended</code> is read only.</p></div></details>
+  <details class="q"><summary>Which event fires again and again during playback, and is the one to use for moving a progress bar?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. timeupdate</li><li>B. play</li><li>C. playing</li><li>D. seeked</li></ul>
+    <p><b>Answer: A.</b> <code>timeupdate</code> fires about four times a second while playing, and after every seek. <code>play</code> and <code>playing</code> fire once when playback begins; <code>seeked</code> only after a jump.</p></div></details>
+  <details class="q"><summary>What happens when <code>audio.volume = 1.5;</code> runs?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. It plays at 150% loudness</li><li>B. The volume is quietly set to 1</li><li>C. The audio is muted</li><li>D. An error (IndexSizeError) is thrown and the volume is unchanged</li></ul>
+    <p><b>Answer: D.</b> <code>volume</code> only accepts 0 to 1. B is what many people expect, but browsers throw instead of correcting the value; a slider with <code>min="0" max="1"</code> keeps you safe.</p></div></details>
+  <details class="q"><summary>A video has <code>loop</code> switched on. What happens when it reaches the end?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. ended fires, then it starts again</li><li>B. It jumps back to the start and plays on; ended does not fire</li><li>C. It pauses and waits for the user</li><li>D. It throws an error</li></ul>
+    <p><b>Answer: B.</b> With <code>loop</code> on, the element never reaches the "ended" state, so <code>ended</code> never fires and <code>paused</code> stays <code>false</code>.</p></div></details>
+  <details class="q"><summary>A script calls <code>audio.play()</code> as the page loads, for a file with sound, and the <code>.catch</code> logs <code>NotAllowedError</code>. What is the most likely reason?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The file is missing</li><li>B. <code>play()</code> must be called twice</li><li>C. The browser's autoplay policy: sound may only start after a user gesture</li><li>D. The element has no <code>controls</code> attribute</li></ul>
+    <p><b>Answer: C.</b> Move the call into a click listener, or mute the media. A missing file gives <code>NotSupportedError</code> or an <code>error</code> event instead; <code>controls</code> has nothing to do with it.</p></div></details>
+  <details class="q"><summary>How is <code>muted = true</code> different from <code>volume = 0</code>?<span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer:</b> they are separate properties. Muting silences the media but leaves <code>volume</code> as it was, so un-muting brings the same loudness back; setting <code>volume</code> to 0 throws the old value away. Both changes fire <code>volumechange</code>.</p></div></details>
+  <details class="q"><summary><span>Using the chapter's <code>formatTime</code>, what does this print? <code>console.log(formatTime(125), formatTime(59.99));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 2:05 0:59.</b> 125 is 2 minutes with 5 left over, padded to <code>"05"</code>. 59.99 is 0 minutes and 59.99 seconds, which <code>Math.floor</code> rounds <i>down</i> to 59.</p></div></details>
+  <details class="q"><summary>In a custom player, why should the Play/Pause button's label be changed in the <code>play</code> and <code>pause</code> listeners rather than in the button's click handler?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. A click handler is not allowed to change text</li><li>B. Events run faster than clicks</li><li>C. The play event fires before the click</li><li>D. Playback can start or stop without that button &mdash; native controls, media keys, the end of the file, a refused <code>play()</code> &mdash; and the events report what really happened</li></ul>
+    <p><b>Answer: D.</b> The click only sends a request, which might be refused; the events describe the real state. A, B and C are simply false.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li><code>&lt;audio&gt;</code> and <code>&lt;video&gt;</code> share one JavaScript toolkit (HTMLMediaElement): commands (methods), readings and dials (properties) and announcements (events).</li>
+    <li><code>play()</code> returns a Promise; sound may only start after a user gesture, or when muted. Always add <code>.catch</code>. <code>pause()</code> keeps the position; to stop, pause and set <code>currentTime = 0</code>.</li>
+    <li><code>currentTime</code> is in seconds and setting it seeks; <code>duration</code> is <code>NaN</code> until <code>loadedmetadata</code>; <code>paused</code> and <code>ended</code> are read only; <code>volume</code> runs from 0 to 1; <code>muted</code>, <code>playbackRate</code> and <code>loop</code> are dials.</li>
+    <li>The events: <code>loadedmetadata</code>, <code>canplay</code>, <code>play</code>, <code>playing</code>, <code>pause</code>, <code>timeupdate</code> (about four a second), <code>seeking</code>/<code>seeked</code>, <code>volumechange</code>, <code>ended</code> (after <code>pause</code>; never with <code>loop</code>) and <code>error</code>. They do not bubble.</li>
+    <li>Update the screen from events, not from a polling timer and not from your own click handlers.</li>
+    <li><code>m:ss</code> = <code>Math.floor(s / 60)</code>, then <code>Math.floor(s % 60)</code> padded with <code>padStart(2, "0")</code>; guard <code>NaN</code> with <code>Number.isFinite</code>.</li>
+    <li>Accessible custom controls: real buttons, ranges and selects; a name for each (text, label or <code>aria-label</code>); labels that stay true; a visible focus outline; captions kept; <code>controls</code> in HTML, removed by JavaScript.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>media.play().catch(fn)</code></td><td>Start playback; handle a refusal</td></tr>
+      <tr><td><code>media.pause()</code></td><td>Stop moving, keep the position</td></tr>
+      <tr><td><code>media.pause(); media.currentTime = 0;</code></td><td>Stop and rewind</td></tr>
+      <tr><td><code>media.currentTime = 30</code></td><td>Jump to 30 seconds (a seek)</td></tr>
+      <tr><td><code>media.duration</code></td><td>Length in seconds &mdash; <code>NaN</code> until <code>loadedmetadata</code></td></tr>
+      <tr><td><code>media.volume = 0.5</code></td><td>Half loudness (0 to 1 only)</td></tr>
+      <tr><td><code>media.muted = !media.muted</code></td><td>Toggle mute; <code>volume</code> is kept</td></tr>
+      <tr><td><code>media.playbackRate = 1.5</code></td><td>One and a half times as fast</td></tr>
+      <tr><td><code>media.loop = true</code></td><td>Repeat for ever; <code>ended</code> no longer fires</td></tr>
+      <tr><td><code>media.addEventListener("loadedmetadata", fn)</code></td><td>Run <code>fn</code> once the length is known</td></tr>
+      <tr><td><code>media.addEventListener("timeupdate", fn)</code></td><td>Move the bar and the time while playing</td></tr>
+      <tr><td><code>media.addEventListener("ended", fn)</code></td><td>React when it finishes</td></tr>
+      <tr><td><code>video.controls = false</code></td><td>Hide the native controls from JavaScript</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement" target="_blank" rel="noopener noreferrer">MDN &mdash; HTMLMediaElement<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every property, method and event that audio and video share, each with its own page.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/play" target="_blank" rel="noopener noreferrer">MDN &mdash; HTMLMediaElement.play()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The promise, the errors it can reject with, and the autoplay rules behind them.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/HTMLMediaElement/timeupdate_event" target="_blank" rel="noopener noreferrer">MDN &mdash; the timeupdate event<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">How often it fires, with links to every other media event.</span></li>
+    <li><a href="https://web.dev/learn/html/audio-video" target="_blank" rel="noopener noreferrer">web.dev &mdash; Learn HTML: Audio and video<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The HTML side again &mdash; sources, captions and accessible controls &mdash; from Chrome's developer team.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

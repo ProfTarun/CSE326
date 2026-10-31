@@ -1,0 +1,767 @@
+<article class="chapter" data-ch="52">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 52 &middot; Loops and Iterative Programming</p>
+  <h1>Loops and Iterative Programming</h1>
+  <p class="lead">Print the numbers 1 to 1,000. Add up the marks of a class of sixty. Check every product in a shop for the word a customer has typed. Nobody writes those as a thousand lines of code: you write a few lines once and tell the computer to repeat them. That instruction is a loop, and it is the engine behind almost every interactive page you will build in this unit.</p>
+  <p class="meta">About 32 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>A condition such as <code>marks &gt;= 40</code> is either <code>true</code> or <code>false</code>, and <code>if</code> runs its block only when it is <code>true</code> (<a href="book.html?ch=47">Chapter 47</a>).</li>
+      <li><code>i++</code> adds 1 to <code>i</code>, and <code>total += mark</code> adds <code>mark</code> to <code>total</code> (<a href="book.html?ch=44">Chapter 44</a>).</li>
+      <li>An array keeps a list in order; its indexes run from 0 to <code>length - 1</code>, and <code>arr[i]</code> reads one element (<a href="book.html?ch=50">Chapter 50</a>).</li>
+      <li>An object holds <code>key: value</code> pairs, and <code>marks[subject]</code> reads a value whose key is in a variable (<a href="book.html?ch=51">Chapter 51</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Explain why loops beat copy-and-paste, and name JavaScript's five kinds of loop.</li>
+      <li>Read any <code>for</code> loop as start, condition and update, and trace it round by round.</li>
+      <li>Choose between <code>for</code>, <code>while</code> and <code>do...while</code>, and say why <code>do...while</code> always runs at least once.</li>
+      <li>Walk through an array with <code>for</code> and <code>for...of</code> and an object with <code>for...in</code>, and say why <code>for...in</code> is wrong for arrays.</li>
+      <li>End a loop early with <code>break</code>, skip a round with <code>continue</code>, and put one loop inside another to print tables and patterns.</li>
+      <li>Work out a total, an average, a highest value and a count from an array of marks.</li>
+      <li>Spot and fix infinite loops and off-by-one errors.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>52.1 Why interactive pages need loops</h2>
+  <p>Unit 4 taught you the language; Unit 5 makes pages respond. A <b>static</b> page shows every visitor the same content. An <b>interactive</b> page changes while you watch: the cart badge goes from 4 to 5 when you tap <i>Add to Cart</i>, and the product list shrinks as you type in a search box. HTML gives the page its structure (the skeleton), CSS its appearance (the skin), and JavaScript its behaviour (the muscles and brain). Your slides trace every interaction the same way: the user acts, JavaScript notices, runs some logic, updates the page, and the browser shows the result. The tool that logic uses most is the loop.</p>
+  <p>A live subtotal adds up <i>every</i> item in the cart; a search box checks <i>every</i> product name; a results page goes through <i>every</i> student's marks. Whenever a job says "every" or "until", it needs repetition.</p>
+  <p>Your slides call this <b>iterative programming</b>: <i>executing a set of instructions repeatedly until a condition is satisfied or the required number of repetitions is complete</i>. Each single trip through the repeated instructions is one <span class="jw" data-def="One trip through the body of a loop. A loop that runs five times makes five iterations, also called rounds.">iteration</span>; this book also calls it a <b>round</b>.</p>
+  <p>Here is the problem loops solve. To print the numbers 1 to 5 with what you know so far, you would write:</p>
+  <pre class="code">console.log(1);
+console.log(2);
+console.log(3);
+console.log(4);
+console.log(5);</pre>
+  <p>Five lines for five numbers. A thousand numbers would need a thousand lines. Worse, if a cart holds 3 items today and 30 tomorrow, you cannot know how many lines to write at all. A loop says it once:</p>
+  <pre class="code">for (let i = 1; i &lt;= 5; i++) {
+  console.log(i);
+}</pre>
+  <p>Change the 5 to 1000 and it prints a thousand numbers with the same three lines. The statements inside the curly braces are the loop's <span class="jw" data-def="The statements between the loop's curly braces: the work that is repeated on every round.">body</span>, and the line above them decides how many times it runs. Your slides list JavaScript's five loops:</p>
+  <table class="tbl">
+    <thead><tr><th>Loop</th><th>Purpose</th></tr></thead>
+    <tbody>
+      <tr><td><code>for</code></td><td>Repeats a known number of times</td></tr>
+      <tr><td><code>while</code></td><td>Repeats while a condition is true</td></tr>
+      <tr><td><code>do...while</code></td><td>Runs the body once, then checks the condition</td></tr>
+      <tr><td><code>for...of</code></td><td>Visits each value of an array or string</td></tr>
+      <tr><td><code>for...in</code></td><td>Visits each key of an object</td></tr>
+    </tbody>
+  </table>
+  <div class="callout analogy"><b>Picture this.</b> Your mother is making dinner. "Make ten rotis" is a <code>for</code> loop: she knows the number before she starts and keeps count, checking each time whether she has reached ten. "Keep making rotis while there is dough in the bowl" is a <code>while</code> loop: she looks at the bowl <i>before</i> each roti, and if it is empty to begin with she makes none. "Taste the dal; if it needs salt, add a pinch and taste again" is a <code>do...while</code> loop: she always tastes at least once, because the check comes <i>after</i> the action. Three ways of repeating, chosen by what you know before you start.</div>
+</section>
+
+<section id="s2">
+  <h2>52.2 The for loop, step by step</h2>
+  <p>Your slides give the shape of a <code>for</code> loop and an example:</p>
+  <pre class="code">for (initialization; condition; update) {
+  // code to repeat
+}
+
+for (let i = 1; i &lt;= 5; i++) {
+  console.log(i);
+}</pre>
+  <p>The round brackets hold three parts, separated by two semicolons:</p>
+  <ul>
+    <li><b>Initialization</b>, <code>let i = 1</code>: runs <b>once</b>, before anything else. It creates the <span class="jw" data-def="A variable that keeps count of the rounds. By long habit it is called i, short for index.">counter</span> and gives it a starting value.</li>
+    <li><b>Condition</b>, <code>i &lt;= 5</code>: checked <b>before every round</b>, including the first. If it is <code>true</code>, the body runs. If it is <code>false</code>, the loop is over and JavaScript carries on with the line after the closing brace.</li>
+    <li><b>Update</b>, <code>i++</code>: runs <b>after every round</b>, just before the next check. It moves the counter on.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="Flowchart of for (let i = 1; i &lt;= 5; i++): the start runs once; the check i &lt;= 5 comes before every round; true runs the body and then the update and returns to the check; false leaves the loop.">
+      <rect x="210" y="12" width="200" height="36" rx="8" class="box gry"/>
+      <text x="310" y="35" class="t c mono">let i = 1</text>
+      <text x="424" y="27" class="t s b">1. start</text>
+      <text x="424" y="41" class="t s">runs once</text>
+      <path d="M310 48 L310 72" class="edge" marker-end="url(#arr)"/>
+      <polygon points="310,74 400,108 310,142 220,108" class="box saf"/>
+      <text x="310" y="113" class="t c mono">i &lt;= 5 ?</text>
+      <text x="20" y="100" class="t s b">2. check</text>
+      <text x="20" y="114" class="t s">before every round</text>
+      <path d="M400 108 L466 108" class="edge" marker-end="url(#arr)"/>
+      <text x="433" y="100" class="t c s">false</text>
+      <rect x="468" y="90" width="136" height="36" rx="8" class="box gry"/>
+      <text x="536" y="113" class="t c">after the loop</text>
+      <path d="M310 142 L310 164" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="318" y="158" class="t s">true</text>
+      <rect x="210" y="166" width="200" height="36" rx="8" class="box grn"/>
+      <text x="310" y="189" class="t c mono">console.log(i)</text>
+      <text x="424" y="182" class="t s b">3. body</text>
+      <text x="424" y="196" class="t s">the work to repeat</text>
+      <path d="M310 202 L310 222" class="edge" marker-end="url(#arr)"/>
+      <rect x="210" y="224" width="200" height="36" rx="8" class="box blu"/>
+      <text x="310" y="247" class="t c mono">i++</text>
+      <text x="424" y="240" class="t s b">4. update</text>
+      <text x="424" y="254" class="t s">after every round</text>
+      <path d="M210 242 L150 242 L150 108 L218 108" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="20" y="180" class="t s">then back to</text>
+      <text x="20" y="194" class="t s">the check</text>
+      <text x="310" y="282" class="t c s">i takes 1, 2, 3, 4, 5. When i becomes 6 the check is false and the loop ends.</text>
+    </svg>
+    <figcaption><b>Figure 52.1</b> A <code>for</code> loop in four steps. The start runs once; after that, check, body and update repeat until the check comes out false.</figcaption>
+  </figure>
+  <p>To <b>trace</b> a loop, play computer: write down the counter and the condition at every step.</p>
+  <table class="tbl">
+    <thead><tr><th>Step</th><th><code>i</code></th><th><code>i &lt;= 5</code>?</th><th>What happens</th></tr></thead>
+    <tbody>
+      <tr><td>Start</td><td>1</td><td>&mdash;</td><td><code>let i = 1</code> runs, once only</td></tr>
+      <tr><td>Round 1</td><td>1</td><td>true</td><td>prints 1, then <code>i++</code> makes <code>i</code> 2</td></tr>
+      <tr><td>Round 2</td><td>2</td><td>true</td><td>prints 2, <code>i</code> becomes 3</td></tr>
+      <tr><td>Round 3</td><td>3</td><td>true</td><td>prints 3, <code>i</code> becomes 4</td></tr>
+      <tr><td>Round 4</td><td>4</td><td>true</td><td>prints 4, <code>i</code> becomes 5</td></tr>
+      <tr><td>Round 5</td><td>5</td><td>true</td><td>prints 5, <code>i</code> becomes 6</td></tr>
+      <tr><td>Last check</td><td>6</td><td><b>false</b></td><td>the loop ends; the line after <code>}</code> runs next</td></tr>
+    </tbody>
+  </table>
+  <p>The body ran five times, but the condition was checked <b>six</b> times; the sixth check stops the loop, with <code>i</code> equal to 6, not 5. Made with <code>let</code> inside the brackets, <code>i</code> belongs to the loop and disappears afterwards (Chapter 49).</p>
+  <div class="plain"><p>A <code>for</code> loop is a counter with three settings: where to start, when to stop, and how to step. JavaScript does the start once, then repeats <i>check, work, step</i> until the check says no.</p></div>
+  <h3>Other starts, stops and steps</h3>
+  <p>Each header below runs five rounds, except the last:</p>
+  <table class="tbl">
+    <thead><tr><th>Header</th><th><code>i</code> takes the values</th><th>Rounds</th></tr></thead>
+    <tbody>
+      <tr><td><code>for (let i = 1; i &lt;= 5; i++)</code></td><td>1 2 3 4 5</td><td>5</td></tr>
+      <tr><td><code>for (let i = 0; i &lt; 5; i++)</code></td><td>0 1 2 3 4</td><td>5</td></tr>
+      <tr><td><code>for (let i = 5; i &gt;= 1; i--)</code></td><td>5 4 3 2 1 (counting down)</td><td>5</td></tr>
+      <tr><td><code>for (let i = 2; i &lt;= 10; i += 2)</code></td><td>2 4 6 8 10 (steps of 2)</td><td>5</td></tr>
+      <tr><td><code>for (let i = 10; i &lt; 5; i++)</code></td><td>none &mdash; the first check is already false</td><td>0</td></tr>
+    </tbody>
+  </table>
+  <p>The last row matters: because the check comes before the first round, a <code>for</code> loop can run <b>zero</b> times.</p>
+  <div class="callout exam"><b>Exam tip.</b> To count rounds quickly: <code>i = 0</code> with <code>i &lt; n</code> gives exactly <b>n</b> rounds, and so does <code>i = 1</code> with <code>i &lt;= n</code>. Mixing them, <code>i = 0</code> with <code>i &lt;= n</code>, gives <b>n + 1</b>: the off-by-one error of section 52.8.</div>
+  <pre class="code" data-run data-title="The for loop from slide 10 - change 5 to 10, or i++ to i += 2, and Run again" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; color: #0B2545; }
+  #out { font-size: 20px; font-weight: 700; letter-spacing: 1px; }
+&lt;/style&gt;
+&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // slide 10: print the numbers 1 to 5
+  for (let i = 1; i &lt;= 5; i++) {
+    console.log(i);
+  }
+
+  // the same loop, counting down
+  for (let i = 5; i &gt;= 1; i--) {
+    console.log("countdown:", i);
+  }
+
+  // steps of 2, collected in an array (Chapter 50) and printed in one line
+  const evens = [];
+  for (let i = 2; i &lt;= 10; i += 2) {
+    evens.push(i);
+  }
+  console.log("even numbers:", evens.join(", "));
+
+  // and onto the page
+  const numbers = [];
+  for (let i = 1; i &lt;= 5; i++) {
+    numbers.push(i);
+  }
+  document.getElementById("out").textContent = numbers.join("  ");
+&lt;/script&gt;</pre>
+  <p>Console: 1 to 5 on five lines, then <code>countdown: 5</code> down to <code>countdown: 1</code>, then <code>even numbers: 2, 4, 6, 8, 10</code>. The page shows 1 to 5 in one line.</p>
+  <details class="qc"><summary>Quick check: how many times does the body of <code>for (let i = 3; i &lt;= 7; i++)</code> run, and which value of <code>i</code> stops the loop?</summary><p><b>Five times</b>, with <code>i</code> equal to 3, 4, 5, 6 and 7. After the fifth round <code>i</code> becomes <b>8</b>, the check <code>8 &lt;= 7</code> is false, and the loop ends.</p></details>
+</section>
+
+<section id="s3">
+  <h2>52.3 while and do...while</h2>
+  <p>A <code>for</code> loop suits a known count. Often you do not know it. A <b><code>while</code></b> loop keeps only the condition in its brackets and repeats <i>as long as it is true</i>. Your slides' example:</p>
+  <pre class="code">let count = 1;
+
+while (count &lt;= 5) {
+  console.log(count);     // 1 2 3 4 5, one per line
+  count++;
+}</pre>
+  <p>These are the <code>for</code> loop's three parts in three places: the start before the loop, the condition in the brackets, the update at the end of the body. Like <code>for</code>, it checks <i>before</i> each round, so it can run zero times. Your slides warn: <b>update the variable, or an infinite loop may occur</b>. Without <code>count++</code>, <code>count</code> stays 1 forever (section 52.8).</p>
+  <p><code>while</code> shines when the number of rounds is the answer you want. Rahul saves &#8377;150 a week towards headphones that cost &#8377;1,000. How many weeks will it take?</p>
+  <pre class="code">let saved = 0;
+let weeks = 0;
+while (saved &lt; 1000) {
+  saved += 150;
+  weeks++;
+}
+console.log(weeks, saved);   // 7 1050</pre>
+  <p>Nobody wrote 7 anywhere: the loop ran until &#8377;1,050 was no longer below &#8377;1,000, and the counter recorded how long that took.</p>
+  <h3>do...while: act first, ask afterwards</h3>
+  <p>A <b><code>do...while</code></b> loop puts the body first and the condition at the bottom. Your slides' example:</p>
+  <pre class="code">let number = 10;
+do {
+  console.log(number);
+  number++;
+} while (number &lt;= 5);</pre>
+  <p>Output: <b>10</b>. The condition is false from the start, yet 10 is printed, because <code>do...while</code> runs the body <b>first</b> and checks afterwards; the check only decides whether to go round <i>again</i>. Now <code>number</code> is 11, <code>11 &lt;= 5</code> is false, and the loop stops after one round. Note the semicolon after <code>while (number &lt;= 5)</code>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 200" role="img" aria-label="Two rows. while: the check 10 &lt;= 5 is false, the loop is over and nothing is printed. do...while: the body runs and prints 10, number becomes 11, then the check 11 &lt;= 5 is false and the loop is over.">
+      <text x="310" y="14" class="t c s">Both loops start with number = 10 and the condition number &lt;= 5</text>
+      <text x="20" y="48" class="t b mono">while</text>
+      <text x="20" y="64" class="t s">asks first</text>
+      <rect x="150" y="26" width="150" height="46" rx="8" class="box saf"/>
+      <text x="225" y="46" class="t c mono">10 &lt;= 5 ?</text>
+      <text x="225" y="63" class="t c s">false</text>
+      <path d="M300 49 L330 49" class="edge" marker-end="url(#arr)"/>
+      <rect x="332" y="26" width="150" height="46" rx="8" class="box gry"/>
+      <text x="407" y="46" class="t c">loop over</text>
+      <text x="407" y="63" class="t c s">the body never ran</text>
+      <text x="498" y="54" class="t b">prints nothing</text>
+      <text x="20" y="128" class="t b mono">do...while</text>
+      <text x="20" y="144" class="t s">acts first</text>
+      <rect x="150" y="106" width="150" height="46" rx="8" class="box grn"/>
+      <text x="225" y="126" class="t c">body runs</text>
+      <text x="225" y="143" class="t c s">prints 10; now 11</text>
+      <path d="M300 129 L330 129" class="edge" marker-end="url(#arr)"/>
+      <rect x="332" y="106" width="150" height="46" rx="8" class="box saf"/>
+      <text x="407" y="126" class="t c mono">11 &lt;= 5 ?</text>
+      <text x="407" y="143" class="t c s">false: loop over</text>
+      <text x="498" y="134" class="t b">prints 10</text>
+      <text x="310" y="186" class="t c s">while can run zero times; do...while always runs at least once.</text>
+    </svg>
+    <figcaption><b>Figure 52.2</b> The same start and the same false condition. <code>while</code> checks first and never runs its body; <code>do...while</code> runs the body once, then checks.</figcaption>
+  </figure>
+  <p>Use <code>do...while</code> when one round must happen before the question makes sense: show a menu, then ask whether to show it again. Counting a number's digits is a neat case. Each round counts one digit and drops the last one with <code>Math.floor(num / 10)</code> (Chapter 46). Zero has one digit, and only <code>do...while</code> says so; a <code>while (num &gt; 0)</code> loop would never start and would report 0.</p>
+  <div class="plain"><p><code>while</code> asks "shall I?" before every round, so it may never start. <code>do...while</code> does the work first and asks "again?" afterwards, so it always runs at least once.</p></div>
+  <pre class="code" data-run data-title="while and do...while (slides 11-12), plus two real jobs - read the Console" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // slide 11: while checks first
+  let count = 1;
+  while (count &lt;= 5) {
+    console.log("while:", count);
+    count++;
+  }
+
+  // slide 12: do...while runs once before it checks
+  let number = 10;
+  do {
+    console.log("do...while:", number);
+    number++;
+  } while (number &lt;= 5);
+
+  // the same start, 10, in a while loop: no rounds at all
+  let n = 10;
+  while (n &lt;= 5) {
+    console.log("this line never prints");
+    n++;
+  }
+  console.log("while starting at 10: zero rounds");
+
+  // a job for while: the number of rounds is the answer
+  let saved = 0;
+  let weeks = 0;
+  while (saved &lt; 1000) {
+    saved += 150;                    // Rahul saves &#8377;150 a week
+    weeks++;
+  }
+  console.log("Headphones after", weeks, "weeks, with &#8377;" + saved, "saved");
+
+  // a job for do...while: every number has at least one digit
+  function countDigits(num) {
+    let digits = 0;
+    do {
+      digits++;
+      num = Math.floor(num / 10);    // drop the last digit
+    } while (num &gt; 0);
+    return digits;
+  }
+  console.log("2026 has", countDigits(2026), "digits");
+  console.log("0 has", countDigits(0), "digit");
+&lt;/script&gt;</pre>
+  <p>Console: <code>while: 1</code> to <code>while: 5</code>, <code>do...while: 10</code>, <code>while starting at 10: zero rounds</code>, <code>Headphones after 7 weeks, with &#8377;1050 saved</code>, <code>2026 has 4 digits</code> and <code>0 has 1 digit</code>. Trace 2026 yourself: the rounds leave 202, 20, 2 and then 0, counting four digits.</p>
+  <details class="qc"><summary>Quick check: after <code>let x = 0; do { x--; } while (x &gt; 0);</code> what is <code>x</code>? What would it be if the loop were <code>while (x &gt; 0) { x--; }</code> instead?</summary><p>With <code>do...while</code>, <code>x</code> is <b>&minus;1</b>: the body runs once before the check, and <code>-1 &gt; 0</code> is false, so it stops. With <code>while</code>, the first check <code>0 &gt; 0</code> is already false, so the body never runs and <code>x</code> stays <b>0</b>.</p></details>
+</section>
+
+<section id="s4">
+  <h2>52.4 Walking through arrays and objects</h2>
+  <p>The commonest loop job on a web page is visiting every item in a list. Your slides use <code>for...of</code>:</p>
+  <pre class="code">const subjects = ["HTML", "CSS", "JavaScript"];
+
+for (const subject of subjects) {
+  console.log(subject);     // HTML, CSS, JavaScript - one per line
+}</pre>
+  <p>Read it as "for each <code>subject</code> of <code>subjects</code>": each round, <code>subject</code> holds the next element. No counter, no condition to get wrong, no way to run past the end. It can be <code>const</code> because every round gets a fresh <code>subject</code>.</p>
+  <p><code>for...of</code> works on anything that is <span class="jw" data-def="Able to hand out its values one after another, so for...of can walk through it. Arrays and strings are; plain objects are not.">iterable</span>: arrays, strings (one character per round) and, later, the lists of page elements you will meet in Chapter 56. A plain object is <b>not</b> iterable; <code>for (const x of marks)</code> on an object stops with <code>TypeError: marks is not iterable</code>.</p>
+  <h3>When you need the position too</h3>
+  <p>Sometimes the position matters: to number the lines, or to change <code>subjects[i]</code>. Then use the counting <code>for</code> loop you met in Chapter 50:</p>
+  <pre class="code">for (let i = 0; i &lt; subjects.length; i++) {
+  console.log("Subject", i + 1, "is", subjects[i]);   // Subject 1 is HTML ...
+}</pre>
+  <p>It starts at <code>0</code>, the first index, and stops with <code>&lt; subjects.length</code>, because the last index is <code>length - 1</code>. The <code>i + 1</code> is only for human readers.</p>
+  <h3>for...in: the keys of an object</h3>
+  <p>An object has keys, not positions. <code>for...in</code> hands you each key in turn, as a string, and brackets read its value, exactly as Chapter 51 showed:</p>
+  <pre class="code">const marks = { html: 82, css: 74, javascript: 90 };
+
+for (const subject in marks) {
+  console.log(subject, "-&gt;", marks[subject]);   // html -&gt; 82, css -&gt; 74, javascript -&gt; 90
+}</pre>
+  <div class="callout warn"><b>Do not use for...in on an array.</b> It runs, which is why it is a trap. It hands over an array's indexes as <b>strings</b>, <code>"0"</code>, <code>"1"</code>, <code>"2"</code>, so arithmetic goes wrong without any error: <code>i + 1</code> gives <code>"01"</code>, because <code>+</code> joins strings (Chapter 44). It also visits any extra property attached to the array. Use <code>for...of</code> for values, or the counting <code>for</code> when you need numbers.</div>
+  <div class="plain"><p><code>for...of</code> gives you each <b>value of</b> a list. <code>for...in</code> gives you each <b>key in</b> an object. The counting <code>for</code> gives you the position number, for when you need it.</p></div>
+  <pre class="code" data-run data-title="for...of, the counting for and for...in - and the for...in trap on arrays" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; color: #0B2545; }
+  #out { white-space: pre-line; font-size: 15px; line-height: 1.6; margin: 0; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;This term's subjects&lt;/b&gt;&lt;/p&gt;
+&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // slide 13: for...of hands you each VALUE
+  const subjects = ["HTML", "CSS", "JavaScript"];
+  for (const subject of subjects) {
+    console.log(subject);
+  }
+
+  // the counting for: use it when you need the POSITION as well
+  for (let i = 0; i &lt; subjects.length; i++) {
+    console.log("Subject", i + 1, "of", subjects.length, "is", subjects[i]);
+  }
+
+  // for...of also walks through a string, one character per round
+  for (const letter of "LPU") {
+    console.log("letter:", letter);
+  }
+
+  // for...in hands you each KEY of an object (Chapter 51)
+  const marks = { html: 82, css: 74, javascript: 90 };
+  for (const subject in marks) {
+    console.log(subject, "-&gt;", marks[subject]);
+  }
+
+  // why not for...in on an array? its keys are STRINGS
+  for (const i in subjects) {
+    console.log("key", i, "is a", typeof i, "so i + 1 gives", i + 1);
+  }
+
+  // onto the page: one numbered line per subject
+  let text = "";
+  for (let i = 0; i &lt; subjects.length; i++) {
+    text += (i + 1) + ". " + subjects[i] + "\n";
+  }
+  document.getElementById("out").textContent = text;
+&lt;/script&gt;</pre>
+  <p>Look at the last three Console lines: <code>key 0 is a string so i + 1 gives 01</code>, then <code>11</code>, then <code>21</code>. No error, just wrong answers, which is the worst kind of bug.</p>
+  <details class="qc"><summary>Quick check: what does <code>for (const ch of "CSE") { console.log(ch); }</code> print?</summary><p><b>C</b>, <b>S</b> and <b>E</b>, one per line. A string is iterable, so <code>for...of</code> hands over one character per round.</p></details>
+  <h3>Which loop should I use?</h3>
+  <table class="tbl">
+    <thead><tr><th>If you&hellip;</th><th>use</th></tr></thead>
+    <tbody>
+      <tr><td>know the number of rounds, or can work it out (such as <code>arr.length</code>)</td><td><code>for</code></td></tr>
+      <tr><td>do not know it, and repeat until something changes</td><td><code>while</code></td></tr>
+      <tr><td>must run the body at least once before checking</td><td><code>do...while</code></td></tr>
+      <tr><td>want each value of an array or string</td><td><code>for...of</code></td></tr>
+      <tr><td>want each key of an object</td><td><code>for...in</code></td></tr>
+    </tbody>
+  </table>
+  <p>Any <code>for</code> can be rewritten as a <code>while</code>; choose whichever reads most clearly. Chapter 53 adds <code>forEach</code>, <code>map</code> and <code>filter</code>, which run such loops for you.</p>
+</section>
+
+<section id="s5">
+  <h2>52.5 break and continue</h2>
+  <p>Chapter 47 met these two words; here they do real work. Both usually sit inside an <code>if</code> in the body:</p>
+  <ul>
+    <li><b><code>continue</code></b> skips the rest of <i>this</i> round and moves on to the next one. In a <code>for</code> loop the update still runs; in a <code>while</code> loop JavaScript jumps straight back to the condition.</li>
+    <li><b><code>break</code></b> ends the whole loop at once. JavaScript carries on with the line after the loop's closing brace.</li>
+  </ul>
+  <p>Take a class register in which Rahul was absent for the test, so his marks are <code>null</code>. To average the students who were present, <code>continue</code> skips Rahul and carries on. To find the <i>first</i> student who scored below 40, <code>break</code> stops the search the moment one is found. Once you have what you were looking for, every further round is wasted work: in a list of 60,000 students, stopping at position 3 saves 59,997 rounds.</p>
+  <pre class="code" data-run data-title="continue skips the absent student; break stops at the first match" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  const register = [
+    { name: "Asha",   marks: 85 },
+    { name: "Rahul",  marks: null },     // absent for the test
+    { name: "Meera",  marks: 34 },
+    { name: "Vikram", marks: 91 },
+    { name: "Priya",  marks: 28 }
+  ];
+
+  // continue: skip the absent student, carry on with the rest
+  let total = 0;
+  let present = 0;
+  for (const s of register) {
+    if (s.marks === null) {
+      console.log("skipping", s.name, "(absent)");
+      continue;
+    }
+    total += s.marks;
+    present++;
+  }
+  console.log("Average of", present, "present students:", total / present);
+
+  // break: stop at the FIRST student below 40
+  for (const s of register) {
+    console.log("checking", s.name);
+    // rule out null first: null &lt; 40 would count as true
+    if (s.marks !== null &amp;&amp; s.marks &lt; 40) {
+      console.log("First student who needs help:", s.name);
+      break;
+    }
+  }
+  console.log("search finished");
+&lt;/script&gt;</pre>
+  <p>The first loop prints <code>skipping Rahul (absent)</code> and then <code>Average of 4 present students: 59.5</code>, which is (85 + 34 + 91 + 28) &divide; 4. The second prints <code>checking</code> for Asha, Rahul and Meera, finds Meera's 34, and breaks: Vikram and Priya are never checked, and <code>search finished</code> follows straight away.</p>
+  <div class="callout warn"><b>break leaves only one loop.</b> When loops are nested (next section), a <code>break</code> in the inner loop ends the inner loop only. The outer loop carries on with its next round.</div>
+</section>
+
+<section id="s6">
+  <h2>52.6 Loops inside loops</h2>
+  <p>Your slides end with a task: print the table of 7 with a <code>for</code> loop. A template literal (Chapter 45) builds each line:</p>
+  <pre class="code">for (let i = 1; i &lt;= 10; i++) {
+  console.log(`7 x ${i} = ${7 * i}`);    // 7 x 1 = 7 ... 7 x 10 = 70
+}</pre>
+  <p>For the tables of 1, 2 and 3, the 7 must change too, so wrap the loop in a second loop that supplies it. A loop inside another loop is called a <span class="jw" data-def="Placed inside another of the same kind: a loop inside a loop, or an if inside an if.">nested</span> loop:</p>
+  <pre class="code">for (let i = 1; i &lt;= 3; i++) {            // outer loop: which table
+  for (let j = 1; j &lt;= 4; j++) {          // inner loop: which multiple
+    console.log(`${i} x ${j} = ${i * j}`);
+  }
+}</pre>
+  <p>The rule that makes nested loops readable: <b>for every single round of the outer loop, the inner loop runs all of its rounds</b>. When <code>i</code> is 1, <code>j</code> goes 1, 2, 3, 4. Only then does <code>i</code> become 2, and <code>j</code> starts again from 1. Three outer rounds times four inner rounds is twelve lines. The inner counter needs its own name, <code>j</code>, because <code>i</code> is still in use by the outer loop.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="A grid of 3 rows (outer loop i = 1 to 3) and 4 columns (inner loop j = 1 to 4). Each cell shows i times j. Small numbers 1 to 12 show the order: the whole first row, then the whole second row, then the third.">
+      <text x="341" y="14" class="t c s">inner loop: j = 1 &#8594; 4, in full, for every i</text>
+      <path d="M110 24 L572 24" class="edge" marker-end="url(#arr)"/>
+      <text x="164" y="44" class="t c s b">j = 1</text>
+      <text x="282" y="44" class="t c s b">j = 2</text>
+      <text x="400" y="44" class="t c s b">j = 3</text>
+      <text x="518" y="44" class="t c s b">j = 4</text>
+      <text x="20" y="77" class="t b mono">i = 1</text>
+      <text x="20" y="129" class="t b mono">i = 2</text>
+      <text x="20" y="181" class="t b mono">i = 3</text>
+      <path d="M92 52 L92 194" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="110" y="52" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="228" y="52" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="346" y="52" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="464" y="52" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="110" y="104" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="228" y="104" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="346" y="104" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="464" y="104" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="110" y="156" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="228" y="156" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="346" y="156" width="108" height="40" rx="6" class="box blu"/>
+      <rect x="464" y="156" width="108" height="40" rx="6" class="box blu"/>
+      <text x="116" y="65" class="t s">1</text><text x="164" y="80" class="t c mono">1 &#215; 1 = 1</text>
+      <text x="234" y="65" class="t s">2</text><text x="282" y="80" class="t c mono">1 &#215; 2 = 2</text>
+      <text x="352" y="65" class="t s">3</text><text x="400" y="80" class="t c mono">1 &#215; 3 = 3</text>
+      <text x="470" y="65" class="t s">4</text><text x="518" y="80" class="t c mono">1 &#215; 4 = 4</text>
+      <text x="116" y="117" class="t s">5</text><text x="164" y="132" class="t c mono">2 &#215; 1 = 2</text>
+      <text x="234" y="117" class="t s">6</text><text x="282" y="132" class="t c mono">2 &#215; 2 = 4</text>
+      <text x="352" y="117" class="t s">7</text><text x="400" y="132" class="t c mono">2 &#215; 3 = 6</text>
+      <text x="470" y="117" class="t s">8</text><text x="518" y="132" class="t c mono">2 &#215; 4 = 8</text>
+      <text x="116" y="169" class="t s">9</text><text x="164" y="184" class="t c mono">3 &#215; 1 = 3</text>
+      <text x="234" y="169" class="t s">10</text><text x="282" y="184" class="t c mono">3 &#215; 2 = 6</text>
+      <text x="352" y="169" class="t s">11</text><text x="400" y="184" class="t c mono">3 &#215; 3 = 9</text>
+      <text x="470" y="169" class="t s">12</text><text x="518" y="184" class="t c mono">3 &#215; 4 = 12</text>
+      <text x="20" y="216" class="t s">outer loop i moves down one row only after the inner loop has finished</text>
+      <text x="20" y="232" class="t s b">3 outer rounds &#215; 4 inner rounds = 12 runs of the inner body</text>
+    </svg>
+    <figcaption><b>Figure 52.3</b> For each step of the outer loop, the inner loop runs all its rounds. The small numbers give the order in which the cells are visited.</figcaption>
+  </figure>
+  <p>Pattern printing uses the same idea, with a twist: the inner loop's limit depends on the outer counter. Row 1 gets one star, row 4 gets four:</p>
+  <pre class="code">for (let row = 1; row &lt;= 4; row++) {
+  let line = "";
+  for (let star = 1; star &lt;= row; star++) {
+    line += "*";
+  }
+  console.log(line);
+}
+// *
+// **
+// ***
+// ****</pre>
+  <p><code>line</code> is emptied at the start of every row, filled by the inner loop, and printed once the row is complete.</p>
+  <div class="plain"><p>Think of the outer loop as rows and the inner loop as columns. The inner loop starts again from scratch every time the outer loop moves on, so the total number of inner rounds is outer &times; inner.</p></div>
+  <pre class="code" data-run data-title="Slide 15's table of 7, a star triangle and a 5 x 5 grid - change the limits and Run again" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 6px 14px; color: #0B2545; }
+  #out { font-family: ui-monospace, monospace; font-size: 15px; margin: 0; }
+&lt;/style&gt;
+&lt;p&gt;Tables 1 to 5:&lt;/p&gt;
+&lt;pre id="out"&gt;&lt;/pre&gt;
+&lt;script&gt;
+  // slide 15: the table of 7 - one loop
+  for (let i = 1; i &lt;= 10; i++) {
+    console.log(`7 x ${i} = ${7 * i}`);
+  }
+
+  // a triangle of stars - a loop inside a loop
+  for (let row = 1; row &lt;= 4; row++) {
+    let line = "";
+    for (let star = 1; star &lt;= row; star++) {
+      line += "*";
+    }
+    console.log(line);
+  }
+
+  // tables 1 to 5 as a grid on the page
+  let grid = "";
+  for (let i = 1; i &lt;= 5; i++) {          // outer: one row per table
+    let row = "";
+    for (let j = 1; j &lt;= 5; j++) {        // inner: five columns in that row
+      row += String(i * j).padStart(4);   // pad to 4 characters so columns line up
+    }
+    grid += row + "\n";
+  }
+  document.getElementById("out").textContent = grid;
+&lt;/script&gt;</pre>
+  <p>The Console shows <code>7 x 1 = 7</code> to <code>7 x 10 = 70</code>, as slide 15 asks, then the four lines of stars. The page shows a 5 &times; 5 grid whose last row reads 5, 10, 15, 20, 25; <code>padStart</code> (Chapter 45) lines the columns up.</p>
+  <details class="qc"><summary>Quick check: an outer loop runs <code>for (let i = 0; i &lt; 4; i++)</code> and the inner loop inside it runs <code>for (let j = 0; j &lt; 5; j++)</code>. How many times does the inner body run?</summary><p><b>20 times.</b> The outer loop makes 4 rounds, and in each of them the inner loop makes all 5 of its rounds: 4 &times; 5 = 20.</p></details>
+</section>
+
+<section id="s7">
+  <h2>52.7 Working with marks: totals, averages, highest and counts</h2>
+  <p>Your slides' practical example is the loop you will write most often:</p>
+  <pre class="code">const marks = [78, 85, 92, 67, 88];
+let total = 0;
+
+for (const mark of marks) {
+  total += mark;
+}
+
+console.log("Total:", total);                     // Total: 410
+console.log("Average:", total / marks.length);    // Average: 82</pre>
+  <p><code>total</code> is an <span class="jw" data-def="A variable that collects a result while a loop runs, such as a running total. It gets its starting value before the loop.">accumulator</span>: a variable that collects the answer as the loop goes round. Every accumulator follows the same three steps: <b>set it before the loop</b>, <b>update it inside</b>, <b>use it after</b>. Trace it:</p>
+  <table class="tbl">
+    <thead><tr><th>Round</th><th><code>mark</code></th><th><code>total</code> before</th><th><code>total</code> after <code>total += mark</code></th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td>78</td><td>0</td><td>78</td></tr>
+      <tr><td>2</td><td>85</td><td>78</td><td>163</td></tr>
+      <tr><td>3</td><td>92</td><td>163</td><td>255</td></tr>
+      <tr><td>4</td><td>67</td><td>255</td><td>322</td></tr>
+      <tr><td>5</td><td>88</td><td>322</td><td>410</td></tr>
+    </tbody>
+  </table>
+  <p>The average is the total divided by the number of marks: 410 &divide; 5 = 82. Using <code>marks.length</code> rather than typing 5 keeps the code right when a sixth mark is added. Change the start and the update, and the same pattern answers other questions:</p>
+  <table class="tbl">
+    <thead><tr><th>Question</th><th>Before the loop</th><th>Inside the loop</th></tr></thead>
+    <tbody>
+      <tr><td>Total</td><td><code>let total = 0;</code></td><td><code>total += mark;</code></td></tr>
+      <tr><td>How many score 80 or more?</td><td><code>let count = 0;</code></td><td><code>if (mark &gt;= 80) { count++; }</code></td></tr>
+      <tr><td>Highest</td><td><code>let highest = marks[0];</code></td><td><code>if (mark &gt; highest) { highest = mark; }</code></td></tr>
+      <tr><td>Lowest</td><td><code>let lowest = marks[0];</code></td><td><code>if (mark &lt; lowest) { lowest = mark; }</code></td></tr>
+      <tr><td>Build a line of text</td><td><code>let line = "";</code></td><td><code>line += mark + " ";</code></td></tr>
+    </tbody>
+  </table>
+  <p>Why start the highest at <code>marks[0]</code> and not at 0? For marks, 0 happens to work. But run the same code on January temperatures in Leh, <code>[-5, -12, -3]</code>, and a highest that starts at 0 stays 0, a temperature that was never recorded. Starting from the first element guarantees the answer is a real element of the list.</p>
+  <div class="plain"><p>An accumulator is a running score. Set it before the loop, add to it inside, read it after. If you set it <i>inside</i> the loop, it is wiped at the start of every round and you are left with only the last value.</p></div>
+  <pre class="code" data-run data-title="Build it: a marks report from slide 14's array - add a mark and Run again" data-h="210">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 8px 16px; color: #0B2545; }
+  #report { white-space: pre-line; font-size: 15px; line-height: 1.6; margin: 0; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;CSE326 Test 1 &#8212; marks report&lt;/b&gt;&lt;/p&gt;
+&lt;p id="report"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // slide 14: calculate total marks
+  const marks = [78, 85, 92, 67, 88];
+  let total = 0;
+  for (const mark of marks) {
+    total += mark;
+  }
+  console.log("Total:", total);
+  console.log("Average:", total / marks.length);
+
+  // highest and lowest: start from the first mark, not from 0
+  let highest = marks[0];
+  let lowest = marks[0];
+  for (const mark of marks) {
+    if (mark &gt; highest) {
+      highest = mark;
+    }
+    if (mark &lt; lowest) {
+      lowest = mark;
+    }
+  }
+  console.log("Highest:", highest, "Lowest:", lowest);
+
+  // counting: how many scored 80 or more?
+  let distinctions = 0;
+  for (const mark of marks) {
+    if (mark &gt;= 80) {
+      distinctions++;
+    }
+  }
+  console.log("80 or more:", distinctions);
+
+  document.getElementById("report").textContent =
+    "Marks: " + marks.join(", ") + "\n" +
+    "Total: " + total + "\n" +
+    "Average: " + total / marks.length + "\n" +
+    "Highest: " + highest + ", lowest: " + lowest + "\n" +
+    "Students with 80 or more: " + distinctions;
+&lt;/script&gt;</pre>
+  <p>Console: <code>Total: 410</code>, <code>Average: 82</code>, <code>Highest: 92 Lowest: 67</code> and <code>80 or more: 3</code> (85, 92 and 88). Add a sixth mark and every figure updates, because nothing assumes there are five. Chapter 53's <code>reduce</code> totals an array in one line by running a loop just like this one.</p>
+</section>
+
+<section id="s8">
+  <h2>52.8 When loops go wrong: infinite loops and off-by-one</h2>
+  <p>An <span class="jw" data-def="A loop whose condition never becomes false, so it repeats forever and the page stops responding.">infinite loop</span> is a loop whose condition never becomes false. These four are the usual culprits. Read them; <b>do not run them</b>:</p>
+  <pre class="code">// 1. the update is missing
+let count = 1;
+while (count &lt;= 5) {
+  console.log(count);          // count is 1 forever
+}
+
+// 2. the update goes the wrong way
+for (let i = 1; i &lt;= 5; i--) { }     // i: 1, 0, -1, -2 ... always &lt;= 5
+
+// 3. the condition jumps over its target
+for (let i = 1; i !== 10; i += 2) { }   // 1, 3, 5, 7, 9, 11 ... never exactly 10
+
+// 4. continue skips the update in a while loop
+let n = 0;
+while (n &lt; 5) {
+  if (n === 2) {
+    continue;                  // back to the check with n still 2 - forever
+  }
+  n++;
+}</pre>
+  <p>What happens when one runs? <b>No error message.</b> A page runs its JavaScript one thing at a time, so while the loop spins nothing else can happen: buttons stop responding, the page stops redrawing, and after some seconds the browser offers to stop the page (Chrome calls it <i>Page Unresponsive</i>). Close the tab, fix the code, reload. <code>while (true)</code> and <code>for (;;)</code> loop forever on purpose, and are safe only when a <code>break</code> inside is certain to be reached.</p>
+  <p>Four habits prevent nearly all infinite loops:</p>
+  <ul>
+    <li>Check that the update moves the counter <b>towards</b> the stopping value.</li>
+    <li>Prefer <code>&lt;</code>, <code>&lt;=</code>, <code>&gt;</code> or <code>&gt;=</code> to <code>!==</code>: a counter can jump over one exact value, but not over a whole range.</li>
+    <li>In a <code>while</code> loop, put the update where every path reaches it, before any <code>continue</code>.</li>
+    <li>While testing a doubtful loop, add a safety guard: count the rounds and <code>break</code> after a generous limit.</li>
+  </ul>
+  <h3>Off-by-one errors</h3>
+  <p>The other classic bug runs one round too many or one too few, almost always from choosing between <code>&lt;</code> and <code>&lt;=</code>:</p>
+  <ul>
+    <li><code>for (let i = 0; i &lt;= marks.length; i++)</code> on a 3-element array visits indexes 0, 1, 2 <i>and 3</i>. Index 3 does not exist, so the last round silently reads <code>undefined</code>.</li>
+    <li><code>for (let i = 1; i &lt; 10; i++)</code>, meant to print 1 to 10, stops at 9.</li>
+  </ul>
+  <p>The fix: <b>start at 0 and use <code>&lt; length</code></b> for indexes; <b>start at 1 and use <code>&lt;= n</code></b> for counting 1 to n. Then check the first and last rounds in your head, because that is where off-by-one errors hide.</p>
+  <pre class="code" data-run data-title="Off-by-one, and an infinite loop made safe with a guard - read the Console" data-h="140">&lt;p&gt;Press &lt;b&gt;Run&lt;/b&gt;, then read the Console panel under this preview.&lt;/p&gt;
+&lt;script&gt;
+  // off-by-one: &lt;= goes one step past the end
+  const marks = [70, 80, 90];
+  for (let i = 0; i &lt;= marks.length; i++) {
+    console.log("with &lt;=, index", i, "-&gt;", marks[i]);
+  }
+  for (let i = 0; i &lt; marks.length; i++) {
+    console.log("with &lt;, index", i, "-&gt;", marks[i]);
+  }
+
+  // a loop that would never end, kept safe by a guard
+  let n = 1;
+  let rounds = 0;
+  while (n !== 10) {            // n goes 1, 3, 5, 7, 9, 11 ... it jumps over 10
+    n += 2;
+    rounds++;
+    if (rounds === 100) {
+      console.warn("Gave up after 100 rounds: n is", n, "and was never 10");
+      break;
+    }
+  }
+
+  // the fix: a condition that must become false sooner or later
+  let k = 1;
+  let steps = 0;
+  while (k &lt; 10) {
+    k += 2;
+    steps++;
+  }
+  console.log("with k &lt; 10 the loop stops after", steps, "rounds, at k =", k);
+&lt;/script&gt;</pre>
+  <p>The first loop prints four lines, the last being <code>with &lt;=, index 3 -&gt; undefined</code>; the second prints exactly three. The guard prints the warning <code>Gave up after 100 rounds: n is 201 and was never 10</code> instead of freezing the page. The fixed loop reports <code>5 rounds, at k = 11</code>: the counter still jumps over 10, but <code>11 &lt; 10</code> is false, so the loop stops.</p>
+</section>
+
+<section id="mistakes">
+  <h2>52.9 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A loop checks its condition after running the body."</b><br>Only <code>do...while</code> does that.</div>
+    <div class="r"><b>&#10003; "for and while check before every round, including the first; do...while checks after."</b><br>So <code>for</code> and <code>while</code> can run zero times, and <code>do...while</code> always runs at least once.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "for...in is the loop for arrays."</b><br>It hands over the indexes as strings, so <code>i + 1</code> gives <code>"01"</code>.</div>
+    <div class="r"><b>&#10003; "for...of for the values of an array; for...in for the keys of an object."</b><br>Use the counting <code>for</code> when you need the index as a number.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "break stops all the loops."</b><br>In nested loops it ends only the loop it is written in.</div>
+    <div class="r"><b>&#10003; "break ends the innermost loop; continue skips to its next round."</b><br>The outer loop carries on as normal.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "i &lt;= arr.length visits every element."</b><br>It visits one index too many, and the extra round reads <code>undefined</code>.</div>
+    <div class="r"><b>&#10003; "Indexes run from 0 to length - 1, so write i &lt; arr.length."</b><br>Or use <code>for...of</code>, which cannot run past the end.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Writing let total = 0; inside the loop is the same as before it."</b><br>Inside, it is reset at the start of every round, so the "total" ends as the last mark only.</div>
+    <div class="r"><b>&#10003; "An accumulator is set before the loop, updated inside, used after."</b><br>The same goes for counts, highest and lowest.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. For the code questions, trace the loop on paper first: counter, condition and output for every round.</p>
+  <details class="q"><summary>Which loop always runs its body at least once, even when its condition is false from the start?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>for</code></li><li>B. <code>while</code></li><li>C. <code>do...while</code></li><li>D. <code>for...of</code></li></ul>
+    <p><b>Answer: C.</b> <code>do...while</code> runs the body first and checks afterwards. <code>for</code> and <code>while</code> check before the first round, so they can run zero times; so can <code>for...of</code>, on an empty array.</p></div></details>
+  <details class="q"><summary>How many times does the body of <code>for (let i = 2; i &lt;= 10; i += 2) { ... }</code> run?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 5</li><li>B. 4</li><li>C. 6</li><li>D. 10</li></ul>
+    <p><b>Answer: A.</b> <code>i</code> takes the values 2, 4, 6, 8 and 10; at 12 the check fails. B forgets that 10 itself passes <code>&lt;=</code>; D assumes a step of 1.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let n = 10; while (n &lt; 5) { console.log(n); n++; } console.log("done");</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 10, then done</li><li>B. Nothing at all</li><li>C. 10, 11, 12 &hellip; forever</li><li>D. Only done</li></ul>
+    <p><b>Answer: D.</b> <code>while</code> checks first: <code>10 &lt; 5</code> is false, so the body never runs, and the line after the loop prints <code>done</code>. A is what a <code>do...while</code> would print.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const a = ["x", "y"]; for (const k in a) { console.log(k + 1); }</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 1, then 2</li><li>B. 01, then 11</li><li>C. x1, then y1</li><li>D. NaN twice</li></ul>
+    <p><b>Answer: B.</b> <code>for...in</code> hands over the array's keys as strings, <code>"0"</code> and <code>"1"</code>, and <code>+</code> with a string joins: <code>"0" + 1</code> is <code>"01"</code>. A is what you would get from a numeric counter; C would need <code>for...of</code>.</p></div></details>
+  <details class="q"><summary>Predict the output: <code>for (let i = 1; i &lt;= 6; i++) { if (i % 2 === 0) { continue; } console.log(i); }</code><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: 1, 3, 5</b> on three lines. When <code>i</code> is even, <code>continue</code> skips that round's <code>console.log</code>; the update still runs, so the loop moves on to the next number.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let count = 0; for (let i = 0; i &lt; 3; i++) { for (let j = 0; j &lt; 4; j++) { count++; } } console.log(count);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 7</li><li>B. 4</li><li>C. 12</li><li>D. 16</li></ul>
+    <p><b>Answer: C.</b> For each of the 3 outer rounds, the inner loop makes all 4 of its rounds: 3 &times; 4 = 12. A adds the rounds instead of multiplying them.</p></div></details>
+  <details class="q"><summary>Which of these loops never ends?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>for (let i = 0; i &lt; 10; i++)</code></li><li>B. <code>for (let i = 10; i &gt; 0; i--)</code></li><li>C. <code>for (let i = 0; i &lt; 10; i += 3)</code></li><li>D. <code>for (let i = 0; i &lt; 10; i--)</code></li></ul>
+    <p><b>Answer: D.</b> <code>i</code> goes 0, &minus;1, &minus;2 &hellip; and stays below 10 forever. C is tempting because <code>i</code> jumps 0, 3, 6, 9, 12 and never equals 10, but the condition is <code>&lt; 10</code>, and <code>12 &lt; 10</code> is false, so it stops.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const m = [70, 80, 90]; for (let i = 0; i &lt;= m.length; i++) { console.log(m[i]); }</code><span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. 70, 80, 90, undefined</li><li>B. 70, 80, 90</li><li>C. 80, 90, undefined</li><li>D. 70, 80, 90, then a RangeError</li></ul>
+    <p><b>Answer: A.</b> With <code>&lt;=</code>, <code>i</code> also reaches 3, one past the last index, and reading a missing index gives <code>undefined</code> rather than an error. That is the off-by-one bug; <code>&lt; m.length</code> would print B.</p></div></details>
+  <details class="q"><summary>A highest-value finder starts with <code>let highest = marks[0];</code>. Why not <code>let highest = 0;</code>?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Because 0 might not be in the list.</b> If every value is below 0, such as the temperatures <code>[-5, -12, -3]</code>, a highest that starts at 0 is never replaced and the answer is a wrong 0. Starting from the first element guarantees a real element; here it gives &minus;3.</p></div></details>
+  <details class="q"><summary>To visit every key of the object <code>{ maths: 82, physics: 74 }</code>, which loop do you use?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>for...of</code></li><li>B. <code>for...in</code></li><li>C. <code>do...while</code></li><li>D. A counting <code>for</code> up to <code>obj.length</code></li></ul>
+    <p><b>Answer: B.</b> <code>for...in</code> hands over each key of an object. A throws a TypeError, because plain objects are not iterable, and D runs zero times, because a plain object has no <code>length</code> and <code>0 &lt; undefined</code> is false.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const marks = [40, 60, 80]; let total = 0; for (const m of marks) { total += m; } console.log(total / marks.length);</code><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. 180</li><li>B. 3</li><li>C. NaN</li><li>D. 60</li></ul>
+    <p><b>Answer: D.</b> The loop builds the total 40 + 60 + 80 = 180, and 180 &divide; 3 = 60. A forgets the division; C would happen only if <code>total</code> had no starting value, because <code>undefined + 40</code> is <code>NaN</code>.</p></div></details>
+  <details class="q"><summary>Predict the output, and explain it: <code>for (let i = 1; i &lt;= 3; i++) { for (let j = 1; j &lt;= 3; j++) { if (j === 2) { break; } console.log(i, j); } }</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>1 1</code>, <code>2 1</code>, <code>3 1</code></b> on three lines. In every outer round the inner loop prints <code>j = 1</code>, then reaches <code>j === 2</code> and breaks. <code>break</code> ends only the inner loop, so the outer loop carries on with the next <code>i</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A loop repeats its body; each trip is one iteration. Reach for a loop whenever a job says "every" or "until".</li>
+    <li><code>for (start; condition; update)</code>: the start runs once, the condition is checked before every round, the update runs after every round. If the first check is false, the body runs zero times.</li>
+    <li><code>while</code> checks first and suits an unknown number of rounds; <code>do...while</code> acts first and always runs at least once.</li>
+    <li><code>for...of</code> gives the values of an array or string; <code>for...in</code> gives the keys of an object, as strings, and is the wrong choice for arrays.</li>
+    <li><code>break</code> ends the loop it is in; <code>continue</code> skips to the next round. A nested inner loop runs in full for every outer round, so rounds multiply.</li>
+    <li>Accumulators are set before the loop, updated inside and used after: total and count start at 0, highest and lowest at the first element.</li>
+    <li>An infinite loop freezes the page without an error: make the update move towards the stop, and prefer <code>&lt;</code> to <code>!==</code>. Against off-by-one, loop over indexes with <code>i = 0</code> and <code>i &lt; length</code>.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does / Effect</th></tr></thead>
+    <tbody>
+      <tr><td><code>for (let i = 1; i &lt;= 5; i++) { }</code></td><td>Five rounds, <code>i</code> = 1 to 5</td></tr>
+      <tr><td><code>for (let i = 0; i &lt; arr.length; i++) { }</code></td><td>Every index of <code>arr</code>, 0 to <code>length - 1</code></td></tr>
+      <tr><td><code>for (let i = 5; i &gt;= 1; i--) { }</code></td><td>Count down from 5 to 1</td></tr>
+      <tr><td><code>while (cond) { ...; update; }</code></td><td>Repeat while <code>cond</code> is true; may run zero times</td></tr>
+      <tr><td><code>do { } while (cond);</code></td><td>Run once, then repeat while <code>cond</code> is true</td></tr>
+      <tr><td><code>for (const v of arr) { }</code></td><td>Each value of an array or string</td></tr>
+      <tr><td><code>for (const k in obj) { obj[k] }</code></td><td>Each key of an object, and its value</td></tr>
+      <tr><td><code>break;</code> / <code>continue;</code></td><td>Leave the loop now / skip to the next round</td></tr>
+      <tr><td><code>let total = 0;</code> &hellip; <code>total += v;</code></td><td>A running total</td></tr>
+      <tr><td><code>let max = arr[0];</code> &hellip; <code>if (v &gt; max) { max = v; }</code></td><td>The highest value</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Guide/Loops_and_iteration" target="_blank" rel="noopener noreferrer">MDN &mdash; Loops and iteration<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every loop in this chapter, plus labelled break and continue, on one page.</span></li>
+    <li><a href="https://javascript.info/while-for" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Loops: while and for<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A gentle second explanation with small tasks, including printing even numbers and repeating until the input is correct.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...of" target="_blank" rel="noopener noreferrer">MDN &mdash; for...of<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">What counts as iterable, and a side-by-side comparison with for...in.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/for...in" target="_blank" rel="noopener noreferrer">MDN &mdash; for...in<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Exactly which keys it visits, and why it is not recommended for arrays.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf of references is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

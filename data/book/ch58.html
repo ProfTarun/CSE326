@@ -1,0 +1,663 @@
+<article class="chapter" data-ch="58">
+<header class="ch-head">
+  <p class="eyebrow">Unit 5 &middot; Chapter 58 &middot; Dynamic Content Generation</p>
+  <h1>Dynamic Content Generation</h1>
+  <p class="lead">Open a shopping site and you see fifty product cards; open UMS and you see your timetable, your marks, your attendance. Nobody typed those cards into an HTML file one by one. A program kept the information as data and wrote the page from it. This chapter teaches you to do the same: turn an array into a list, keep the two in step while the user adds, removes, searches and sorts, and never let a stranger's text run as code.</p>
+  <p class="meta">About 34 minutes &middot; Course outcome CO5</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>An array of objects holds records such as <code>{ name: "Asha", marks: 91 }</code>, and <code>students[0].name</code> reads one (<a href="book.html?ch=50">Chapter 50</a>, <a href="book.html?ch=51">Chapter 51</a>).</li>
+      <li><code>map</code> turns each item into something new, <code>filter</code> keeps the matches, <code>reduce</code> adds them up, <code>sort</code> takes a compare function (<a href="book.html?ch=53">Chapter 53</a>).</li>
+      <li><code>createElement</code>, <code>append</code>, <code>textContent</code>, <code>innerHTML</code>, <code>classList</code> and <code>dataset</code> change the page (<a href="book.html?ch=56">Chapter 56</a>).</li>
+      <li><code>addEventListener</code> runs a function when something happens, and one listener on a parent can handle clicks on all its children (<a href="book.html?ch=57">Chapter 57</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Generate a list or a set of cards from an array of objects.</li>
+      <li>Choose between a template literal with <code>innerHTML</code> and <code>createElement</code> with <code>textContent</code>, and explain why user text must never go into <code>innerHTML</code>.</li>
+      <li>Write a <code>render()</code> function that redraws the page from the data after every add or delete.</li>
+      <li>Connect each button to its item with <code>data-id</code> and one delegated listener.</li>
+      <li>Show an empty state, a count and a summary line worked out from the data.</li>
+      <li>Filter and sort the displayed list from controls, style items from their data, and attach many elements in one step with a <code>DocumentFragment</code>.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>58.1 Data in, page out</h2>
+  <p>Look at a results page, a product grid or a timetable and you will see one pattern repeated many times: one row per student, one card per product, one cell per lecture. When the information changes every day, nobody edits the HTML by hand. The information is kept as <b>data</b>, usually an array of objects, and JavaScript writes the HTML from it while the page runs. That is <b>dynamic content generation</b>.</p>
+  <p>For each item in the array the recipe has three steps:</p>
+  <ol>
+    <li><b>Make</b> an element: <code>document.createElement("li")</code>. It exists in memory, but not on the page yet.</li>
+    <li><b>Fill</b> it: <code>li.textContent = name</code>.</li>
+    <li><b>Attach</b> it: <code>list.append(li)</code>. Now it is visible.</li>
+  </ol>
+  <pre class="code" data-run data-title="From an array to a list - add a fifth course and run again" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+&lt;/style&gt;
+&lt;h3&gt;My courses this semester&lt;/h3&gt;
+&lt;ul id="courses"&gt;&lt;/ul&gt;
+&lt;p id="count"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const courses = ["Internet Programming", "Data Structures",
+                   "Engineering Mathematics", "Communication Skills"];
+  const list = document.getElementById("courses");
+
+  for (const name of courses) {
+    const li = document.createElement("li");   // 1. make an empty &lt;li&gt;
+    li.textContent = name;                     // 2. put the words in
+    list.append(li);                           // 3. attach it to the page
+  }
+
+  document.getElementById("count").textContent = `${courses.length} courses`;
+  console.log("Items on the page:", list.children.length);
+&lt;/script&gt;</pre>
+  <p>Press <b>Run</b>: four list items appear under the heading, the line <i>4 courses</i> below them, and the Console prints <code>Items on the page: 4</code>. The HTML held only an empty <code>&lt;ul&gt;</code>. Now add a fifth course to the array and run again: five items and <i>5 courses</i>, and you never touched the HTML.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Three product objects in an array go through a loop that creates, fills and appends one element for each, giving three cards on the page">
+      <text x="100" y="22" class="t c b">THE DATA (an array)</text>
+      <text x="310" y="22" class="t c b">YOUR LOOP</text>
+      <text x="520" y="22" class="t c b">THE PAGE</text>
+      <rect x="10" y="36" width="180" height="46" rx="8" class="box"/>
+      <text x="100" y="55" class="t c mono" style="font-size:11px">name: "Lab record"</text>
+      <text x="100" y="72" class="t c mono" style="font-size:11px">price: 120</text>
+      <rect x="10" y="92" width="180" height="46" rx="8" class="box"/>
+      <text x="100" y="111" class="t c mono" style="font-size:11px">name: "Calculator"</text>
+      <text x="100" y="128" class="t c mono" style="font-size:11px">price: 950</text>
+      <rect x="10" y="148" width="180" height="46" rx="8" class="box"/>
+      <text x="100" y="167" class="t c mono" style="font-size:11px">name: "Drawing sheets"</text>
+      <text x="100" y="184" class="t c mono" style="font-size:11px">price: 60</text>
+      <path d="M192 59 L236 96" class="edge" marker-end="url(#arr)"/>
+      <path d="M192 115 L236 115" class="edge" marker-end="url(#arr)"/>
+      <path d="M192 171 L236 134" class="edge" marker-end="url(#arr)"/>
+      <rect x="240" y="56" width="140" height="118" rx="10" class="box blu"/>
+      <text x="310" y="80" class="t c b">for each object</text>
+      <text x="310" y="104" class="t c s">1. createElement</text>
+      <text x="310" y="124" class="t c s">2. fill: textContent</text>
+      <text x="310" y="144" class="t c s">3. append</text>
+      <path d="M382 96 L426 59" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M382 115 L426 115" class="edge grn" marker-end="url(#arr-grn)"/>
+      <path d="M382 134 L426 171" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="430" y="36" width="180" height="46" rx="8" class="box grn"/>
+      <text x="520" y="55" class="t c b">Lab record</text>
+      <text x="520" y="72" class="t c s">&#8377;120</text>
+      <rect x="430" y="92" width="180" height="46" rx="8" class="box grn"/>
+      <text x="520" y="111" class="t c b">Calculator</text>
+      <text x="520" y="128" class="t c s">&#8377;950</text>
+      <rect x="430" y="148" width="180" height="46" rx="8" class="box grn"/>
+      <text x="520" y="167" class="t c b">Drawing sheets</text>
+      <text x="520" y="184" class="t c s">&#8377;60</text>
+      <text x="310" y="222" class="t c s">Add a fourth object and run again: a fourth card appears, and the HTML never changed.</text>
+    </svg>
+    <figcaption><b>Figure 58.1</b> One object in, one element out. The loop is the same whether the array holds three items or three hundred.</figcaption>
+  </figure>
+  <div class="plain">
+    <p>Keep the information in an array. Let a loop turn each item into an element. The HTML holds only an empty container for the loop to fill.</p>
+  </div>
+</section>
+
+<section id="s2">
+  <h2>58.2 Two ways to build an item</h2>
+  <p>The lecture puts the difference in two lines: <b><code>textContent</code> inserts text without interpreting it as HTML; <code>innerHTML</code> parses the supplied string as HTML.</b> That gives two ways to build a card.</p>
+  <p><b>Technique A: write the HTML as a string.</b> A template literal (<a href="book.html?ch=45">Chapter 45</a>) is a string in backticks whose <code>${...}</code> gaps are filled with values. <code>map</code> turns every product into a string of HTML, <code>join("")</code> glues the strings together, and <code>innerHTML</code> receives the result. The browser then <span class="jw" data-def="Reads a piece of text and works out its structure. Here: the browser reads the tags in a string and builds real elements from them.">parses</span> the string: it reads the tags and builds the elements.</p>
+  <p><b>Technique B: build real elements.</b> <code>createElement</code> each part, put the words in with <code>textContent</code>, then <code>append</code> the parts to each other.</p>
+  <pre class="code" data-run data-title="The same cards, built both ways - change a price and run again" data-h="300">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  .grid { display: flex; flex-wrap: wrap; gap: 10px; margin: 4px 0 14px; }
+  .card { border: 1px solid #CBD5E1; border-radius: 10px; padding: 10px 14px; min-width: 130px; }
+  .card h4 { margin: 0 0 4px; color: #0B2545; }
+  .card p { margin: 0; color: #475569; }
+&lt;/style&gt;
+&lt;p&gt;&lt;b&gt;A.&lt;/b&gt; Template literal + innerHTML&lt;/p&gt;
+&lt;div class="grid" id="gridA"&gt;&lt;/div&gt;
+&lt;p&gt;&lt;b&gt;B.&lt;/b&gt; createElement + textContent&lt;/p&gt;
+&lt;div class="grid" id="gridB"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  const products = [
+    { name: "Lab record", price: 120 },
+    { name: "Calculator", price: 950 },
+    { name: "Drawing sheets", price: 60 }
+  ];
+
+  // A. Turn each product into a string of HTML, join them, hand over once
+  const gridA = document.getElementById("gridA");
+  gridA.innerHTML = products.map((p) =&gt; `
+    &lt;div class="card"&gt;
+      &lt;h4&gt;${p.name}&lt;/h4&gt;
+      &lt;p&gt;&#8377;${p.price}&lt;/p&gt;
+    &lt;/div&gt;`).join("");
+
+  // B. Build real elements; the words go in as text
+  const gridB = document.getElementById("gridB");
+  for (const p of products) {
+    const card = document.createElement("div");
+    card.className = "card";
+    const title = document.createElement("h4");
+    title.textContent = p.name;
+    const price = document.createElement("p");
+    price.textContent = `&#8377;${p.price}`;
+    card.append(title, price);
+    gridB.append(card);
+  }
+
+  console.log("A made", gridA.children.length, "cards");
+  console.log("B made", gridB.children.length, "cards");
+&lt;/script&gt;</pre>
+  <p>Both rows show the same three cards, and the Console prints <code>A made 3 cards</code> and <code>B made 3 cards</code>. Look at <code>.join("")</code> at the end of A. <code>map</code> gives back an <i>array</i> of strings, and an array turned into a single string is joined with commas. Leave <code>join("")</code> out and a stray comma appears between every pair of cards.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>A. Template literal + <code>innerHTML</code></th><th>B. <code>createElement</code> + <code>textContent</code></th></tr></thead>
+    <tbody>
+      <tr><td>Length</td><td>Short; it looks like the HTML it makes</td><td>Longer: a few lines per element</td></tr>
+      <tr><td>Text containing <code>&lt;</code> or <code>&amp;</code></td><td>Read as HTML: tags become elements</td><td>Shown exactly as typed</td></tr>
+      <tr><td>Safe for text a user typed?</td><td><b>No</b> (58.3)</td><td><b>Yes</b>, by design</td></tr>
+      <tr><td>Adding a listener</td><td>Look the new elements up afterwards, or delegate (58.5)</td><td>You already hold each element</td></tr>
+      <tr><td>Right for</td><td>Fixed markup you wrote, filled with numbers your code calculated</td><td>Anything from a user, a form, the address bar or a server (<a href="book.html?ch=65">Chapter 65</a>)</td></tr>
+    </tbody>
+  </table>
+  <div class="plain">
+    <p>A string given to <code>innerHTML</code> is quick to write, but it trusts every character in it. Elements filled with <code>textContent</code> take more lines, but they trust nothing. When in doubt, build elements.</p>
+  </div>
+  <div class="callout exam"><b>Exam tip.</b> Learn the lecture's wording exactly: <i>textContent inserts text without interpreting it as HTML; innerHTML parses the supplied string as HTML.</i> Most questions on this topic are that sentence turned round.</div>
+  <details class="qc"><summary>Quick check: you wrote <code>list.innerHTML = names.map((n) =&gt; `&lt;li&gt;${n}&lt;/li&gt;`);</code> and commas appear between the items. Why?</summary><p><code>map</code> returned an array, and putting an array where a string is needed joins it with commas: <code>&lt;li&gt;Asha&lt;/li&gt;,&lt;li&gt;Rahul&lt;/li&gt;</code>. Each comma becomes text on the page. Add <code>.join("")</code> after the <code>map</code>.</p></details>
+</section>
+
+<section id="s3">
+  <h2>58.3 Never pour user text into innerHTML</h2>
+  <p>Imagine a notes page where students post comments, and the code shows each one with <code>wall.innerHTML = comment</code>. Rahul types <code>&lt;b&gt;Great notes&lt;/b&gt;</code> and his comment appears in bold. Harmless, it seems. Then someone posts a comment containing an image tag whose <code>onerror</code> attribute holds JavaScript. <code>innerHTML</code> builds the image, the image fails to load, and the browser runs the code in the attribute &mdash; in the browser of every student who opens the page. Text has become a program. This attack is called <span class="jw" data-def="An attack in which text typed by one person is run as code in other people's browsers, because a page put that text in as HTML. XSS for short.">cross-site scripting (XSS)</span>, and other people's text in <code>innerHTML</code> is how it usually gets in.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="The same text with b tags: innerHTML parses it and builds a bold element showing Asha; textContent puts the characters in as typed and shows the tags literally">
+      <rect x="190" y="12" width="240" height="40" rx="8" class="box gry"/>
+      <text x="310" y="37" class="t c b mono">"&lt;b&gt;Asha&lt;/b&gt;"</text>
+      <path d="M262 54 L172 82" class="edge saf" marker-end="url(#arr-saf)"/>
+      <path d="M358 54 L448 82" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="20" y="86" width="280" height="124" rx="12" class="box saf"/>
+      <text x="160" y="108" class="t c b mono">el.innerHTML = text</text>
+      <text x="160" y="128" class="t c s">the browser parses the tags and builds</text>
+      <text x="160" y="144" class="t c s">a &lt;b&gt; element with Asha inside it</text>
+      <text x="160" y="170" class="t c s">the screen shows</text>
+      <text x="160" y="196" class="t c b" style="font-size:18px">Asha</text>
+      <rect x="320" y="86" width="280" height="124" rx="12" class="box grn"/>
+      <text x="460" y="108" class="t c b mono">el.textContent = text</text>
+      <text x="460" y="128" class="t c s">the characters go in exactly as typed;</text>
+      <text x="460" y="144" class="t c s">nothing is built, just one piece of text</text>
+      <text x="460" y="170" class="t c s">the screen shows</text>
+      <text x="460" y="196" class="t c mono">&lt;b&gt;Asha&lt;/b&gt;</text>
+      <text x="310" y="232" class="t c s">Swap the &lt;b&gt; for an &lt;img&gt; with an onerror attribute, and the left path runs code.</text>
+    </svg>
+    <figcaption><b>Figure 58.2</b> One string, two outcomes. <code>innerHTML</code> treats tags as instructions; <code>textContent</code> treats them as letters.</figcaption>
+  </figure>
+  <pre class="code" data-run data-title="A harmful comment, posted both ways - press red, then green" data-h="260">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  input { font: inherit; width: 100%; max-width: 460px; padding: 6px; box-sizing: border-box; }
+  button { font: inherit; margin: 8px 6px 0 0; padding: 6px 10px; border-radius: 6px; }
+  .bad { background: #FDE8E8; border: 1px solid #B42318; }
+  .good { background: #E7F6EC; border: 1px solid #138808; }
+  .wall { border: 1px dashed #94A3B8; border-radius: 8px; padding: 8px 12px; margin-top: 8px; }
+  #wallA::before { content: "innerHTML: "; font-weight: 700; color: #B42318; }
+  #wallB::before { content: "textContent: "; font-weight: 700; color: #138808; }
+&lt;/style&gt;
+&lt;label for="msg"&gt;Your comment on the Unit 5 notes&lt;/label&gt;
+&lt;input id="msg" type="text"&gt;
+&lt;br&gt;
+&lt;button class="bad" id="unsafe" type="button"&gt;Post with innerHTML (unsafe)&lt;/button&gt;
+&lt;button class="good" id="safe" type="button"&gt;Post with textContent (safe)&lt;/button&gt;
+&lt;div class="wall" id="wallA"&gt;&lt;/div&gt;
+&lt;div class="wall" id="wallB"&gt;&lt;/div&gt;
+
+&lt;script&gt;
+  const box = document.getElementById("msg");
+  // What a mischievous visitor might type. Try &lt;b&gt;Asha&lt;/b&gt; as well.
+  box.value = `Nice notes! &lt;img src="nothing.png" onerror="console.warn('Code typed into the box just ran!')"&gt;`;
+
+  document.getElementById("unsafe").addEventListener("click", () =&gt; {
+    const wall = document.getElementById("wallA");
+    wall.innerHTML = box.value;              // the text is PARSED: tags become elements
+    console.log("innerHTML: elements created =", wall.children.length);
+  });
+
+  document.getElementById("safe").addEventListener("click", () =&gt; {
+    const wall = document.getElementById("wallB");
+    wall.textContent = box.value;            // the text is SHOWN: nothing is built
+    console.log("textContent: elements created =", wall.children.length);
+  });
+&lt;/script&gt;</pre>
+  <p>Press the red button. The first wall shows <i>Nice notes!</i> and a broken-image icon, and the Console prints <code>innerHTML: elements created = 1</code>, followed a moment later by the warning <code>Code typed into the box just ran!</code>. Here the code only writes to the Console; an attacker's code could read the page or send it somewhere else. Press the green button: the second wall shows the whole comment as ordinary characters, angle brackets and all, and the Console prints <code>textContent: elements created = 0</code>. Nothing was built, so nothing could run.</p>
+  <div class="callout warn"><b>Blocking <code>&lt;script&gt;</code> is not enough.</b> A <code>&lt;script&gt;</code> added through <code>innerHTML</code> never runs, so testing with <code>&lt;script&gt;alert(1)&lt;/script&gt;</code> proves nothing. Event attributes such as <code>onerror</code> and <code>onmouseover</code> on the elements <code>innerHTML</code> builds <i>do</i> run. Chapter 77 returns to this.</div>
+  <p><b>The rule: anything a person typed, or a server sent, goes in with <code>textContent</code>.</b> If you truly must put such text into a template, escape it first, so that its special characters become harmless codes that display as themselves:</p>
+  <pre class="code">// Only when you must use a template: turn the special characters into codes
+function escapeHTML(text) {
+  return String(text)
+    .replaceAll("&amp;", "&amp;amp;")     // first, or the &amp; in &amp;lt; would be replaced again
+    .replaceAll("&lt;", "&amp;lt;")
+    .replaceAll("&gt;", "&amp;gt;")
+    .replaceAll('"', "&amp;quot;")
+    .replaceAll("'", "&amp;#39;");
+}
+wall.innerHTML = `&lt;p class="comment"&gt;${escapeHTML(comment)}&lt;/p&gt;`;</pre>
+  <p>Escaping is easy to forget on one line out of fifty, which is why building elements with <code>textContent</code> stays the safer habit.</p>
+  <details class="qc"><summary>Quick check: a seller types a product name into a form. Which line shows it safely: <code>card.innerHTML = name</code> or <code>card.textContent = name</code>?</summary><p><code>card.textContent = name</code>. The name came from a person, so any tags in it must stay letters. With <code>innerHTML</code> a name containing an <code>&lt;img onerror=...&gt;</code> would run code for every shopper.</p></details>
+</section>
+
+<section id="s4">
+  <h2>58.4 One render() function: state to view</h2>
+  <p>Showing a list once is easy. Real pages change: the user adds a dish to an order, removes one, adds two more. You could patch the page each time, adding one row here and deleting that row there, but every patch is a chance for the page and the data to drift apart. The reliable pattern is simpler. Keep the <span class="jw" data-def="The data that describes what the page should show right now: the items in the order, the search word, the current count.">state</span> in one place, change only the state, then call one function, <code>render()</code>, that wipes the old content and redraws all of it from the state. The data becomes the page's <span class="jw" data-def="The one place where the real information lives. Everything else, including what is on the screen, is a copy made from it.">source of truth</span>.</p>
+  <div class="callout analogy"><b>Picture this.</b> At a cricket ground the scorer writes every ball in the scorebook. Nobody climbs up and changes the big scoreboard on a whim: after each ball the operator reads the scorebook and puts up the whole picture again &mdash; runs, wickets, overs. If the board and the book ever disagree, the book wins. Your array is the scorebook, <code>render()</code> is the operator, and the page is the scoreboard.</div>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="A loop of four steps: the user acts, the code changes the data, render rebuilds the page from the data, the page shows the data and waits">
+      <rect x="20" y="24" width="180" height="66" rx="10" class="box saf"/>
+      <text x="110" y="48" class="t c b">1. The user acts</text>
+      <text x="110" y="68" class="t c s">clicks Add or Remove,</text>
+      <text x="110" y="82" class="t c s">types in a search box</text>
+      <path d="M202 57 L416 57" class="edge" marker-end="url(#arr)"/>
+      <text x="310" y="49" class="t c s">the event listener runs</text>
+      <rect x="420" y="24" width="180" height="66" rx="10" class="box blu"/>
+      <text x="510" y="48" class="t c b">2. Change the DATA</text>
+      <text x="510" y="68" class="t c s">push, filter or edit</text>
+      <text x="510" y="82" class="t c s">the array, nothing else</text>
+      <path d="M510 92 L510 146" class="edge" marker-end="url(#arr)"/>
+      <rect x="420" y="150" width="180" height="66" rx="10" class="box grn"/>
+      <text x="510" y="174" class="t c b mono">3. render()</text>
+      <text x="510" y="194" class="t c s">clear the old content,</text>
+      <text x="510" y="208" class="t c s">rebuild it all from the data</text>
+      <path d="M418 183 L204 183" class="edge grn" marker-end="url(#arr-grn)"/>
+      <text x="310" y="203" class="t c s">the user sees the result</text>
+      <rect x="20" y="150" width="180" height="66" rx="10" class="box"/>
+      <text x="110" y="174" class="t c b">4. The page shows</text>
+      <text x="110" y="194" class="t c s">exactly what the data says,</text>
+      <text x="110" y="208" class="t c s">then waits for the next action</text>
+      <path d="M110 148 L110 94" class="edge" marker-end="url(#arr)"/>
+      <text x="310" y="110" class="t c b">the data array is the truth</text>
+      <text x="310" y="130" class="t c s">an edit made only to the page</text>
+      <text x="310" y="145" class="t c s">is wiped by the next render()</text>
+    </svg>
+    <figcaption><b>Figure 58.3</b> The render loop. Every action changes the data first; <code>render()</code> then makes the page match it, so the two can never disagree.</figcaption>
+  </figure>
+  <p>You have already met the smallest <code>render()</code>. The interactive counter of Chapter 57 kept one number and wrote it to the page after every click:</p>
+  <pre class="code">let count = 0;                          // the state: one number
+function render() {
+  countBox.textContent = count;         // state -&gt; view
+}
+plusBtn.addEventListener("click", () =&gt; { count++; render(); });
+minusBtn.addEventListener("click", () =&gt; { count--; render(); });</pre>
+  <p>A list works the same way, with an array in place of the number. Here is a canteen order you can add to and remove from:</p>
+  <pre class="code" data-run data-title="A canteen order kept by render() - add a dish, add two Samosas, remove one" data-h="340">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; }
+  select, button { font: inherit; padding: 4px 10px; }
+  #order { list-style: none; padding: 0; max-width: 380px; }
+  #order li { display: flex; justify-content: space-between; align-items: center;
+              padding: 6px 10px; margin-bottom: 6px;
+              border: 1px solid #CBD5E1; border-radius: 8px; }
+  #order li.empty { color: #64748B; font-style: italic; }
+  #summary { font-weight: 700; }
+&lt;/style&gt;
+&lt;h3&gt;Hostel canteen: my order&lt;/h3&gt;
+&lt;label for="dish"&gt;Dish&lt;/label&gt;
+&lt;select id="dish"&gt;&lt;/select&gt;
+&lt;button id="add" type="button"&gt;Add to order&lt;/button&gt;
+&lt;ul id="order"&gt;&lt;/ul&gt;
+&lt;p id="summary"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  const menu = { "Masala dosa": 60, "Veg thali": 90, "Cold coffee": 50, "Samosa": 15 };
+
+  // The state: the ONE place the order lives
+  let order = [
+    { id: 1, dish: "Veg thali", price: 90 },
+    { id: 2, dish: "Cold coffee", price: 50 }
+  ];
+  let nextId = 3;
+
+  const dishSelect = document.getElementById("dish");
+  const list = document.getElementById("order");
+  const summary = document.getElementById("summary");
+
+  // Even the drop-down is generated from data
+  for (const [dish, price] of Object.entries(menu)) {
+    const opt = document.createElement("option");
+    opt.value = dish;
+    opt.textContent = `${dish} (&#8377;${price})`;
+    dishSelect.append(opt);
+  }
+
+  function render() {
+    list.innerHTML = "";                                // 1. wipe the old picture
+    if (order.length === 0) {                           // 2. the empty state
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "No items yet. Pick a dish and press Add.";
+      list.append(li);
+    }
+    for (const item of order) {                         // 3. one row per item
+      const li = document.createElement("li");
+      const label = document.createElement("span");
+      label.textContent = `${item.dish} - &#8377;${item.price}`;
+      const remove = document.createElement("button");
+      remove.type = "button";
+      remove.textContent = "Remove";
+      remove.dataset.id = item.id;                      // label the button with its item
+      li.append(label, remove);
+      list.append(li);
+    }
+    const n = order.length;                             // 4. the summary line
+    const total = order.reduce((sum, item) =&gt; sum + item.price, 0);
+    summary.textContent = n === 0 ? "Nothing ordered yet."
+      : `${n} ${n === 1 ? "item" : "items"} &middot; Total &#8377;${total}`;
+    console.log(`render(): ${n} in the order, total &#8377;${total}`);
+  }
+
+  document.getElementById("add").addEventListener("click", () =&gt; {
+    const dish = dishSelect.value;
+    order.push({ id: nextId, dish: dish, price: menu[dish] });   // change the DATA...
+    nextId++;
+    render();                                                      // ...then redraw
+  });
+
+  // One listener for every Remove button, now and in the future
+  list.addEventListener("click", (event) =&gt; {
+    const button = event.target.closest("button[data-id]");
+    if (!button) return;                                // not a Remove button
+    const id = Number(button.dataset.id);               // "3" becomes 3
+    order = order.filter((item) =&gt; item.id !== id);     // change the DATA...
+    console.log("Removed id", id);
+    render();                                           // ...then redraw
+  });
+
+  render();
+&lt;/script&gt;</pre>
+  <p>Trace it. The order starts with a thali and a cold coffee, so the first <code>render()</code> prints <code>render(): 2 in the order, total &#8377;140</code>. Press <b>Add to order</b> with Masala dosa selected: the handler pushes <code>{ id: 3, dish: "Masala dosa", price: 60 }</code> and calls <code>render()</code>, which clears the list and draws three rows: <code>render(): 3 in the order, total &#8377;200</code>. Press <b>Remove</b> beside the thali: <code>Removed id 1</code>, then <code>render(): 2 in the order, total &#8377;110</code>. Remove everything and the list shows its empty message. Even the drop-down was generated, from the <code>menu</code> object with <code>Object.entries</code> (Chapter 51).</p>
+  <div class="plain">
+    <p>Never change the page directly. Change the data, then call <code>render()</code>. Because <code>render()</code> always draws the page from the data, the page and the data can never disagree.</p>
+  </div>
+</section>
+
+<section id="s5">
+  <h2>58.5 data-id: which button belongs to which item</h2>
+  <p>Every Remove button looks the same, so how does the handler know which dish to remove? Each button carries a label. <code>render()</code> writes <code>remove.dataset.id = item.id</code>, which puts <code>data-id="3"</code> on the button (Chapter 56). Three steps then turn a click into an item:</p>
+  <ol>
+    <li><b>Find the button.</b> One listener sits on the list, not on the buttons: <span class="jw" data-def="Putting one listener on a parent element and letting it handle clicks on any of its children, by checking which child was clicked.">event delegation</span> (Chapter 57). <code>event.target</code> is the element actually clicked. <code>closest("button[data-id]")</code> walks up from it, starting with the element itself, to the nearest element matching the selector, and gives <code>null</code> if there is none &mdash; a click on the empty-state message, for example.</li>
+    <li><b>Read the id and convert it.</b> <code>button.dataset.id</code> is always a string: <code>"3"</code>, not <code>3</code>. <code>Number()</code> converts it, so that <code>item.id !== id</code> compares a number with a number.</li>
+    <li><b>Change the data.</b> <code>order.filter((item) =&gt; item.id !== id)</code> keeps every item except that one. Then <code>render()</code>.</li>
+  </ol>
+  <p><b>Why one listener on the list?</b> <code>render()</code> throws the old buttons away and makes new ones every time. The <code>&lt;ul&gt;</code> itself is never replaced, so a listener on it handles every Remove button that will ever exist. (Adding a listener to each new button inside <code>render()</code> also works; it is just many listeners doing one job.)</p>
+  <p><b>Why an id and not the position?</b> You could label the buttons 0, 1, 2 with their index in the array. But positions shift. Delete item 0 and everything moves up one; sort or filter the list and the third row on screen is no longer the third item in the array. An id stays fixed to its item for life. Try it in the canteen: add two Samosas, then remove one. Same name, same price &mdash; yet only the row you clicked disappears, because each got its own id from <code>nextId</code> when it was added (3 and 4 on a fresh run).</p>
+  <details class="qc"><summary>Quick check: a button has <code>data-id="3"</code>. Why is <code>button.dataset.id === 3</code> false?</summary><p>Every <code>dataset</code> value is a string, so the left side is <code>"3"</code>, and <code>===</code> never treats a string as equal to a number. Convert first: <code>Number(button.dataset.id) === 3</code> is true.</p></details>
+</section>
+
+<section id="s6">
+  <h2>58.6 Empty states and summary lines</h2>
+  <p>Two small things separate a finished page from a demo.</p>
+  <p><b>An <span class="jw" data-def="What a list or table shows when it has nothing in it, such as 'No items yet', instead of a blank space.">empty state</span>.</b> A list that shows nothing looks broken: has it failed, or is it still loading? When the array is empty, say what is true and what to do next: <i>No items yet. Pick a dish and press Add.</i> In <code>render()</code> it is one <code>if</code>: when the array is empty, draw the message instead of rows. A filtered list needs one too: <i>No students match.</i></p>
+  <p><b>A summary line</b>: a count, a total, an average. Work it out inside <code>render()</code> from the same array the rows came from. Do not keep a separate counter that you add to and subtract from: that is a second copy of the truth, and sooner or later one copy is updated and the other is not.</p>
+  <pre class="code">const n = order.length;
+const total = order.reduce((sum, item) =&gt; sum + item.price, 0);
+summary.textContent = n === 0 ? "Nothing ordered yet."
+  : `${n} ${n === 1 ? "item" : "items"} &middot; Total &#8377;${total}`;</pre>
+  <p>The <code>n === 1 ? "item" : "items"</code> part picks the right word, so the page never says <i>1 items</i>. One more detail: when a summary changes while the user is looking elsewhere, a screen reader is not told. Chapter 59 fixes that with <code>aria-live</code>, which the results board in 58.9 already uses.</p>
+</section>
+
+<section id="s7">
+  <h2>58.7 Styling from the data</h2>
+  <p>Changing CSS from JavaScript (the lecture's slide 31) is most useful when the look depends on the data: a failing mark in red, a sold-out item greyed, a bar as long as the marks. Two tools cover it:</p>
+  <pre class="code">// 1. A class switched by a condition: true adds it, false removes it
+li.classList.toggle("low", s.marks &lt; 40);
+
+// 2. A number from the data used as a size: 67 marks -&gt; a bar 67% wide
+bar.style.width = `${s.marks}%`;</pre>
+  <p>With a second argument, <code>classList.toggle(name, condition)</code> is a switch, not a flip: <code>true</code> adds the class, <code>false</code> removes it. The colours stay in the stylesheet, in a rule such as <code>li.low { color: #B42318; }</code>, which is why a class beats setting colours with <code>style</code> (Chapter 56). Keep <code>element.style</code> for a value that truly comes from the data and differs on every row, such as a width; there is no sensible class called <code>width-67</code>.</p>
+</section>
+
+<section id="s8">
+  <h2>58.8 Build once, attach once</h2>
+  <p>Each time your code changes the live page, the browser notes that it must work out again where everything goes &mdash; a <span class="jw" data-def="The browser recalculating the size and position of elements on the page after something changes, before it can redraw the screen.">reflow</span> &mdash; and then repaint. Browsers are clever: they usually wait until your code has finished before doing that work, so appending fifty rows one after another costs about one reflow, not fifty. Two habits defeat that cleverness:</p>
+  <ul>
+    <li><b><code>innerHTML +=</code> inside a loop.</b> <code>a += b</code> means <code>a = a + b</code>, so on every pass the browser turns the whole list back into a string, adds one item, throws the old elements away and parses everything again. The fiftieth pass rebuilds fifty items to add one. It also destroys any listeners on the old items and anything typed into inputs inside them.</li>
+    <li><b>Asking a layout question in the middle</b>, such as an element's height. The browser must reflow there and then to answer, once per pass.</li>
+  </ul>
+  <p>The tidy answer is to build everything <i>off</i> the page and attach it in one step. A <span class="jw" data-def="An invisible, empty holder that is not part of the page. You build elements inside it, then attach it, and its contents move into the page together.">DocumentFragment</span> is an invisible holder that is not part of the page. Append rows to it and nothing on screen changes; append the fragment to the list and all its rows move into the list at once, leaving the fragment empty.</p>
+  <pre class="code">// SLOW and UNSAFE: rebuilds the whole list on every pass
+for (const s of students) {
+  list.innerHTML += `&lt;li&gt;${s.name}&lt;/li&gt;`;
+}
+
+// FAST and SAFE: build off the page, attach once
+const fragment = document.createDocumentFragment();
+for (const s of students) {
+  const li = document.createElement("li");
+  li.textContent = s.name;
+  fragment.append(li);          // the page has not changed yet
+}
+list.append(fragment);          // ONE change to the page; the fragment is now empty</pre>
+  <p>Chapter 74 times the two with 800 items. Notice the fragment version is also the safe one, because each name went in through <code>textContent</code>.</p>
+  <div class="plain">
+    <p>Build all the new elements in a fragment, away from the page, then attach the fragment once. The page changes one time, however many items there are.</p>
+  </div>
+  <details class="qc"><summary>Quick check: a fragment holds 8 rows. After <code>list.append(fragment)</code>, how many children does the fragment have?</summary><p>None. Appending a fragment <i>moves</i> its children into the list; it does not copy them. The list gains 8 rows and the fragment is left empty, ready to be thrown away.</p></details>
+</section>
+
+<section id="s9">
+  <h2>58.9 Filtering and sorting with controls</h2>
+  <p>Now put it all together. A results board shows eight students. A search box filters by name as you type, a drop-down sorts, a checkbox shows only marks below 40, and a summary line says how many are shown and their average.</p>
+  <div class="callout why"><b>Key idea.</b> Controls change the <b>view</b>, not the <b>data</b>. The <code>students</code> array is never filtered or sorted itself. Each time, <code>render()</code> works out a fresh array to show.</div>
+  <ol>
+    <li><b>Read the controls.</b> <code>search.value.trim().toLowerCase()</code> removes stray spaces and lower-cases the word, so <i>ASHA</i> finds Asha.</li>
+    <li><b>Filter.</b> <code>students.filter(...)</code> returns a <i>new</i> array and leaves <code>students</code> untouched. An empty search matches everyone, because every string includes the empty string.</li>
+    <li><b>Sort the new array.</b> <code>sort()</code> reorders the very array it is called on. Here that array is the copy <code>filter</code> made, so <code>students</code> keeps its order. With no copy to hand, make one: <code>[...students].sort(...)</code> (spread, Chapter 50). Numbers sort with <code>(a, b) =&gt; b.marks - a.marks</code> (highest first); names with <code>a.name.localeCompare(b.name)</code>, which compares text in dictionary order.</li>
+    <li><b>Draw</b> the empty state, or every row built into a fragment and attached once.</li>
+    <li><b>Summarise</b> from the same array.</li>
+  </ol>
+  <pre class="code" data-run data-title="Results board - type ar, tick the box, type z, sort by name" data-h="420" data-tall>&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 12px; color: #1E293B; }
+  .controls { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px; }
+  input, select { font: inherit; padding: 4px 6px; }
+  #board { list-style: none; padding: 0; margin: 0; max-width: 460px; }
+  #board li { display: grid; grid-template-columns: 70px 1fr 32px; gap: 10px;
+              align-items: center; padding: 5px 8px; border-bottom: 1px solid #E2E8F0; }
+  .track { background: #E2E8F0; border-radius: 6px; height: 12px; }
+  .bar { background: #138808; border-radius: 6px; height: 12px; }
+  #board li.low { color: #B42318; font-weight: 700; }
+  #board li.low .bar { background: #B42318; }
+  #board li.empty { display: block; color: #64748B; font-style: italic; }
+  #summary { font-weight: 700; margin: 10px 0 0; }
+&lt;/style&gt;
+&lt;div class="controls"&gt;
+  &lt;label&gt;Search &lt;input id="search" type="search" placeholder="a name"&gt;&lt;/label&gt;
+  &lt;label&gt;Sort
+    &lt;select id="sort"&gt;
+      &lt;option value="high"&gt;Marks: high to low&lt;/option&gt;
+      &lt;option value="low"&gt;Marks: low to high&lt;/option&gt;
+      &lt;option value="name"&gt;Name: A to Z&lt;/option&gt;
+    &lt;/select&gt;
+  &lt;/label&gt;
+  &lt;label&gt;&lt;input id="below" type="checkbox"&gt; Only below 40&lt;/label&gt;
+&lt;/div&gt;
+&lt;ul id="board"&gt;&lt;/ul&gt;
+&lt;p id="summary" aria-live="polite"&gt;&lt;/p&gt;
+
+&lt;script&gt;
+  // The data: never filtered or sorted itself
+  const students = [
+    { id: 1, name: "Asha",   marks: 91 },
+    { id: 2, name: "Rahul",  marks: 67 },
+    { id: 3, name: "Meera",  marks: 78 },
+    { id: 4, name: "Arjun",  marks: 35 },
+    { id: 5, name: "Priya",  marks: 88 },
+    { id: 6, name: "Karan",  marks: 52 },
+    { id: 7, name: "Sneha",  marks: 74 },
+    { id: 8, name: "Vikram", marks: 29 }
+  ];
+
+  const board = document.getElementById("board");
+  const search = document.getElementById("search");
+  const sortBy = document.getElementById("sort");
+  const below = document.getElementById("below");
+  const summary = document.getElementById("summary");
+
+  // One student in, one row out
+  function makeRow(s) {
+    const li = document.createElement("li");
+    li.classList.toggle("low", s.marks &lt; 40);          // the look decided by the data
+
+    const name = document.createElement("span");
+    name.textContent = s.name;
+    const track = document.createElement("div");
+    track.className = "track";
+    const bar = document.createElement("div");
+    bar.className = "bar";
+    bar.style.width = `${s.marks}%`;                   // a size taken from the data
+    track.append(bar);
+    const score = document.createElement("span");
+    score.textContent = s.marks;
+
+    li.append(name, track, score);
+    return li;
+  }
+
+  function render() {
+    // 1. Work out the view: filter() returns a NEW array...
+    const word = search.value.trim().toLowerCase();
+    let shown = students.filter((s) =&gt; s.name.toLowerCase().includes(word));
+    if (below.checked) shown = shown.filter((s) =&gt; s.marks &lt; 40);
+
+    // 2. ...so sorting it leaves students in its original order
+    if (sortBy.value === "high") shown.sort((a, b) =&gt; b.marks - a.marks);
+    if (sortBy.value === "low")  shown.sort((a, b) =&gt; a.marks - b.marks);
+    if (sortBy.value === "name") shown.sort((a, b) =&gt; a.name.localeCompare(b.name));
+
+    // 3. Draw: the empty state, or every row built off the page and attached once
+    board.innerHTML = "";
+    if (shown.length === 0) {
+      const li = document.createElement("li");
+      li.className = "empty";
+      li.textContent = "No students match. Change the search or untick the box.";
+      board.append(li);
+    } else {
+      const fragment = document.createDocumentFragment();
+      for (const s of shown) fragment.append(makeRow(s));
+      board.append(fragment);
+    }
+
+    // 4. The summary, from the same array as the rows
+    if (shown.length === 0) {
+      summary.textContent = `Showing 0 of ${students.length} students`;
+    } else {
+      const total = shown.reduce((sum, s) =&gt; sum + s.marks, 0);
+      const average = (total / shown.length).toFixed(1);
+      summary.textContent = `Showing ${shown.length} of ${students.length} students &middot; average ${average}`;
+    }
+    console.log(summary.textContent);
+  }
+
+  search.addEventListener("input", render);
+  sortBy.addEventListener("change", render);
+  below.addEventListener("change", render);
+  render();
+&lt;/script&gt;</pre>
+  <p>At the start the board is sorted high to low: Asha (91) at the top, Vikram (29) at the bottom, Arjun and Vikram in red with short red bars. The Console prints <code>Showing 8 of 8 students &middot; average 64.3</code>. Type <i>ar</i>: the <code>input</code> event fires on each key press, so you get one line for <i>a</i> (every name here contains an a) and then <code>Showing 2 of 8 students &middot; average 43.5</code>, with Karan (52) above Arjun (35). Clear the box and tick <b>Only below 40</b>: <code>Showing 2 of 8 students &middot; average 32.0</code>. Type <i>z</i>: the empty state appears and the Console prints <code>Showing 0 of 8 students</code>. Clear it, untick, choose <b>Name: A to Z</b>, and Arjun comes first. Through all of it, <code>students</code> never changed. Chapter 71 grows this pattern into a full task manager.</p>
+</section>
+
+<section id="mistakes">
+  <h2>58.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "innerHTML is safe as long as I block &lt;script&gt; tags."</b><br>A <code>&lt;script&gt;</code> added by <code>innerHTML</code> never runs anyway. The danger is attributes such as <code>onerror</code> on the elements it builds.</div>
+    <div class="r"><b>&#10003; "Text from a person or a server goes in with textContent."</b><br>Keep <code>innerHTML</code> for markup you wrote, with only your own values in it.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "To delete an item, remove its &lt;li&gt; from the page."</b><br>The row vanishes, but the array still holds the item, so the total still counts it and the next <code>render()</code> brings the row back.</div>
+    <div class="r"><b>&#10003; "Remove it from the data, then call render()."</b><br>The page is a picture of the data. Change the data and redraw.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "dataset.id gives back the number I stored."</b><br><code>remove.dataset.id = 3</code> stores the text <code>"3"</code>.</div>
+    <div class="r"><b>&#10003; "Every data-* value is a string."</b><br>Use <code>Number(button.dataset.id)</code> before comparing with <code>===</code>.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Sorting for display does not touch my data."</b><br><code>sort()</code> reorders the array it is called on and returns that same array.</div>
+    <div class="r"><b>&#10003; "Sort a copy: the array filter() made, or [...arr]."</b><br>The original keeps its order for the next render.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; three ask you to predict what code prints or to write a line.</p>
+  <details class="q"><summary>Which of these inserts a string as plain text, without interpreting any tags in it?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. innerHTML</li><li>B. outerHTML</li><li>C. textContent</li><li>D. insertAdjacentHTML</li></ul>
+    <p><b>Answer: C.</b> <code>textContent</code> puts the characters in exactly as given. A, B and D all parse their string as HTML and build elements from any tags in it.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const p = document.createElement("p"); p.innerHTML = "&lt;i&gt;Hi&lt;/i&gt;"; console.log(p.children.length); p.textContent = "&lt;i&gt;Hi&lt;/i&gt;"; console.log(p.children.length);</code></span><span class="lvl">L2</span></summary><div class="a">
+    <p><b>Answer: 1, then 0.</b> <code>innerHTML</code> parsed the tags and built an <code>&lt;i&gt;</code> element, so the paragraph has one element child. <code>textContent</code> then replaced everything with a single piece of text that happens to contain angle brackets, so there are no element children at all.</p></div></details>
+  <details class="q"><summary>A comments page shows each comment with <code>wall.innerHTML = comment;</code>. A visitor posts <code>&lt;img src="x" onerror="stealData()"&gt;</code>. What happens when other students open the page?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. They see the text exactly as it was typed</li><li>B. The browser builds an image, the image fails to load, and stealData() runs in their browser</li><li>C. Nothing, because browsers never run code that arrives through innerHTML</li><li>D. Only the visitor who typed it is affected</li></ul>
+    <p><b>Answer: B.</b> This is cross-site scripting. C is the tempting half-truth: a <code>&lt;script&gt;</code> inserted by <code>innerHTML</code> does not run, but event attributes on the elements it builds do. A is what <code>textContent</code> would have done.</p></div></details>
+  <details class="q"><summary><span>The list is an empty <code>&lt;ul&gt;</code>. What does this print? <code>const fruits = ["Apple", "Mango"]; list.innerHTML = fruits.map((f) =&gt; `&lt;li&gt;${f}&lt;/li&gt;`); console.log(list.textContent);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. Apple,Mango</li><li>B. AppleMango</li><li>C. [Apple, Mango]</li><li>D. A TypeError</li></ul>
+    <p><b>Answer: A.</b> <code>map</code> returned an array, and an array used as a string is joined with commas: <code>&lt;li&gt;Apple&lt;/li&gt;,&lt;li&gt;Mango&lt;/li&gt;</code>. The comma becomes text between the items, visible on the page. With <code>.join("")</code> added, B would be printed.</p></div></details>
+  <details class="q"><summary>In the state-to-view pattern, what should a Remove button's click handler do?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Call li.remove() and leave the array as it is</li><li>B. Hide the row with style.display = "none"</li><li>C. Reload the page</li><li>D. Remove the item from the data array, then call render()</li></ul>
+    <p><b>Answer: D.</b> The data is the source of truth. A is the tempting one: the row disappears, but the item is still in the array, so the next <code>render()</code> brings it back and the total still counts it.</p></div></details>
+  <details class="q"><summary><span>For <code>&lt;button data-id="7"&gt;Remove&lt;/button&gt;</code>, what does this print? <code>const id = button.dataset.id; console.log(typeof id, id === 7);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. number true</li><li>B. number false</li><li>C. string false</li><li>D. string true</li></ul>
+    <p><b>Answer: C.</b> Every <code>dataset</code> value is a string, <code>"7"</code>, and strict equality never matches a string with a number. <code>Number(id) === 7</code> would be <code>true</code>.</p></div></details>
+  <details class="q"><summary>Why label each Remove button with its item's id rather than its position in the list?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Positions are not allowed in data attributes</li><li>B. After a delete, a sort or a filter, positions shift, but an id stays with its item</li><li>C. Ids make the page load faster</li><li>D. dataset can store only ids</li></ul>
+    <p><b>Answer: B.</b> Delete item 0 and every later item moves up one place; sort the list and the third row is no longer the third item. A, C and D are simply false: a data attribute can hold any text.</p></div></details>
+  <details class="q"><summary>What is a <code>DocumentFragment</code> used for when generating a list?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Building many elements off the page and attaching them in a single step</li><li>B. Saving the list in browser storage</li><li>C. Escaping text before it goes into innerHTML</li><li>D. Splitting a page into separate files</li></ul>
+    <p><b>Answer: A.</b> Rows appended to a fragment are not on the page; appending the fragment moves them all into the page at once and leaves it empty. It does nothing for storage (B) or safety (C) by itself.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>const marks = [35, 91, 67]; const ranked = marks.sort((a, b) =&gt; b - a); console.log(marks);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. [35, 91, 67]</li><li>B. [35, 67, 91]</li><li>C. undefined</li><li>D. [91, 67, 35]</li></ul>
+    <p><b>Answer: D.</b> <code>sort()</code> reorders the array it is called on and returns that same array, so <code>marks</code> and <code>ranked</code> are one array, highest first. A is what people expect; to keep it, sort a copy: <code>[...marks].sort((a, b) =&gt; b - a)</code>.</p></div></details>
+  <details class="q"><summary>Write one line that gives a row the class <code>low</code> when <code>marks</code> is below 40 and removes the class otherwise.<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>row.classList.toggle("low", marks &lt; 40);</code></b> With a second argument, <code>toggle</code> is a switch: <code>true</code> adds the class and <code>false</code> removes it. Without the second argument it would flip the class on and off each time it ran.</p></div></details>
+  <details class="q"><summary><code>render()</code> rebuilds every row each time the data changes. Where is the simplest place for the Remove buttons' click listener?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. On document.body, listening for keydown</li><li>B. On the list element, using event.target.closest("button[data-id]")</li><li>C. On each button, added once when the page first loads</li><li>D. In an onclick attribute typed into the HTML file</li></ul>
+    <p><b>Answer: B.</b> The list is never replaced, so one delegated listener handles every button, including ones created later. C fails: the first <code>render()</code> after a change throws those buttons away with their listeners, and new buttons have none. D cannot work for buttons that are not in the HTML file at all.</p></div></details>
+  <details class="q"><summary>Which job suits a template literal with innerHTML?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Showing a product name a seller typed</li><li>B. Showing a comment from a student</li><li>C. Fixed card markup you wrote, filled with prices your code calculated</li><li>D. Showing a user's name that came from a server</li></ul>
+    <p><b>Answer: C.</b> Every character in that string is yours, so nothing unexpected can be parsed. A, B and D all contain text from outside, which belongs in <code>textContent</code> (or must be escaped first).</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>Keep repeated content as data, usually an array of objects, and let a loop make one element per item: create, fill, append.</li>
+    <li><code>textContent</code> inserts text without interpreting it as HTML; <code>innerHTML</code> parses the string as HTML. A template literal with <code>innerHTML</code> is short; <code>createElement</code> with <code>textContent</code> is safe. Remember <code>.join("")</code> after <code>map</code>.</li>
+    <li>Never put text from a person or a server into <code>innerHTML</code>: attributes such as <code>onerror</code> run code (XSS). Blocking <code>&lt;script&gt;</code> is no protection.</li>
+    <li>State to view: change only the data, then call <code>render()</code>, which clears the container and redraws everything from it. The data is the single source of truth.</li>
+    <li>Label each button with <code>data-id</code>; one delegated listener finds it with <code>event.target.closest(...)</code>; convert with <code>Number()</code>; change the data.</li>
+    <li>Every list needs an empty state, and its count, total or average is worked out in <code>render()</code> from the same array as the rows.</li>
+    <li>Controls change the view, not the data: filter, then sort the copy. Style with <code>classList.toggle(name, condition)</code>, use <code>style</code> only for sizes from the data, build in a <code>DocumentFragment</code> and attach once, and never use <code>innerHTML +=</code> in a loop.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>document.createElement("li")</code></td><td>Makes a new, empty element, not yet on the page</td></tr>
+      <tr><td><code>el.textContent = text</code></td><td>Puts the text in as letters; safe for any user text</td></tr>
+      <tr><td><code>el.innerHTML = html</code></td><td>Parses the string as HTML; only for markup you wrote</td></tr>
+      <tr><td><code>items.map((x) =&gt; `&lt;li&gt;${x}&lt;/li&gt;`).join("")</code></td><td>One HTML string from an array, with no stray commas</td></tr>
+      <tr><td><code>parent.append(a, b)</code></td><td>Attaches one or more elements at the end of the parent</td></tr>
+      <tr><td><code>btn.dataset.id = item.id</code></td><td>Writes <code>data-id</code> on the button; reading it back gives a string</td></tr>
+      <tr><td><code>event.target.closest("button[data-id]")</code></td><td>The button a click came from, or <code>null</code></td></tr>
+      <tr><td><code>arr = arr.filter((x) =&gt; x.id !== id)</code></td><td>Removes one item from the data</td></tr>
+      <tr><td><code>el.classList.toggle("low", marks &lt; 40)</code></td><td>Adds the class when true, removes it when false</td></tr>
+      <tr><td><code>bar.style.width = `${marks}%`</code></td><td>A size taken straight from the data</td></tr>
+      <tr><td><code>document.createDocumentFragment()</code></td><td>An off-page holder: build inside it, append it once</td></tr>
+      <tr><td><code>[...arr].sort((a, b) =&gt; b.marks - a.marks)</code></td><td>Sorts a copy, highest first; the original keeps its order</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Document/createElement" target="_blank" rel="noopener noreferrer">MDN &mdash; Document.createElement()<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The method behind every generated element, with small worked examples.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/Element/innerHTML" target="_blank" rel="noopener noreferrer">MDN &mdash; Element.innerHTML<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Read its "Security considerations" section: the onerror trick from 58.3, explained by the people who document the browser.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/DocumentFragment" target="_blank" rel="noopener noreferrer">MDN &mdash; DocumentFragment<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">What the off-page holder is and why appending it leaves it empty.</span></li>
+    <li><a href="https://javascript.info/modifying-document" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Modifying the document<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A friendly second walk through creating, inserting and removing elements, with tasks to try.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

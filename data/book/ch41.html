@@ -1,0 +1,572 @@
+<article class="chapter" data-ch="41">
+<header class="ch-head">
+  <p class="eyebrow">Unit 4 &middot; Chapter 41 &middot; Introduction to JavaScript</p>
+  <h1>Introduction to JavaScript</h1>
+  <p class="lead">With HTML you built pages, and with CSS you made them look good. But put a "Show my marks" button on one of those pages, press it, and nothing happens: HTML and CSS cannot calculate, check what was typed, or change what the page says. JavaScript is the language that adds the reacting part. This chapter explains what it is, who runs it, what it is not allowed to do, how it gets into a page, and then you write your first program.</p>
+  <p class="meta">About 30 minutes &middot; Course outcome CO4</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li>The browser downloads a page's files and draws the page from them: HTML for structure, CSS for presentation, JavaScript for behaviour (<a href="book.html?ch=1">Chapter 1</a>).</li>
+      <li>An element is a start tag, its content and an end tag, and attributes such as <code>id="title"</code> sit inside the start tag (<a href="book.html?ch=3">Chapter 3</a>).</li>
+      <li>A page has a <code>&lt;head&gt;</code> with invisible information and a <code>&lt;body&gt;</code> with everything visible (<a href="book.html?ch=4">Chapter 4</a>).</li>
+      <li>CSS can be written inline, internally or in an external file, and real projects use the external file (<a href="book.html?ch=22">Chapter 22</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Say what job each of HTML, CSS and JavaScript does on a page.</li>
+      <li>Explain what JavaScript is, where it runs (the browser and Node.js), and how an engine such as V8 turns it into instructions the processor can carry out.</li>
+      <li>List what JavaScript in a browser is not allowed to do, and explain why.</li>
+      <li>Add JavaScript to a page inline, internally and as an external file, and explain why the external file is the professional choice.</li>
+      <li>Put the <code>&lt;script&gt;</code> tag in the right place, at the end of the body or in the head with <code>defer</code>, and say what goes wrong otherwise.</li>
+      <li>Write and run a first program with <code>console.log</code>, and find its output in the DevTools Console.</li>
+      <li>Write statements, semicolons and comments correctly, and spot an error caused by a wrong capital letter.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>41.1 Three languages, three jobs</h2>
+  <p>Every web page you have made so far uses two languages. <b>HTML</b> says <i>what is on the page</i>: a heading, a paragraph, a form, a button. <b>CSS</b> says <i>how it looks</i>: colours, fonts, spacing, layout, and how it changes on a phone. Both of them only <i>describe</i>. Neither one can add up numbers, check what somebody typed, or change what the page says when a button is pressed.</p>
+  <p>That third job is called <b>behaviour</b>, and it belongs to <b>JavaScript</b>. JavaScript is what lets a page:</p>
+  <ul>
+    <li><b>respond to the user</b>: open a menu when it is clicked, show a password when an eye icon is tapped;</li>
+    <li><b>check input</b>: say "Please enter a 10-digit mobile number" before the form is sent;</li>
+    <li><b>calculate</b>: add up the cart total, or work out a CGPA from marks;</li>
+    <li><b>change the page while you look at it</b>: a new message appears in a chat without the whole page reloading.</li>
+  </ul>
+  <div class="callout analogy"><b>Picture this.</b> A new house. <b>HTML is the building itself</b>: the walls, the rooms, the doors and windows, the place where the fan will hang. <b>CSS is the decoration</b>: the paint, the tiles, the curtains. <b>JavaScript is the electrical wiring</b>: press a switch and the fan turns, press the bell and it rings. A house with no wiring still stands and can look beautiful, but nothing in it <i>does</i> anything. And wiring does not replace walls; it is fitted into them.</div>
+  <p>That last sentence matters. JavaScript does not replace HTML or CSS. It works <i>with</i> them. Most interactive pages use all three, each doing only its own job.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 240" role="img" aria-label="Three rows: HTML gives structure, a button exists; CSS gives presentation, the button is orange; JavaScript gives behaviour, pressing the button shows the marks">
+      <text x="95" y="22" class="t c s b">THE LANGUAGE</text>
+      <text x="310" y="22" class="t c s b">ONE LINE OF IT</text>
+      <text x="540" y="22" class="t c s b">WHAT THE VISITOR GETS</text>
+      <rect x="20" y="34" width="150" height="56" rx="10" class="box blu"/>
+      <text x="95" y="58" class="t c b">HTML</text>
+      <text x="95" y="76" class="t c s">structure</text>
+      <rect x="190" y="34" width="240" height="56" rx="10" class="box gry"/>
+      <text x="310" y="67" class="t c mono">&lt;button&gt;Show marks&lt;/button&gt;</text>
+      <path d="M434 62 L470 62" class="edge" marker-end="url(#arr)"/>
+      <rect x="475" y="34" width="130" height="56" rx="10" class="box"/>
+      <text x="540" y="58" class="t c">a button exists</text>
+      <text x="540" y="76" class="t c s">plain and grey</text>
+      <rect x="20" y="104" width="150" height="56" rx="10" class="box saf"/>
+      <text x="95" y="128" class="t c b">CSS</text>
+      <text x="95" y="146" class="t c s">presentation</text>
+      <rect x="190" y="104" width="240" height="56" rx="10" class="box gry"/>
+      <text x="310" y="137" class="t c mono" style="font-size:11px">button { background: orange; }</text>
+      <path d="M434 132 L470 132" class="edge" marker-end="url(#arr)"/>
+      <rect x="475" y="104" width="130" height="56" rx="10" class="box"/>
+      <text x="540" y="128" class="t c">it looks orange</text>
+      <text x="540" y="146" class="t c s">but does nothing</text>
+      <rect x="20" y="174" width="150" height="56" rx="10" class="box grn"/>
+      <text x="95" y="198" class="t c b">JavaScript</text>
+      <text x="95" y="216" class="t c s">behaviour</text>
+      <rect x="190" y="174" width="240" height="56" rx="10" class="box gry"/>
+      <text x="310" y="207" class="t c mono" style="font-size:11px">marks.textContent = "87 / 100";</text>
+      <path d="M434 202 L470 202" class="edge grn" marker-end="url(#arr-grn)"/>
+      <rect x="475" y="174" width="130" height="56" rx="10" class="box grn"/>
+      <text x="540" y="198" class="t c">press it, and</text>
+      <text x="540" y="216" class="t c s">the marks appear</text>
+    </svg>
+    <figcaption><b>Figure 41.1</b> The same button, three layers. HTML makes it exist, CSS makes it look right, and only JavaScript makes pressing it do something.</figcaption>
+  </figure>
+  <p>Here is a page that uses all three. Do not try to understand every word of the script yet; Chapters 55 to 57 explain each one. For now, just see the three layers working together.</p>
+  <pre class="code" data-run data-title="HTML, CSS and JavaScript on one page - press the button" data-h="200">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  .card { background: #FFF7ED; border-left: 5px solid #FF9933;
+          border-radius: 8px; padding: 10px 16px; max-width: 360px; }
+  button { background: #FF9933; color: white; border: 0;
+           border-radius: 6px; padding: 8px 14px; cursor: pointer; }
+&lt;/style&gt;
+
+&lt;div class="card"&gt;
+  &lt;h3&gt;Asha's CSE326 result&lt;/h3&gt;
+  &lt;p id="marks"&gt;Marks: hidden&lt;/p&gt;
+  &lt;button id="show"&gt;Show my marks&lt;/button&gt;
+&lt;/div&gt;
+
+&lt;script&gt;
+  // The behaviour. Chapters 55-57 explain every word of this.
+  const button = document.getElementById("show");
+  const marks = document.getElementById("marks");
+
+  button.addEventListener("click", () =&gt; {
+    marks.textContent = "Marks: 87 / 100";
+    console.log("Button pressed. The text is now:", marks.textContent);
+  });
+
+  console.log("JavaScript is running on this page.");
+&lt;/script&gt;</pre>
+  <p>Press <b>Run</b>. The Console panel under the preview shows <code>JavaScript is running on this page.</code> Press <b>Show my marks</b>: the paragraph changes to <b>Marks: 87 / 100</b> and the Console adds <code>Button pressed. The text is now: Marks: 87 / 100</code>. Now delete the <code>&lt;style&gt;</code> block and Run: the button still works but looks plain. Put it back and delete the script: the card looks perfect, but the button does nothing.</p>
+</section>
+
+<section id="s2">
+  <h2>41.2 What JavaScript is</h2>
+  <p>Start with a word you will use every day from now on: a <b>program</b> is a list of instructions that a computer carries out, one after another. "Show this message. Add these two numbers. If the box is empty, complain." A <b>programming language</b> is a way of writing those instructions down that both people and computers can read. HTML and CSS are not programming languages: they describe what a page contains and how it looks, but they cannot carry out a list of steps, keep a running total, or decide what to do next from what the user did. JavaScript can.</p>
+  <p>The slides describe JavaScript in four phrases:</p>
+  <ul>
+    <li><b>A <span class="jw" data-def="Written in words and symbols close to how people think (show, if, add), instead of the raw on/off numbers a processor actually understands.">high-level</span> programming language.</b> You write <code>console.log("Hello")</code>, which a person can read, not the long strings of numbers the processor really works with. Something else does that translation for you (41.3).</li>
+    <li><b>A scripting language.</b> A JavaScript program is usually called a <i>script</i>: plain text handed to another program, the browser, to carry out.</li>
+    <li><b>It runs mainly in web browsers</b>; every browser understands it, with nothing extra to install. It also runs outside the browser, in <b>Node.js</b> (41.4).</li>
+    <li><b>It supports several styles of programming</b>: <i>event-driven</i> (code that waits for something, such as a click, and then runs), <i>functional</i> (building programs from small reusable functions) and <i>object-oriented</i> (grouping related data and actions). Units 4 and 5 show all three.</li>
+  </ul>
+  <p>Typical jobs: responding to user actions, updating the page, calling <i>APIs</i> (asking a server for data; Chapter 65) and processing data (sorting marks, totalling a bill).</p>
+  <div class="plain">
+    <p>JavaScript is a language for writing instructions. You write them as readable text, the browser carries them out, and the page reacts. No installing, no separate app: save, reload, and it runs.</p>
+  </div>
+  <h3>JavaScript is not Java</h3>
+  <p>The names cause endless confusion, so settle it now. <b>Java and JavaScript are two different languages</b>, made by different people for different purposes, with different rules. JavaScript was written in about ten days in 1995 by Brendan Eich at Netscape, maker of the most popular browser of the time. First called Mocha, then LiveScript, it was renamed JavaScript mainly for marketing, because Java was that year's fashionable language. Programmers say the two are as related as <i>car</i> and <i>carpet</i>.</p>
+  <p>The official standard for the language is called <b>ECMAScript</b>. "ES6" or "ES2015" means its 2015 edition, which added much of the modern JavaScript this book uses.</p>
+</section>
+
+<section id="s3">
+  <h2>41.3 Who runs your code: the JavaScript engine</h2>
+  <p>Here is a fact that surprises most beginners: the processor inside your laptop does not understand JavaScript. It does not understand English words like <code>console</code> or <code>log</code> either. A processor understands only <span class="jw" data-def="The processor's own language: very simple instructions stored as numbers (move this, add that). It is the only thing a processor can actually carry out.">machine code</span>, very simple instructions stored as numbers, such as "copy this value" or "add these two". So between your readable script and the processor, something must translate.</p>
+  <p>That something is the <b>JavaScript engine</b>: a program built into the browser whose only job is to read JavaScript and carry it out. Every browser has one:</p>
+  <table class="tbl">
+    <thead><tr><th>Engine</th><th>Made by</th><th>Used in</th></tr></thead>
+    <tbody>
+      <tr><td><b>V8</b></td><td>Google</td><td>Chrome, Microsoft Edge, Opera, Brave &mdash; and Node.js</td></tr>
+      <tr><td><b>SpiderMonkey</b></td><td>Mozilla</td><td>Firefox (it was the very first JavaScript engine)</td></tr>
+      <tr><td><b>JavaScriptCore</b></td><td>Apple</td><td>Safari, and almost every browser on an iPhone</td></tr>
+    </tbody>
+  </table>
+  <p>Because all of them follow the same ECMAScript standard, the same script almost always gives the same result in all of them. Follow V8, the engine your slides name, through its three steps.</p>
+  <ol>
+    <li><b>Parse.</b> The engine reads your text and checks the grammar: every bracket and quote closed, no word in an impossible place. If something is broken, nothing in that script runs, and the Console shows a <i>SyntaxError</i>.</li>
+    <li><b>Interpret.</b> To start quickly, the engine carries out your instructions straight away, one by one. A program that does this is an <i>interpreter</i>.</li>
+    <li><b>Compile what is busy.</b> The engine watches which parts run again and again (a calculation done for each of 500 students, say). Those parts are converted into fast machine code by a <span class="jw" data-def="A part of the engine that turns code into machine code while the program is already running, but only the parts that are used a lot, so they run much faster.">just-in-time (JIT) compiler</span>, so the next 500 runs go much faster.</li>
+  </ol>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 250" role="img" aria-label="Your code, plain text, goes into the JavaScript engine, which parses it, interprets it and JIT-compiles busy parts into machine code that the processor runs">
+      <rect x="10" y="90" width="125" height="70" rx="10" class="box"/>
+      <text x="72" y="115" class="t c b">Your code</text>
+      <text x="72" y="134" class="t c s">plain text, e.g.</text>
+      <text x="72" y="150" class="t c s mono">script.js</text>
+      <path d="M137 125 L161 125" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="165" y="18" width="300" height="222" rx="12" class="box saf"/>
+      <text x="315" y="40" class="t c b">The JavaScript engine</text>
+      <text x="315" y="58" class="t c s">V8 (Chrome, Edge) &#183; SpiderMonkey (Firefox)</text>
+      <rect x="185" y="70" width="260" height="46" rx="8" class="box"/>
+      <text x="315" y="89" class="t c b">1 Parse</text>
+      <text x="315" y="106" class="t c s">read the text and check the grammar</text>
+      <path d="M315 116 L315 128" class="edge" marker-end="url(#arr)"/>
+      <rect x="185" y="130" width="260" height="46" rx="8" class="box"/>
+      <text x="315" y="149" class="t c b">2 Interpret</text>
+      <text x="315" y="166" class="t c s">start carrying it out straight away</text>
+      <path d="M315 176 L315 188" class="edge" marker-end="url(#arr)"/>
+      <rect x="185" y="190" width="260" height="42" rx="8" class="box grn"/>
+      <text x="315" y="208" class="t c b">3 JIT-compile the busy parts</text>
+      <text x="315" y="224" class="t c s">into fast machine code</text>
+      <path d="M467 125 L491 125" class="edge" marker-end="url(#arr)"/>
+      <rect x="495" y="90" width="115" height="70" rx="10" class="box ink"/>
+      <text x="552" y="115" class="t c b w">Processor</text>
+      <text x="552" y="134" class="t c s w">runs machine</text>
+      <text x="552" y="150" class="t c s w">instructions</text>
+    </svg>
+    <figcaption><b>Figure 41.2</b> You write readable text; the engine checks it, starts running it at once, and speeds up the parts that run often. Only machine code ever reaches the processor.</figcaption>
+  </figure>
+  <p>You may read that JavaScript is an "interpreted language". That was true of early engines; modern ones mix interpreting and compiling, which is why JavaScript is fast enough for games and Google Maps. You never start the engine yourself: the browser does it.</p>
+  <div class="plain">
+    <p>The processor speaks only machine code. The engine is the translator living inside the browser: it reads your JavaScript, checks it, runs it, and turns the parts used most into fast machine code. V8 is Chrome's translator; SpiderMonkey is Firefox's.</p>
+  </div>
+  <details class="qc"><summary>Quick check: your script has a missing closing bracket on its last line. Do the lines above it still run?</summary><div class="a">
+    <p>No. The engine parses (checks) the whole script before running any of it. A grammar mistake anywhere stops the entire script, and the Console shows a SyntaxError.</p></div></details>
+</section>
+
+<section id="s4">
+  <h2>41.4 What browser JavaScript is not allowed to do</h2>
+  <p>Each time you open a website, you run a stranger's program on your own laptop, without being asked. If it could do anything it liked, any website could read your photos or delete your files. So browsers run every page's JavaScript inside a <span class="jw" data-def="A closed-off area where code can run but cannot reach anything outside it, such as your files or other programs. The browser keeps every page in one.">sandbox</span>: a fenced-off area where it can work on its own page and very little else.</p>
+  <p>The slides list what browser JavaScript <b>cannot</b> do:</p>
+  <table class="tbl">
+    <thead><tr><th>It cannot&hellip;</th><th>What that means in practice</th></tr></thead>
+    <tbody>
+      <tr><td>Read or write your files</td><td>It cannot look around your disk. It sees a file only when <i>you</i> pick one (<code>&lt;input type="file"&gt;</code>) or drag one onto the page, and saves one only as a download or into a place you choose in a save box.</td></tr>
+      <tr><td>Access the operating system</td><td>It cannot start other programs, change Windows settings or read your contacts. Camera, microphone and location are possible only after the browser asks you and you say yes (Chapter 66).</td></tr>
+      <tr><td>Run a server</td><td>It cannot sit waiting for other computers to connect to it. A page is a <i>client</i>; it asks servers for things (Chapter 2).</td></tr>
+      <tr><td>Access databases directly</td><td>It cannot log in to the university's database server. It asks a web server, and the server talks to the database (Chapter 65). It does get a small storage area of its own inside the browser (Chapter 64).</td></tr>
+      <tr><td>Run forever</td><td>A script that never finishes freezes its tab, and the browser soon offers to stop it ("Page Unresponsive"). Background tabs are slowed down, and closing the tab ends every script in it.</td></tr>
+      <tr><td>See into other tabs</td><td>A page from one site cannot read what is in another site's tab, such as your email or your UMS account.</td></tr>
+    </tbody>
+  </table>
+  <p>These limits are not weaknesses: they are why you can safely open a stranger's link.</p>
+  <h3>Node.js: JavaScript outside the browser</h3>
+  <p>In 2009 a developer named Ryan Dahl took Chrome's V8 engine out of the browser and wrapped it in a program of its own, called <b>Node.js</b>. The slides call Node.js a <span class="jw" data-def="The surroundings a program runs in: the engine plus the extra tools it is given. A browser is one runtime environment for JavaScript; Node.js is another.">runtime environment</span>: the engine plus a set of extra tools around it. Node.js runs on a computer, not inside a page, so it has no browser sandbox and can do exactly what a browser forbids: read and write files, run a web server, talk to a database.</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>JavaScript in the browser</th><th>JavaScript in Node.js</th></tr></thead>
+    <tbody>
+      <tr><td>Engine</td><td>V8, SpiderMonkey or JavaScriptCore</td><td>V8</td></tr>
+      <tr><td>Can change a web page</td><td>Yes: that is its main job</td><td>No: there is no page</td></tr>
+      <tr><td>Can read your files, run a server</td><td>No: sandboxed</td><td>Yes</td></tr>
+      <tr><td>Typical use</td><td>Menus, forms, games, live updates</td><td>Web servers, tools, scripts</td></tr>
+    </tbody>
+  </table>
+  <p>The language is the same in both places; only the surroundings differ. This course uses JavaScript in the browser.</p>
+</section>
+
+<section id="s5">
+  <h2>41.5 Three ways to add JavaScript to a page</h2>
+  <p>Chapter 22 gave CSS three possible places and one right answer for real projects. JavaScript has the same three, and the same answer.</p>
+  <h3>1. Inline: inside an event attribute</h3>
+  <p>An HTML attribute whose name starts with <code>on</code>, such as <code>onclick</code>, can hold a little JavaScript that runs when that thing happens:</p>
+  <pre class="code">&lt;button onclick="console.log('Clicked!');"&gt;Click me&lt;/button&gt;</pre>
+  <p>It works, and old tutorials use it. But the behaviour is buried in the HTML, scattered over many tags and impossible to reuse, and many sites block inline code for security. Avoid it.</p>
+  <h3>2. Internal: inside a <code>&lt;script&gt;</code> element</h3>
+  <p>A <code>&lt;script&gt;</code> element with JavaScript written between its tags:</p>
+  <pre class="code">&lt;script&gt;
+  console.log("Hello from an internal script");
+&lt;/script&gt;</pre>
+  <p>Fine for a small experiment, which is why most examples in this book use it. But the code belongs to this one page: if five pages need it, you paste it five times and fix every mistake five times.</p>
+  <pre class="code" data-run data-title="Inline and internal JavaScript - then press the button" data-h="140">&lt;style&gt; body { font-family: system-ui, sans-serif; padding: 16px; } &lt;/style&gt;
+&lt;h3&gt;Two ways that fit inside one file&lt;/h3&gt;
+
+&lt;!-- 1. Inline: the code sits in the onclick attribute --&gt;
+&lt;button onclick="console.log('Inline: you pressed the button');"&gt;Press me&lt;/button&gt;
+
+&lt;!-- 2. Internal: the code sits in a script element --&gt;
+&lt;script&gt;
+  console.log("Internal: this ran while the page was loading");
+&lt;/script&gt;</pre>
+  <p>Run it: the Console shows <code>Internal: this ran while the page was loading</code> at once, because the browser runs a script element as soon as it reaches it. The inline code waits; press the button and <code>Inline: you pressed the button</code> appears. Notice the quotes: the attribute's value is wrapped in double quotes, so the text inside it uses single quotes. Two double quotes would end the attribute early.</p>
+  <h3>3. External: a separate .js file</h3>
+  <p>The code goes into its own file whose name ends in <code>.js</code>, and the page points to it with the <code>src</code> (source) attribute:</p>
+  <pre class="code">&lt;!-- index.html --&gt;
+&lt;script src="script.js"&gt;&lt;/script&gt;
+
+// script.js  (a separate file in the same folder)
+console.log("Hello from an external file");</pre>
+  <p>This is the professional choice, for four reasons:</p>
+  <ul>
+    <li><b>One file, many pages.</b> Every page of a site loads the same <code>script.js</code>; fix a mistake once and every page is fixed.</li>
+    <li><b>Faster later pages.</b> The browser keeps a copy of the file in its <span class="jw" data-def="A store of files the browser has already downloaded, kept on your device so it can reuse them instead of downloading them again.">cache</span>, so the next page does not download it again.</li>
+    <li><b>Clean HTML.</b> The HTML stays about structure, the separation you met in Chapter 22.</li>
+    <li><b>Easier teamwork.</b> One student works on the page while another works on the script.</li>
+  </ul>
+  <div class="callout warn"><b>Two traps with <code>src</code>.</b> First, a <code>&lt;script&gt;</code> that has a <code>src</code> must be <b>empty</b>: any code written between its tags is ignored, because the browser uses the file instead. Second, you must write the closing <code>&lt;/script&gt;</code>. The short form <code>&lt;script src="script.js" /&gt;</code> does not work in HTML: the slash is ignored, so the browser treats everything after it, up to the next <code>&lt;/script&gt;</code>, as the script's content, and that part of your page vanishes.</div>
+  <div class="callout exam"><b>Exam tip.</b> The attribute is <code>src</code>, not <code>href</code>. CSS is joined with <code>&lt;link rel="stylesheet" href="..."&gt;</code>; JavaScript with <code>&lt;script src="..."&gt;&lt;/script&gt;</code>. And in HTML5 you do not need <code>type="text/javascript"</code>: JavaScript is the default.</div>
+</section>
+
+<section id="s6">
+  <h2>41.6 Where the script tag goes</h2>
+  <p>The browser reads your HTML file the way you read a page of a book: from the top, line by line. As it reads each tag it <span class="jw" data-def="To read text and work out its structure. When the browser parses HTML, it reads the tags and builds the elements they describe.">parses</span> it and builds the element, so a heading exists only after the browser has read the heading's tag. When it meets a <code>&lt;script&gt;</code>, it <b>stops building</b>, runs the script (downloading the file first, if it has a <code>src</code>), and only then carries on reading.</p>
+  <p>Two things follow from that one rule:</p>
+  <ul>
+    <li>A script <b>in the head</b> runs before the body has been read, so the elements it wants <i>do not exist yet</i>.</li>
+    <li>While a big script downloads in the head, the page stays blank.</li>
+  </ul>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 290" role="img" aria-label="The browser reads a page from top to bottom. Script A in the head runs before the heading exists and finds nothing; script B at the end of the body runs after the heading is built and finds it; a deferred script waits until the whole page has been read">
+      <path d="M22 24 L22 256" class="edge" marker-end="url(#arr)"/>
+      <rect x="38" y="14" width="232" height="250" rx="10" class="box gry"/>
+      <text x="56" y="40" class="t mono">&lt;head&gt;</text>
+      <rect x="50" y="50" width="208" height="24" rx="5" class="box red"/>
+      <text x="64" y="67" class="t mono">&lt;script&gt; A &lt;/script&gt;</text>
+      <text x="56" y="94" class="t mono">&lt;/head&gt;</text>
+      <text x="56" y="118" class="t mono">&lt;body&gt;</text>
+      <text x="72" y="142" class="t mono">&lt;h1 id="title"&gt;</text>
+      <text x="72" y="166" class="t mono">&lt;p&gt;...&lt;/p&gt;</text>
+      <rect x="50" y="174" width="208" height="24" rx="5" class="box grn"/>
+      <text x="64" y="191" class="t mono">&lt;script&gt; B &lt;/script&gt;</text>
+      <text x="56" y="218" class="t mono">&lt;/body&gt;</text>
+      <text x="56" y="242" class="t mono">&lt;/html&gt;</text>
+      <path d="M260 62 L306 62" class="edge dash"/>
+      <rect x="310" y="32" width="300" height="62" rx="10" class="box red"/>
+      <text x="460" y="52" class="t c b">Script A runs here</text>
+      <text x="460" y="70" class="t c s">the h1 is further down and not built yet,</text>
+      <text x="460" y="86" class="t c s">so looking for it finds nothing: null</text>
+      <path d="M260 186 L306 186" class="edge dash"/>
+      <rect x="310" y="152" width="300" height="62" rx="10" class="box grn"/>
+      <text x="460" y="172" class="t c b">Script B runs here</text>
+      <text x="460" y="190" class="t c s">the h1 and the p above are already built,</text>
+      <text x="460" y="206" class="t c s">so it finds them</text>
+      <rect x="310" y="226" width="300" height="46" rx="10" class="box blu"/>
+      <text x="460" y="245" class="t c s">&lt;script src="..." defer&gt; in the head:</text>
+      <text x="460" y="262" class="t c s">downloads early, runs after the HTML is read</text>
+      <text x="38" y="284" class="t s">The browser reads from the top down</text>
+    </svg>
+    <figcaption><b>Figure 41.3</b> A script can only use what the browser has already read. Script A is too early; script B, just before <code>&lt;/body&gt;</code>, sees the whole page.</figcaption>
+  </figure>
+  <p>The next example proves it. Both scripts ask the page for the element whose id is <code>title</code>, using <code>document.getElementById("title")</code>. You will learn this tool properly in Chapter 55; for now, read it as <i>"page, give me the element called title"</i>. If there is no such element, it answers <code>null</code>, which means "nothing".</p>
+  <pre class="code" data-run data-title="Same question, two positions - read the Console" data-h="160">&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;Script position&lt;/title&gt;
+  &lt;script&gt;
+    // Script A: in the head. The body has not been read yet.
+    console.log("A (in the head) finds:", document.getElementById("title"));
+  &lt;/script&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1 id="title"&gt;CSE326 Notice Board&lt;/h1&gt;
+  &lt;p&gt;Classes resume on Monday.&lt;/p&gt;
+
+  &lt;script&gt;
+    // Script B: just before the end of the body. Everything above exists.
+    console.log("B (end of body) finds:", document.getElementById("title"));
+  &lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;</pre>
+  <p>The Console shows <code>A (in the head) finds: null</code> and then <code>B (end of body) finds: &lt;h1 id="title"&gt;</code>. Same line, same page, different answer, decided only by <i>where</i> the script sits. Had script A tried to change the heading's text, you would get the most famous beginner error, <code>TypeError: Cannot set properties of null</code>. When you see it, check the script's position first.</p>
+  <h3>The two correct positions</h3>
+  <ol>
+    <li><b>Just before <code>&lt;/body&gt;</code></b>, as Chapter 4 recommended. Everything above is built, and the visitor sees the content while the script loads. It works for internal and external scripts alike.</li>
+    <li><b>In the head, with <code>defer</code></b>: <code>&lt;script src="script.js" defer&gt;&lt;/script&gt;</code>. <code>defer</code> means "start downloading this file now, but run it only after the whole HTML has been read": an early download <i>and</i> a complete page. It works only on scripts with <code>src</code>; on an internal script it is ignored. Chapters 73 and 74 make it the standard for real projects.</li>
+  </ol>
+  <details class="qc"><summary>Quick check: a script in the head, without defer, changes the text of a paragraph in the body. Why does it fail?</summary><div class="a">
+    <p>The browser runs the script as soon as it reaches it, while it is still in the head. The paragraph has not been read and built yet, so the script finds <code>null</code> instead of the paragraph. Move the script to just before <code>&lt;/body&gt;</code>, or make it an external file loaded with <code>defer</code>.</p></div></details>
+</section>
+
+<section id="s7">
+  <h2>41.7 Your first program and the Console</h2>
+  <p>Time to write a real program, the way the slides set it up: two files, side by side in one folder.</p>
+  <pre class="code">my-first-js/
+  index.html
+  script.js
+
+&lt;!-- index.html --&gt;
+&lt;!DOCTYPE html&gt;
+&lt;html lang="en"&gt;
+&lt;head&gt;
+  &lt;meta charset="UTF-8"&gt;
+  &lt;title&gt;My first JavaScript&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+  &lt;h1&gt;Open the Console to see the output&lt;/h1&gt;
+  &lt;script src="script.js"&gt;&lt;/script&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+
+// script.js
+console.log("Hello, CSE326!");</pre>
+  <p>The <code>&lt;script&gt;</code> element is the bridge: it tells the page to fetch <code>script.js</code> from the same folder and run it. Open <code>index.html</code> in your browser (double-click it, or use VS Code's Live Server). Only the heading shows. Where did <i>Hello</i> go?</p>
+  <h3>Opening the Console</h3>
+  <p><code>console.log()</code> does <b>not</b> write on the page. It writes to the <b>Console</b>, a panel inside the browser's <b>Developer Tools</b> (DevTools) that only the developer looks at. To open it:</p>
+  <table class="tbl">
+    <thead><tr><th>Browser</th><th>Keys (Windows)</th><th>Or</th></tr></thead>
+    <tbody>
+      <tr><td>Chrome, Edge</td><td><kbd>F12</kbd>, or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd> straight to the Console</td><td>Right-click the page &rarr; <i>Inspect</i> &rarr; <i>Console</i> tab</td></tr>
+      <tr><td>Firefox</td><td><kbd>F12</kbd>, or <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>K</kbd></td><td>Right-click &rarr; <i>Inspect</i> &rarr; <i>Console</i></td></tr>
+      <tr><td>Chrome, Edge or Firefox on a Mac</td><td><kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>J</kbd> (Chrome, Edge) or <kbd>Cmd</kbd>+<kbd>Option</kbd>+<kbd>K</kbd> (Firefox)</td><td>The same right-click menu</td></tr>
+    </tbody>
+  </table>
+  <p>There it is: <code>Hello, CSE326!</code>. The Console is also where the browser reports mistakes, in red, with the file name and line number, so programmers keep it open (Chapter 69 covers the rest of DevTools). In this book, the <b>Console panel</b> under every Run shows what the real Console would.</p>
+  <h3>What console.log prints</h3>
+  <pre class="code" data-run data-title="Your first program - read the Console panel" data-h="150">&lt;h3&gt;My first program&lt;/h3&gt;
+&lt;p&gt;Nothing that console.log prints appears here on the page.
+   Look in the Console panel underneath.&lt;/p&gt;
+
+&lt;script&gt;
+  console.log("Hello, CSE326!");
+  console.log("I am learning JavaScript at LPU.");
+  console.log(2 + 3);
+  console.log("2 + 3");
+  console.log("Asha scored", 87, "out of", 100);
+&lt;/script&gt;</pre>
+  <p>The Console shows five lines, in order:</p>
+  <pre class="code">Hello, CSE326!
+I am learning JavaScript at LPU.
+5
+2 + 3
+Asha scored 87 out of 100</pre>
+  <ul>
+    <li>Text in quotes is printed <b>exactly as written</b>, without the quotes. Text in quotes is called a <i>string</i> (Chapter 43).</li>
+    <li><code>2 + 3</code> <i>without</i> quotes is worked out first, so the Console shows <code>5</code>. The same characters <i>inside</i> quotes, <code>"2 + 3"</code>, are just text, and are printed as text. That one pair of quote marks is the difference between a calculation and a message.</li>
+    <li>You can give <code>console.log</code> several values separated by commas. It prints them all on one line, <b>with a space between each</b>. That is why the last line reads <code>Asha scored 87 out of 100</code> although no quoted piece begins or ends with a space.</li>
+  </ul>
+  <div class="plain">
+    <p><code>console.log(...)</code> means "write this in the Console". Put text in quotes and it is copied out letter for letter; leave a calculation without quotes and its answer is printed. Separate several things with commas, and they come out on one line with spaces between them.</p>
+  </div>
+  <h3>Typing straight into the Console</h3>
+  <p>The Console also <i>accepts</i> JavaScript. Click in it, type <code>2 + 3</code> and press <kbd>Enter</kbd>: it answers <code>5</code> at once, a perfect scratch pad for trying a line. Type <code>console.log("Hi")</code> there and you see <code>Hi</code> followed by a grey <code>undefined</code>. That is not an error: the Console reports what each line gave back, and <code>console.log</code> gives back nothing, which JavaScript writes as <code>undefined</code> (Chapter 43).</p>
+  <details class="qc"><summary>Quick check: what does console.log("Marks:", 40 + 45) print?</summary><div class="a">
+    <p><code>Marks: 85</code>. The text in quotes is printed as it is, the calculation without quotes is worked out to 85, and the two values are joined with one space.</p></div></details>
+</section>
+
+<section id="s8">
+  <h2>41.8 Statements, semicolons, comments and capital letters</h2>
+  <h3>Statements and semicolons</h3>
+  <p>Each instruction in a program is called a <b>statement</b>: one complete thing to do, like one sentence in a paragraph. <code>console.log("Hello");</code> is a statement. JavaScript carries out statements <b>in order, from top to bottom</b>, unless you tell it otherwise (Chapter 47 shows how).</p>
+  <p>A simple statement like this one ends with a <b>semicolon</b> <code>;</code>, the way an English sentence ends with a full stop. Because the semicolon marks the end, two statements can share one line, and spaces and blank lines between statements are only for the human reader.</p>
+  <p>A missing semicolon at a line's end often still works, because rules called <i>automatic semicolon insertion</i> guess where you meant one. The rules have surprising exceptions, so always write it.</p>
+  <h3>Comments</h3>
+  <p>A <b>comment</b> is a note for people. JavaScript skips it completely. There are two kinds:</p>
+  <ul>
+    <li><code>// ...</code> a <b>one-line comment</b>: everything from the two slashes to the end of that line is ignored. It can fill a line, or sit at the end of a statement.</li>
+    <li><code>/* ... */</code> a <b>block comment</b>: everything between <code>/*</code> and <code>*/</code> is ignored, however many lines it spreads over.</li>
+  </ul>
+  <p>Use comments to explain <i>why</i> something is done. Programmers also <b>comment out</b> a line: a <code>//</code> in front switches it off without deleting it. Inside a script, use <code>//</code> and <code>/* */</code>, never HTML's <code>&lt;!-- --&gt;</code>.</p>
+  <h3>Capital letters matter</h3>
+  <p>HTML did not mind whether you wrote <code>&lt;P&gt;</code> or <code>&lt;p&gt;</code>. JavaScript is <b>case-sensitive</b>: a capital and a small letter are different characters, so <code>console</code> and <code>Console</code> are two different words, and only one of them exists. The same goes for every name: <code>log</code> is not <code>Log</code>, and a variable called <code>total</code> is not one called <code>Total</code>. JavaScript's own keywords, such as <code>let</code> and <code>if</code>, are always in small letters.</p>
+  <pre class="code" data-run data-title="Statements, comments and case - then follow the instruction on line 15" data-h="140">&lt;p&gt;Nothing appears here. Read the Console panel below.&lt;/p&gt;
+&lt;script&gt;
+  // A one-line comment: JavaScript skips everything after the two slashes.
+  console.log("Statement 1 runs");   // a comment can also end a line
+
+  /* A block comment can spread
+     over several lines.
+     JavaScript skips all of it. */
+
+  // console.log("Statement 2 is switched off, so it never runs");
+
+  console.log("Statement 3 runs"); console.log("Statement 4 shares its line");
+
+  console.log("Capital letters matter");
+  // To see an error, delete the two slashes at the start of the next line and Run:
+  // Console.log("Capital C");
+
+  console.log("Last statement runs");
+&lt;/script&gt;</pre>
+  <p>Run it and the Console shows five lines: <code>Statement 1 runs</code>, <code>Statement 3 runs</code>, <code>Statement 4 shares its line</code>, <code>Capital letters matter</code> and <code>Last statement runs</code>. Statement 2 is missing because it is commented out, and nothing from either comment appears.</p>
+  <p>Now do what line 15 says: delete the <code>//</code> at the start of line 16 and Run again. The Console shows the first four lines, then, in red, <code>Uncaught ReferenceError: Console is not defined (line 16)</code>, and <code>Last statement runs</code> never appears. Read it like a sentence: JavaScript looked for something called <code>Console</code> with a capital C, found nothing, and stopped on line 16, so the statements after it never ran. A wrong capital later in the name, <code>console.Log("Hi")</code>, gives a different error, <code>TypeError: console.Log is not a function</code>: <code>console</code> exists, but has no tool called <code>Log</code>.</p>
+  <div class="plain">
+    <p>A statement is one instruction ending in a semicolon, and statements run from top to bottom. Comments (<code>//</code> for one line, <code>/* */</code> for several) are notes JavaScript ignores. Capital and small letters are different to JavaScript, so copy every name exactly, and read the red error message: it names the word it could not find and the line it was on.</p>
+  </div>
+</section>
+
+<section id="s9">
+  <h2>41.9 alert, prompt and document.write: tools from the past</h2>
+  <p>Old tutorials start with three tools this book will not use in real work. Learn to recognise them: they appear in older code and in exam questions.</p>
+  <ul>
+    <li><code>alert("message")</code> shows a pop-up box with the message and an OK button. Until the user presses OK, the whole page is frozen: nothing can be clicked and no other code runs.</li>
+    <li><code>prompt("question", "default")</code> shows a pop-up with a text box and gives back whatever the user typed, as text. If the user presses Cancel, it gives back <code>null</code>. Its cousin <code>confirm("question")</code> gives back <code>true</code> for OK and <code>false</code> for Cancel.</li>
+    <li><code>document.write("...")</code> writes HTML into the page <i>while the page is still loading</i>, at the place where the script sits. Call it <i>after</i> the page has finished loading, and it wipes out the entire page and starts a new, empty one.</li>
+  </ul>
+  <pre class="code" data-run data-title="The three old tools - press each button, the last one last" data-h="190">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 16px; }
+  button { margin: 4px 6px 4px 0; padding: 7px 12px; cursor: pointer; }
+&lt;/style&gt;
+&lt;h3&gt;Three tools from 1990s JavaScript&lt;/h3&gt;
+&lt;button id="a"&gt;alert&lt;/button&gt;
+&lt;button id="p"&gt;prompt&lt;/button&gt;
+&lt;button id="w"&gt;document.write after loading&lt;/button&gt;
+
+&lt;script&gt;
+  // While the page is loading, document.write adds HTML right here
+  document.write("&lt;p&gt;This paragraph was added by document.write while the page loaded.&lt;/p&gt;");
+  console.log("Page loaded. Now press the buttons.");
+
+  document.getElementById("a").addEventListener("click", () =&gt; {
+    alert("Hello from alert! The page is frozen until you press OK.");
+    console.log("alert finished - the page can move again");
+  });
+
+  document.getElementById("p").addEventListener("click", () =&gt; {
+    const answer = prompt("What is your name?", "Rahul");
+    console.log("prompt gave back:", answer);
+  });
+
+  document.getElementById("w").addEventListener("click", () =&gt; {
+    document.write("The whole page has been replaced by this one line.");
+  });
+&lt;/script&gt;</pre>
+  <p>On Run, a paragraph appears under the buttons (written by <code>document.write</code> during loading) and the Console says <code>Page loaded. Now press the buttons.</code> Press <b>alert</b>: only after you press OK does the Console add <code>alert finished - the page can move again</code>. Press <b>prompt</b> and OK without typing: <code>prompt gave back: Rahul</code>, the default; type <i>Meera</i> and you get <code>prompt gave back: Meera</code>; press Cancel and you get <code>prompt gave back: null</code>. Last, the third button: everything vanishes, replaced by one line of text. Press Run to get the page back.</p>
+  <p>Why avoid them? <code>alert</code> and <code>prompt</code> freeze the page, cannot be styled and annoy users; <code>document.write</code> slows loading and can destroy a finished page. The modern replacements: <code>console.log</code> for checking values, the DOM (Chapters 55 and 56) for showing results, and forms with events (Chapter 57) for asking questions.</p>
+  <details class="qc"><summary>Quick check: a user types 19 into a prompt box. Is the result the number 19?</summary><div class="a">
+    <p>No. <code>prompt</code> always gives back text, so the result is the string <code>"19"</code> (or <code>null</code> if the user pressed Cancel). Turning text into a number is covered in Chapter 46.</p></div></details>
+</section>
+
+<section id="mistakes">
+  <h2>41.10 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "JavaScript is a lighter version of Java."</b><br>Only the names are alike; the name was a 1995 marketing choice.</div>
+    <div class="r"><b>&#10003; "Java and JavaScript are separate languages."</b><br>Different creators, different rules, different uses.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "console.log shows the message on my page."</b><br>The page stays exactly as it was.</div>
+    <div class="r"><b>&#10003; "console.log writes to the DevTools Console."</b><br>Open it with F12. To put something on the page, use the DOM (Chapter 55).</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A script works the same wherever I put the tag."</b><br>A script in the head runs before the body exists and finds <code>null</code>.</div>
+    <div class="r"><b>&#10003; "Put scripts just before &lt;/body&gt;, or in the head with defer."</b><br>Then everything the script needs has already been built.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "&lt;script src="app.js" /&gt; is a neat short form."</b><br>HTML ignores the slash, so the page after it, up to the next &lt;/script&gt;, is swallowed as script.</div>
+    <div class="r"><b>&#10003; "Always write &lt;script src="app.js"&gt;&lt;/script&gt;, with nothing between the tags."</b><br>Code written between them would be ignored anyway.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Console.log and console.log are the same thing."</b><br>The first gives <code>ReferenceError: Console is not defined</code>.</div>
+    <div class="r"><b>&#10003; "JavaScript is case-sensitive."</b><br>Copy every name exactly, letter for letter and capital for capital.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <p>Answer each one before opening it. Most have four options and exactly one correct answer; four ask you to predict what code prints.</p>
+  <details class="q"><summary>On a web page, which language is responsible for behaviour, such as responding to a click?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. HTML</li><li>B. CSS</li><li>C. JavaScript</li><li>D. HTTP</li></ul>
+    <p><b>Answer: C.</b> HTML gives structure and CSS presentation; neither can react. HTTP carries pages; it is not a language for writing them.</p></div></details>
+  <details class="q"><summary>Which JavaScript engine does Google Chrome use?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. SpiderMonkey</li><li>B. V8</li><li>C. JavaScriptCore</li><li>D. Node.js</li></ul>
+    <p><b>Answer: B.</b> SpiderMonkey is Firefox's and JavaScriptCore is Safari's. D tempts because Node.js uses V8, but Node.js is a runtime environment built around the engine.</p></div></details>
+  <details class="q"><summary>Which statement about Java and JavaScript is true?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. JavaScript is the browser edition of Java</li><li>B. JavaScript programs must be compiled by Java first</li><li>C. They are the same language with different file extensions</li><li>D. They are different languages; the similar name was a marketing choice</li></ul>
+    <p><b>Answer: D.</b> JavaScript was created at Netscape in 1995 and renamed to ride on Java's popularity; it shares no engine or rules with Java.</p></div></details>
+  <details class="q"><summary>Which of these can JavaScript running in a browser NOT do?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Change the text of a paragraph on its own page</li><li>B. Read any file on the user's hard disk without the user choosing it</li><li>C. Respond when a button is clicked</li><li>D. Write a message to the Console</li></ul>
+    <p><b>Answer: B.</b> The sandbox stops a page from looking through your files; it sees a file only when you pick one. A, C and D are exactly what browser JavaScript is for.</p></div></details>
+  <details class="q"><summary>Which line correctly loads an external JavaScript file?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>&lt;script src="app.js"&gt;&lt;/script&gt;</code></li><li>B. <code>&lt;script href="app.js"&gt;&lt;/script&gt;</code></li><li>C. <code>&lt;link rel="script" href="app.js"&gt;</code></li><li>D. <code>&lt;script src="app.js" /&gt;</code></li></ul>
+    <p><b>Answer: A.</b> Scripts use <code>src</code>; <code>href</code> belongs to links and stylesheets. D looks tidy, but HTML ignores the slash, so the page after it, up to the next <code>&lt;/script&gt;</code>, is treated as script.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log("5 + 5"); console.log(5 + 5);</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> two lines, <code>5 + 5</code> and then <code>10</code>. Text in quotes is printed as written; without quotes, the sum is worked out first.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log("Total:", 40, "marks");</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>Total: 40 marks</code>. <code>console.log</code> prints every value it is given on one line and puts one space between neighbouring values.</p></div></details>
+  <details class="q"><summary>A student writes <code>Console.log("Hi");</code>. What happens?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Hi is printed in the Console</li><li>B. Hi is printed on the page</li><li>C. Nothing happens and no message appears</li><li>D. The Console shows ReferenceError: Console is not defined</li></ul>
+    <p><b>Answer: D.</b> JavaScript is case-sensitive, and nothing called <code>Console</code> exists. A needs <code>console</code> in small letters; B never happens with <code>console.log</code>, even spelt correctly.</p></div></details>
+  <details class="q"><summary>What does the <code>defer</code> attribute do on <code>&lt;script src="app.js" defer&gt;</code> in the head?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Runs the script before anything else on the page</li><li>B. Runs the script only when the user clicks</li><li>C. Downloads the file straight away but runs it after the whole HTML has been read</li><li>D. Stops the file from being cached</li></ul>
+    <p><b>Answer: C.</b> The download starts early and the script runs once every element exists. A describes a plain head script, the very problem <code>defer</code> solves.</p></div></details>
+  <details class="q"><summary><span>What does this print? <code>console.log("A"); // console.log("B");</code> then, on the next lines, <code>/* console.log("C"); */</code> and <code>console.log("D");</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>A</code> and then <code>D</code>. Everything after <code>//</code> on the first line is a comment, so B never runs, and C sits inside a block comment.</p></div></details>
+  <details class="q"><summary><span>This script sits in the <code>&lt;head&gt;</code>, without defer, and the page's body contains <code>&lt;h1 id="title"&gt;</code>. What does it print? <code>console.log(document.getElementById("title"));</code></span><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer:</b> <code>null</code>. The script runs as soon as the browser reaches it, before the body has been read, so the heading does not exist yet. Just before <code>&lt;/body&gt;</code>, the same line would find it.</p></div></details>
+  <details class="q"><summary>Why do real projects keep JavaScript in an external .js file?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. It is the only way that lets the code run</li><li>B. One file can serve many pages, and the browser can cache it</li><li>C. It lets the script read files on the visitor's computer</li><li>D. It turns JavaScript into machine code before upload</li></ul>
+    <p><b>Answer: B.</b> Reuse, caching and clean HTML are the reasons. A is false, because inline and internal scripts run too; C and D are false, because the sandbox still applies and the engine still does the translating.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>HTML is structure, CSS is presentation, JavaScript is behaviour. JavaScript works with the other two; it does not replace them.</li>
+    <li>JavaScript is a high-level programming language that runs in every browser and, through Node.js, outside it. It is not Java. Its standard is ECMAScript.</li>
+    <li>A JavaScript engine (V8 in Chrome and Edge, SpiderMonkey in Firefox) parses your code, starts running it, and JIT-compiles busy parts into machine code for the processor.</li>
+    <li>Browser JavaScript is sandboxed: no free access to your files, the operating system, databases or other tabs, no running a server, no running forever.</li>
+    <li>Three ways to add it: inline (<code>onclick</code>), internal (<code>&lt;script&gt;</code>), external (<code>&lt;script src="script.js"&gt;&lt;/script&gt;</code>). Projects use external: reusable, cached, clean.</li>
+    <li>The browser reads HTML top to bottom and runs a script where it meets it. Put scripts just before <code>&lt;/body&gt;</code>, or in the head with <code>defer</code>.</li>
+    <li><code>console.log</code> writes to the DevTools Console (<kbd>F12</kbd>), not the page; several values are printed with spaces between them.</li>
+    <li>Statements run in order and end with <code>;</code>. Comments are <code>//</code> and <code>/* */</code>. JavaScript is case-sensitive. <code>alert</code>, <code>prompt</code> and <code>document.write</code> are old tools to recognise, not to use.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>&lt;script src="script.js"&gt;&lt;/script&gt;</code></td><td>Load an external file (just before <code>&lt;/body&gt;</code>)</td></tr>
+      <tr><td><code>&lt;script src="script.js" defer&gt;&lt;/script&gt;</code></td><td>Load it in the head; run it after the HTML has been read</td></tr>
+      <tr><td><code>&lt;script&gt; ... &lt;/script&gt;</code></td><td>Internal script: code for this one page</td></tr>
+      <tr><td><code>onclick="..."</code></td><td>Inline script in an attribute (avoid)</td></tr>
+      <tr><td><code>console.log("Total:", 85);</code></td><td>Print <code>Total: 85</code> in the Console</td></tr>
+      <tr><td><code>// note</code> &nbsp; <code>/* note */</code></td><td>One-line comment; block comment</td></tr>
+      <tr><td><kbd>F12</kbd>, <kbd>Ctrl</kbd>+<kbd>Shift</kbd>+<kbd>J</kbd></td><td>Open DevTools; jump to Chrome's Console</td></tr>
+      <tr><td><code>alert()</code>, <code>prompt()</code>, <code>document.write()</code></td><td>Pop-up message, pop-up question, write during loading (old tools)</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://javascript.info/intro" target="_blank" rel="noopener noreferrer">javascript.info &mdash; An Introduction to JavaScript<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">What JavaScript is, what engines do, and what browser JavaScript can and cannot do.</span></li>
+    <li><a href="https://javascript.info/hello-world" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Hello, world!<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The script tag, internal and external scripts, and the src trap, with small exercises.</span></li>
+    <li><a href="https://javascript.info/structure" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Code structure<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Statements, semicolons and comments, including where automatic semicolons go wrong.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript" target="_blank" rel="noopener noreferrer">MDN &mdash; JavaScript<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The home page of the full JavaScript reference you will use for the rest of the course.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>

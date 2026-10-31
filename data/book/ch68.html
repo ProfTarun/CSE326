@@ -1,0 +1,555 @@
+<article class="chapter" data-ch="68">
+<header class="ch-head">
+  <p class="eyebrow">Unit 6 &middot; Chapter 68 &middot; Debugging Techniques</p>
+  <h1>Debugging Techniques</h1>
+  <p class="lead">Every programmer writes code that does not work the first time &mdash; beginners and experts alike. What separates them is not luck but a method: notice exactly what is wrong, collect the evidence, find the one line responsible, fix it, and prove the fix. This chapter teaches that method, and the simple tools that make it fast.</p>
+  <p class="meta">About 35 minutes &middot; Course outcome CO6</p>
+  <div class="prereq">
+    <h2>Before you start &mdash; one-line reminders</h2>
+    <ul>
+      <li><code>console.log(value)</code> prints a value in the browser's Console, which you open with F12 (<a href="book.html?ch=41">Chapter 41</a>).</li>
+      <li><code>if (condition) { ... } else { ... }</code> runs one block or the other (<a href="book.html?ch=47">Chapter 47</a>).</li>
+      <li>A function's code runs only when the function is called; <code>() =&gt; { ... }</code> is the short arrow way to write one (<a href="book.html?ch=48">Chapter 48</a>).</li>
+      <li><code>document.querySelector("#id")</code> returns <code>null</code> when nothing on the page matches (<a href="book.html?ch=56">Chapter 56</a>).</li>
+    </ul>
+  </div>
+  <div class="objectives">
+    <h2>By the end of this chapter you can</h2>
+    <ul>
+      <li>Describe the life of a web application from plan to maintenance, and say where debugging fits.</li>
+      <li>Follow a seven-step debugging workflow instead of changing lines at random.</li>
+      <li>Tell a syntax error, a runtime error and a logical error apart, and say when each one shows itself.</li>
+      <li>Read an error message: its type, its description and its file and line.</li>
+      <li>Use <code>console.log</code> with labels, <code>console.table</code>, <code>console.error</code>, <code>typeof</code> and the <code>debugger</code> statement to collect evidence.</li>
+      <li>Find and fix all three bugs in the order-total challenge, explaining why each fix revealed the next bug.</li>
+    </ul>
+  </div>
+</header>
+
+<section id="s1">
+  <h2>68.1 Where Unit 6 is going</h2>
+  <p>Units 4 and 5 taught you to write JavaScript that makes a page respond. Unit 6 is about the journey from "it works on my laptop" to "anyone in the world can use it". The unit's title names the two halves of that journey.</p>
+  <p><b>Web application development</b> is building the thing. Websites sit on a scale, from simple to complex:</p>
+  <table class="tbl">
+    <thead><tr><th>Kind</th><th>What it does</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Static website</b></td><td>The same HTML and CSS for every visitor; nothing reacts except links</td><td>A portfolio page</td></tr>
+      <tr><td><b>Interactive website</b></td><td>JavaScript reacts to clicks and typing: menus, sliders, form checks</td><td>An image gallery with filters</td></tr>
+      <tr><td><b>Client-side web app</b></td><td>The logic and the data live in the browser (perhaps in <code>localStorage</code>, or fetched from an API)</td><td>A to-do app, a student dashboard</td></tr>
+      <tr><td><b>Full-stack web app</b></td><td>Browser code plus server code plus a database: logins, payments, shared data</td><td>An online shopping site</td></tr>
+    </tbody>
+  </table>
+  <p>This unit stays with the first three &mdash; HTML, CSS and browser JavaScript, which is exactly what GitHub Pages can host.</p>
+  <p><b>Website deployment</b> is making it public. While you build, the site runs at an address like <code>localhost:5500</code> or <code>file:///...</code>, which only your own computer can open. To <span class="jw" data-def="Copy your finished site onto a computer that is always on the internet, so anyone with the link can open it.">deploy</span> it, you save a snapshot with Git, push it to GitHub, and let GitHub Pages serve it at a public address such as <code>https://username.github.io/project/</code>, over HTTPS, on any device.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 228" role="img" aria-label="Five phases in a row: Plan, Build, Debug, Deploy, Maintain, each listing its stages. An arrow loops from Debug back to Build, and another loops from Maintain back to Plan">
+      <text x="250" y="18" class="t c s">a bug found sends you back to coding</text>
+      <path d="M312 50 L312 28 L188 28 L188 48" class="edge saf" marker-end="url(#arr-saf)"/>
+      <rect x="12" y="50" width="104" height="120" rx="10" class="box blu"/>
+      <text x="64" y="72" class="t c b">Plan</text>
+      <text x="64" y="96" class="t c s">Requirements</text>
+      <text x="64" y="114" class="t c s">UI design</text>
+      <rect x="136" y="50" width="104" height="120" rx="10" class="box"/>
+      <text x="188" y="72" class="t c b">Build</text>
+      <text x="188" y="96" class="t c s">Coding: HTML,</text>
+      <text x="188" y="114" class="t c s">CSS, JavaScript</text>
+      <rect x="260" y="50" width="104" height="120" rx="10" class="box saf"/>
+      <text x="312" y="72" class="t c b">Debug</text>
+      <text x="312" y="96" class="t c s">Debugging</text>
+      <text x="312" y="114" class="t c s">Testing</text>
+      <text x="312" y="132" class="t c s">Performance</text>
+      <text x="312" y="158" class="t c s b">this chapter</text>
+      <rect x="384" y="50" width="104" height="120" rx="10" class="box grn"/>
+      <text x="436" y="72" class="t c b">Deploy</text>
+      <text x="436" y="96" class="t c s">Git commit</text>
+      <text x="436" y="114" class="t c s">GitHub repo</text>
+      <text x="436" y="132" class="t c s">GitHub Pages</text>
+      <rect x="508" y="50" width="104" height="120" rx="10" class="box gry"/>
+      <text x="560" y="72" class="t c b">Maintain</text>
+      <text x="560" y="96" class="t c s">Bug reports</text>
+      <text x="560" y="114" class="t c s">New features</text>
+      <text x="560" y="132" class="t c s">Redeploy</text>
+      <path d="M116 110 L134 110" class="edge" marker-end="url(#arr)"/>
+      <path d="M240 110 L258 110" class="edge" marker-end="url(#arr)"/>
+      <path d="M364 110 L382 110" class="edge" marker-end="url(#arr)"/>
+      <path d="M488 110 L506 110" class="edge" marker-end="url(#arr)"/>
+      <path d="M560 170 L560 198 L64 198 L64 172" class="edge saf" marker-end="url(#arr-saf)"/>
+      <text x="312" y="218" class="t c s">users' feedback starts the cycle again</text>
+    </svg>
+    <figcaption><b>Figure 68.1</b> The lifecycle of a web application. It is a loop, not a line: a bug found while testing sends you back to coding, and feedback from real users starts new requirements.</figcaption>
+  </figure>
+  <p>The Unit 6 slides follow one project &mdash; a student task manager &mdash; through nine stages: requirements, UI design, coding, debugging, testing, performance, the GitHub repository, deployment and maintenance. Figure 68.1 groups them into five phases. Each later chapter zooms into one box. This one starts with the box every programmer spends the most time in: <b>debugging</b>.</p>
+</section>
+
+<section id="s2">
+  <h2>68.2 Bugs, and what debugging is</h2>
+  <p>A <b>bug</b> is a mistake in a program that makes it behave differently from what was intended. Engineers were using the word long before computers. In 1947 the team running the Harvard Mark II computer found a real moth trapped in one of its relays (electrically worked switches), and taped it into their logbook as the "first actual case of bug being found". The joke stuck.</p>
+  <p><b>Debugging</b> is the systematic process of identifying, understanding and fixing those bugs. Notice the word <i>systematic</i>: debugging is a method you follow, not a guess you hope for.</p>
+  <p>The Unit 6 slides sort bugs into five families:</p>
+  <table class="tbl">
+    <thead><tr><th>Family</th><th>What happens</th><th>Example</th></tr></thead>
+    <tbody>
+      <tr><td><b>Syntax error</b></td><td>The code breaks the language's grammar rules; that script does not run at all</td><td>A string with no closing quote</td></tr>
+      <tr><td><b>Runtime error</b></td><td>Valid code starts running, then crashes at one line</td><td><code>student.name</code> when <code>student</code> is <code>null</code></td></tr>
+      <tr><td><b>Logical error</b></td><td>Runs without complaint, gives the wrong answer</td><td>500 &minus; 10 when you meant 10% off</td></tr>
+      <tr><td><b>UI / rendering error</b></td><td>The data is right, the screen is wrong: overflowing, hidden, out of date</td><td>A counter that never changes on screen</td></tr>
+      <tr><td><b>Network failure</b></td><td>Something the page needs from elsewhere never arrives</td><td>A missing image (404), an API that is down, no internet</td></tr>
+    </tbody>
+  </table>
+  <p>This chapter concentrates on the first three, which live in your own JavaScript. Network failures belong to error handling (Chapter 70), and the panels that expose layout and network trouble belong to Chapter 69. The next example, from the slides, is a UI bug &mdash; and it is worth running because it shows something important: <b>a program can be wrong without a single red error</b>.</p>
+  <pre class="code" data-run data-title="The button does nothing - click each Add task button five times, then read the console" data-h="150">&lt;style&gt;
+  body { font-family: system-ui, sans-serif; padding: 10px; }
+  .row { margin: 10px 0; }
+&lt;/style&gt;
+&lt;div class="row"&gt;Broken &mdash; Tasks added: &lt;b id="countBroken"&gt;0&lt;/b&gt; &lt;button id="addBroken"&gt;Add task&lt;/button&gt;&lt;/div&gt;
+&lt;div class="row"&gt;Fixed &mdash; Tasks added: &lt;b id="countFixed"&gt;0&lt;/b&gt; &lt;button id="addFixed"&gt;Add task&lt;/button&gt;&lt;/div&gt;
+&lt;script&gt;
+  // Broken: the variable changes, but nobody tells the page
+  let brokenCount = 0;
+  document.querySelector("#addBroken").addEventListener("click", () =&gt; {
+    brokenCount++;
+    console.log("broken count is now", brokenCount);
+    // forgot to update the page!
+  });
+
+  // Fixed: one extra line copies the new value onto the page
+  const countEl = document.querySelector("#countFixed");
+  let fixedCount = 0;
+  document.querySelector("#addFixed").addEventListener("click", () =&gt; {
+    fixedCount++;
+    countEl.textContent = fixedCount;
+  });
+&lt;/script&gt;</pre>
+  <p>Click the broken button five times. The page still says 0, and the console shows no error at all &mdash; only <i>broken count is now 1</i>, <i>2</i>&hellip; up to <i>5</i>. That one <code>console.log</code> line is the evidence: the variable <i>is</i> changing, so the bug must be in the step that should copy it onto the page. That step is missing. The fixed version adds it: <code>countEl.textContent = fixedCount;</code>.</p>
+  <h3>Why debugging matters</h3>
+  <p>A bug that slips through costs more than a wrong number. Debugging protects five qualities of a program:</p>
+  <ul>
+    <li><b>Correctness</b> &mdash; the right result for every input.</li>
+    <li><b>Reliability</b> &mdash; it works every time, not just on your laptop.</li>
+    <li><b>User experience</b> &mdash; no silent failures or confusing screens.</li>
+    <li><b>Maintainability</b> &mdash; a bug you understood stays fixed.</li>
+    <li><b>Security</b> &mdash; unhandled crashes and unchecked input can expose data.</li>
+  </ul>
+  <p>The slides' case study shows how small the cause can be. A college registration form did nothing when students clicked <b>Register</b>: no message, no account. The console held one red line &mdash; <i>Uncaught TypeError: Cannot read properties of null (reading 'value')</i>, at <code>register.js:12</code>. The script looked for <code>#email</code>, but the HTML said <code>id="userEmail"</code>, so <code>querySelector</code> returned <code>null</code>. One mismatched name, and every sign-up was lost. The fix was to match the id &mdash; and, to prevent a repeat, to show a visible message whenever submission fails.</p>
+  <div class="plain"><p>A bug is the program doing something you did not mean. Debugging is finding out <b>why</b>, with evidence, and then changing the one thing that caused it. Experienced programmers are not people who never make bugs; they are people who find them quickly.</p></div>
+</section>
+
+<section id="s3">
+  <h2>68.3 The debugging workflow</h2>
+  <p>Faced with a broken page, most beginners start changing things: add a semicolon, swap <code>let</code> for <code>var</code>, delete a line, refresh, repeat. Sometimes the symptom vanishes. But the real cause is often still there, hidden, and the random edits have added new bugs of their own. Professionals follow a fixed sequence instead. The Unit 6 slides give it seven steps:</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 220" role="img" aria-label="Seven debugging steps. Top row left to right: 1 Observe, 2 Reproduce, 3 Inspect, 4 Root cause. Then down and right to left: 5 Fix, 6 Retest, 7 Verify, then Commit. A dashed arrow loops from Retest back up to Inspect when the bug is still there">
+      <rect x="12" y="30" width="130" height="56" rx="10" class="box blu"/>
+      <text x="77" y="54" class="t c b">1. Observe</text>
+      <text x="77" y="72" class="t c s">expected vs actual</text>
+      <rect x="164" y="30" width="130" height="56" rx="10" class="box blu"/>
+      <text x="229" y="54" class="t c b">2. Reproduce</text>
+      <text x="229" y="72" class="t c s">repeatable steps</text>
+      <rect x="316" y="30" width="130" height="56" rx="10" class="box saf"/>
+      <text x="381" y="54" class="t c b">3. Inspect</text>
+      <text x="381" y="72" class="t c s">console, values</text>
+      <rect x="468" y="30" width="130" height="56" rx="10" class="box saf"/>
+      <text x="533" y="54" class="t c b">4. Root cause</text>
+      <text x="533" y="72" class="t c s">the one wrong line</text>
+      <path d="M142 58 L162 58" class="edge" marker-end="url(#arr)"/>
+      <path d="M294 58 L314 58" class="edge" marker-end="url(#arr)"/>
+      <path d="M446 58 L466 58" class="edge" marker-end="url(#arr)"/>
+      <path d="M533 86 L533 148" class="edge" marker-end="url(#arr)"/>
+      <rect x="468" y="150" width="130" height="56" rx="10" class="box grn"/>
+      <text x="533" y="174" class="t c b">5. Fix</text>
+      <text x="533" y="192" class="t c s">smallest change</text>
+      <rect x="316" y="150" width="130" height="56" rx="10" class="box grn"/>
+      <text x="381" y="174" class="t c b">6. Retest</text>
+      <text x="381" y="192" class="t c s">and edge cases</text>
+      <rect x="164" y="150" width="130" height="56" rx="10" class="box grn"/>
+      <text x="229" y="174" class="t c b">7. Verify</text>
+      <text x="229" y="192" class="t c s">nothing else broke</text>
+      <rect x="12" y="150" width="130" height="56" rx="10" class="box ink"/>
+      <text x="77" y="183" class="t c b w">Commit &#10003;</text>
+      <path d="M468 178 L448 178" class="edge" marker-end="url(#arr)"/>
+      <path d="M316 178 L296 178" class="edge" marker-end="url(#arr)"/>
+      <path d="M164 178 L144 178" class="edge" marker-end="url(#arr)"/>
+      <path d="M381 150 L381 88" class="edge dash saf" marker-end="url(#arr-saf)"/>
+      <text x="373" y="114" class="t s" text-anchor="end">still wrong?</text>
+      <text x="373" y="130" class="t s" text-anchor="end">back to step 3</text>
+    </svg>
+    <figcaption><b>Figure 68.2</b> The seven-step debugging workflow. If the retest fails, you go back to the evidence &mdash; never forward to a random edit.</figcaption>
+  </figure>
+  <ol>
+    <li><b>Observe the problem.</b> Say exactly what is wrong as <i>expected</i> versus <i>actual</i>: "For quantity 2 I expect <i>Total: &#8377;525.00</i>; I get nothing."</li>
+    <li><b>Reproduce it.</b> Find the exact steps that make it happen every time. A bug you can trigger on demand is half solved; one you cannot trigger cannot be tested.</li>
+    <li><b>Inspect the evidence.</b> Read the console, print the values of variables, pause the code (section 68.6).</li>
+    <li><b>Identify the <span class="jw" data-def="The real reason behind a problem, as opposed to the symptom you can see on the screen.">root cause</span>.</b> The one wrong line, or the one wrong assumption.</li>
+    <li><b>Fix the code</b> with the smallest change that removes that cause.</li>
+    <li><b>Retest</b> with the same steps &mdash; and with unusual inputs: 0, an empty box, a huge number.</li>
+    <li><b>Verify the fix.</b> Check that nothing else broke, then commit with a clear message (Chapter 75).</li>
+  </ol>
+  <p>Steps 3 and 4 are really a small loop. Looking at the evidence, you form a <span class="jw" data-def="A sensible guess that you can check, such as 'I think qty is text, not a number'.">hypothesis</span> &mdash; "I think <code>qty</code> is text, not a number" &mdash; and then you test it, usually with one <code>console.log</code>. If the test says no, you form a better guess. You change real code only when a guess has been confirmed.</p>
+  <div class="callout analogy"><b>Picture this.</b> You tell a good doctor, "I feel unwell." She does not hand you five medicines at once to see which one helps. She asks what exactly is wrong and since when (observe), checks whether it happens every morning or only after meals (reproduce), takes your temperature and orders a blood test (inspect the evidence), names the cause (diagnosis), prescribes one medicine for it (the smallest fix), and asks you to come back in a week (retest and verify). Random medicines might hide the symptom and leave the illness. Random code changes do exactly the same to a bug.</div>
+  <p>Compare <b>root-cause thinking</b>, in the slides' words: "The error says <code>null</code> at line 12. <code>querySelector</code> returned <code>null</code> because the id is different." One piece of evidence, one fix.</p>
+  <details class="qc"><summary>Quick check: why does the workflow put "reproduce it" before "fix the code"?</summary><p>Because if you cannot make the bug happen on demand, you cannot check that your fix worked. Exact steps that always trigger the bug are also the test you rerun in step 6.</p></details>
+</section>
+
+<section id="s4">
+  <h2>68.4 Three kinds of error, demonstrated</h2>
+  <p>The three families you will meet most in your own code differ in <b>when</b> they show themselves. A browser handles a script in two stages. First its <span class="jw" data-def="The part of the browser that reads your whole script and checks its grammar before running any of it.">parser</span> reads the whole script and checks the grammar. Only if the grammar is correct does it start running the lines, one after another. That gives three moments at which something can go wrong.</p>
+
+  <h3>Demo 1: a syntax error</h3>
+  <pre class="code">let message = "Hello World;      // the closing quote is missing
+console.log(message);</pre>
+  <p>The string opens with <code>"</code> and never closes. The parser reads to the end of the line hunting for the closing quote, fails, and <b>rejects the whole script</b>. Not one line of it runs &mdash; not even lines above the mistake. Chrome reports <i>Uncaught SyntaxError: Invalid or unexpected token</i>. The fix is to close the quote: <code>"Hello World"</code>. Your editor gives you an early warning, too: an unclosed string turns the rest of the line the colour of a string.</p>
+  <p>Run this example. The page holds <b>two</b> separate scripts. As written, both are correct:</p>
+  <pre class="code" data-run data-title="Syntax error - delete the closing quote on line 5, then Run again" data-h="120">&lt;p id="s1"&gt;Script 1: did not run&lt;/p&gt;
+&lt;p id="s2"&gt;Script 2: did not run&lt;/p&gt;
+&lt;script&gt;
+  console.log("Script 1 starts");
+  let message = "Hello World";     // line 5: try deleting the closing quote
+  console.log(message);
+  document.querySelector("#s1").textContent = "Script 1: ran";
+&lt;/script&gt;
+&lt;script&gt;
+  // A separate script
+  console.log("Script 2 runs");
+  document.querySelector("#s2").textContent = "Script 2: ran";
+&lt;/script&gt;</pre>
+  <p>The first Run prints <i>Script 1 starts</i>, <i>Hello World</i> and <i>Script 2 runs</i>, and the page says both scripts ran. Now break line 5: delete the <code>"</code> just before the semicolon, so the string never closes, and Run again. The console shows <i>Uncaught SyntaxError: Invalid or unexpected token</i> pointing at line 5, then <i>Script 2 runs</i>, and the page says <i>Script 1: did not run</i>. <i>Script 1 starts</i> never appears, although it is the line <b>above</b> the mistake: the parser rejected script 1 before running any of it. The browser simply moved on to the next script. (Firefox words the message differently &mdash; it mentions an unescaped line break in a string literal &mdash; but the type, SyntaxError, is the same.)</p>
+
+  <h3>Demo 2: a runtime error</h3>
+  <p>Now the grammar is perfect, so the script starts running &mdash; and crashes at the one line it cannot carry out:</p>
+  <pre class="code" data-run data-title="Runtime error - delete the // at the start of line 6, then Run again" data-h="120">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  console.log("1. The script starts");
+  const student = null;            // e.g. the search found no student
+  console.log("2. student is", student);
+  // console.log(student.name);    // line 6: delete the first // and Run again
+  console.log("3. The script reached its last line");
+&lt;/script&gt;
+&lt;script&gt;
+  // The safe version, in its own script
+  const found = null;
+  const label = found?.name ?? "No student available";
+  console.log("4. Safe version:", label);
+  document.querySelector("#out").textContent = label;
+&lt;/script&gt;</pre>
+  <p>As written, line 6 is switched off by its <code>//</code>, so all four labelled lines print. Delete that first <code>//</code> and Run again. Now the console shows <i>1. The script starts</i> and <i>2. student is null</i>, then <i>Uncaught TypeError: Cannot read properties of null (reading 'name')</i> at line 6. Line 3 no longer prints: an uncaught runtime error stops the rest of that script. The second script still runs normally and prints <i>4. Safe version: No student available</i>.</p>
+  <p>The safe version uses two operators from the slides. <code>?.</code> (<b>optional chaining</b>) means "if the thing on the left is <code>null</code> or <code>undefined</code>, stop and give <code>undefined</code> instead of crashing". <code>??</code> (<b>nullish coalescing</b>) means "use the right-hand value only when the left is <code>null</code> or <code>undefined</code>" &mdash; not for <code>0</code> or <code>""</code>, which is where it differs from <code>||</code>.</p>
+  <div class="callout warn"><b>A guard is not a diagnosis.</b> <code>?.</code> stops the crash, but it does not answer the real question: <i>why</i> is <code>student</code> null? Perhaps the server sent nothing, or <code>querySelector</code> was given the wrong id. Find that cause first; add the guard only where "nothing there" is a normal, expected situation.</div>
+
+  <h3>Demo 3: a logical error</h3>
+  <p>The third kind is the most dangerous, because nothing complains at all. A shop wants 10% off a &#8377;500 item:</p>
+  <pre class="code" data-run data-title="Logical error - no red line anywhere, just a wrong number" data-h="110">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const price = 500;
+  const discount = 10;                         // means 10%
+  const expected = 450;                        // worked out by hand first
+
+  const broken = price - discount;             // takes off 10 rupees
+  const fixed = price * (1 - discount / 100);  // takes off 10 per cent
+
+  console.log("Broken:", broken, broken === expected ? "correct" : "WRONG, expected " + expected);
+  console.log("Fixed:", fixed, fixed === expected ? "correct" : "WRONG, expected " + expected);
+  document.querySelector("#out").textContent = `Broken gives &#8377;${broken}, fixed gives &#8377;${fixed}.`;
+&lt;/script&gt;</pre>
+  <p>The console shows <i>Broken: 490 WRONG, expected 450</i> and <i>Fixed: 450 correct</i>. The broken line is perfectly good JavaScript; it just says the wrong thing &mdash; subtract 10 rupees, not 10 per cent. The fix turns the percentage into a fraction: <code>price * (1 - discount / 100)</code> is 500 &times; 0.9.</p>
+  <p>Notice the line <code>const expected = 450;</code>. The only way to catch a logical error is to know the right answer <b>before</b> you run the code and compare. Try the slides' prediction: with <code>price = 800</code> and <code>discount = 25</code>, the broken version prints 775 (800 &minus; 25) and the corrected one prints 600 (800 &times; 0.75).</p>
+  <table class="tbl">
+    <thead><tr><th></th><th>Syntax error</th><th>Runtime error</th><th>Logical error</th></tr></thead>
+    <tbody>
+      <tr><td><b>When it shows</b></td><td>As the script is read, before any of it runs</td><td>At the moment the bad line runs</td><td>Only when someone checks the answer</td></tr>
+      <tr><td><b>How much runs</b></td><td>None of that script</td><td>Everything before the bad line</td><td>Everything</td></tr>
+      <tr><td><b>Red message?</b></td><td>Yes: SyntaxError</td><td>Yes: TypeError, ReferenceError&hellip;</td><td><b>No</b></td></tr>
+      <tr><td><b>Found with</b></td><td>Editor colours, console</td><td>Console message and line number</td><td>Tests with known answers, <code>console.log</code></td></tr>
+    </tbody>
+  </table>
+  <div class="plain"><p>A <b>syntax error</b> is bad grammar: the browser refuses to start. A <b>runtime error</b> is an impossible instruction: the browser starts, then stops at that line. A <b>logical error</b> is a wrong instruction: the browser does exactly what you said, and what you said was not what you meant.</p></div>
+  <details class="qc"><summary>Quick check: a script prints three lines correctly, then a red TypeError appears. Which kind of error is it, and did the three lines run?</summary><p>A runtime error. The three lines before the bad one did run &mdash; that is how you know it was not a syntax error, which would have stopped the whole script from running at all.</p></details>
+</section>
+
+<section id="s5">
+  <h2>68.5 Reading an error message</h2>
+  <p>Never panic at a red line, and never ignore it. A JavaScript error message is a precise report with up to three useful parts: <b>what type</b> of problem, <b>what</b> exactly went wrong, and <b>where</b>.</p>
+  <figure class="fig narrow">
+    <svg viewBox="0 0 620 296" role="img" aria-label="The message Uncaught TypeError: Cannot read properties of null (reading 'value'), at register.js line 12, split into four labelled parts: Uncaught, the type, the message and the location">
+      <rect x="10" y="10" width="600" height="52" rx="10" class="box ink"/>
+      <text x="22" y="32" class="t s w mono">&#10006; Uncaught TypeError: Cannot read properties of null (reading 'value')</text>
+      <text x="22" y="50" class="t s w mono">    at HTMLFormElement.&lt;anonymous&gt; (register.js:12)</text>
+      <rect x="10" y="76" width="350" height="42" rx="8" class="box gry"/>
+      <text x="22" y="102" class="t mono" style="font-size:12px">Uncaught</text>
+      <text x="372" y="94" class="t s">Nothing caught the error, so this piece</text>
+      <text x="372" y="110" class="t s">of code stopped right here.</text>
+      <rect x="10" y="130" width="350" height="42" rx="8" class="box red"/>
+      <text x="22" y="156" class="t b mono" style="font-size:12px">TypeError</text>
+      <text x="372" y="148" class="t s">The type: the right name, but the wrong</text>
+      <text x="372" y="164" class="t s">kind of value (here, null).</text>
+      <rect x="10" y="184" width="350" height="42" rx="8" class="box saf"/>
+      <text x="22" y="210" class="t s mono">Cannot read properties of null (reading 'value')</text>
+      <text x="372" y="202" class="t s">The message: something was null, and</text>
+      <text x="372" y="218" class="t s">the code asked it for .value</text>
+      <rect x="10" y="238" width="350" height="42" rx="8" class="box grn"/>
+      <text x="22" y="264" class="t b mono" style="font-size:12px">register.js:12</text>
+      <text x="372" y="256" class="t s">Where: file register.js, line 12.</text>
+      <text x="372" y="272" class="t s">Click it in DevTools to jump there.</text>
+    </svg>
+    <figcaption><b>Figure 68.3</b> One red line, four parts. Read it left to right: was it caught, what type, what exactly, and where. Then go to that line and ask what was null, and why.</figcaption>
+  </figure>
+  <p>The <b>type</b> sorts problems into a few big groups. Chapter 70 meets all of them properly; for debugging, three cover most of what you will see:</p>
+  <table class="tbl">
+    <thead><tr><th>Message (Chrome / Edge)</th><th>Type</th><th>Usual cause</th></tr></thead>
+    <tbody>
+      <tr><td><i>Invalid or unexpected token</i>; <i>Unexpected token ')'</i></td><td>SyntaxError</td><td>An unclosed quote, a stray or missing bracket</td></tr>
+      <tr><td><i>Unexpected end of input</i></td><td>SyntaxError</td><td>A <code>{</code> or <code>(</code> that is never closed &mdash; reported at the very end of the script</td></tr>
+      <tr><td><i>totl is not defined</i></td><td>ReferenceError</td><td>A typo in a name, or a variable never declared</td></tr>
+      <tr><td><i>Cannot read properties of null (reading 'value')</i></td><td>TypeError</td><td><code>querySelector</code> found nothing, usually because the id or class is spelled differently</td></tr>
+      <tr><td><i>btn.addEventListner is not a function</i></td><td>TypeError</td><td>A misspelled method name</td></tr>
+      <tr><td><i>Assignment to constant variable.</i></td><td>TypeError</td><td>Giving a <code>const</code> a new value</td></tr>
+    </tbody>
+  </table>
+  <p>The <b>location</b> is a link. In the DevTools Console the file name and line number appear on the right of the message (<code>register.js:12</code>); clicking it opens the file at that line. Below the message there may be a short list of <code>at ...</code> lines, showing which function was running and which function had called it. That list is a <span class="jw" data-def="The list of functions that were part-way through when the error happened: which one called which, newest first.">stack trace</span>, and Chapter 69 shows how to explore it.</p>
+  <p>Two habits make error messages far more useful:</p>
+  <ul>
+    <li><b>Fix the first error first.</b> One mistake often causes others further down. Start at the topmost red line, fix it, reload, and look again &mdash; several "errors" may disappear together.</li>
+    <li><b>The line is where JavaScript noticed, not always where you went wrong.</b> In the registration case the crash was on line 12, where <code>.value</code> was read; the real mistake was the selector a few lines earlier. A missing <code>}</code> is reported at the end of the file, far from where it belonged.</li>
+  </ul>
+  <div class="plain"><p>Read the whole red line, slowly, every time. The type says what kind of problem; the message says what exactly; the file and line say where to start looking. Then work backwards from that line to find where the bad value came from.</p></div>
+</section>
+
+<section id="s6">
+  <h2>68.6 The debugging toolkit</h2>
+  <p>When the error message alone does not explain the bug &mdash; or there is no error at all &mdash; you collect more evidence. These tools need nothing but the browser.</p>
+
+  <h3>console.log, with labels</h3>
+  <p>The most used debugging tool in the world is printing a value at a key point in the code. Always add a <b>label</b>, so that when ten lines appear you know which is which:</p>
+  <pre class="code">console.log(total);                    // 500.05       which variable was that?
+console.log("total:", total);          // total: 500.05
+console.log({ qty, subtotal, total }); // {qty: 2, subtotal: 500, total: 500.05}</pre>
+  <p>The last line is a handy trick. Wrapping the variables in <code>{ }</code> builds a small object whose property names are the variable names, so the console prints every name beside its value in one line.</p>
+
+  <h3>console.table, console.error and console.warn</h3>
+  <ul>
+    <li><b><code>console.table(array)</code></b> prints an array of objects as a grid, one row per item and one column per property. Ten students' marks are far easier to check in a table than in ten lines.</li>
+    <li><b><code>console.error(...)</code></b> prints in red, like a real error. Use it for "this should never happen" checks, so they stand out.</li>
+    <li><b><code>console.warn(...)</code></b> prints in yellow: for something suspicious but not fatal.</li>
+  </ul>
+
+  <h3>Check your assumptions with typeof</h3>
+  <p>Many bugs come from a value being a different <b>type</b> from the one you assumed. The classic is <code>"5"</code> versus <code>5</code>: text read from a form box is always a string, even when it looks like a number. <code>typeof</code> settles the question in one line:</p>
+  <table class="tbl">
+    <thead><tr><th>Value</th><th><code>typeof</code> gives</th><th>Trap</th></tr></thead>
+    <tbody>
+      <tr><td><code>5</code></td><td><code>"number"</code></td><td>&mdash;</td></tr>
+      <tr><td><code>"5"</code></td><td><code>"string"</code></td><td><code>"5" + 1</code> is <code>"51"</code>, not 6</td></tr>
+      <tr><td><code>NaN</code></td><td><code>"number"</code></td><td>"Not a Number" is, oddly, of type number; test it with <code>Number.isNaN(x)</code></td></tr>
+      <tr><td><code>undefined</code></td><td><code>"undefined"</code></td><td>Usually a misspelled property or a missing <code>return</code></td></tr>
+      <tr><td><code>null</code></td><td><code>"object"</code></td><td>A famous old quirk; test it with <code>x === null</code></td></tr>
+    </tbody>
+  </table>
+  <p>The next example puts all of this together. Three students' marks arrive as text, exactly as they would from form boxes, and the average comes out impossible. Run it and read the console from top to bottom, like a detective:</p>
+  <pre class="code" data-run data-title="Labels, console.table, typeof and console.error find a type bug" data-h="120">&lt;p id="out"&gt;&lt;/p&gt;
+&lt;script&gt;
+  // Marks typed into a form arrive as text, even when they look like numbers
+  const students = [
+    { name: "Asha",  marks: "78" },
+    { name: "Rahul", marks: "85" },
+    { name: "Meera", marks: "92" },
+  ];
+  console.table(students);                  // look at the quotes round the marks
+
+  // --- buggy version ---
+  let total = 0;
+  for (const s of students) {
+    total += s.marks;
+    console.log("after", s.name, { total });
+  }
+  console.log("typeof total:", typeof total);
+  const average = total / students.length;
+  if (average &gt; 100) {
+    console.error("Average is", average, "- impossible for marks out of 100!");
+  }
+
+  // --- fixed version: turn the text into a number first ---
+  let fixedTotal = 0;
+  for (const s of students) {
+    fixedTotal += Number(s.marks);
+  }
+  const fixedAverage = fixedTotal / students.length;
+  console.log("Fixed average:", fixedAverage, typeof fixedAverage);
+  document.querySelector("#out").textContent = `Buggy average: ${average}. Fixed average: ${fixedAverage}.`;
+&lt;/script&gt;</pre>
+  <p>Follow the clues. The table shows the marks as <i>'78'</i>, <i>'85'</i>, <i>'92'</i> &mdash; the quotes mean strings. The labelled lines show <code>total</code> growing as <i>'078'</i>, then <i>'07885'</i>, then <i>'0788592'</i>: <code>+</code> is gluing text together instead of adding. <i>typeof total: string</i> confirms it. Dividing the text <code>"0788592"</code> by 3 makes JavaScript convert it to the number 788592, so the red line reports <i>Average is 262864 - impossible for marks out of 100!</i>. The fixed version converts each mark with <code>Number()</code> first and prints <i>Fixed average: 85 number</i>.</p>
+  <details class="qc"><summary>Quick check: in the buggy loop, why is the first value '078' and not 78?</summary><p>Because <code>total</code> starts as the number 0 and <code>s.marks</code> is the string <code>"78"</code>. When <code>+</code> meets a string it joins text, so <code>0 + "78"</code> is <code>"078"</code>. From then on <code>total</code> is a string, and every <code>+=</code> glues on more text.</p></details>
+
+  <h3>Isolate the failing section</h3>
+  <p>When you have no idea where a long script goes wrong, cut the search in half. Put a <code>console.log("reached A")</code> half-way down. If it prints and the values look right, the bug is in the second half; if not, it is in the first. Halve that half, and so on. Forty lines take about six rounds (40, 20, 10, 5, 3, 2, 1) to narrow down to one. The same idea works by <b>commenting out</b>: put <code>//</code> in front of a suspect block (or wrap it in <code>/* ... */</code>), reload, and see whether the problem goes with it. Testing one function at a time, with inputs whose answers you know, is the same idea again.</p>
+
+  <h3>Explain it to a rubber duck</h3>
+  <p>A famous programmers' technique, with a silly name: explain your code, line by line and out loud, to a rubber duck on your desk &mdash; or to a patient friend. Saying "this line adds the tax to the subtotal" forces you to look at what the line <i>really</i> does, and very often you hear your own mistake half-way through the sentence.</p>
+
+  <h3>Pause the code: the debugger statement</h3>
+  <p>Printing shows a value at one moment. Sometimes you want to <b>freeze</b> the program and look at everything at once. Write the statement <code>debugger;</code> on the line where you want to stop:</p>
+  <pre class="code">button.addEventListener("click", () =&gt; {
+  const qty = Number(qtyInput.value);
+  debugger;                       // with DevTools open, the program pauses here
+  const subtotal = qty * PRICE;
+});</pre>
+  <p>With DevTools open, the program stops on that line, and you can see every variable's current value and move forward one line at a time. With DevTools closed, <code>debugger;</code> does nothing at all. A <span class="jw" data-def="A marker you click onto a line in DevTools that makes the program pause there, without changing your code.">breakpoint</span> does the same job without editing your code: you click a line number in the Sources panel. Breakpoints, stepping and the call stack are the heart of Chapter 69.</p>
+  <div class="callout warn"><b>Clean up before you commit.</b> Debugging lines are scaffolding. Remove stray <code>console.log</code> calls and every <code>debugger;</code> before you save your work to Git: a forgotten <code>debugger;</code> pauses the page for anyone who opens DevTools on your live site.</div>
+
+  <h3>Test the correction</h3>
+  <p>A fix is not finished until it has passed the original failing case <b>and</b> its neighbours: <span class="jw" data-def="An unusual input at the limits of what a program expects, such as 0, an empty box or a huge number.">edge cases</span> such as 0, an empty box, one item, two hundred items, a huge number. The slides' eight-item checklist sums up the chapter so far: read the error message; use <code>console.log()</code>; check variable values and types; isolate the failing section; reproduce the error; use breakpoints; inspect the call stack; test the correction.</p>
+</section>
+
+<section id="s7">
+  <h2>68.7 The debugging challenge, step by step</h2>
+  <p>Here is the slides' hands-on challenge. An order-total calculator: a notebook costs &#8377;250 and tax is 5%. For quantity 2 the page should show <b>Total: &#8377;525.00</b> (500 plus 5% of 500, which is 25). The code contains exactly three bugs &mdash; one selector, one typo, one formula. Run it, click <b>Calculate</b>, and before reading on, try to fix them yourself using the workflow.</p>
+  <pre class="code" data-run data-title="The broken calculator - click Calculate and read the console" data-h="130">&lt;label&gt;Quantity &lt;input id="qty" type="number" value="2"&gt;&lt;/label&gt;
+&lt;button id="calcBtn"&gt;Calculate&lt;/button&gt;
+&lt;p id="total"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const qtyInput = document.querySelector("#quantity");
+  const button = document.querySelector("#calcBtn");
+  const totalEl = document.querySelector("#total");
+  const PRICE = 250;          // price per notebook
+  const TAX_RATE = 0.05;      // 5% tax
+
+  button.addEventListener("click", () =&gt; {
+    const qty = Number(qtyInput.value);
+    const subtotal = qty * PRICE;
+    const total = subtotal + TAX_RATE;
+    totalEl.textContent = `Total: &#8377;${totl.toFixed(2)}`;
+  });
+&lt;/script&gt;</pre>
+  <p><b>Round 1.</b> <i>Observe:</i> nothing appears on the page. <i>Inspect:</i> the console says <i>Uncaught TypeError: Cannot read properties of null (reading 'value')</i> at line 12. So <code>qtyInput</code> is <code>null</code>. <i>Root cause:</i> work backwards to where <code>qtyInput</code> got its value, line 5, <code>querySelector("#quantity")</code>. The HTML says <code>id="qty"</code>. Nothing matched, so the result was <code>null</code>. <b>Fix 1:</b> <code>"#quantity"</code> becomes <code>"#qty"</code>.</p>
+  <p><b>Round 2.</b> Click again. A <b>new</b> message: <i>Uncaught ReferenceError: totl is not defined</i> at line 15. This bug was there all along; it was hidden because the click handler crashed on line 12 and never reached line 15. A ReferenceError names something that does not exist; the variable is called <code>total</code>. <b>Fix 2:</b> <code>totl</code> becomes <code>total</code>.</p>
+  <p><b>Round 3.</b> Click again. The console is clean, and the page shows <b>Total: &#8377;500.05</b>. Many students stop here. But step 6 says <i>retest against the expected value</i>, and 500.05 is not 525.00. This is a logical error: <code>subtotal + TAX_RATE</code> adds the <b>rate</b> (0.05 rupees) instead of the <b>tax</b>. The tax is <code>subtotal * TAX_RATE</code>, so the total is <code>subtotal + subtotal * TAX_RATE</code>, written more neatly as <code>subtotal * (1 + TAX_RATE)</code>. <b>Fix 3</b> gives 500 &times; 1.05 = 525.</p>
+  <table class="tbl">
+    <thead><tr><th>Round</th><th>What you see after clicking</th><th>Kind</th><th>Fix</th></tr></thead>
+    <tbody>
+      <tr><td>1</td><td><i>TypeError: Cannot read properties of null (reading 'value')</i></td><td>Runtime</td><td><code>#quantity</code> &rarr; <code>#qty</code></td></tr>
+      <tr><td>2</td><td><i>ReferenceError: totl is not defined</i></td><td>Runtime</td><td><code>totl</code> &rarr; <code>total</code></td></tr>
+      <tr><td>3</td><td>No error at all, but <b>Total: &#8377;500.05</b></td><td>Logical</td><td><code>subtotal * (1 + TAX_RATE)</code></td></tr>
+      <tr><td>Done</td><td><b>Total: &#8377;525.00</b>, console clean</td><td>&mdash;</td><td>&mdash;</td></tr>
+    </tbody>
+  </table>
+  <p>Each fix lets the code run one step further and reveals the next bug.</p>
+  <p>Here is the corrected program. It adds two things to the slides' solution: a labelled <code>console.log</code> for the evidence, and a check for a blank or impossible quantity, found by retesting with edge cases (step 6). Try 2, then 3, then 0, then clear the box:</p>
+  <pre class="code" data-run data-title="The fixed calculator - try 2, 3, 0 and an empty box" data-h="130">&lt;label&gt;Quantity &lt;input id="qty" type="number" value="2"&gt;&lt;/label&gt;
+&lt;button id="calcBtn"&gt;Calculate&lt;/button&gt;
+&lt;p id="total"&gt;&lt;/p&gt;
+&lt;script&gt;
+  const qtyInput = document.querySelector("#qty");              // fix 1: the real id
+  const button = document.querySelector("#calcBtn");
+  const totalEl = document.querySelector("#total");
+  const PRICE = 250;          // price per notebook
+  const TAX_RATE = 0.05;      // 5% tax
+
+  button.addEventListener("click", () =&gt; {
+    const qty = Number(qtyInput.value);
+    if (!Number.isInteger(qty) || qty &lt; 1) {                     // edge cases found by retesting
+      console.warn("Bad quantity:", JSON.stringify(qtyInput.value));
+      totalEl.textContent = "Please enter a quantity of 1 or more.";
+      return;
+    }
+    const subtotal = qty * PRICE;
+    const total = subtotal * (1 + TAX_RATE);                       // fix 3: add 5% of the subtotal
+    console.log({ qty, subtotal, total });
+    totalEl.textContent = `Total: &#8377;${total.toFixed(2)}`;    // fix 2: total, not totl
+  });
+&lt;/script&gt;</pre>
+  <p>Quantity 2 logs <i>{qty: 2, subtotal: 500, total: 525}</i> and shows <b>Total: &#8377;525.00</b>; quantity 3 shows <b>Total: &#8377;787.50</b>. Quantity 0 shows the friendly message and a yellow warning, <i>Bad quantity: "0"</i>. An empty box gives <i>Bad quantity: ""</i> &mdash; without the check, <code>Number("")</code> would have quietly become 0 and shown <i>Total: &#8377;0.00</i>, a logical bug nobody asked for.</p>
+  <div class="callout why"><b>Key idea.</b> The slides' lesson: <b>runtime errors can hide logical errors</b>. A clean console means the program ran; it does not mean the program is right. Keep testing against a known expected answer after the last red line has gone.</div>
+  <details class="qc"><summary>Quick check: why did the page load without any error, even though querySelector("#quantity") found nothing?</summary><p>Because finding nothing is not an error: <code>querySelector</code> simply returned <code>null</code> and stored it. The crash came only later, when the click handler asked <code>null</code> for its <code>.value</code>. The line that failed (12) was not the line that was wrong (5).</p></details>
+</section>
+
+<section id="mistakes">
+  <h2>68.8 Common misunderstandings</h2>
+  <div class="fix">
+    <div class="w"><b>&#10007; "No red error means my code works."</b><br>It only means nothing crashed. Logical and UI errors produce no message at all: 490 instead of 450, 500.05 instead of 525, a counter stuck at 0.</div>
+    <div class="r"><b>&#10003; "Code works when it gives the answer I worked out in advance."</b><br>Decide the expected result first, then compare &mdash; for the normal case and for the edge cases.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "The line in the error message is the line I got wrong."</b><br>It is the line where JavaScript <i>noticed</i>. A wrong selector on line 5 crashes on line 12; a missing <code>}</code> is reported at the end of the file.</div>
+    <div class="r"><b>&#10003; "The line in the error message is where I start looking."</b><br>Go there, then work backwards: where did this bad value come from?</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "Debugging means trying things until the error goes away."</b><br>Random edits can hide a symptom, leave the cause, and add new bugs.</div>
+    <div class="r"><b>&#10003; "Debugging means following the evidence to the root cause."</b><br>Observe, reproduce, inspect, find the cause, make the smallest fix, retest, verify.</div>
+  </div>
+  <div class="fix">
+    <div class="w"><b>&#10007; "A syntax error only breaks the line it is on."</b><br>The parser rejects the whole script before running any of it &mdash; lines above the mistake do not run either.</div>
+    <div class="r"><b>&#10003; "A syntax error stops that entire script."</b><br>Other, separate scripts on the page still run, which is why a page can half-work.</div>
+  </div>
+</section>
+
+<section id="exam" class="exam">
+  <h2>Exam-style checks</h2>
+  <details class="q"><summary>Which kind of error stops a whole script before any of its lines run?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. A runtime error</li><li>B. A logical error</li><li>C. A syntax error</li><li>D. A UI error</li></ul>
+    <p><b>Answer: C.</b> The parser checks the grammar of the whole script first; if it is broken, nothing in that script runs. A runtime error lets every line before the bad one run; a logical error lets everything run and simply gives a wrong answer.</p></div></details>
+  <details class="q"><summary>A program meant to give 10% off &#8377;500 prints 490. The console shows no error. What kind of bug is this?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. A logical error</li><li>B. A syntax error</li><li>C. A runtime error</li><li>D. A network failure</li></ul>
+    <p><b>Answer: A.</b> The code ran perfectly and did what it was told &mdash; subtract 10 rupees &mdash; which was not what was meant. With no red message, only a comparison with the expected answer (450) exposes it. B and C would both have shown a red error.</p></div></details>
+  <details class="q"><summary>What does this print? <code>const s = null; console.log("A"); console.log(s.name); console.log("B");</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>A</code>, then <i>Uncaught TypeError: Cannot read properties of null (reading 'name')</i>. <code>B</code> is never printed.</b> The grammar is fine, so the script starts and prints A. Reading a property of <code>null</code> is impossible, so it crashes there, and an uncaught runtime error abandons the rest of the script.</p></div></details>
+  <details class="q"><summary>The console shows <i>Uncaught ReferenceError: totl is not defined</i>. What is the most likely cause?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. The file totl.js could not be downloaded</li><li>B. The variable <code>totl</code> holds <code>null</code></li><li>C. A string is missing its closing quote</li><li>D. A name has been misspelled, or was never declared</li></ul>
+    <p><b>Answer: D.</b> A ReferenceError means the code used a name that does not exist &mdash; here almost certainly a typo for <code>total</code>. A missing file is a network problem, a <code>null</code> value gives a TypeError, and an unclosed quote is a SyntaxError.</p></div></details>
+  <details class="q"><summary>The JavaScript says <code>document.querySelector("#email")</code> but the HTML input has <code>id="userEmail"</code>. When does the error appear?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. As a SyntaxError, before the page loads</li><li>B. As a TypeError, when code later reads <code>.value</code> from the result</li><li>C. As a ReferenceError, on the querySelector line</li><li>D. Never: querySelector fixes the id automatically</li></ul>
+    <p><b>Answer: B.</b> Finding nothing is not an error: <code>querySelector</code> quietly returns <code>null</code>. The crash comes later, when something asks <code>null</code> for <code>.value</code>. That is why the reported line is not the line that is wrong.</p></div></details>
+  <details class="q"><summary>In the debugging workflow, what should you be able to do <i>before</i> you change any code?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Rewrite the whole function from scratch</li><li>B. Switch every <code>let</code> to <code>var</code></li><li>C. Reproduce the bug with exact steps and know its root cause</li><li>D. Delete the lines the error message mentions</li></ul>
+    <p><b>Answer: C.</b> Observe, reproduce, inspect the evidence and identify the root cause come first; only then the smallest fix. The other options are random changes, which can hide the symptom while leaving the cause.</p></div></details>
+  <details class="q"><summary>What does <code>console.log(typeof NaN);</code> print?<span class="lvl">L3</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>NaN</code></li><li>B. <code>number</code></li><li>C. <code>undefined</code></li><li>D. <code>string</code></li></ul>
+    <p><b>Answer: B.</b> Oddly, "Not a Number" is a value of type number &mdash; it is what failed number calculations produce. To test for it, use <code>Number.isNaN(x)</code>, not <code>typeof</code>.</p></div></details>
+  <details class="q"><summary>What does this print? <code>let total = 0; for (const m of ["4", "5"]) { total += m; } console.log(total, typeof total);</code><span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: <code>045 string</code>.</b> Step by step: <code>0 + "4"</code> joins text to make <code>"04"</code>, then <code>"04" + "5"</code> is <code>"045"</code>. Once a string is involved, <code>+</code> glues instead of adding. The fix is <code>total += Number(m);</code>, which prints <code>9 number</code>.</p></div></details>
+  <details class="q"><summary>What does the statement <code>debugger;</code> do when DevTools is closed?<span class="lvl">L2</span></summary><div class="a">
+    <ul class="opts"><li>A. Nothing at all</li><li>B. Pauses the program until the user presses a key</li><li>C. Throws a SyntaxError</li><li>D. Prints every variable to the console</li></ul>
+    <p><b>Answer: A.</b> <code>debugger;</code> pauses only when debugging tools are open; otherwise it has no effect. That is also why it must be removed before publishing: anyone opening DevTools on the live site would hit the pause.</p></div></details>
+  <details class="q"><summary>In the challenge, <code>subtotal</code> is 500 and <code>TAX_RATE</code> is 0.05. What does <code>subtotal + TAX_RATE</code> give, and what is the correct formula?<span class="lvl">L3</span></summary><div class="a">
+    <p><b>Answer: 500.05; the correct formula is <code>subtotal * (1 + TAX_RATE)</code>, giving 525.</b> Adding the rate adds 0.05 rupees. The tax itself is <code>subtotal * TAX_RATE</code> (25), and <code>subtotal * (1 + TAX_RATE)</code> is the subtotal plus that tax in one step.</p></div></details>
+  <details class="q"><summary>Which console method shows an array of student objects as a grid of rows and columns?<span class="lvl">L1</span></summary><div class="a">
+    <ul class="opts"><li>A. <code>console.error</code></li><li>B. <code>console.warn</code></li><li>C. <code>console.grid</code></li><li>D. <code>console.table</code></li></ul>
+    <p><b>Answer: D.</b> <code>console.table</code> gives one row per item and one column per property. <code>console.error</code> and <code>console.warn</code> print red and yellow messages, and there is no <code>console.grid</code>.</p></div></details>
+</section>
+
+<section id="summary">
+  <h2>Quick revision</h2>
+  <div class="kt"><h3>Key takeaways</h3><ol>
+    <li>A web application's life is a loop &mdash; plan, build, debug, deploy, maintain &mdash; and bugs found in testing send you back to coding.</li>
+    <li>A bug is behaviour you did not intend; debugging is the <b>systematic</b> process of identifying, understanding and fixing it.</li>
+    <li>The workflow: observe, reproduce, inspect the evidence, identify the root cause, make the smallest fix, retest with edge cases, verify. Never change lines at random.</li>
+    <li><b>Syntax</b> errors stop the whole script before it runs; <b>runtime</b> errors stop it at the bad line; <b>logical</b> errors stop nothing and show no message.</li>
+    <li>Read every error message for its type, its message and its file:line &mdash; and remember the line is where JavaScript noticed, not always where you went wrong. Fix the first error first.</li>
+    <li>Collect evidence with labelled <code>console.log</code>, <code>console.table</code>, <code>console.error</code>, <code>typeof</code>, halving the code, explaining it aloud, and <code>debugger;</code> or breakpoints.</li>
+    <li>Runtime errors can hide logical errors. A clean console means the code ran, not that it is right: always compare with an answer worked out in advance.</li>
+  </ol></div>
+  <table class="tbl">
+    <thead><tr><th>Code</th><th>What it does</th></tr></thead>
+    <tbody>
+      <tr><td><code>console.log("total:", total);</code></td><td>Prints a value with a label</td></tr>
+      <tr><td><code>console.log({ qty, total });</code></td><td>Prints several variables, each beside its name</td></tr>
+      <tr><td><code>console.table(students);</code></td><td>Shows an array of objects as a grid</td></tr>
+      <tr><td><code>console.error("...");</code> / <code>console.warn("...");</code></td><td>A red / yellow message that stands out</td></tr>
+      <tr><td><code>typeof value</code></td><td>Checks the type: <code>"5"</code> is <code>"string"</code>, <code>5</code> is <code>"number"</code></td></tr>
+      <tr><td><code>Number(text)</code></td><td>Turns text such as <code>"78"</code> into the number 78</td></tr>
+      <tr><td><code>user?.name ?? "Guest"</code></td><td>Reads <code>name</code> safely; falls back when it is <code>null</code> or <code>undefined</code></td></tr>
+      <tr><td><code>debugger;</code></td><td>Pauses here when DevTools is open; does nothing otherwise</td></tr>
+      <tr><td><code>// suspect line</code> or <code>/* block */</code></td><td>Comments code out to isolate a bug</td></tr>
+    </tbody>
+  </table>
+</section>
+
+<section id="refs" class="refs">
+  <h2>Reference material</h2>
+  <p class="lead-sm">You do not need any of these to pass the exam &mdash; this chapter is complete on its own. Open one when you want the same idea explained in a second voice, or when you want to go past the syllabus.</p>
+  <ul>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/API/console" target="_blank" rel="noopener noreferrer">MDN &mdash; console<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Every console method, including table, error, warn, group and time.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Errors" target="_blank" rel="noopener noreferrer">MDN &mdash; JavaScript error reference<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">Look up any error message you meet: what it means and the usual fixes.</span></li>
+    <li><a href="https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Statements/debugger" target="_blank" rel="noopener noreferrer">MDN &mdash; debugger<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">The exact rule for the debugger statement, with a short example.</span></li>
+    <li><a href="https://javascript.info/debugging-chrome" target="_blank" rel="noopener noreferrer">javascript.info &mdash; Debugging in the browser<span class="ext" aria-hidden="true">&#8599;</span><span class="sr-only"> (opens in a new tab)</span></a><span class="why">A friendly tour of breakpoints and stepping, a good bridge into Chapter 69.</span></li>
+  </ul>
+  <p class="refs-foot">Every link here was checked by hand. A fuller shelf &mdash; including the puzzle games that teach selectors, Flexbox and Grid faster than any article &mdash; is in <a href="book.html?ch=40">the Reference Shelf</a>.</p>
+</section>
+</article>
