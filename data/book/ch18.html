@@ -59,7 +59,7 @@
     <thead><tr><th>Constraint</th><th>Fails when</th><th>Example</th></tr></thead>
     <tbody>
       <tr><td><code>required</code></td><td>The field is empty (or no radio in the group is chosen, or a checkbox is unticked)</td><td><code>&lt;input type="email" required&gt;</code></td></tr>
-      <tr><td><code>type="email"</code>, <code>"url"</code>, <code>"number"</code>, <code>"date"</code></td><td>The value is not in the format the type demands</td><td><code>student@college</code> fails <code>type="email"</code>: no domain part after the dot</td></tr>
+      <tr><td><code>type="email"</code>, <code>"url"</code>, <code>"number"</code>, <code>"date"</code></td><td>The value is not in the format the type demands</td><td><code>student.college.edu</code> fails <code>type="email"</code>: there is no @. (<code>student@college</code> passes: the browser does not demand a dot after the @)</td></tr>
       <tr><td><code>min</code>, <code>max</code></td><td>The value is below min or above max</td><td><code>&lt;input type="number" min="18" max="60"&gt;</code></td></tr>
       <tr><td><code>step</code></td><td>The value is not on the step grid</td><td><code>step="5"</code> rejects 12</td></tr>
       <tr><td><code>minlength</code>, <code>maxlength</code></td><td>Too few characters (maxlength usually cannot be exceeded at all: the browser stops typing)</td><td><code>&lt;input type="password" minlength="8"&gt;</code></td></tr>
@@ -72,7 +72,7 @@
   &lt;p&gt;&lt;label for="u"&gt;Username (letters only, 3+)&lt;/label&gt;&lt;br&gt;
      &lt;input id="u" name="u" type="text" required pattern="[A-Za-z]{3,}" title="At least 3 letters, no digits"&gt;&lt;/p&gt;
   &lt;p&gt;&lt;label for="e"&gt;Email&lt;/label&gt;&lt;br&gt;
-     &lt;input id="e" name="e" type="email" required value="student@college"&gt;&lt;/p&gt;
+     &lt;input id="e" name="e" type="email" required value="student.college.edu"&gt;&lt;/p&gt;
   &lt;p&gt;&lt;label for="a"&gt;Age (18-60)&lt;/label&gt;&lt;br&gt;
      &lt;input id="a" name="a" type="number" min="18" max="60" step="1" required&gt;&lt;/p&gt;
   &lt;p&gt;&lt;label for="p"&gt;Password (8-20 characters)&lt;/label&gt;&lt;br&gt;
@@ -85,7 +85,8 @@
   &lt;p&gt;&lt;label&gt;&lt;input type="checkbox" name="t" required&gt; I accept the rules&lt;/label&gt;&lt;/p&gt;
   &lt;button type="submit"&gt;Register&lt;/button&gt;
 &lt;/form&gt;</pre>
-  <p>Notice the email field: it is pre-filled with <code>student@college</code>. Press Register and <b>the browser blocks submission because the value is not a valid email format</b>: it does not submit normally, does not "correct" the value and does not silently drop the field. Add <code>.edu</code> and it passes.</p>
+  <p>Notice the email field: it is pre-filled with <code>student.college.edu</code>. Press Register and <b>the browser blocks submission because the value is not a valid email format</b> (it has no @): it does not submit normally, does not "correct" the value and does not silently drop the field. Change the first dot to <code>@</code> and it passes.</p>
+  <p>Now try <code>student@college</code>. It passes too, which surprises many people. The browser's check is deliberately loose: text, an @, then a domain of letters, digits, hyphens and dots, with <b>no dot required</b> (a real address such as <code>admin@localhost</code> has none). So <code>type="email"</code> catches a missing @, an empty domain or a space, but not every typo; a site that needs a full domain adds a <code>pattern</code>, and the server checks again.</p>
 </section>
 
 <section id="s3">
@@ -154,7 +155,7 @@
     <p><b>Answer: D.</b></p></div></details>
   <details class="q"><summary>For &lt;input type="email" required value="student@college"&gt;, what happens when the form is submitted?<span class="lvl">L3</span></summary><div class="a">
     <ul class="opts"><li>A. It submits normally</li><li>B. The browser blocks submission because the value is not a valid email format</li><li>C. The browser corrects the value automatically</li><li>D. The field is silently dropped from the submitted data</li></ul>
-    <p><b>Answer: B.</b></p></div></details>
+    <p><b>Answer: A.</b> <code>student@college</code> is valid to the browser: the HTML Standard's email check needs an @ and a domain after it, but no dot in that domain (<code>admin@localhost</code> is a real address). B would be right for <code>student.college</code>, which has no @.</p></div></details>
   <details class="q"><summary>In &lt;input type="text" pattern="[A-Za-z]{3,}" title="At least 3 letters"&gt;, the title attribute:<span class="lvl">L3</span></summary><div class="a">
     <ul class="opts"><li>A. Names the field for the server</li><li>B. Supplies the hint shown when the value fails the pattern</li><li>C. Sets the field's default value</li><li>D. Removes the need for a &lt;label&gt;</li></ul>
     <p><b>Answer: B.</b></p></div></details>
